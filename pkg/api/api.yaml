@@ -1,0 +1,50 @@
+---
+# openapi: 3.0.0
+# info:
+#   title: OSAPI
+#   version: 1.0.0
+# paths:
+#   /system/dns:
+#     get:
+#       summary: Get DNS Configuration
+#       operationId: getDNS
+#       responses:
+#         '200':
+#           description: DNS configuration returned successfully
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   dns:
+#                     type: array
+#                     items:
+#                       type: string
+#                     example:
+#                       - "8.8.8.8"
+#                       - "8.8.4.4"
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Minimal ping API server
+paths:
+  /ping:
+    get:
+      responses:
+        '200':
+          description: pet response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pong'
+components:
+  schemas:
+    # base types
+    Pong:
+      type: object
+      required:
+        - ping
+      properties:
+        ping:
+          type: string
+          example: pong#

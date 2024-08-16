@@ -1,0 +1,109 @@
+---
+version: "3"
+
+vars:
+  GIT_ROOT:
+    sh: git rev-parse --show-toplevel
+  MAIN_PACKAGE: main.go
+
+tasks:
+  deps:
+    desc: Install dependencies
+    cmds:
+      - go install github.com/spf13/cobra-cli@latest
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - go install github.com/segmentio/golines@latest
+      - go install github.com/boumenot/gocover-cobertura@latest
+      - go install mvdan.cc/gofumpt@latest
+        # - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
+        # - go install github.com/jstemmer/go-junit-report@latest
+        # - go install github.com/golang/mock/mockgen@latest
+        # - go install github.com/goreleaser/goreleaser@latest
+
+  mod:
+    desc: Module maintenance
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  vet:
+    desc: Report likely mistakes in packages
+    cmds:
+      - $(go env GOPATH)/bin/golangci-lint run --config {{ .GIT_ROOT }}/.golangci.yml
+
+  vuln:
+    desc: Run Go's vulnerability scanner
+    cmds:
+      - govulncheck ./...
+
+  run:
+    desc: Compile and run Go program
+    cmds:
+      - go run {{ .MAIN_PACKAGE }} {{.CLI_ARGS}}
+
+  unit:
+    desc: Test packages
+    cmds:
+      - go test -parallel 5 -race -v ./...
+
+  unit:int:
+    desc: Integration test packages
+    cmds:
+      - curl --fail --silent --show-error 0.0.0.0:8080/ping | jq -e 'select(.ping == "pong")'
+
+  test:
+    desc: Test all
+    cmds:
+      - task: deps
+      - task: mod
+      - task: fmt:check
+      - task: vet
+      - task: cov
+      - task: unit:int
+
+  cov:
+    desc: Generate coverage
+    env:
+      # https://github.com/golang/go/issues/65570
+      GOEXPERIMENT: nocoverageredesign
+    cmds:
+      - go test -race -coverprofile=cover.out -v $(go list ./... | grep -v /mocks) 2>&1 | go-junit-report --set-exit-code > result.xml || (cat result.xml && echo "fail" && exit 1)
+      - gocover-cobertura < cover.out > cobertura.xml
+      - go tool cover -func=cover.out
+
+  cov:map:
+    desc: Generate coverage and show heatmap
+    cmds:
+      - task: cov
+      - go tool cover -html=cover.out
+
+  fmt:
+    desc: Reformat files whose formatting differs from `go_fmt_command`
+    cmds:
+      - gofumpt -l -w .
+      - golines --base-formatter=gofumpt -w .
+
+  fmt:check:
+    desc: Check files whose formatting differs from `go_fmt_command`
+    cmds:
+      # https://github.com/mvdan/gofumpt/issues/114
+      - test -z "$(gofumpt -d -e . | tee /dev/stderr)"
+      - test -z "$(golines -l --dry-run --base-formatter=gofumpt -w .)"
+
+  # build:
+  #   desc: Build ARCH compatible binary.
+  #   cmds:
+  #     - goreleaser release --snapshot --clean
+
+  # mockgen:
+  #   desc: Generate mock for interface
+  #   cmds:
+  #     - mockgen -source=internal/git.go -destination=internal/mocks/git/git_mock.go -package=git
+  #     - mockgen -source=internal/repository.go -destination=internal/mocks/repository/repository_mock.go -package=repository
+  #     - mockgen -source=internal/exec.go -destination=internal/mocks/exec/exec_mock.go -package=exec
+  #     - mockgen -source=internal/repository/types.go -destination=internal/mocks/repository/copy_mock.go -package=repository
+
+  generate:
+    desc: Generate Go files by processing source
+    cmds:
+      - go generate ./...

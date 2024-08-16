@@ -1,0 +1,6 @@
+---
+package: api
+output: ping.gen.go
+generate:
+  models: true
+  echo-server: true
