@@ -18,24 +18,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package config
 
-import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-)
-
-// clientCmd represents the client command.
-var clientCmd = &cobra.Command{
-	Use:   "client",
-	Short: "The client subcommand",
+// Config top level application configuration.
+type Config struct {
+	Client
+	Server
+	Queue
+	// Debug enable or disable debug option set from CLI.
+	Debug bool `mapstruture:"debug"`
 }
 
-func init() {
-	rootCmd.AddCommand(clientCmd)
-
-	clientCmd.PersistentFlags().
-		StringP("url", "l", "http://0.0.0.0:8080", "URL the client will connect to")
-
-	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
+// Client configuration settings.
+type Client struct {
+	// URL the client will connect to
+	URL string `mapstructure:"url"`
 }
+
+// Server configuration settings.
+type Server struct {
+	// Port the server will bind to.
+	Port int `mapstructure:"port"`
+}
+
+// Queue configuration settings.
+type Queue struct{}

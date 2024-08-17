@@ -22,9 +22,10 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-// serverCmd represents the server command
+// serverCmd represents the server command.
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "The server subcommand",
@@ -32,4 +33,9 @@ var serverCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(serverCmd)
+
+	serverCmd.PersistentFlags().
+		IntP("port", "p", 8080, "Port the server will bind to")
+
+	_ = viper.BindPFlag("server.port", serverCmd.PersistentFlags().Lookup("port"))
 }

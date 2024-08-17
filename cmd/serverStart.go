@@ -21,35 +21,45 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	slogecho "github.com/samber/slog-echo"
 	"github.com/spf13/cobra"
 
 	"github.com/retr0h/osapi/internal/api"
 )
 
-// serverStart represents the serve command
-var serverStart = &cobra.Command{
+// serverStartCmd represents the serve command.
+var serverStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start the OSAPI service",
 	Long:  `Start the  OSAPI service.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
+		logger.Info(
+			"server configuration",
+			slog.Bool("debug", appConfig.Debug),
+			slog.Int("server.port", appConfig.Server.Port),
+		)
+
 		// create a type that satisfies the `api.ServerInterface`, which
-		// contains an implementation of every operation from the generated code
+		// contains an implementation of every operation from the generated code.
 		server := api.NewServer()
 
 		e := echo.New()
-		e.Use(middleware.Logger())
+		e.HideBanner = true
+
+		e.Use(slogecho.New(logger))
+		e.Use(middleware.Recover())
+		e.Use(middleware.RequestID())
 
 		api.RegisterHandlers(e, server)
-
-		// And we serve HTTP until the world ends.
-		log.Fatal(e.Start("0.0.0.0:8080"))
+		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
 	},
 }
 
 func init() {
-	serverCmd.AddCommand(serverStart)
+	serverCmd.AddCommand(serverStartCmd)
 }

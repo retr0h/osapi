@@ -22,8 +22,7 @@ package cmd
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -31,20 +30,42 @@ import (
 	"github.com/retr0h/osapi/internal/client"
 )
 
-// clientPingCmd represents the clientPing command
+// clientPingCmd represents the clientPing command.
 var clientPingCmd = &cobra.Command{
 	Use:   "ping",
 	Short: "Ping the server",
 	Long:  `Interact with the server by issuing a ping.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
+		logger.Info(
+			"client configuration",
+			slog.Bool("debug", appConfig.Debug),
+			slog.String("client.url", appConfig.Client.URL),
+		)
+
 		hc := http.Client{}
-		c, err := client.NewClientWithResponses("http://0.0.0.0:8080", client.WithHTTPClient(&hc))
+		c, err := client.NewClientWithResponses(appConfig.Client.URL, client.WithHTTPClient(&hc))
 		if err != nil {
-			log.Fatal(err)
+			logFatal(
+				"failed to create config",
+				slog.Group("",
+					slog.String("err", err.Error()),
+				),
+			)
 		}
 
 		resp, err := c.GetPingWithResponse(context.TODO())
-		fmt.Printf("resp.JSON200: %v\n", resp.JSON200)
+		if err != nil {
+			logFatal(
+				"failed to get response from endpoint",
+				slog.Group("",
+					slog.String("err", err.Error()),
+				),
+			)
+		}
+		logger.Info(
+			"response",
+			slog.String("data", resp.JSON200.Ping),
+		)
 	},
 }
 

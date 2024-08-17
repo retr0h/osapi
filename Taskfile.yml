@@ -49,7 +49,8 @@ tasks:
   unit:int:
     desc: Integration test packages
     cmds:
-      - curl --fail --silent --show-error 0.0.0.0:8080/ping | jq -e 'select(.ping == "pong")'
+      # TODO(retr0h): fix lame tests
+      - go run main.go client ping | grep "^pong$"
 
   test:
     desc: Test all
