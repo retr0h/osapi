@@ -28,7 +28,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/pkg/client"
+	"github.com/retr0h/osapi/internal/client"
 )
 
 // clientPingCmd represents the clientPing command

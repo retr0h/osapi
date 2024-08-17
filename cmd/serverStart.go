@@ -27,15 +27,14 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/pkg/api"
+	"github.com/retr0h/osapi/internal/api"
 )
 
 // serverStart represents the serve command
 var serverStart = &cobra.Command{
 	Use:   "start",
 	Short: "Start the OSAPI service",
-	Long: `Start the  OSAPI service.
-`,
+	Long:  `Start the  OSAPI service.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// create a type that satisfies the `api.ServerInterface`, which
 		// contains an implementation of every operation from the generated code
