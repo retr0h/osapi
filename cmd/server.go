@@ -21,36 +21,15 @@
 package cmd
 
 import (
-	"log"
-
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
-
-	"github.com/retr0h/osapi/pkg/api"
 )
 
-// serveCmd represents the serve command
-var serveCmd = &cobra.Command{
-	Use:   "serve",
-	Short: "Start the OSAPI service",
-	Long: `Start the Echo based OSAPI service.
-`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// create a type that satisfies the `api.ServerInterface`, which
-		// contains an implementation of every operation from the generated code
-		server := api.NewServer()
-
-		e := echo.New()
-		e.Use(middleware.Logger())
-
-		api.RegisterHandlers(e, server)
-
-		// And we serve HTTP until the world ends.
-		log.Fatal(e.Start("0.0.0.0:8080"))
-	},
+// serverCmd represents the server command
+var serverCmd = &cobra.Command{
+	Use:   "server",
+	Short: "The server subcommand",
 }
 
 func init() {
-	rootCmd.AddCommand(serveCmd)
+	rootCmd.AddCommand(serverCmd)
 }
