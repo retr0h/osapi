@@ -18,6 +18,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package api
+package pong
 
-//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config cfg.yaml api.yaml
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+)
+
+// ensure that we've conformed to the `ServerInterface` with a compile-time check
+var _ ServerInterface = (*Server)(nil)
+
+// New factory to create a new instance.
+func New() Server {
+	return Server{}
+}
+
+// GetPing (GET /ping)
+func (s Server) GetPing(ctx echo.Context) error {
+	resp := Pong{
+		Ping: "pong",
+	}
+
+	return ctx.JSON(http.StatusOK, resp)
+}
