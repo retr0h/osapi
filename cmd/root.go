@@ -35,8 +35,8 @@ func logFatal(message string, logGroup any) {
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "osapi",
-	Short: "An API for managing Linux systems",
-	Long: `An API for managing Linux systems, responsible for ensuring that
+	Short: "A CRUD API for managing Linux systems.",
+	Long: `A CRUD API for managing Linux systems, responsible for ensuring that
 the system's configuration matches the desired state.
 
 ┌─┐┌─┐┌─┐┌─┐┬

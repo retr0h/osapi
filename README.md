@@ -1,7 +1,9 @@
 # OS API
 
-An API for managing Linux systems, responsible for ensuring that the system's
-configuration matches the desired state.
+A CRUD API for managing Linux systems.
+
+This project aims to provide basic management capabilities to Linux systems,
+so that they can be used as an Appliance.
 
 ## API
 
