@@ -30,13 +30,15 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/retr0h/osapi/internal/api"
+	"github.com/retr0h/osapi/internal/api/system"
 )
 
 // serverStartCmd represents the serve command.
 var serverStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start the OSAPI service",
-	Long:  `Start the  OSAPI service.`,
+	Long: `Start the  OSAPI service.
+`,
 	Run: func(_ *cobra.Command, _ []string) {
 		logger.Info(
 			"server configuration",
@@ -46,7 +48,8 @@ var serverStartCmd = &cobra.Command{
 
 		// create a type that satisfies the `api.ServerInterface`, which
 		// contains an implementation of every operation from the generated code.
-		server := api.NewServer()
+		pongHandler := api.New()
+		systemHandler := system.New()
 
 		e := echo.New()
 		e.HideBanner = true
@@ -55,7 +58,8 @@ var serverStartCmd = &cobra.Command{
 		e.Use(middleware.Recover())
 		e.Use(middleware.RequestID())
 
-		api.RegisterHandlers(e, server)
+		api.RegisterHandlers(e, pongHandler)
+		system.RegisterHandlers(e, systemHandler)
 		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
 	},
 }

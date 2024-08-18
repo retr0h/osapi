@@ -18,6 +18,51 @@ type Pong struct {
 	Ping string `json:"ping"`
 }
 
+// SystemStatus defines model for SystemStatus.
+type SystemStatus struct {
+	// Disk Disk usage information.
+	Disk struct {
+		// Free Free disk space in bytes.
+		Free int `json:"free"`
+
+		// Total Total disk space in bytes.
+		Total int `json:"total"`
+
+		// Used Used disk space in bytes.
+		Used int `json:"used"`
+	} `json:"disk"`
+
+	// Hostname The hostname of the system.
+	Hostname string `json:"hostname"`
+
+	// LoadAverage The system load averages for 1, 5, and 15 minutes.
+	LoadAverage struct {
+		// N15min Load average for the last 15 minutes.
+		N15min float32 `json:"15min"`
+
+		// N1min Load average for the last 1 minute.
+		N1min float32 `json:"1min"`
+
+		// N5min Load average for the last 5 minutes.
+		N5min float32 `json:"5min"`
+	} `json:"load_average"`
+
+	// Memory Memory usage information.
+	Memory struct {
+		// Free Free memory in bytes.
+		Free int `json:"free"`
+
+		// Total Total memory in bytes.
+		Total int `json:"total"`
+
+		// Used Used memory in bytes.
+		Used int `json:"used"`
+	} `json:"memory"`
+
+	// Uptime The uptime of the system.
+	Uptime string `json:"uptime"`
+}
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -93,10 +138,25 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 type ClientInterface interface {
 	// GetPing request
 	GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetSystemStatus request
+	GetSystemStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPingRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSystemStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSystemStatusRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +177,33 @@ func NewGetPingRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/ping")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetSystemStatusRequest generates requests for GetSystemStatus
+func NewGetSystemStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/system/status")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -179,6 +266,9 @@ func WithBaseURL(baseURL string) ClientOption {
 type ClientWithResponsesInterface interface {
 	// GetPingWithResponse request
 	GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error)
+
+	// GetSystemStatusWithResponse request
+	GetSystemStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemStatusResponse, error)
 }
 
 type GetPingResponse struct {
@@ -203,6 +293,28 @@ func (r GetPingResponse) StatusCode() int {
 	return 0
 }
 
+type GetSystemStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SystemStatus
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSystemStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSystemStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetPingWithResponse request returning *GetPingResponse
 func (c *ClientWithResponses) GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error) {
 	rsp, err := c.GetPing(ctx, reqEditors...)
@@ -210,6 +322,15 @@ func (c *ClientWithResponses) GetPingWithResponse(ctx context.Context, reqEditor
 		return nil, err
 	}
 	return ParseGetPingResponse(rsp)
+}
+
+// GetSystemStatusWithResponse request returning *GetSystemStatusResponse
+func (c *ClientWithResponses) GetSystemStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemStatusResponse, error) {
+	rsp, err := c.GetSystemStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSystemStatusResponse(rsp)
 }
 
 // ParseGetPingResponse parses an HTTP response from a GetPingWithResponse call
@@ -228,6 +349,32 @@ func ParseGetPingResponse(rsp *http.Response) (*GetPingResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Pong
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSystemStatusResponse parses an HTTP response from a GetSystemStatusWithResponse call
+func ParseGetSystemStatusResponse(rsp *http.Response) (*GetSystemStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSystemStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SystemStatus
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

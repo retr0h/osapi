@@ -10,6 +10,7 @@ tasks:
   deps:
     desc: Install dependencies
     cmds:
+      - npm install -g @redocly/cli
       - go install github.com/spf13/cobra-cli@latest
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
       - go install github.com/segmentio/golines@latest
@@ -50,7 +51,8 @@ tasks:
     desc: Integration test packages
     cmds:
       # TODO(retr0h): fix lame tests
-      - go run main.go client ping | grep "^pong$"
+      - go run main.go client ping 2>&1 | grep pong
+      - go run main.go client system status
 
   test:
     desc: Test all
@@ -107,4 +109,5 @@ tasks:
   generate:
     desc: Generate Go files by processing source
     cmds:
+      - redocly join --prefix-tags-with-info-prop title -o internal/client/api.yaml internal/api/api.yaml internal/api/system/api.yaml
       - go generate ./...

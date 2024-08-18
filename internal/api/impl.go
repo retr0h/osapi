@@ -29,11 +29,8 @@ import (
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
 var _ ServerInterface = (*Server)(nil)
 
-// Server bla
-type Server struct{}
-
-// NewServer foo
-func NewServer() Server {
+// New factory to create a new instance.
+func New() Server {
 	return Server{}
 }
 

@@ -37,7 +37,8 @@ import (
 var queueStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start the task runner service",
-	Long:  `Start the  task runner service.`,
+	Long: `Start the  task runner service.
+`,
 	Run: func(_ *cobra.Command, _ []string) {
 		logger.Info(
 			"queue configuration",

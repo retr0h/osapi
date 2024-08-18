@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -30,11 +31,11 @@ import (
 	"github.com/retr0h/osapi/internal/client"
 )
 
-// clientPingCmd represents the clientPing command.
-var clientPingCmd = &cobra.Command{
-	Use:   "ping",
-	Short: "Ping the server",
-	Long: `Interact with the server by issuing a ping.
+// clientSystemStatusCmd represents the clientPing command.
+var clientSystemStatusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Status of the server",
+	Long: `Obtain the current system status.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		logger.Info(
@@ -54,7 +55,7 @@ var clientPingCmd = &cobra.Command{
 			)
 		}
 
-		resp, err := c.GetPingWithResponse(context.TODO())
+		resp, err := c.GetSystemStatusWithResponse(context.TODO())
 		if err != nil {
 			logFatal(
 				"failed to get response from endpoint",
@@ -63,13 +64,10 @@ var clientPingCmd = &cobra.Command{
 				),
 			)
 		}
-		logger.Info(
-			"response",
-			slog.String("data", resp.JSON200.Ping),
-		)
+		fmt.Println(resp.JSON200)
 	},
 }
 
 func init() {
-	clientCmd.AddCommand(clientPingCmd)
+	clientSystemCmd.AddCommand(clientSystemStatusCmd)
 }

@@ -1,0 +1,130 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Minimal ping API server
+tags:
+  - name: Minimal_ping_API_server_other
+    x-displayName: other
+  - name: System_Status_API_other
+    x-displayName: other
+paths:
+  /ping:
+    get:
+      responses:
+        '200':
+          description: pet response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pong'
+      tags:
+        - Minimal_ping_API_server_other
+  /system/status:
+    get:
+      summary: Retrieve system status
+      description: >-
+        Get the current status of the system including hostname, uptime, load
+        averages, memory, and disk usage.
+      responses:
+        '200':
+          description: A JSON object containing the system's status information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+      tags:
+        - System_Status_API_other
+components:
+  schemas:
+    Pong:
+      type: object
+      required:
+        - ping
+      properties:
+        ping:
+          type: string
+          example: pong#
+    SystemStatus:
+      type: object
+      properties:
+        hostname:
+          type: string
+          description: The hostname of the system.
+          example: my-linux-server
+        uptime:
+          type: string
+          description: The uptime of the system.
+          example: 1 day, 4 hours, 12 minutes
+        load_average:
+          type: object
+          description: The system load averages for 1, 5, and 15 minutes.
+          properties:
+            1min:
+              type: number
+              description: Load average for the last 1 minute.
+              example: 0.32
+            5min:
+              type: number
+              description: Load average for the last 5 minutes.
+              example: 0.28
+            15min:
+              type: number
+              description: Load average for the last 15 minutes.
+              example: 0.25
+          required:
+            - 1min
+            - 5min
+            - 15min
+        memory:
+          type: object
+          description: Memory usage information.
+          properties:
+            total:
+              type: integer
+              description: Total memory in bytes.
+              example: 8388608
+            used:
+              type: integer
+              description: Used memory in bytes.
+              example: 4194304
+            free:
+              type: integer
+              description: Free memory in bytes.
+              example: 2097152
+          required:
+            - total
+            - used
+            - free
+        disk:
+          type: object
+          description: Disk usage information.
+          properties:
+            total:
+              type: integer
+              description: Total disk space in bytes.
+              example: 500000000000
+            used:
+              type: integer
+              description: Used disk space in bytes.
+              example: 250000000000
+            free:
+              type: integer
+              description: Free disk space in bytes.
+              example: 250000000000
+          required:
+            - total
+            - used
+            - free
+      required:
+        - hostname
+        - uptime
+        - load_average
+        - memory
+        - disk
+x-tagGroups:
+  - name: Minimal ping API server
+    tags:
+      - Minimal_ping_API_server_other
+  - name: System Status API
+    tags:
+      - System_Status_API_other

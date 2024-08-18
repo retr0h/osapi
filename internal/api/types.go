@@ -18,58 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package api
 
-import (
-	"context"
-	"log/slog"
-	"net/http"
-
-	"github.com/spf13/cobra"
-
-	"github.com/retr0h/osapi/internal/client"
-)
-
-// clientPingCmd represents the clientPing command.
-var clientPingCmd = &cobra.Command{
-	Use:   "ping",
-	Short: "Ping the server",
-	Long: `Interact with the server by issuing a ping.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		logger.Info(
-			"client configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.String("client.url", appConfig.Client.URL),
-		)
-
-		hc := http.Client{}
-		c, err := client.NewClientWithResponses(appConfig.Client.URL, client.WithHTTPClient(&hc))
-		if err != nil {
-			logFatal(
-				"failed to create config",
-				slog.Group("",
-					slog.String("err", err.Error()),
-				),
-			)
-		}
-
-		resp, err := c.GetPingWithResponse(context.TODO())
-		if err != nil {
-			logFatal(
-				"failed to get response from endpoint",
-				slog.Group("",
-					slog.String("err", err.Error()),
-				),
-			)
-		}
-		logger.Info(
-			"response",
-			slog.String("data", resp.JSON200.Ping),
-		)
-	},
-}
-
-func init() {
-	clientCmd.AddCommand(clientPingCmd)
-}
+// Server implementation of the APIs operations.
+type Server struct{}
