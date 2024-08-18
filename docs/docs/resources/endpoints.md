@@ -1,8 +1,18 @@
+---
+sidebar_position: 1
+---
+
+# Endpoints
+
+The client and server components are generated from an OpenAPI spec.
+
 ## **RESTful API Endpoints for Linux System Configuration**
 
 ### **1. System Information and Management**
+
 - **Information**
-  - `/system/info` - Get system information (hostname, OS version, uptime, etc.).
+  - `/system/info` - Get system information (hostname, OS version, uptime,
+    etc.).
   - `/system/logs` - Access system logs.
   - `/system/status` - Get overall system status (load, memory usage, etc.).
 - **Time and Localization**
@@ -17,18 +27,21 @@
   - `/system/power/hibernate` - Hibernate the system.
 
 ### **2. User and Group Management**
+
 - `/users` - Manage users.
 - `/users/{username}` - Manage a specific user.
 - `/groups` - Manage groups.
 - `/groups/{groupname}` - Manage a specific group.
 
 ### **3. Package Management**
+
 - `/packages` - List installed packages.
 - `/packages/install` - Install a package.
 - `/packages/remove` - Remove a package.
 - `/packages/update` - Update a package or all packages.
 
 ### **4. Networking**
+
 - **Interfaces**
   - `/network/interfaces`
   - `/network/interfaces/{interface-name}`
@@ -45,6 +58,7 @@
   - `/network/hostname`
 
 ### **5. Storage Management**
+
 - **Disks**
   - `/storage/disks` - List disks.
   - `/storage/disks/{disk-id}` - Manage a specific disk.
@@ -59,14 +73,18 @@
   - `/storage/filesystems/{filesystem-id}` - Manage a specific file system.
 
 ### **6. Process Management**
+
 - `/processes` - List running processes.
 - `/processes/{pid}` - Manage a specific process (e.g., kill, nice).
 
 ### **7. Services and Daemons**
+
 - `/services` - List running services.
-- `/services/{service-name}` - Manage a specific service (start, stop, restart, enable, disable).
+- `/services/{service-name}` - Manage a specific service (start, stop, restart,
+  enable, disable).
 
 ### **8. NTP (Network Time Protocol)**
+
 - `/services/ntp/servers`
 - `/services/ntp/servers/{server-id}`
 - `/services/ntp/config`
@@ -74,10 +92,12 @@
 - `/services/ntp/peers/{peer-id}`
 
 ### **9. Cron Jobs**
+
 - `/services/cron/jobs`
 - `/services/cron/jobs/{job-id}`
 
 ### **10. Security**
+
 - **SELinux/AppArmor**
   - `/security/selinux/status` - Get SELinux status.
   - `/security/apparmor/status` - Get AppArmor status.
@@ -89,9 +109,11 @@
   - `/security/ssh/keys` - Manage SSH keys.
 
 ### **11. Backup and Restore**
+
 - `/backup` - Perform or schedule system backups.
 - `/restore` - Restore from a backup.
 
 ### **12. Monitoring and Alerts**
+
 - `/monitoring/metrics` - Access system metrics.
 - `/monitoring/alerts` - Manage monitoring alerts and notifications.

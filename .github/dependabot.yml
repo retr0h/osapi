@@ -1,0 +1,23 @@
+---
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: chore
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: chore
+
+  - package-ecosystem: "gomod"
+    directory: "examples/go-client/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: chore

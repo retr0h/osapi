@@ -1,0 +1,72 @@
+version: "3"
+
+tasks:
+  yarn:install:
+    desc: Setup Docusaurus locally
+    cmds:
+      - yarn install
+    sources:
+      - package.json
+      - yarn.lock
+
+  build:
+    desc: Build website
+    deps:
+      - yarn:install
+    cmds:
+      - yarn docusaurus build
+
+  start:
+    desc: Start website
+    deps:
+      - yarn:install
+    vars:
+      HOST: '{{default "localhost" .HOST}}'
+      PORT: '{{default "3001" .PORT}}'
+    cmds:
+      - yarn docusaurus start --no-open --host={{.HOST}} --port={{.PORT}}
+
+  serve:
+    desc: Preview website
+    deps:
+      - yarn:install
+    vars:
+      HOST: '{{default "localhost" .HOST}}'
+      PORT: '{{default "3001" .PORT}}'
+    cmds:
+      - yarn docusaurus serve --no-open --host={{.HOST}} --port={{.PORT}}
+
+  clean:
+    desc: Clean temp directories
+    cmds:
+      - rm -rf ./build
+
+  bump:
+    desc: Create a new documentation version
+    vars:
+      VERSION: '{{.VERSION}}'
+    cmds:
+      - yarn docusaurus docs:version {{.VERSION}}
+    requires:
+      vars:
+        - VERSION
+
+  deploy:
+    desc: Build and deploy Docusaurus
+    summary: Requires GIT_USER and GIT_PASS envs to be previous set
+    cmds:
+      - yarn docusaurus deploy
+
+  fmt:
+    desc: Reformat files whose formatting differs from `prettier`
+    deps:
+      - yarn:install
+    cmds:
+      - yarn prettier docs --write --config prettier.config.js
+
+  fmt:check:
+    desc: Check files whose formatting differs from `prettier`
+    deps:
+      - yarn:install
+    cmds:
+      - yarn prettier docs --check --config prettier.config.js

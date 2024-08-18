@@ -5,43 +5,12 @@ A CRUD API for managing Linux systems.
 This project aims to provide basic management capabilities to Linux systems,
 so that they can be used as an Appliance.
 
-## API
+## Documentation
 
-The client and server components are generated from an OpenAPI spec.
+[Usage][] | [Documentation][]
 
-## Usage
-
-TODO
-
-# Guiding Principles
-
-TODO
-
-## Testing
-
-Install dependencies:
-
-```bash
-task deps
-```
-
-To execute tests:
-
-```bash
-task test
-```
-
-Auto format code:
-
-```bash
-task fmt
-```
-
-List helpful targets:
-
-```bash
-task
-```
+[Usage]: https://retr0h.github.io/osapi/usage
+[Documentation]: https://retr0h.github.io/osapi/
 
 ## License
 
