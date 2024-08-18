@@ -32,3 +32,8 @@ sidebar_position: 6
 
    Prioritize the stability and reliability of the API over features, ensuring
    it can safely manage critical system-level configurations.
+
+7. **CLI Parity with API**
+
+   Ensure that anything that can be accomplished through the API also has an
+   equivalent option available via the CLI.
