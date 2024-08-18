@@ -2,8 +2,8 @@
 
 A CRUD API for managing Linux systems.
 
-This project aims to provide basic management capabilities to Linux systems,
-so that they can be used as an Appliance.
+This project provides basic management capabilities to Linux systems, enabling
+them to be used as appliances.
 
 ## Documentation
 
