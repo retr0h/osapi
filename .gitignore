@@ -2,3 +2,4 @@ cobertura.xml
 cover.out
 dist/
 result.xml
+.task/

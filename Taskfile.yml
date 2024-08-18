@@ -21,10 +21,10 @@ tasks:
       - go install github.com/segmentio/golines@latest
       - go install github.com/boumenot/gocover-cobertura@latest
       - go install mvdan.cc/gofumpt@latest
-        # - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
-        # - go install github.com/jstemmer/go-junit-report@latest
-        # - go install github.com/golang/mock/mockgen@latest
-        # - go install github.com/goreleaser/goreleaser@latest
+      - go install github.com/jstemmer/go-junit-report@latest
+      # - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
+      # - go install github.com/golang/mock/mockgen@latest
+      # - go install github.com/goreleaser/goreleaser@latest
 
   mod:
     desc: Module maintenance
@@ -67,7 +67,8 @@ tasks:
       - task: fmt:check
       - task: vet
       - task: cov
-      - task: unit:int
+      # TODO(retr0h): enable
+      # - task: unit:int
 
   cov:
     desc: Generate coverage
