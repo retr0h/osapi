@@ -11,7 +11,7 @@ require (
 	github.com/samber/slog-echo v1.14.5
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
-	golang.org/x/term v0.20.0
+	golang.org/x/term v0.23.0
 )
 
 require (
@@ -57,7 +57,7 @@ require (
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.21.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
