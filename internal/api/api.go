@@ -18,45 +18,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package api
 
 import (
-	"fmt"
-	"log/slog"
-
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	slogecho "github.com/samber/slog-echo"
-	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/internal/api"
+	"github.com/retr0h/osapi/internal/api/ping" // testing only
+	"github.com/retr0h/osapi/internal/api/system"
 )
 
-// serverStartCmd represents the serve command.
-var serverStartCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Start the OSAPI service",
-	Long: `Start the  OSAPI service.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		logger.Info(
-			"server configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.Int("server.port", appConfig.Server.Port),
-		)
+// RegisterHandlers initializes and registers all API handlers.
+func RegisterHandlers(e *echo.Echo) {
+	handlers := []func(e *echo.Echo){
+		func(e *echo.Echo) {
+			pingHandler := ping.New()
+			ping.RegisterHandlers(e, pingHandler)
+		},
+		func(e *echo.Echo) {
+			systemHandler := system.New()
+			system.RegisterHandlers(e, systemHandler)
+		},
+		// Add more handler functions as needed
+	}
 
-		e := echo.New()
-		e.HideBanner = true
-
-		e.Use(slogecho.New(logger))
-		e.Use(middleware.Recover())
-		e.Use(middleware.RequestID())
-
-		api.RegisterHandlers(e)
-		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
-	},
-}
-
-func init() {
-	serverCmd.AddCommand(serverStartCmd)
+	for _, register := range handlers {
+		register(e)
+	}
 }
