@@ -20,36 +20,17 @@
 
 package system
 
-import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-
-	"github.com/retr0h/osapi/internal/resources/system"
-	"github.com/retr0h/osapi/internal/resources/system/ubuntu"
-)
-
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ ServerInterface = (*Server)(nil)
-
-// New factory to create a new instance.
-func New() Server {
-	return Server{}
+// System implementation operations.
+type System struct {
+	HostnameProvider HostnameProvider
 }
 
-// GetSystemStatus (GET /system/status)
-func (s Server) GetSystemStatus(ctx echo.Context) error {
-	// TODO(retr0h): Detect OS
-	var hostnameProvider system.HostnameProvider = ubuntu.NewOSHostnameProvider()
-	var sm system.Manager = system.New(hostnameProvider)
-	hostname, err := sm.GetHostname()
-	if err != nil {
-		return err
-	}
+// HostnameProvider is an interface that abstracts the os.Hostname function.
+type HostnameProvider interface {
+	GetHostname() (string, error)
+}
 
-	resp := SystemStatus{
-		Hostname: hostname,
-	}
-
-	return ctx.JSON(http.StatusOK, resp)
+// Manager manager responsible for System operations.
+type Manager interface {
+	GetHostname() (string, error)
 }

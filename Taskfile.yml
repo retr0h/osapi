@@ -23,7 +23,6 @@ tasks:
       - go install mvdan.cc/gofumpt@latest
       - go install github.com/jstemmer/go-junit-report@latest
       # - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
-      # - go install github.com/golang/mock/mockgen@latest
       # - go install github.com/goreleaser/goreleaser@latest
 
   mod:
@@ -103,14 +102,6 @@ tasks:
   #   desc: Build ARCH compatible binary.
   #   cmds:
   #     - goreleaser release --snapshot --clean
-
-  # mockgen:
-  #   desc: Generate mock for interface
-  #   cmds:
-  #     - mockgen -source=internal/git.go -destination=internal/mocks/git/git_mock.go -package=git
-  #     - mockgen -source=internal/repository.go -destination=internal/mocks/repository/repository_mock.go -package=repository
-  #     - mockgen -source=internal/exec.go -destination=internal/mocks/exec/exec_mock.go -package=exec
-  #     - mockgen -source=internal/repository/types.go -destination=internal/mocks/repository/copy_mock.go -package=repository
 
   generate:
     desc: Generate Go files by processing source
