@@ -114,5 +114,5 @@ tasks:
   generate:
     desc: Generate Go files by processing source
     cmds:
-      - redocly join --prefix-tags-with-info-prop title -o internal/client/api.yaml internal/api/pong/api.yaml internal/api/system/api.yaml
+      - redocly join --prefix-tags-with-info-prop title -o internal/client/api.yaml internal/api/*/api.yaml
       - go generate ./...
