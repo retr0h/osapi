@@ -29,7 +29,7 @@ import (
 	slogecho "github.com/samber/slog-echo"
 	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/internal/api/pong" // testing only
+	"github.com/retr0h/osapi/internal/api/ping" // testing only
 	"github.com/retr0h/osapi/internal/api/system"
 )
 
@@ -48,7 +48,7 @@ var serverStartCmd = &cobra.Command{
 
 		// create a type that satisfies the `ServerInterface`, which
 		// contains an implementation of every operation from the generated code.
-		pongHandler := pong.New()
+		pingHandler := ping.New()
 		systemHandler := system.New()
 
 		e := echo.New()
@@ -58,7 +58,7 @@ var serverStartCmd = &cobra.Command{
 		e.Use(middleware.Recover())
 		e.Use(middleware.RequestID())
 
-		pong.RegisterHandlers(e, pongHandler)
+		ping.RegisterHandlers(e, pingHandler)
 		system.RegisterHandlers(e, systemHandler)
 		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
 	},

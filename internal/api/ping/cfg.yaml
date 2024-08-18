@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 ---
-package: pong
+package: ping
 output: ping.gen.go
 generate:
   models: true
