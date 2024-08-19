@@ -7,6 +7,18 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	// Code The error code.
+	Code int `json:"code"`
+
+	// Details Additional details about the error, specifying which component failed.
+	Details *string `json:"details,omitempty"`
+
+	// Error A description of the error that occurred.
+	Error string `json:"error"`
+}
+
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
 	// Disk Disk usage information.

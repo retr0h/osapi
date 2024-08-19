@@ -18,56 +18,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package system
 
 import (
-	"context"
-	"fmt"
-	"log/slog"
 	"net/http"
 
-	"github.com/spf13/cobra"
+	"github.com/labstack/echo/v4"
 
-	"github.com/retr0h/osapi/internal/client"
+	"github.com/retr0h/osapi/internal/resources/system"
+	"github.com/retr0h/osapi/internal/resources/system/ubuntu"
 )
 
-// clientSystemStatusCmd represents the clientPing command.
-var clientSystemStatusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Status of the server",
-	Long: `Obtain the current system status.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		logger.Info(
-			"client configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.String("client.url", appConfig.Client.URL),
-		)
+// GetSystemStatus (GET /system/status)
+func (s Server) GetSystemStatus(ctx echo.Context) error {
+	// TODO(retr0h): Detect OS
+	var hostnameProvider system.HostnameProvider = ubuntu.NewOSHostnameProvider()
+	var sm system.Manager = system.New(hostnameProvider)
+	hostname, err := sm.GetHostname()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error: err.Error(),
+		})
+	}
 
-		hc := http.Client{}
-		c, err := client.NewClientWithResponses(appConfig.Client.URL, client.WithHTTPClient(&hc))
-		if err != nil {
-			logFatal(
-				"failed to create config",
-				slog.Group("",
-					slog.String("err", err.Error()),
-				),
-			)
-		}
-
-		resp, err := c.GetSystemStatusWithResponse(context.TODO())
-		if err != nil {
-			logFatal(
-				"failed to get response from endpoint",
-				slog.Group("",
-					slog.String("err", err.Error()),
-				),
-			)
-		}
-		fmt.Println(resp.JSON200)
-	},
-}
-
-func init() {
-	clientSystemCmd.AddCommand(clientSystemStatusCmd)
+	return ctx.JSON(http.StatusOK, SystemStatus{
+		Hostname: hostname,
+	})
 }

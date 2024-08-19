@@ -35,6 +35,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SystemStatus'
+        '500':
+          description: Error retrieving system status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     SystemStatus:
@@ -114,3 +120,22 @@ components:
         - load_average
         - memory
         - disk
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: A description of the error that occurred.
+          example: "Failed to retrieve the system status."
+        details:
+          type: string
+          description: Additional details about the error, specifying which component failed.
+          example: "Failed to retrieve hostname."
+        code:
+          type: integer
+          description: The error code.
+          example: 500
+      required:
+        - error
+        - code
