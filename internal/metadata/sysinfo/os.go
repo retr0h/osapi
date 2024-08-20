@@ -18,30 +18,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package api
+package sysinfo
 
 import (
-	"github.com/labstack/echo/v4"
+	"strings"
 
-	"github.com/retr0h/osapi/internal/api/ping" // testing only
-	"github.com/retr0h/osapi/internal/api/system"
+	"gopkg.in/ini.v1"
 )
 
-// RegisterHandlers initializes and registers all API handlers.
-func RegisterHandlers(e *echo.Echo) {
-	handlers := []func(e *echo.Echo){
-		func(e *echo.Echo) {
-			pingHandler := ping.New()
-			ping.RegisterHandlers(e, pingHandler)
-		},
-		func(e *echo.Echo) {
-			systemHandler := system.New()
-			system.RegisterHandlers(e, systemHandler)
-		},
-		// Add more handler functions as needed
+// GetOSInfo get Operating System Information.
+func (si *SysInfo) GetOSInfo() *OS {
+	file, err := si.appFs.Open("/etc/os-release")
+	if err != nil {
+		return &OS{}
+	}
+	defer func() { _ = file.Close() }()
+
+	iniFile, err := ini.LoadSources(ini.LoadOptions{IgnoreInlineComment: true}, file)
+	if err != nil {
+		return &OS{}
 	}
 
-	for _, register := range handlers {
-		register(e)
+	distribution := iniFile.Section("").Key("NAME").String()
+	version := iniFile.Section("").Key("VERSION_ID").String()
+
+	return &OS{
+		Distribution: strings.ToLower(distribution),
+		Version:      strings.ToLower(version),
 	}
 }

@@ -13,4 +13,5 @@ comment:
   require_changes: false
 
 ignore:
-  - "**/*_mock.go"
+  - "**/mocks/*.go"
+  - "**/*.gen.go"

@@ -1,6 +1,8 @@
 module github.com/retr0h/osapi
 
-go 1.21.7
+go 1.22
+
+toolchain go1.22.2
 
 require (
 	github.com/golang/mock v1.6.0
@@ -10,10 +12,12 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
 	github.com/samber/slog-echo v1.14.5
+	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/term v0.20.0
+	gopkg.in/ini.v1 v1.67.0
 )
 
 require (
@@ -29,7 +33,6 @@ require (
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
-	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.opentelemetry.io/otel v1.24.0 // indirect
@@ -38,7 +41,6 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	gopkg.in/ini.v1 v1.67.0 // indirect
 )
 
 require (

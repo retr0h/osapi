@@ -20,16 +20,24 @@
 
 package system
 
-// New factory to create a new instance.
-func New(
-	hostnameProvider HostnameProvider,
-) *System {
-	return &System{
-		HostnameProvider: hostnameProvider,
-	}
+import (
+	"github.com/spf13/afero"
+)
+
+// System implementation operations.
+type System struct {
+	HostnameProvider HostnameProvider
+
+	appFs afero.Fs
 }
 
-// GetHostname gets the system's hostname.
-func (s *System) GetHostname() (string, error) {
-	return s.HostnameProvider.GetHostname()
+// HostnameProvider is an interface that abstracts the os.Hostname function.
+type HostnameProvider interface {
+	GetHostname() (string, error)
+}
+
+// Manager manager responsible for System operations.
+type Manager interface {
+	GetHostname() (string, error)
+	RegisterProviders()
 }

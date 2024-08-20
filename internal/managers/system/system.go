@@ -21,28 +21,35 @@
 package system
 
 import (
-	"net/http"
+	"github.com/spf13/afero"
 
-	"github.com/labstack/echo/v4"
-
-	"github.com/retr0h/osapi/internal/managers/system"
+	"github.com/retr0h/osapi/internal/managers/system/ubuntu"
+	"github.com/retr0h/osapi/internal/metadata/sysinfo"
 )
 
-// GetSystemStatus (GET /system/status)
-func (s Server) GetSystemStatus(
-	ctx echo.Context,
-) error {
-	var sm system.Manager = system.New(s.appFs)
-	sm.RegisterProviders()
-
-	hostname, err := sm.GetHostname()
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: err.Error(),
-		})
+// New factory to create a new instance.
+func New(
+	appFs afero.Fs,
+) *System {
+	return &System{
+		appFs: appFs,
 	}
+}
 
-	return ctx.JSON(http.StatusOK, SystemStatus{
-		Hostname: hostname,
-	})
+// GetHostname gets the system's hostname.
+func (s *System) GetHostname() (string, error) {
+	return s.HostnameProvider.GetHostname()
+}
+
+// RegisterProviders register system providers.
+func (s *System) RegisterProviders() {
+	si := sysinfo.New(s.appFs)
+
+	switch si.GetOSInfo().Distribution {
+	case "ubuntu":
+		s.HostnameProvider = ubuntu.NewOSHostnameProvider()
+	case "":
+		// TODO(retr0h): remove
+		s.HostnameProvider = ubuntu.NewOSHostnameProvider()
+	}
 }

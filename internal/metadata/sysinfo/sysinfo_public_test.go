@@ -18,57 +18,77 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ubuntu_test
+package sysinfo_test
 
 import (
-	"errors"
+	"fmt"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/resources/system"
-	"github.com/retr0h/osapi/internal/resources/system/ubuntu/mocks"
+	"github.com/retr0h/osapi/internal/metadata/sysinfo"
 )
 
-type UbuntuPublicTestSuite struct {
+type SysInfoPublicTestSuite struct {
 	suite.Suite
 
-	ctrl *gomock.Controller
+	appFs afero.Fs
+	si    *sysinfo.SysInfo
 }
 
-func (suite *UbuntuPublicTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
+func (suite *SysInfoPublicTestSuite) SetupTest() {
+	suite.appFs = afero.NewMemMapFs()
+	suite.si = sysinfo.New(suite.appFs)
 }
 
-func (suite *UbuntuPublicTestSuite) TearDownTest() {
-	defer suite.ctrl.Finish()
+func (suite *SysInfoPublicTestSuite) TestGetSysInfoOk() {
+	type sysInfo struct {
+		distribution string
+		version      string
+	}
+
+	type test struct {
+		name    string
+		version string
+		want    *sysInfo
+	}
+
+	tests := []test{
+		{
+			name:    "Ubuntu",
+			version: "22.04",
+			want: &sysInfo{
+				distribution: "ubuntu",
+				version:      "22.04",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		osRelease := fmt.Sprintf(`
+NAME="%s"
+VERSION_ID="%s"
+`, tc.name, tc.version)
+		_ = afero.WriteFile(suite.appFs, "/etc/os-release", []byte(osRelease), 0o644)
+
+		got := suite.si.GetSysInfo()
+
+		assert.Equal(suite.T(), tc.want.distribution, got.OS.Distribution)
+		assert.Equal(suite.T(), tc.want.version, got.OS.Version)
+	}
 }
 
-func (suite *UbuntuPublicTestSuite) TestGetHostnameOk() {
-	mockHostnameProvider := mocks.NewMockHostnameProvider(suite.ctrl)
-	mockHostnameProvider.EXPECT().GetHostname().Return("test-hostname", nil)
+func (suite *SysInfoPublicTestSuite) TestGetSysInfoReturnsEmptyWhenGetOSInfoErrors() {
+	got := suite.si.GetSysInfo()
 
-	sys := system.New(mockHostnameProvider)
-
-	got, err := sys.GetHostname()
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), "test-hostname", got)
-}
-
-func (suite *UbuntuPublicTestSuite) TestGetHostnameReturnsError() {
-	mockHostnameProvider := mocks.NewMockHostnameProvider(suite.ctrl)
-	mockHostnameProvider.EXPECT().GetHostname().Return("", errors.New("unable to get hostname"))
-
-	sys := system.New(mockHostnameProvider)
-
-	_, err := sys.GetHostname()
-	assert.Error(suite.T(), err)
+	assert.Empty(suite.T(), got.OS.Distribution)
+	assert.Empty(suite.T(), got.OS.Version)
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuPublicTestSuite))
+func TestSysInfoPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(SysInfoPublicTestSuite))
 }

@@ -18,31 +18,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package sysinfo
 
 import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-
-	"github.com/retr0h/osapi/internal/managers/system"
+	"github.com/spf13/afero"
 )
 
-// GetSystemStatus (GET /system/status)
-func (s Server) GetSystemStatus(
-	ctx echo.Context,
-) error {
-	var sm system.Manager = system.New(s.appFs)
-	sm.RegisterProviders()
+// SysInfo struct encapsulates all other information structs.
+type SysInfo struct {
+	OS *OS
 
-	hostname, err := sm.GetHostname()
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: err.Error(),
-		})
-	}
+	appFs afero.Fs
+}
 
-	return ctx.JSON(http.StatusOK, SystemStatus{
-		Hostname: hostname,
-	})
+// OS information.
+type OS struct {
+	Distribution string
+	Version      string
 }

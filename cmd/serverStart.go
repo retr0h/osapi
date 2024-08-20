@@ -29,8 +29,30 @@ import (
 	slogecho "github.com/samber/slog-echo"
 	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/internal/api"
+	"github.com/retr0h/osapi/internal/api/ping" // testing only
+	"github.com/retr0h/osapi/internal/api/system"
 )
+
+// registerHandlers initializes and registers all API handlers.
+func registerHandlers(
+	e *echo.Echo,
+) {
+	handlers := []func(e *echo.Echo){
+		func(e *echo.Echo) {
+			pingHandler := ping.New()
+			ping.RegisterHandlers(e, pingHandler)
+		},
+		func(e *echo.Echo) {
+			systemHandler := system.New()
+			system.RegisterHandlers(e, systemHandler)
+		},
+		// Add more handler functions as needed
+	}
+
+	for _, register := range handlers {
+		register(e)
+	}
+}
 
 // serverStartCmd represents the serve command.
 var serverStartCmd = &cobra.Command{
@@ -52,7 +74,7 @@ var serverStartCmd = &cobra.Command{
 		e.Use(middleware.Recover())
 		e.Use(middleware.RequestID())
 
-		api.RegisterHandlers(e)
+		registerHandlers(e)
 		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
 	},
 }

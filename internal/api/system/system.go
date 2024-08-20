@@ -20,10 +20,16 @@
 
 package system
 
+import (
+	"github.com/spf13/afero"
+)
+
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
 var _ ServerInterface = (*Server)(nil)
 
 // New factory to create a new instance.
 func New() Server {
-	return Server{}
+	return Server{
+		appFs: afero.NewOsFs(),
+	}
 }

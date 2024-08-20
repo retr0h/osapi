@@ -18,19 +18,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package sysinfo
 
-// System implementation operations.
-type System struct {
-	HostnameProvider HostnameProvider
+import (
+	"github.com/spf13/afero"
+)
+
+// New factory to create a new instance.
+func New(
+	appFs afero.Fs,
+) *SysInfo {
+	return &SysInfo{
+		appFs: appFs,
+	}
 }
 
-// HostnameProvider is an interface that abstracts the os.Hostname function.
-type HostnameProvider interface {
-	GetHostname() (string, error)
-}
+// GetSysInfo collects system information.
+func (si *SysInfo) GetSysInfo() *SysInfo {
+	si.OS = si.GetOSInfo()
 
-// Manager manager responsible for System operations.
-type Manager interface {
-	GetHostname() (string, error)
+	return si
 }

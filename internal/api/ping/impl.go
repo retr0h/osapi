@@ -35,7 +35,9 @@ func New() Server {
 }
 
 // GetPing (GET /ping)
-func (s Server) GetPing(ctx echo.Context) error {
+func (s Server) GetPing(
+	ctx echo.Context,
+) error {
 	resp := Pong{
 		Ping: "pong",
 	}
