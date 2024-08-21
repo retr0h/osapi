@@ -22,7 +22,7 @@ tasks:
       - go install github.com/boumenot/gocover-cobertura@latest
       - go install mvdan.cc/gofumpt@latest
       - go install github.com/jstemmer/go-junit-report@latest
-      # - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
+      - go install github.com/air-verse/air@latest
       # - go install github.com/goreleaser/goreleaser@latest
 
   mod:
@@ -102,6 +102,11 @@ tasks:
   #   desc: Build ARCH compatible binary.
   #   cmds:
   #     - goreleaser release --snapshot --clean
+
+  serve:
+    desc: Live reload of server
+    cmds:
+      - air server
 
   generate:
     desc: Generate Go files by processing source
