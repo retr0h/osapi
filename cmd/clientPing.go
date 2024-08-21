@@ -65,6 +65,7 @@ var clientPingCmd = &cobra.Command{
 		}
 		logger.Info(
 			"response",
+			slog.Int("code", resp.StatusCode()),
 			slog.String("data", resp.JSON200.Ping),
 		)
 	},
