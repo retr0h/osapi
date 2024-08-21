@@ -31,13 +31,7 @@ type System struct {
 	appFs afero.Fs
 }
 
-// HostnameProvider is an interface that abstracts the os.Hostname function.
+// HostnameProvider is an internal only interface that abstracts the os.Hostname function.
 type HostnameProvider interface {
 	GetHostname() (string, error)
-}
-
-// Manager manager responsible for System operations.
-type Manager interface {
-	GetHostname() (string, error)
-	RegisterProviders()
 }

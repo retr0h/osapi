@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/retr0h/osapi/internal/metadata"
 	"github.com/retr0h/osapi/internal/metadata/sysinfo"
 )
 
@@ -35,12 +36,12 @@ type SysInfoPublicTestSuite struct {
 	suite.Suite
 
 	appFs afero.Fs
-	si    *sysinfo.SysInfo
+	sim   metadata.SysInfoManager
 }
 
 func (suite *SysInfoPublicTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
-	suite.si = sysinfo.New(suite.appFs)
+	suite.sim = sysinfo.New(suite.appFs)
 }
 
 func (suite *SysInfoPublicTestSuite) TestGetSysInfoOk() {
@@ -73,7 +74,7 @@ VERSION_ID="%s"
 `, tc.name, tc.version)
 		_ = afero.WriteFile(suite.appFs, "/etc/os-release", []byte(osRelease), 0o644)
 
-		got := suite.si.GetSysInfo()
+		got := suite.sim.GetSysInfo()
 
 		assert.Equal(suite.T(), tc.want.distribution, got.OS.Distribution)
 		assert.Equal(suite.T(), tc.want.version, got.OS.Version)
@@ -81,7 +82,7 @@ VERSION_ID="%s"
 }
 
 func (suite *SysInfoPublicTestSuite) TestGetSysInfoReturnsEmptyWhenGetOSInfoErrors() {
-	got := suite.si.GetSysInfo()
+	got := suite.sim.GetSysInfo()
 
 	assert.Empty(suite.T(), got.OS.Distribution)
 	assert.Empty(suite.T(), got.OS.Version)
