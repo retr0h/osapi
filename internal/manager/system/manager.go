@@ -18,6 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ubuntu
+package system
 
-//go:generate go run github.com/golang/mock/mockgen -source=types.go -destination=mocks/hostname.go -package=mocks
+// Manager responsible for System operations.
+type Manager interface {
+	GetHostname() (string, error)
+	RegisterProviders()
+}

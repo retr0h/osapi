@@ -18,6 +18,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package client
 
-//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config cfg.yaml api.yaml
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net/http"
+)
+
+// GetSystemStatus get the system status API endpoint.
+func (c *Client) GetSystemStatus() error {
+	resp, err := c.Client.GetSystemStatusWithResponse(context.TODO())
+	if err != nil {
+		return fmt.Errorf("cannot get http response: %w", err)
+	}
+
+	switch resp.StatusCode() {
+	case http.StatusOK:
+		c.logger.Info(
+			"response",
+			slog.Int("code", resp.StatusCode()),
+			slog.String("hostname", resp.JSON200.Hostname),
+		)
+	default:
+		c.logger.Error(
+			"error in response",
+			slog.Int("code", resp.StatusCode()),
+			slog.String("error", resp.JSON500.Error),
+		)
+	}
+
+	return nil
+}

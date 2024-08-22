@@ -18,7 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ping
+package mocks
 
-// Ping implementation of the Ping API operations.
-type Ping struct{}
+//go:generate go run github.com/golang/mock/mockgen -source=../provider.go -destination=hostname.go -package=mocks

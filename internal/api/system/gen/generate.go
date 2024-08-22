@@ -18,20 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package gen
 
-import (
-	"github.com/spf13/afero"
-)
-
-// System implementation operations.
-type System struct {
-	HostnameProvider HostnameProvider
-
-	appFs afero.Fs
-}
-
-// HostnameProvider is an internal only interface that abstracts the os.Hostname function.
-type HostnameProvider interface {
-	GetHostname() (string, error)
-}
+//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config cfg.yaml api.yaml

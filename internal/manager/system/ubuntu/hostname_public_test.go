@@ -29,8 +29,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/managers/system"
-	"github.com/retr0h/osapi/internal/managers/system/ubuntu/mocks"
+	"github.com/retr0h/osapi/internal/manager/system"
+	"github.com/retr0h/osapi/internal/manager/system/ubuntu/mocks"
 )
 
 type UbuntuPublicTestSuite struct {

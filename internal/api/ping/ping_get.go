@@ -20,4 +20,21 @@
 
 package ping
 
-//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config cfg.yaml api.yaml
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+
+	"github.com/retr0h/osapi/internal/api/ping/gen" // testing only
+)
+
+// GetPing (GET /ping)
+func (p Ping) GetPing(
+	ctx echo.Context,
+) error {
+	resp := gen.Pong{
+		Ping: "pong",
+	}
+
+	return ctx.JSON(http.StatusOK, resp)
+}

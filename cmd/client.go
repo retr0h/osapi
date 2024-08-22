@@ -21,14 +21,38 @@
 package cmd
 
 import (
+	"log/slog"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/retr0h/osapi/internal/client"
 )
+
+var c *client.Client
 
 // clientCmd represents the client command.
 var clientCmd = &cobra.Command{
 	Use:   "client",
 	Short: "The client subcommand",
+	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		logger.Info(
+			"client configuration",
+			slog.Bool("debug", appConfig.Debug),
+			slog.String("client.url", appConfig.Client.URL),
+		)
+
+		cwr, err := client.NewClientWithResponses(appConfig)
+		if err != nil {
+			logFatal("failed to create http client", err)
+		}
+
+		c = client.New(
+			logger,
+			appConfig,
+			cwr,
+		)
+	},
 }
 
 func init() {

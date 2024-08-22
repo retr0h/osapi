@@ -18,31 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package gen
 
-import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-
-	"github.com/retr0h/osapi/internal/managers/system"
-)
-
-// GetSystemStatus (GET /system/status)
-func (s Server) GetSystemStatus(
-	ctx echo.Context,
-) error {
-	var sm system.Manager = system.New(s.appFs)
-	sm.RegisterProviders()
-
-	hostname, err := sm.GetHostname()
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error: err.Error(),
-		})
-	}
-
-	return ctx.JSON(http.StatusOK, SystemStatus{
-		Hostname: hostname,
-	})
-}
+//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config cfg.yaml api.yaml

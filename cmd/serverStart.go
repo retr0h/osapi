@@ -29,8 +29,10 @@ import (
 	slogecho "github.com/samber/slog-echo"
 	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/internal/api/ping" // testing only
+	"github.com/retr0h/osapi/internal/api/ping"             // testing only
+	pingGen "github.com/retr0h/osapi/internal/api/ping/gen" // testing only
 	"github.com/retr0h/osapi/internal/api/system"
+	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 )
 
 // registerHandlers initializes and registers all API handlers.
@@ -40,11 +42,11 @@ func registerHandlers(
 	handlers := []func(e *echo.Echo){
 		func(e *echo.Echo) {
 			pingHandler := ping.New()
-			ping.RegisterHandlers(e, pingHandler)
+			pingGen.RegisterHandlers(e, pingHandler)
 		},
 		func(e *echo.Echo) {
 			systemHandler := system.New()
-			system.RegisterHandlers(e, systemHandler)
+			systemGen.RegisterHandlers(e, systemHandler)
 		},
 		// Add more handler functions as needed
 	}

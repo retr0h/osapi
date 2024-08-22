@@ -19,14 +19,18 @@ import (
 
 var (
 	appConfig config.Config
-	logger    *slog.Logger
+	logger    = slog.New(slog.NewTextHandler(os.Stdout, nil))
 )
 
-func logFatal(message string, logGroup any) {
-	initLogger()
+// logFatal logs a fatal error message along with optional structured data
+// and then exits the program with a status code of 1.
+func logFatal(message string, err error, kvPairs ...any) {
+	if err != nil {
+		kvPairs = append(kvPairs, "error", err)
+	}
 	logger.Error(
 		message,
-		logGroup,
+		kvPairs...,
 	)
 
 	os.Exit(1)
@@ -76,23 +80,11 @@ func initConfig() {
 	viper.SetConfigFile(viper.GetString("osapiFile"))
 
 	if err := viper.ReadInConfig(); err != nil {
-		logFatal(
-			"failed to read config",
-			slog.Group("",
-				slog.String("osapiFile", viper.ConfigFileUsed()),
-				slog.String("err", err.Error()),
-			),
-		)
+		logFatal("failed to read config", err, "osapiFile", viper.ConfigFileUsed())
 	}
 
 	if err := viper.Unmarshal(&appConfig); err != nil {
-		logFatal(
-			"failed to unmarshal config",
-			slog.Group("",
-				slog.String("osapiFile", viper.ConfigFileUsed()),
-				slog.String("err", err.Error()),
-			),
-		)
+		logFatal("failed to unmarshal config", err, "osapiFile", viper.ConfigFileUsed())
 	}
 }
 

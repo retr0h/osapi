@@ -18,29 +18,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ping
+package client
 
 import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
+	"context"
+	"fmt"
+	"log/slog"
 )
 
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ ServerInterface = (*Server)(nil)
-
-// New factory to create a new instance.
-func New() Server {
-	return Server{}
-}
-
-// GetPing (GET /ping)
-func (s Server) GetPing(
-	ctx echo.Context,
-) error {
-	resp := Pong{
-		Ping: "pong",
+// GetPing ping the API endpoint.
+func (c *Client) GetPing() error {
+	resp, err := c.Client.GetPingWithResponse(context.TODO())
+	if err != nil {
+		return fmt.Errorf("cannot get http response: %w", err)
 	}
 
-	return ctx.JSON(http.StatusOK, resp)
+	c.logger.Info(
+		"response",
+		slog.Int("code", resp.StatusCode()),
+		slog.String("data", resp.JSON200.Ping),
+	)
+
+	return nil
 }

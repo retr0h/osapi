@@ -18,7 +18,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ping
+package system
 
-// Ping implementation of the Ping API operations.
-type Ping struct{}
+import (
+	"github.com/spf13/afero"
+)
+
+// System implementation of the System operations.
+type System struct {
+	HostnameProvider HostnameProvider
+
+	appFs afero.Fs
+}
+
+// HostnameProvider is an internal only interface that abstracts the os.Hostname function.
+type HostnameProvider interface {
+	GetHostname() (string, error)
+}

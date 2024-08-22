@@ -21,13 +21,7 @@
 package cmd
 
 import (
-	"context"
-	"log/slog"
-	"net/http"
-
 	"github.com/spf13/cobra"
-
-	"github.com/retr0h/osapi/internal/client"
 )
 
 // clientSystemStatusGetCmd represents the clientPing command.
@@ -37,48 +31,10 @@ var clientSystemStatusGetCmd = &cobra.Command{
 	Long: `Obtain the current system status.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		logger.Info(
-			"client configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.String("client.url", appConfig.Client.URL),
-		)
-
-		hc := http.Client{}
-		c, err := client.NewClientWithResponses(appConfig.Client.URL, client.WithHTTPClient(&hc))
+		err := c.GetSystemStatus()
 		if err != nil {
-			logFatal(
-				"failed to create config",
-				slog.Group("",
-					slog.String("err", err.Error()),
-				),
-			)
+			logFatal("failed to get system status endpoint", err)
 		}
-
-		resp, err := c.GetSystemStatusWithResponse(context.TODO())
-		if err != nil {
-			logFatal(
-				"failed to get response from endpoint",
-				slog.Group("",
-					slog.String("err", err.Error()),
-				),
-			)
-		}
-
-		if resp.StatusCode() != http.StatusOK {
-			logger.Error(
-				"error in response",
-				slog.Int("code", resp.StatusCode()),
-				slog.String("error", resp.JSON500.Error),
-			)
-
-			return
-		}
-
-		logger.Info(
-			"response",
-			slog.Int("code", resp.StatusCode()),
-			slog.String("hostname", resp.JSON200.Hostname),
-		)
 	},
 }
 

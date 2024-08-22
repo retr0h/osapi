@@ -19,8 +19,8 @@
 # DEALINGS IN THE SOFTWARE.
 
 ---
-package: ping
-output: ping.gen.go
+package: gen
+output: system.gen.go
 generate:
   models: true
   echo-server: true

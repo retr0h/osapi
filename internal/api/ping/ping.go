@@ -20,5 +20,14 @@
 
 package ping
 
-// Ping implementation of the Ping API operations.
-type Ping struct{}
+import (
+	"github.com/retr0h/osapi/internal/api/ping/gen" // testing only
+)
+
+// ensure that we've conformed to the `ServerInterface` with a compile-time check
+var _ gen.ServerInterface = (*Ping)(nil)
+
+// New factory to create a new instance.
+func New() *Ping {
+	return &Ping{}
+}

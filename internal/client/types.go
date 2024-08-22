@@ -18,7 +18,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ping
+package client
 
-// Ping implementation of the Ping API operations.
-type Ping struct{}
+import (
+	"log/slog"
+
+	"github.com/retr0h/osapi/internal/client/gen"
+	"github.com/retr0h/osapi/internal/config"
+)
+
+// Client implementation of Client operations.
+type Client struct {
+	// Client client for interacting with the API.
+	Client *gen.ClientWithResponses
+
+	logger    *slog.Logger
+	appConfig config.Config
+}

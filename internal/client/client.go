@@ -18,7 +18,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ping
+package client
 
-// Ping implementation of the Ping API operations.
-type Ping struct{}
+import (
+	"log/slog"
+	"net/http"
+
+	"github.com/retr0h/osapi/internal/client/gen"
+	"github.com/retr0h/osapi/internal/config"
+)
+
+// New factory to create a new instance.
+func New(
+	logger *slog.Logger,
+	appConfig config.Config,
+	client *gen.ClientWithResponses,
+) *Client {
+	return &Client{
+		Client:    client,
+		logger:    logger,
+		appConfig: appConfig,
+	}
+}
+
+// NewClientWithResponses factory to create new instance.
+// hate returning an error here... feels like a design flaw.
+func NewClientWithResponses(
+	appConfig config.Config,
+) (*gen.ClientWithResponses, error) {
+	hc := http.Client{}
+	return gen.NewClientWithResponses(appConfig.Client.URL, gen.WithHTTPClient(&hc))
+}

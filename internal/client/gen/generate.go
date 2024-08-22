@@ -18,40 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package gen
 
-import (
-	"github.com/spf13/afero"
-
-	"github.com/retr0h/osapi/internal/managers/system/ubuntu"
-	"github.com/retr0h/osapi/internal/metadata"
-	"github.com/retr0h/osapi/internal/metadata/sysinfo"
-)
-
-// New factory to create a new instance.
-func New(
-	appFs afero.Fs,
-) *System {
-	return &System{
-		appFs: appFs,
-	}
-}
-
-// GetHostname gets the system's hostname.
-func (s *System) GetHostname() (string, error) {
-	return s.HostnameProvider.GetHostname()
-}
-
-// RegisterProviders register system providers.
-func (s *System) RegisterProviders() {
-	var sim metadata.SysInfoManager = sysinfo.New(s.appFs)
-	si := sim.GetSysInfo()
-
-	switch si.OS.Distribution {
-	case "ubuntu":
-		s.HostnameProvider = ubuntu.NewOSHostnameProvider()
-	case "":
-		// TODO(retr0h): remove
-		s.HostnameProvider = ubuntu.NewOSHostnameProvider()
-	}
-}
+//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config cfg.yaml api.yaml
