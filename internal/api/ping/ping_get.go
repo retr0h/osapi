@@ -18,6 +18,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ubuntu
+package ping
 
-//go:generate go run github.com/golang/mock/mockgen -source=types.go -destination=mocks/hostname.go -package=mocks
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+
+	"github.com/retr0h/osapi/internal/api/ping/gen" // testing only
+)
+
+// GetPing (GET /ping)
+func (p Ping) GetPing(
+	ctx echo.Context,
+) error {
+	resp := gen.Pong{
+		Ping: "pong",
+	}
+
+	return ctx.JSON(http.StatusOK, resp)
+}

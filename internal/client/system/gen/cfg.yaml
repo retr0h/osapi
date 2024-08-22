@@ -1,6 +1,6 @@
 ---
-package: client
-output: client.gen.go
+package: gen
+output: system.gen.go
 generate:
   models: true
   client: true

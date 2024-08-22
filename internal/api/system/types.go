@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-// Server implementation of the APIs operations.
-type Server struct {
+// System implementation of the APIs operations.
+type System struct {
 	appFs afero.Fs
 }

@@ -20,4 +20,14 @@
 
 package ping
 
-//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config cfg.yaml api.yaml
+import (
+	"github.com/retr0h/osapi/internal/api/ping/gen" // testing only
+)
+
+// ensure that we've conformed to the `ServerInterface` with a compile-time check
+var _ gen.ServerInterface = (*Ping)(nil)
+
+// New factory to create a new instance.
+func New() Ping {
+	return Ping{}
+}

@@ -20,5 +20,5 @@
 
 package ping
 
-// Server implementation of the APIs operations.
-type Server struct{}
+// Ping implementation of the ping operations.
+type Ping struct{}

@@ -1,0 +1,6 @@
+---
+package: gen
+output: ping.gen.go
+generate:
+  models: true
+  client: true

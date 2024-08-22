@@ -18,20 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mocks
 
-import (
-	"github.com/spf13/afero"
-
-	"github.com/retr0h/osapi/internal/api/system/gen"
-)
-
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*System)(nil)
-
-// New factory to create a new instance.
-func New() System {
-	return System{
-		appFs: afero.NewOsFs(),
-	}
-}
+//go:generate go run github.com/golang/mock/mockgen -source=../provider.go -destination=hostname.go -package=mocks

@@ -15,7 +15,6 @@ tasks:
   deps:
     desc: Install dependencies
     cmds:
-      - npm install -g @redocly/cli
       - go install github.com/spf13/cobra-cli@latest
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
       - go install github.com/segmentio/golines@latest
@@ -111,5 +110,4 @@ tasks:
   generate:
     desc: Generate Go files by processing source
     cmds:
-      - redocly join --prefix-tags-with-info-prop title -o internal/client/api.yaml internal/api/*/api.yaml
       - go generate ./...

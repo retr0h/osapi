@@ -27,7 +27,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/internal/client"
+	gen "github.com/retr0h/osapi/internal/client/system/gen"
 )
 
 // clientSystemStatusGetCmd represents the clientPing command.
@@ -44,7 +44,7 @@ var clientSystemStatusGetCmd = &cobra.Command{
 		)
 
 		hc := http.Client{}
-		c, err := client.NewClientWithResponses(appConfig.Client.URL, client.WithHTTPClient(&hc))
+		c, err := gen.NewClientWithResponses(appConfig.Client.URL, gen.WithHTTPClient(&hc))
 		if err != nil {
 			logFatal(
 				"failed to create config",
