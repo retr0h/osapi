@@ -18,42 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package linux
 
-import (
-	"github.com/spf13/afero"
-
-	"github.com/retr0h/osapi/internal/manager/system/linux"
-	// "github.com/retr0h/osapi/internal/manager/system/ubuntu"
-	"github.com/retr0h/osapi/internal/metadata"
-	"github.com/retr0h/osapi/internal/metadata/sysinfo"
-)
-
-// New factory to create a new instance.
-func New(
-	appFs afero.Fs,
-) *System {
-	return &System{
-		appFs: appFs,
-	}
+// HostnameProvider is an interface that abstracts the os.Hostname function.
+type HostnameProvider interface {
+	GetHostname() (string, error)
 }
 
-// GetHostname gets the system's hostname.
-func (s *System) GetHostname() (string, error) {
-	return s.HostnameProvider.GetHostname()
-}
-
-// RegisterProviders register system providers.
-func (s *System) RegisterProviders() {
-	var sim metadata.SysInfoManager = sysinfo.New(s.appFs)
-	si := sim.GetSysInfo()
-
-	switch si.OS.Distribution {
-	case "ubuntu":
-		// common hostname provider across linux distros
-		s.HostnameProvider = linux.NewOSHostnameProvider()
-	default:
-		// TODO(retr0h): remove or better figure out mac os development
-		s.HostnameProvider = linux.NewOSHostnameProvider()
-	}
-}
+// OSHostnameProvider implements HostnameProvider using os.Hostname.
+type OSHostnameProvider struct{}

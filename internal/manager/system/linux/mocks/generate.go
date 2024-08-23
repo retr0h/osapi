@@ -18,42 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mocks
 
-import (
-	"github.com/spf13/afero"
-
-	"github.com/retr0h/osapi/internal/manager/system/linux"
-	// "github.com/retr0h/osapi/internal/manager/system/ubuntu"
-	"github.com/retr0h/osapi/internal/metadata"
-	"github.com/retr0h/osapi/internal/metadata/sysinfo"
-)
-
-// New factory to create a new instance.
-func New(
-	appFs afero.Fs,
-) *System {
-	return &System{
-		appFs: appFs,
-	}
-}
-
-// GetHostname gets the system's hostname.
-func (s *System) GetHostname() (string, error) {
-	return s.HostnameProvider.GetHostname()
-}
-
-// RegisterProviders register system providers.
-func (s *System) RegisterProviders() {
-	var sim metadata.SysInfoManager = sysinfo.New(s.appFs)
-	si := sim.GetSysInfo()
-
-	switch si.OS.Distribution {
-	case "ubuntu":
-		// common hostname provider across linux distros
-		s.HostnameProvider = linux.NewOSHostnameProvider()
-	default:
-		// TODO(retr0h): remove or better figure out mac os development
-		s.HostnameProvider = linux.NewOSHostnameProvider()
-	}
-}
+//go:generate go run github.com/golang/mock/mockgen -source=../provider.go -destination=hostname.go -package=mocks
