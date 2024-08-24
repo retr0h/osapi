@@ -23,11 +23,18 @@ openapi: 3.0.0
 info:
   title: System Status API
   version: 1.0.0
+  name: system_status
+tags:
+  - name: system_operations
+    x-displayName: System
+    description: Operations related to the system status endpoint
 paths:
   /system/status:
     get:
       summary: Retrieve system status
       description: Get the current status of the system including hostname, uptime, load averages, memory, and disk usage.
+      tags:
+        - system_operations
       responses:
         '200':
           description: A JSON object containing the system's status information.

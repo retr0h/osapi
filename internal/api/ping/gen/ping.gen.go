@@ -14,7 +14,7 @@ type Pong struct {
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-
+	// Retrieve ping status
 	// (GET /ping)
 	GetPing(ctx echo.Context) error
 }

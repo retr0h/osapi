@@ -78,8 +78,8 @@ PR. Most PRs should likely have a single commit (although for bigger PRs it may
 be reasonable to split it in a few). Git squash and rebase is your friend!
 
 If you're not sure how to format your commit message, check out [Conventional
-Commits][]. This style is enforced, and is a good way to make your commit
-messages more readable and consistent.
+Commits][]. This style is enforced, and is a good way to make your commit messages
+more readable and consistent.
 
 ## 4. Submitting a PR
 

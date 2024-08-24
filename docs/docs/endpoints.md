@@ -1,89 +1,71 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Endpoints
 
 The client and server components are generated from an OpenAPI spec.
 
-## **RESTful API Endpoints for Linux System Configuration**
+## RESTful API Endpoints for Linux System Configuration
 
-### **1. System Information and Management**
-
-- **Information**
-  - `/system/info` - Get system information (hostname, OS version, uptime,
-    etc.).
-  - `/system/logs` - Access system logs.
-  - `/system/status` - Get overall system status (load, memory usage, etc.).
-- **Time and Localization**
-  - `/system/time/zone` - Manage time zone.
-  - `/system/time/ntp` - Manage NTP settings.
-  - `/system/time/sync` - Synchronize time with NTP servers.
-  - `/system/localization/language` - Manage system language settings.
-  - `/system/localization/locale` - Manage system locale settings.
-- **Power Management**
-  - `/system/power/shutdown` - Shutdown the system.
-  - `/system/power/reboot` - Reboot the system.
-  - `/system/power/hibernate` - Hibernate the system.
-
-### **2. User and Group Management**
+### User and Group Management
 
 - `/users` - Manage users.
 - `/users/{username}` - Manage a specific user.
 - `/groups` - Manage groups.
 - `/groups/{groupname}` - Manage a specific group.
 
-### **3. Package Management**
+### Package Management
 
 - `/packages` - List installed packages.
 - `/packages/install` - Install a package.
 - `/packages/remove` - Remove a package.
 - `/packages/update` - Update a package or all packages.
 
-### **4. Networking**
+### Networking
 
-- **Interfaces**
+- Interfaces
   - `/network/interfaces`
   - `/network/interfaces/{interface-name}`
-- **DNS**
+- DNS
   - `/network/dns`
   - `/network/dns/{dns-server}`
-- **Routes**
+- Routes
   - `/network/routes`
   - `/network/routes/{route-id}`
-- **Firewall**
+- Firewall
   - `/network/firewall/rules`
   - `/network/firewall/rules/{rule-id}`
-- **Hostname**
+- Hostname
   - `/network/hostname`
 
-### **5. Storage Management**
+### Storage Management
 
-- **Disks**
+- Disks
   - `/storage/disks` - List disks.
   - `/storage/disks/{disk-id}` - Manage a specific disk.
-- **Partitions**
+- Partitions
   - `/storage/partitions` - List partitions.
   - `/storage/partitions/{partition-id}` - Manage a specific partition.
-- **Mounts**
+- Mounts
   - `/storage/mounts` - List mounted filesystems.
   - `/storage/mounts/{mount-id}` - Manage a specific mount.
-- **File Systems**
+- File Systems
   - `/storage/filesystems` - List file systems.
   - `/storage/filesystems/{filesystem-id}` - Manage a specific file system.
 
-### **6. Process Management**
+### Process Management
 
 - `/processes` - List running processes.
 - `/processes/{pid}` - Manage a specific process (e.g., kill, nice).
 
-### **7. Services and Daemons**
+### Services and Daemons
 
 - `/services` - List running services.
 - `/services/{service-name}` - Manage a specific service (start, stop, restart,
   enable, disable).
 
-### **8. NTP (Network Time Protocol)**
+### NTP (Network Time Protocol)
 
 - `/services/ntp/servers`
 - `/services/ntp/servers/{server-id}`
@@ -91,29 +73,29 @@ The client and server components are generated from an OpenAPI spec.
 - `/services/ntp/peers`
 - `/services/ntp/peers/{peer-id}`
 
-### **9. Cron Jobs**
+### Cron Jobs
 
 - `/services/cron/jobs`
 - `/services/cron/jobs/{job-id}`
 
-### **10. Security**
+### Security
 
-- **SELinux/AppArmor**
+- SELinux/AppArmor
   - `/security/selinux/status` - Get SELinux status.
   - `/security/apparmor/status` - Get AppArmor status.
-- **Users and Groups**
+- Users and Groups
   - `/security/users` - List users with security roles.
   - `/security/groups` - List groups with security roles.
-- **SSH**
+- SSH
   - `/security/ssh/config` - Manage SSH configuration.
   - `/security/ssh/keys` - Manage SSH keys.
 
-### **11. Backup and Restore**
+### Backup and Restore
 
 - `/backup` - Perform or schedule system backups.
 - `/restore` - Restore from a backup.
 
-### **12. Monitoring and Alerts**
+### Monitoring and Alerts
 
 - `/monitoring/metrics` - Access system metrics.
 - `/monitoring/alerts` - Manage monitoring alerts and notifications.

@@ -1,30 +1,41 @@
 openapi: 3.0.0
 info:
+  description: |
+    OSAPI API documentation.
   version: 1.0.0
-  title: Minimal ping API server
+  title: OSAPI API server
+  name: ping
+servers:
+  - url: http://127.0.0.1:8080
+    description: Mock API (local)
 tags:
-  - name: Minimal_ping_API_server_other
-    x-displayName: other
-  - name: System_Status_API_other
-    x-displayName: other
+  - name: Minimal_ping_API_Endpoint_ping_operations
+    x-displayName: Ping
+    description: Operations related to the ping endpoint
+  - name: System_Status_API_system_operations
+    x-displayName: System
+    description: Operations related to the system status endpoint
 paths:
   /ping:
     get:
+      summary: Retrieve ping status
+      tags:
+        - Minimal_ping_API_Endpoint_ping_operations
       responses:
         '200':
-          description: pet response
+          description: ping response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Pong'
-      tags:
-        - Minimal_ping_API_server_other
   /system/status:
     get:
       summary: Retrieve system status
       description: >-
         Get the current status of the system including hostname, uptime, load
         averages, memory, and disk usage.
+      tags:
+        - System_Status_API_system_operations
       responses:
         '200':
           description: A JSON object containing the system's status information.
@@ -38,8 +49,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      tags:
-        - System_Status_API_other
 components:
   schemas:
     Pong:
@@ -49,7 +58,7 @@ components:
       properties:
         ping:
           type: string
-          example: pong#
+          example: pong
     SystemStatus:
       type: object
       properties:
@@ -148,9 +157,9 @@ components:
         - error
         - code
 x-tagGroups:
-  - name: Minimal ping API server
+  - name: Minimal ping API Endpoint
     tags:
-      - Minimal_ping_API_server_other
+      - Minimal_ping_API_Endpoint_ping_operations
   - name: System Status API
     tags:
-      - System_Status_API_other
+      - System_Status_API_system_operations

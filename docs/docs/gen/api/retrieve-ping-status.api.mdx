@@ -1,0 +1,128 @@
+---
+id: retrieve-ping-status
+title: "Retrieve ping status"
+description: "Retrieve ping status"
+sidebar_label: "Retrieve ping status"
+hide_title: true
+hide_table_of_contents: true
+api: eJx1Uk1PwzAM/SuTTyBNtNsFtBsHhDhMTHycAE1eatZAmoTEnUBV/zt2O5gAoaqq82L7PT+3A8ZthsUDLK23Dbp1tH67Pl9drS98FYP1PCIhUkK2wWd4mkKiHCUkqexgXpb6qSibZKPmwAK0aPKVBlMwwTN51kSM0VkzNCtesmZ3kE1NDWrEH5GkPmxeyDAo1VtrE1WqUZsqfUwqh+3IP6CHysxJgSnQOzbRKSQittD3U2DLA7AagV6xn7pvSMppR5NhgMzIbZZeDXEdRANsSUVF5FoORRyZMqUdJbWxgzY5uamZ46IoZvPTk1Ke2eKsPCvhN9kymNeJeD05csGgO4ZehrP+Ofz18/pW8/StgmkbsXIw8OTRS1clH9NmSgeHQQ9lo0a58tjQfkEg48eQucFhCfubfyz4oefbbaZ3LqJD67XZMHy3t+ewr1o49Nx1G8x0n1zfK/zWUvoQXMIdJosblfzwJH1qwkrEqp+vJClwbgxFdX6HrlXePz+RWve9pcuLO1nvJ7Ce9tE=
+sidebar_class_name: "get api-method"
+info_path: gen/api/osapi-api-server
+custom_edit_url: null
+---
+
+import ApiTabs from "@theme/ApiTabs";
+import DiscriminatorTabs from "@theme/DiscriminatorTabs";
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import SecuritySchemes from "@theme/ApiExplorer/SecuritySchemes";
+import MimeTabs from "@theme/MimeTabs";
+import ParamsItem from "@theme/ParamsItem";
+import ResponseSamples from "@theme/ResponseSamples";
+import SchemaItem from "@theme/SchemaItem";
+import SchemaTabs from "@theme/SchemaTabs";
+import Heading from "@theme/Heading";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Retrieve ping status"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/ping"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve ping status
+
+<div>
+  <div>
+    <ApiTabs
+      label={undefined}
+      id={undefined}
+    >
+      <TabItem
+        label={"200"}
+        value={"200"}
+      >
+        <div>
+          
+          
+          ping response
+          
+          
+        </div><div>
+          <MimeTabs
+            className={"openapi-tabs__mime"}
+            schemaType={"response"}
+          >
+            <TabItem
+              label={"application/json"}
+              value={"application/json"}
+            >
+              <SchemaTabs
+                className={"openapi-tabs__schema"}
+              >
+                <TabItem
+                  label={"Schema"}
+                  value={"Schema"}
+                >
+                  <details
+                    style={{}}
+                    className={"openapi-markdown__details response"}
+                    data-collapsed={false}
+                    open={true}
+                  >
+                    <summary
+                      style={{}}
+                      className={"openapi-markdown__details-summary-response"}
+                    >
+                      <strong>
+                        Schema
+                      </strong>
+                    </summary><div
+                      style={{"textAlign":"left","marginLeft":"1rem"}}
+                    >
+                      
+                    </div><ul
+                      style={{"marginLeft":"1rem"}}
+                    >
+                      <SchemaItem
+                        collapsible={false}
+                        name={"ping"}
+                        required={true}
+                        schemaName={"string"}
+                        qualifierMessage={undefined}
+                        schema={{"type":"string","example":"pong"}}
+                      >
+                        
+                      </SchemaItem>
+                    </ul>
+                  </details>
+                </TabItem><TabItem
+                  label={"Example (from schema)"}
+                  value={"Example (from schema)"}
+                >
+                  <ResponseSamples
+                    responseExample={"{\n  \"ping\": \"pong\"\n}"}
+                    language={"json"}
+                  >
+                    
+                  </ResponseSamples>
+                </TabItem>
+              </SchemaTabs>
+            </TabItem>
+          </MimeTabs>
+        </div>
+      </TabItem>
+    </ApiTabs>
+  </div>
+</div>
+      

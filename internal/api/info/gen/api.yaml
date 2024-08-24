@@ -20,33 +20,12 @@
 
 ---
 openapi: "3.0.0"
+servers:
+  - url: http://127.0.0.1:8080
+    description: Mock API (local)
 info:
+  description: |
+    OSAPI API documentation.
   version: 1.0.0
-  title: Minimal ping API Endpoint
-tags:
-  - name: ping_operations
-    x-displayName: Ping
-    description: Operations related to the ping endpoint
-paths:
-  /ping:
-    get:
-      summary: Retrieve ping status
-      tags:
-        - ping_operations
-      responses:
-        '200':
-          description: ping response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pong'
-components:
-  schemas:
-    Pong:
-      type: object
-      required:
-        - ping
-      properties:
-        ping:
-          type: string
-          example: pong
+  title: OSAPI API server
+  name: ping
