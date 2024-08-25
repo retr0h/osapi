@@ -24,7 +24,7 @@ them to be used as appliances.
 
 [Usage][] | [Documentation][]
 
-[Usage]: https://retr0h.github.io/osapi/usage
+[Usage]: https://retr0h.github.io/osapi/sidebar/usage
 [Documentation]: https://retr0h.github.io/osapi/
 
 ## License

@@ -20,7 +20,7 @@
 
 package config
 
-// Config top level application configuration.
+// Config represents the root structure of the YAML configuration file.
 type Config struct {
 	Client
 	Server
@@ -39,6 +39,20 @@ type Client struct {
 type Server struct {
 	// Port the server will bind to.
 	Port int `mapstructure:"port"`
+	// Security-related configuration, such as CORS settings.
+	Security Security `mapstructure:"security"`
+}
+
+// Security represents the "security" configuration under the "server" section.
+type Security struct {
+	// CORS Cross-Origin Resource Sharing (CORS) settings for the server.
+	CORS CORS `mapstructure:"cors"`
+}
+
+// CORS represents the CORS (Cross-Origin Resource Sharing) settings.
+type CORS struct {
+	// List of origins allowed to access the server (e.g., "foo").
+	AllowOrigins []string `mapstructure:"allow_origins,omitempty"`
 }
 
 // Queue configuration settings.

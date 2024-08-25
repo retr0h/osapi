@@ -22,7 +22,6 @@ package cmd
 
 import (
 	"fmt"
-	"log/slog"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -63,18 +62,21 @@ var serverStartCmd = &cobra.Command{
 	Long: `Start the  OSAPI service.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		logger.Info(
-			"server configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.Int("server.port", appConfig.Server.Port),
-		)
-
 		e := echo.New()
 		e.HideBanner = true
+
+		// Initialize CORS configuration
+		corsConfig := middleware.CORSConfig{}
+
+		allowOrigins := appConfig.Server.Security.CORS.AllowOrigins
+		if len(allowOrigins) > 0 {
+			corsConfig.AllowOrigins = allowOrigins
+		}
 
 		e.Use(slogecho.New(logger))
 		e.Use(middleware.Recover())
 		e.Use(middleware.RequestID())
+		e.Use(middleware.CORSWithConfig(corsConfig))
 
 		registerHandlers(e)
 		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))

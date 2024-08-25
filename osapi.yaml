@@ -6,5 +6,10 @@ client:
 
 server:
   port: 8080
+  security:
+    cors:
+      allow_origins:
+        - http://localhost:3001
+        - https://retr0h.github.io
 
 queue: {}

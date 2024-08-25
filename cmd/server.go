@@ -21,6 +21,8 @@
 package cmd
 
 import (
+	"log/slog"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,6 +31,17 @@ import (
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "The server subcommand",
+	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		logger.Info(
+			"server configuration",
+			slog.Bool("debug", appConfig.Debug),
+			slog.Int("server.port", appConfig.Server.Port),
+			slog.Any(
+				"server.security.cors.allow_origins",
+				appConfig.Server.Security.CORS.AllowOrigins,
+			),
+		)
+	},
 }
 
 func init() {
