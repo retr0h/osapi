@@ -21,6 +21,7 @@
 package linux
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -31,5 +32,11 @@ func NewOSHostnameProvider() *OSHostnameProvider {
 
 // GetHostname returns the system hostname using os.Hostname.
 func (p *OSHostnameProvider) GetHostname() (string, error) {
+	fmt.Println("HERE IN Linux impl")
+	fmt.Println("HERE IN Linux impl")
+	fmt.Println("HERE IN Linux impl")
+	fmt.Println("HERE IN Linux impl")
+	fmt.Println("HERE IN Linux impl")
+
 	return os.Hostname()
 }

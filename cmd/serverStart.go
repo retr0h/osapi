@@ -21,7 +21,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -79,7 +85,26 @@ var serverStartCmd = &cobra.Command{
 		e.Use(middleware.CORSWithConfig(corsConfig))
 
 		registerHandlers(e)
-		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
+
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		// Start server
+		go func() {
+			// e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
+			if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
+				e.Logger.Fatal("shutting down the server")
+			}
+		}()
+
+		// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
+		<-ctx.Done()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := e.Shutdown(ctx); err != nil {
+			e.Logger.Fatal(err)
+		}
+
+		fmt.Println("Interrupt signal received. Exiting...")
 	},
 }
 
