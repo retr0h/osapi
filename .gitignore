@@ -1,5 +1,6 @@
 cobertura.xml
 cover.out
+coverage/
 dist/
 result.xml
 .task/
