@@ -26,6 +26,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -45,9 +47,31 @@ import (
 type UbuntuPublicTestSuite struct {
 	suite.Suite
 
-	appFs afero.Fs
-	ctrl  *gomock.Controller
-	ctx   context.Context
+	appFs        afero.Fs
+	ctrl         *gomock.Controller
+	ctx          context.Context
+	dockerClient *client.Client
+}
+
+// graceful shutdown using SIGTERM
+func stopContainer(
+	ctx context.Context,
+	dockerClient *client.Client,
+	containerID string,
+) {
+	_ = dockerClient.ContainerKill(ctx, containerID, "SIGTERM")
+
+	// Wait for a while to allow graceful shutdown
+	time.Sleep(10 * time.Second)
+
+	removeOptions := container.RemoveOptions{
+		Force:         true,
+		RemoveVolumes: true,
+	}
+
+	_ = dockerClient.ContainerRemove(ctx, containerID, removeOptions)
+
+	fmt.Println("Container terminated gracefully and removed.")
 }
 
 func (suite *UbuntuPublicTestSuite) SetupTest() {
@@ -56,6 +80,7 @@ func (suite *UbuntuPublicTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
 	suite.ctrl = gomock.NewController(suite.T())
 	suite.ctx = context.Background()
+	suite.dockerClient, _ = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 }
 
 func (suite *UbuntuPublicTestSuite) TearDownTest() {
@@ -88,94 +113,39 @@ func (suite *UbuntuPublicTestSuite) TestGetHostnameReturnsError() {
 }
 
 func (suite *UbuntuPublicTestSuite) TestDocker() {
+	_, filename, _, _ := runtime.Caller(0)
+	buildContext := filepath.Join(filepath.Dir(filename), "../../../..")
 	dockerFilePath := "./internal/manager/system/ubuntu/Dockerfile"
-	// TODO(retr0h): change
-	buildContext := "/Users/retr0h/git/osapi"
 
 	req := testcontainers.ContainerRequest{
 		FromDockerfile: testcontainers.FromDockerfile{
 			Context:       buildContext,
 			Dockerfile:    dockerFilePath,
-			PrintBuildLog: true,
-			KeepImage:     true,
+			PrintBuildLog: false,
+			KeepImage:     false,
 		},
 		Env:          map[string]string{"GOCOVERDIR": "/coverage"},
-		Mounts:       testcontainers.Mounts(testcontainers.BindMount("/Users/retr0h/git/osapi/coverage", "/coverage")),
+		Mounts:       testcontainers.Mounts(testcontainers.BindMount(filepath.Join(buildContext, "coverage"), "/coverage")),
 		ExposedPorts: []string{"8080/tcp"},
-		// WaitingFor:   wait.ForLog("http server started on"),
-		WaitingFor: wait.ForListeningPort("8080/tcp"),
-		Hostname:   "ubuntu-hostname",
+		WaitingFor:   wait.ForListeningPort("8080/tcp"),
+		Hostname:     "ubuntu-hostname",
 	}
 
 	ubuntuContainer, err := testcontainers.GenericContainer(suite.ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
-	if err != nil {
-		fmt.Println(err)
-	}
+	assert.NoError(suite.T(), err)
 
 	hostPort, err := ubuntuContainer.MappedPort(suite.ctx, "8080/tcp")
-	if err != nil {
-		//
-	}
+	assert.NoError(suite.T(), err)
 
-	// Get the Docker client
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		//
-	}
-
-	containerID := ubuntuContainer.GetContainerID()
-
-	// Defer the graceful shutdown using SIGTERM
-	defer func() {
-		err = dockerClient.ContainerKill(suite.ctx, containerID, "SIGTERM")
-		if err != nil {
-			// log.Printf("Failed to send SIGTERM to container: %s", err)
-		} else {
-			// log.Println("Sent SIGTERM to container.")
-		}
-
-		// Wait for a while to allow graceful shutdown
-		time.Sleep(10 * time.Second)
-
-		removeOptions := container.RemoveOptions{
-			Force:         true, // Set to true if you want to force remove a running container
-			RemoveVolumes: true, // Set to true to remove volumes associated with the container
-		}
-
-		// Finally, remove the container
-		err = dockerClient.ContainerRemove(suite.ctx, containerID, removeOptions)
-		if err != nil {
-			// log.Fatalf("Failed to remove container: %s", err)
-		}
-
-		fmt.Println("Container terminated gracefully and removed.")
-	}()
+	defer stopContainer(suite.ctx, suite.dockerClient, ubuntuContainer.GetContainerID())
 
 	url := fmt.Sprintf("http://%s:%s/system/status", "0.0.0.0", hostPort.Port())
-	fmt.Println(url)
-	fmt.Println(url)
-	fmt.Println(url)
 	cmd := exec.Command("curl", "-X", "GET", url)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println(err)
-		fmt.Println(err)
-		fmt.Println(err)
-	}
-	fmt.Printf("Output:\n%s\n", output)
-	fmt.Printf("Output:\n%s\n", output)
-	fmt.Printf("Output:\n%s\n", output)
-
-	// Send SIGTERM for graceful shutdown
-	err = dockerClient.ContainerKill(suite.ctx, containerID, "SIGTERM")
-	if err != nil {
-		// log.Fatalf("Failed to send SIGTERM to container: %s", err)
-		fmt.Println(err)
-	}
+	_, err = cmd.CombinedOutput()
+	assert.NoError(suite.T(), err)
 }
 
 // In order for `go test` to run this suite, we need to create

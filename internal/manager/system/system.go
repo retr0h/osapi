@@ -21,8 +21,6 @@
 package system
 
 import (
-	"fmt"
-
 	"github.com/spf13/afero"
 
 	"github.com/retr0h/osapi/internal/manager/system/linux"
@@ -42,9 +40,6 @@ func New(
 
 // GetHostname gets the system's hostname.
 func (s *System) GetHostname() (string, error) {
-	fmt.Println("IN THE SYSTEM INTERFACE")
-	fmt.Println("IN THE SYSTEM INTERFACE")
-	fmt.Println("IN THE SYSTEM INTERFACE")
 	return s.HostnameProvider.GetHostname()
 }
 
