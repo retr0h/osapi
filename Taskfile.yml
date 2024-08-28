@@ -54,6 +54,7 @@ tasks:
   unit:int:
     desc: Integration test packages
     cmds:
+      - mkdir -p coverage/int
       # TODO(retr0h): fix lame tests
       - go run main.go client ping 2>&1 | grep pong
       - go run main.go client system status
@@ -74,17 +75,20 @@ tasks:
     desc: Generate coverage
     env:
       # https://github.com/golang/go/issues/65570
-      GOEXPERIMENT: nocoverageredesign
+      # GOEXPERIMENT: nocoverageredesign
     cmds:
-      - go test -race -coverprofile=cover.out -v $(go list ./... | grep -v /mocks) 2>&1 | go-junit-report --set-exit-code > result.xml || (cat result.xml && echo "fail" && exit 1)
-      - gocover-cobertura < cover.out > cobertura.xml
-      - go tool cover -func=cover.out
+      - mkdir -p coverage/unit coverage/int
+      - go test -race -cover ./... -args -test.gocoverdir="$PWD/coverage/unit"
+      - go tool covdata textfmt -i=./coverage/unit,./coverage/int -o coverage/cover.out
+      # - go test -race -coverprofile=cover.out -v $(go list ./... | grep -v /mocks) 2>&1 | go-junit-report --set-exit-code > result.xml || (cat result.xml && echo "fail" && exit 1)
+      - gocover-cobertura < coverage/cover.out > coverage/cobertura.xml
+      # - go tool cover -func=cover.out
 
   cov:map:
     desc: Generate coverage and show heatmap
     cmds:
       - task: cov
-      - go tool cover -html=cover.out
+      - go tool cover -html=cover/cover.out
 
   fmt:
     desc: Reformat files whose formatting differs from `go_fmt_command`

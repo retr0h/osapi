@@ -34,6 +34,7 @@ import (
 
 	"github.com/docker/docker/api/types/container"
 	dockerClient "github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -51,6 +52,7 @@ type UbuntuIntegrationTestSuite struct {
 	dockerClient *dockerClient.Client
 	appConfig    config.Config
 	client       *client.Client
+	clientPort   string
 }
 
 type containerCreateOptions struct {
@@ -67,7 +69,6 @@ func startContainer(
 ) (testcontainers.Container, error) {
 	_, filename, _, _ := runtime.Caller(0)
 	buildContext := filepath.Join(filepath.Dir(filename), "../../../..")
-	_ = os.MkdirAll(filepath.Join(buildContext, "coverage", "int"), os.ModePerm)
 
 	req := testcontainers.ContainerRequest{
 		FromDockerfile: testcontainers.FromDockerfile{
@@ -79,7 +80,7 @@ func startContainer(
 		Env:          map[string]string{"GOCOVERDIR": "/coverage/int"},
 		Mounts:       testcontainers.Mounts(testcontainers.BindMount(filepath.Join(buildContext, "coverage", "int"), "/coverage/int")),
 		ExposedPorts: opts.exposedPorts,
-		WaitingFor:   wait.ForListeningPort("8080/tcp"),
+		WaitingFor:   wait.ForListeningPort(nat.Port(opts.exposedPorts[0])),
 		Hostname:     opts.hostname,
 	}
 
@@ -109,18 +110,25 @@ func stopContainer(
 }
 
 func (suite *UbuntuIntegrationTestSuite) SetupTest() {
+	var err error
+
 	suite.ctx = context.Background()
-	suite.dockerClient, _ = dockerClient.NewClientWithOpts(dockerClient.FromEnv, dockerClient.WithAPIVersionNegotiation())
+	suite.dockerClient, err = dockerClient.NewClientWithOpts(dockerClient.FromEnv, dockerClient.WithAPIVersionNegotiation())
+	require.NoError(suite.T(), err)
+
 	suite.appConfig = config.Config{
 		Client: config.Client{},
 	}
 
-	cwr, _ := client.NewClientWithResponses(suite.appConfig)
+	cwr, err := client.NewClientWithResponses(suite.appConfig)
+	require.NoError(suite.T(), err)
+
 	suite.client = client.New(
 		slog.New(slog.NewTextHandler(os.Stdout, nil)),
 		suite.appConfig,
 		cwr,
 	)
+	suite.clientPort = "8080/tcp"
 }
 
 func (suite *UbuntuIntegrationTestSuite) TearDownTest() {}
@@ -129,7 +137,7 @@ func (suite *UbuntuIntegrationTestSuite) TestGetHostnameOk() {
 	createOptions := containerCreateOptions{
 		dockerFilePath: "internal/manager/system/ubuntu/Dockerfile",
 		hostname:       "ubuntu-hostname",
-		exposedPorts:   []string{"8080/tcp"},
+		exposedPorts:   []string{suite.clientPort},
 		printBuildLog:  false,
 		keepImage:      false,
 	}
@@ -138,7 +146,7 @@ func (suite *UbuntuIntegrationTestSuite) TestGetHostnameOk() {
 	require.NoError(suite.T(), err)
 	defer stopContainer(suite.ctx, suite.dockerClient, testContainer.GetContainerID())
 
-	hostPort, err := testContainer.MappedPort(suite.ctx, "8080/tcp")
+	hostPort, err := testContainer.MappedPort(suite.ctx, nat.Port("8080/tcp"))
 	require.NoError(suite.T(), err)
 
 	suite.appConfig.Client.URL = fmt.Sprintf("http://0.0.0.0:%s", hostPort.Port())
