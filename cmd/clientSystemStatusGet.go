@@ -21,6 +21,9 @@
 package cmd
 
 import (
+	"log/slog"
+	"net/http"
+
 	"github.com/spf13/cobra"
 )
 
@@ -31,9 +34,24 @@ var clientSystemStatusGetCmd = &cobra.Command{
 	Long: `Obtain the current system status.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		err := c.GetSystemStatus()
+		resp, err := c.GetSystemStatus()
 		if err != nil {
 			logFatal("failed to get system status endpoint", err)
+		}
+
+		switch resp.StatusCode() {
+		case http.StatusOK:
+			logger.Info(
+				"response",
+				slog.Int("code", resp.StatusCode()),
+				slog.String("hostname", resp.JSON200.Hostname),
+			)
+		default:
+			logger.Error(
+				"error in response",
+				slog.Int("code", resp.StatusCode()),
+				slog.String("error", resp.JSON500.Error),
+			)
 		}
 	},
 }

@@ -22,32 +22,11 @@ package client
 
 import (
 	"context"
-	"fmt"
-	"log/slog"
-	"net/http"
+
+	"github.com/retr0h/osapi/internal/client/gen"
 )
 
 // GetSystemStatus get the system status API endpoint.
-func (c *Client) GetSystemStatus() error {
-	resp, err := c.Client.GetSystemStatusWithResponse(context.TODO())
-	if err != nil {
-		return fmt.Errorf("cannot get http response: %w", err)
-	}
-
-	switch resp.StatusCode() {
-	case http.StatusOK:
-		c.logger.Info(
-			"response",
-			slog.Int("code", resp.StatusCode()),
-			slog.String("hostname", resp.JSON200.Hostname),
-		)
-	default:
-		c.logger.Error(
-			"error in response",
-			slog.Int("code", resp.StatusCode()),
-			slog.String("error", resp.JSON500.Error),
-		)
-	}
-
-	return nil
+func (c *Client) GetSystemStatus() (*gen.GetSystemStatusResponse, error) {
+	return c.Client.GetSystemStatusWithResponse(context.TODO())
 }

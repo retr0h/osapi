@@ -21,6 +21,8 @@
 package cmd
 
 import (
+	"log/slog"
+
 	"github.com/spf13/cobra"
 )
 
@@ -31,10 +33,16 @@ var clientPingCmd = &cobra.Command{
 	Long: `Interact with the server by issuing a ping.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		err := c.GetPing()
+		resp, err := c.GetPing()
 		if err != nil {
 			logFatal("failed to get ping endpoint", err)
 		}
+
+		logger.Info(
+			"response",
+			slog.Int("code", resp.StatusCode()),
+			slog.String("data", resp.JSON200.Ping),
+		)
 	},
 }
 

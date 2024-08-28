@@ -25,26 +25,32 @@ package ubuntu_test
 import (
 	"context"
 	"fmt"
-	"os/exec"
+	"log/slog"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
+	dockerClient "github.com/docker/docker/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+
+	"github.com/retr0h/osapi/internal/client"
+	"github.com/retr0h/osapi/internal/config"
 )
 
 type UbuntuIntegrationTestSuite struct {
 	suite.Suite
 
 	ctx          context.Context
-	dockerClient *client.Client
+	dockerClient *dockerClient.Client
+	appConfig    config.Config
+	client       *client.Client
 }
 
 type containerCreateOptions struct {
@@ -59,9 +65,9 @@ func startContainer(
 	ctx context.Context,
 	opts containerCreateOptions,
 ) (testcontainers.Container, error) {
-	// pass in config type
 	_, filename, _, _ := runtime.Caller(0)
 	buildContext := filepath.Join(filepath.Dir(filename), "../../../..")
+	_ = os.MkdirAll(filepath.Join(buildContext, "coverage", "int"), os.ModePerm)
 
 	req := testcontainers.ContainerRequest{
 		FromDockerfile: testcontainers.FromDockerfile{
@@ -70,8 +76,8 @@ func startContainer(
 			PrintBuildLog: opts.printBuildLog,
 			KeepImage:     opts.keepImage,
 		},
-		Env:          map[string]string{"GOCOVERDIR": "/coverage"},
-		Mounts:       testcontainers.Mounts(testcontainers.BindMount(filepath.Join(buildContext, "coverage"), "/coverage")),
+		Env:          map[string]string{"GOCOVERDIR": "/coverage/int"},
+		Mounts:       testcontainers.Mounts(testcontainers.BindMount(filepath.Join(buildContext, "coverage", "int"), "/coverage/int")),
 		ExposedPorts: opts.exposedPorts,
 		WaitingFor:   wait.ForListeningPort("8080/tcp"),
 		Hostname:     opts.hostname,
@@ -86,7 +92,7 @@ func startContainer(
 // graceful shutdown using SIGTERM
 func stopContainer(
 	ctx context.Context,
-	dockerClient *client.Client,
+	dockerClient *dockerClient.Client,
 	containerID string,
 ) {
 	_ = dockerClient.ContainerKill(ctx, containerID, "SIGTERM")
@@ -104,7 +110,17 @@ func stopContainer(
 
 func (suite *UbuntuIntegrationTestSuite) SetupTest() {
 	suite.ctx = context.Background()
-	suite.dockerClient, _ = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	suite.dockerClient, _ = dockerClient.NewClientWithOpts(dockerClient.FromEnv, dockerClient.WithAPIVersionNegotiation())
+	suite.appConfig = config.Config{
+		Client: config.Client{},
+	}
+
+	cwr, _ := client.NewClientWithResponses(suite.appConfig)
+	suite.client = client.New(
+		slog.New(slog.NewTextHandler(os.Stdout, nil)),
+		suite.appConfig,
+		cwr,
+	)
 }
 
 func (suite *UbuntuIntegrationTestSuite) TearDownTest() {}
@@ -118,17 +134,27 @@ func (suite *UbuntuIntegrationTestSuite) TestGetHostnameOk() {
 		keepImage:      false,
 	}
 
-	c, err := startContainer(suite.ctx, createOptions)
+	testContainer, err := startContainer(suite.ctx, createOptions)
 	require.NoError(suite.T(), err)
-	defer stopContainer(suite.ctx, suite.dockerClient, c.GetContainerID())
+	defer stopContainer(suite.ctx, suite.dockerClient, testContainer.GetContainerID())
 
-	hostPort, err := c.MappedPort(suite.ctx, "8080/tcp")
+	hostPort, err := testContainer.MappedPort(suite.ctx, "8080/tcp")
 	require.NoError(suite.T(), err)
 
-	url := fmt.Sprintf("http://%s:%s/system/status", "0.0.0.0", hostPort.Port())
-	cmd := exec.Command("curl", "-X", "GET", url)
-	_, err = cmd.CombinedOutput()
-	assert.NoError(suite.T(), err)
+	suite.appConfig.Client.URL = fmt.Sprintf("http://0.0.0.0:%s", hostPort.Port())
+
+	cwr, err := client.NewClientWithResponses(suite.appConfig)
+	require.NoError(suite.T(), err)
+
+	c := client.New(
+		slog.New(slog.NewTextHandler(os.Stdout, nil)),
+		suite.appConfig,
+		cwr,
+	)
+
+	got, err := c.GetSystemStatus()
+	require.NoError(suite.T(), err)
+	assert.Equal(suite.T(), "ubuntu-hostname", got.JSON200.Hostname)
 }
 
 // In order for `go test` to run this suite, we need to create
