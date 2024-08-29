@@ -21,7 +21,9 @@
 package system
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
@@ -43,7 +45,25 @@ func (s System) GetSystemStatus(
 		})
 	}
 
+	uptime, err := sm.GetUptime()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
 	return ctx.JSON(http.StatusOK, gen.SystemStatus{
 		Hostname: hostname,
+		Uptime:   formatDuration(uptime),
 	})
+}
+
+func formatDuration(d time.Duration) string {
+	totalMinutes := int(d.Minutes())
+	days := totalMinutes / (24 * 60)
+	hours := (totalMinutes % (24 * 60)) / 60
+	minutes := totalMinutes % 60
+
+	// Format the result as a string
+	return fmt.Sprintf("%d days %d hours %d minutes", days, hours, minutes)
 }

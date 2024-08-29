@@ -21,12 +21,15 @@
 package system
 
 import (
+	"time"
+
 	"github.com/spf13/afero"
 )
 
 // System implementation of the System operations.
 type System struct {
 	HostnameProvider HostnameProvider
+	UptimeProvider   UptimeProvider
 
 	appFs afero.Fs
 }
@@ -34,4 +37,9 @@ type System struct {
 // HostnameProvider is an internal only interface that abstracts the os.Hostname function.
 type HostnameProvider interface {
 	GetHostname() (string, error)
+}
+
+// UptimeProvider is an internal only interface that abstracts the uptime function.
+type UptimeProvider interface {
+	GetUptime() (time.Duration, error)
 }

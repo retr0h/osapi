@@ -18,57 +18,57 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package linux_test
+package ping_test
 
 import (
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/manager/system"
-	"github.com/retr0h/osapi/internal/manager/system/linux"
+	"github.com/retr0h/osapi/internal/api"
+	"github.com/retr0h/osapi/internal/api/ping"             // tesitng only
+	pingGen "github.com/retr0h/osapi/internal/api/ping/gen" // testing only
+	"github.com/retr0h/osapi/internal/config"
 )
 
-type HostnamePublicTestSuite struct {
+type PingIntegrationTestSuite struct {
 	suite.Suite
 
-	appFs        afero.Fs
-	hostnamePath string
+	appFs     afero.Fs
+	appConfig config.Config
+	logger    *slog.Logger
 }
 
-func (suite *HostnamePublicTestSuite) SetupTest() {
+func (suite *PingIntegrationTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
-	suite.hostnamePath = "/proc/sys/kernel/hostname"
+	suite.appConfig = config.Config{}
+	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *HostnamePublicTestSuite) TearDownTest() {}
+func (suite *PingIntegrationTestSuite) TestGetPingOk() {
+	a := api.New(suite.appFs, suite.appConfig, suite.logger)
+	pingGen.RegisterHandlers(a, ping.New())
 
-func (suite *HostnamePublicTestSuite) TestGetHostnameOk() {
-	procHostname := "linux-hostname"
-	_ = afero.WriteFile(suite.appFs, suite.hostnamePath, []byte(procHostname), 0o644)
+	// Create a new request to the /ping endpoint
+	req := httptest.NewRequest(http.MethodGet, "/ping", nil)
+	rec := httptest.NewRecorder()
 
-	sys := system.New(suite.appFs)
-	sys.HostnameProvider = linux.NewOSHostnameProvider(suite.appFs)
+	// Serve the request
+	a.ServeHTTP(rec, req)
 
-	got, err := sys.GetHostname()
-
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), "linux-hostname", got)
-}
-
-func (suite *HostnamePublicTestSuite) TestGetHostnameReturnsError() {
-	sys := system.New(suite.appFs)
-	sys.HostnameProvider = linux.NewOSHostnameProvider(suite.appFs)
-
-	_, err := sys.GetHostname()
-
-	assert.Error(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, rec.Code)
+	want := `{"ping":"pong"}`
+	assert.JSONEq(suite.T(), want, rec.Body.String())
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestHostnamePublicTestSuite(t *testing.T) {
-	suite.Run(t, new(HostnamePublicTestSuite))
+func TestPingIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(PingIntegrationTestSuite))
 }

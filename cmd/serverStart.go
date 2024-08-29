@@ -23,37 +23,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	slogecho "github.com/samber/slog-echo"
 	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/internal/api/ping"             // testing only
-	pingGen "github.com/retr0h/osapi/internal/api/ping/gen" // testing only
-	"github.com/retr0h/osapi/internal/api/system"
-	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
+	"github.com/retr0h/osapi/internal/api"
 )
-
-// registerHandlers initializes and registers all API handlers.
-func registerHandlers(
-	e *echo.Echo,
-) {
-	handlers := []func(e *echo.Echo){
-		func(e *echo.Echo) {
-			pingHandler := ping.New()
-			pingGen.RegisterHandlers(e, pingHandler)
-		},
-		func(e *echo.Echo) {
-			systemHandler := system.New()
-			systemGen.RegisterHandlers(e, systemHandler)
-		},
-		// Add more handler functions as needed
-	}
-
-	for _, register := range handlers {
-		register(e)
-	}
-}
 
 // serverStartCmd represents the serve command.
 var serverStartCmd = &cobra.Command{
@@ -62,24 +35,8 @@ var serverStartCmd = &cobra.Command{
 	Long: `Start the  OSAPI service.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		e := echo.New()
-		e.HideBanner = true
-
-		// Initialize CORS configuration
-		corsConfig := middleware.CORSConfig{}
-
-		allowOrigins := appConfig.Server.Security.CORS.AllowOrigins
-		if len(allowOrigins) > 0 {
-			corsConfig.AllowOrigins = allowOrigins
-		}
-
-		e.Use(slogecho.New(logger))
-		e.Use(middleware.Recover())
-		e.Use(middleware.RequestID())
-		e.Use(middleware.CORSWithConfig(corsConfig))
-
-		registerHandlers(e)
-		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
+		a := api.New(appFs, appConfig, logger)
+		a.Logger.Fatal(a.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
 	},
 }
 

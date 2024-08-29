@@ -21,8 +21,16 @@
 package sysinfo
 
 import (
+	"strings"
+
 	"github.com/spf13/afero"
 )
+
+// Supported Linux versions
+var supportedVersions = []OS{
+	{"ubuntu", "20.04"},
+	{"ubuntu", "22.04"},
+}
 
 // New factory to create a new instance.
 func New(
@@ -38,4 +46,17 @@ func (si *SysInfo) GetSysInfo() *SysInfo {
 	si.OS = si.GetOSInfo()
 
 	return si
+}
+
+// IsLinuxVersionSupported checks if the given distribution and version are supported.
+func (si *SysInfo) IsLinuxVersionSupported(distro string, version string) bool {
+	// Convert both distro and version to lowercase to make the check case-insensitive
+	distro = strings.ToLower(distro)
+
+	for _, supported := range supportedVersions {
+		if strings.ToLower(supported.Distribution) == distro && supported.Version == version {
+			return true
+		}
+	}
+	return false
 }

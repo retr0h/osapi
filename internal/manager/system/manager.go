@@ -20,8 +20,13 @@
 
 package system
 
+import (
+	"time"
+)
+
 // Manager responsible for System operations.
 type Manager interface {
 	GetHostname() (string, error)
+	GetUptime() (time.Duration, error)
 	RegisterProviders()
 }

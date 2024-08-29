@@ -45,6 +45,7 @@ var clientSystemStatusGetCmd = &cobra.Command{
 				"response",
 				slog.Int("code", resp.StatusCode()),
 				slog.String("hostname", resp.JSON200.Hostname),
+				slog.String("uptime", resp.JSON200.Uptime),
 			)
 		default:
 			logger.Error(

@@ -21,6 +21,8 @@
 package system
 
 import (
+	"time"
+
 	"github.com/spf13/afero"
 
 	"github.com/retr0h/osapi/internal/manager/system/linux"
@@ -29,7 +31,6 @@ import (
 )
 
 // New factory to create a new instance.
-// TODO(retr0h): Pass in hostname provider
 func New(
 	appFs afero.Fs,
 ) *System {
@@ -43,6 +44,11 @@ func (s *System) GetHostname() (string, error) {
 	return s.HostnameProvider.GetHostname()
 }
 
+// GetUptime gets the system's uptime.
+func (s *System) GetUptime() (time.Duration, error) {
+	return s.UptimeProvider.GetUptime()
+}
+
 // RegisterProviders register system providers.
 func (s *System) RegisterProviders() {
 	var sim metadata.SysInfoManager = sysinfo.New(s.appFs)
@@ -51,9 +57,7 @@ func (s *System) RegisterProviders() {
 	switch si.OS.Distribution {
 	case "ubuntu":
 		// common hostname provider across linux distros
-		s.HostnameProvider = linux.NewOSHostnameProvider()
-	default:
-		// TODO(retr0h): remove or better figure out mac os development
-		s.HostnameProvider = linux.NewOSHostnameProvider()
+		s.HostnameProvider = linux.NewOSHostnameProvider(s.appFs)
+		s.UptimeProvider = linux.NewOSUptimeProvider(s.appFs)
 	}
 }

@@ -36,6 +36,8 @@ var clientCmd = &cobra.Command{
 	Use:   "client",
 	Short: "The client subcommand",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		validateDistribution()
+
 		logger.Info(
 			"client configuration",
 			slog.Bool("debug", appConfig.Debug),

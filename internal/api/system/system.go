@@ -30,8 +30,10 @@ import (
 var _ gen.ServerInterface = (*System)(nil)
 
 // New factory to create a new instance.
-func New() *System {
+func New(
+	appFs afero.Fs,
+) *System {
 	return &System{
-		appFs: afero.NewOsFs(),
+		appFs: appFs,
 	}
 }

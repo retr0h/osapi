@@ -32,6 +32,8 @@ var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "The server subcommand",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		validateDistribution()
+
 		logger.Info(
 			"server configuration",
 			slog.Bool("debug", appConfig.Debug),

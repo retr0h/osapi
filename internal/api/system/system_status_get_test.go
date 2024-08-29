@@ -18,30 +18,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package linux
+package system
 
 import (
+	"math"
+	"testing"
 	"time"
 
-	"github.com/spf13/afero"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-// HostnameProvider is an interface that abstracts the os.Hostname function.
-type HostnameProvider interface {
-	GetHostname() (string, error)
+type SystemStatusTestSuite struct {
+	suite.Suite
 }
 
-// OSHostnameProvider implements HostnameProvider using os.Hostname.
-type OSHostnameProvider struct {
-	appFs afero.Fs
+func (suite *SystemStatusTestSuite) SetupTest() {
 }
 
-// UptimeProvider is an interface that abstracts the uptime function.
-type UptimeProvider interface {
-	GetUptime() (time.Duration, error)
+func (suite *SystemStatusTestSuite) TestFormatDurationOk() {
+	d := time.Duration(int64(math.Trunc(350735.47))) * time.Second
+	got := formatDuration(d)
+
+	want := "4 days 1 hours 25 minutes"
+	assert.Equal(suite.T(), want, got)
 }
 
-// OSUptimeProvider implements UptimeProvider.
-type OSUptimeProvider struct {
-	appFs afero.Fs
+// In order for `go test` to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run.
+func TestSystemStatusTestSuite(t *testing.T) {
+	suite.Run(t, new(SystemStatusTestSuite))
 }

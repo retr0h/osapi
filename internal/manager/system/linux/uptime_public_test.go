@@ -21,7 +21,9 @@
 package linux_test
 
 import (
+	"math"
 	"testing"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
@@ -31,44 +33,67 @@ import (
 	"github.com/retr0h/osapi/internal/manager/system/linux"
 )
 
-type HostnamePublicTestSuite struct {
+type UptimePublicTestSuite struct {
 	suite.Suite
 
-	appFs        afero.Fs
-	hostnamePath string
+	appFs      afero.Fs
+	uptimePath string
 }
 
-func (suite *HostnamePublicTestSuite) SetupTest() {
+func (suite *UptimePublicTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
-	suite.hostnamePath = "/proc/sys/kernel/hostname"
+	suite.uptimePath = "/proc/uptime"
 }
 
-func (suite *HostnamePublicTestSuite) TearDownTest() {}
-
-func (suite *HostnamePublicTestSuite) TestGetHostnameOk() {
-	procHostname := "linux-hostname"
-	_ = afero.WriteFile(suite.appFs, suite.hostnamePath, []byte(procHostname), 0o644)
+func (suite *UptimePublicTestSuite) TestGetUptimeOk() {
+	procUptime := "350735.47 234388.90"
+	_ = afero.WriteFile(suite.appFs, suite.uptimePath, []byte(procUptime), 0o644)
 
 	sys := system.New(suite.appFs)
-	sys.HostnameProvider = linux.NewOSHostnameProvider(suite.appFs)
+	sys.UptimeProvider = linux.NewOSUptimeProvider(suite.appFs)
 
-	got, err := sys.GetHostname()
+	got, err := sys.GetUptime()
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), "linux-hostname", got)
+	want := time.Duration(int64(math.Trunc(350735.47))) * time.Second
+	assert.Equal(suite.T(), want, got)
 }
 
-func (suite *HostnamePublicTestSuite) TestGetHostnameReturnsError() {
+func (suite *UptimePublicTestSuite) TestGetUptimeReturnsError() {
 	sys := system.New(suite.appFs)
-	sys.HostnameProvider = linux.NewOSHostnameProvider(suite.appFs)
+	sys.UptimeProvider = linux.NewOSUptimeProvider(suite.appFs)
 
-	_, err := sys.GetHostname()
+	_, err := sys.GetUptime()
+
+	assert.Error(suite.T(), err)
+}
+
+func (suite *UptimePublicTestSuite) TestGetUptimeReturnsErrorWhenWrongFormat() {
+	procUptime := ""
+	_ = afero.WriteFile(suite.appFs, suite.uptimePath, []byte(procUptime), 0o644)
+
+	sys := system.New(suite.appFs)
+	sys.UptimeProvider = linux.NewOSUptimeProvider(suite.appFs)
+
+	_, err := sys.GetUptime()
+
+	assert.Error(suite.T(), err)
+}
+
+func (suite *UptimePublicTestSuite) TestGetUptimeReturnsErrorWhenCannotParseFloat() {
+	procUptime := "foo bar"
+	_ = afero.WriteFile(suite.appFs, suite.uptimePath, []byte(procUptime), 0o644)
+
+	sys := system.New(suite.appFs)
+	sys.UptimeProvider = linux.NewOSUptimeProvider(suite.appFs)
+
+	_, err := sys.GetUptime()
 
 	assert.Error(suite.T(), err)
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestHostnamePublicTestSuite(t *testing.T) {
-	suite.Run(t, new(HostnamePublicTestSuite))
+func TestUptimePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UptimePublicTestSuite))
 }

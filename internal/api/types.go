@@ -18,6 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package mocks
+package api
 
-//go:generate go run github.com/golang/mock/mockgen -source=../provider.go -destination=hostname.go -package=mocks
+// Server implementation of the Server's API operations.
+type Server struct{}

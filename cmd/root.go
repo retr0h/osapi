@@ -10,17 +10,41 @@ import (
 	"time"
 
 	"github.com/lmittmann/tint"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
 
 	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/metadata"
+	"github.com/retr0h/osapi/internal/metadata/sysinfo"
 )
 
 var (
 	appConfig config.Config
 	logger    = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	appFs     = afero.NewOsFs()
 )
+
+// validateDistribution checks if the CLI is being run on the correct Linux distribution.
+func validateDistribution() {
+	if os.Getenv("IGNORE_LINUX") != "" {
+		return
+	}
+
+	var sim metadata.SysInfoManager = sysinfo.New(appFs)
+	si := sim.GetSysInfo()
+	if !sim.IsLinuxVersionSupported(si.OS.Distribution, si.OS.Version) {
+		logFatal(
+			"distro not supported",
+			nil,
+			"distro",
+			si.OS.Distribution,
+			"version",
+			si.OS.Version,
+		)
+	}
+}
 
 // logFatal logs a fatal error message along with optional structured data
 // and then exits the program with a status code of 1.

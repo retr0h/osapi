@@ -27,4 +27,5 @@ import (
 // SysInfoManager manager responsible for SysInfo operations.
 type SysInfoManager interface {
 	GetSysInfo() *sysinfo.SysInfo
+	IsLinuxVersionSupported(distro string, version string) bool
 }

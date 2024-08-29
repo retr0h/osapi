@@ -88,6 +88,47 @@ func (suite *SysInfoPublicTestSuite) TestGetSysInfoReturnsEmptyWhenGetOSInfoErro
 	assert.Empty(suite.T(), got.OS.Version)
 }
 
+func (suite *SysInfoPublicTestSuite) TestIsLinuxVersionSupported() {
+	type test struct {
+		name    string
+		version string
+		want    bool
+	}
+
+	tests := []test{
+		{
+			name:    "Ubuntu",
+			version: "22.04",
+			want:    true,
+		},
+		{
+			name:    "UbUntU",
+			version: "22.04",
+			want:    true,
+		},
+		{
+			name:    "Ubuntu",
+			version: "20.04",
+			want:    true,
+		},
+		{
+			name:    "Fedora",
+			version: "32",
+			want:    false,
+		},
+		{
+			name:    "unsupported",
+			version: "version",
+			want:    false,
+		},
+	}
+
+	for _, tc := range tests {
+		got := suite.sim.IsLinuxVersionSupported(tc.name, tc.version)
+		assert.Equal(suite.T(), tc.want, got)
+	}
+}
+
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
 func TestSysInfoPublicTestSuite(t *testing.T) {
