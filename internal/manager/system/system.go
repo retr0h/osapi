@@ -24,12 +24,12 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/retr0h/osapi/internal/manager/system/linux"
-	// "github.com/retr0h/osapi/internal/manager/system/ubuntu"
 	"github.com/retr0h/osapi/internal/metadata"
 	"github.com/retr0h/osapi/internal/metadata/sysinfo"
 )
 
 // New factory to create a new instance.
+// TODO(retr0h): Pass in hostname provider
 func New(
 	appFs afero.Fs,
 ) *System {

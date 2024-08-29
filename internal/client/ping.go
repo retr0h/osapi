@@ -22,22 +22,11 @@ package client
 
 import (
 	"context"
-	"fmt"
-	"log/slog"
+
+	"github.com/retr0h/osapi/internal/client/gen"
 )
 
 // GetPing ping the API endpoint.
-func (c *Client) GetPing() error {
-	resp, err := c.Client.GetPingWithResponse(context.TODO())
-	if err != nil {
-		return fmt.Errorf("cannot get http response: %w", err)
-	}
-
-	c.logger.Info(
-		"response",
-		slog.Int("code", resp.StatusCode()),
-		slog.String("data", resp.JSON200.Ping),
-	)
-
-	return nil
+func (c *Client) GetPing() (*gen.GetPingResponse, error) {
+	return c.Client.GetPingWithResponse(context.TODO())
 }
