@@ -64,6 +64,13 @@ tasks:
     cmds:
       - yarn prettier docs --write --config prettier.config.js --ignore-path .prettierignore
 
+  fmt:check:
+    desc: Check files whose formatting differs from `prettier`
+    deps:
+      - yarn:install
+    cmds:
+      - yarn prettier docs --check --config prettier.config.js
+
   generate:
     desc:  Generates OpenAPI docs in MDX file format and sidebar.ts
     deps:
