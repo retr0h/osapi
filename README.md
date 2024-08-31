@@ -22,9 +22,10 @@ them to be used as appliances.
 
 ## Documentation
 
-[Usage][] | [Documentation][]
+[Getting Started][] | [API][] | [Documentation][]
 
-[Usage]: https://retr0h.github.io/osapi/sidebar/usage
+[Getting Started]: https://retr0h.github.io/osapi/
+[API]: https://retr0h.github.io/osapi/category/api
 [Documentation]: https://retr0h.github.io/osapi/
 
 ## License
