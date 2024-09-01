@@ -37,11 +37,64 @@ func (suite *SystemStatusTestSuite) SetupTest() {
 }
 
 func (suite *SystemStatusTestSuite) TestFormatDurationOk() {
-	d := time.Duration(int64(math.Trunc(350735.47))) * time.Second
-	got := formatDuration(d)
+	tests := []struct {
+		name string
+		d    time.Duration
+		want string
+	}{
+		{
+			name: "0 days, 0 hours, 0 minutes",
+			d:    time.Duration(0) * time.Second,
+			want: "0 days, 0 hours, 0 minutes",
+		},
+		{
+			name: "0 days, 0 hours, 1 minute",
+			d:    time.Duration(60) * time.Second,
+			want: "0 days, 0 hours, 1 minute",
+		},
+		{
+			name: "0 days, 1 hour, 0 minutes",
+			d:    time.Duration(3600) * time.Second,
+			want: "0 days, 1 hour, 0 minutes",
+		},
+		{
+			name: "1 day, 0 hours, 0 minutes",
+			d:    time.Duration(24*3600) * time.Second,
+			want: "1 day, 0 hours, 0 minutes",
+		},
+		{
+			name: "1 day, 1 hour, 1 minute",
+			d:    time.Duration(24*3600+3600+60) * time.Second,
+			want: "1 day, 1 hour, 1 minute",
+		},
+		{
+			name: "4 days, 1 hour, 25 minutes",
+			d:    time.Duration(int64(math.Trunc(350735.47))) * time.Second,
+			want: "4 days, 1 hour, 25 minutes",
+		},
+		{
+			name: "2 days, 2 hours, 2 minutes",
+			d:    time.Duration(2*24*3600+2*3600+2*60) * time.Second,
+			want: "2 days, 2 hours, 2 minutes",
+		},
+		{
+			name: "0 days, 0 hours, 59 minutes",
+			d:    time.Duration(59) * time.Minute,
+			want: "0 days, 0 hours, 59 minutes",
+		},
+		{
+			name: "0 days, 23 hours, 59 minutes",
+			d:    time.Duration(23*3600+59*60) * time.Second,
+			want: "0 days, 23 hours, 59 minutes",
+		},
+	}
 
-	want := "4 days 1 hours 25 minutes"
-	assert.Equal(suite.T(), want, got)
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			got := formatDuration(tc.d)
+			assert.Equal(suite.T(), tc.want, got)
+		})
+	}
 }
 
 // In order for `go test` to run this suite, we need to create

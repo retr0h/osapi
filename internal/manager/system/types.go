@@ -30,11 +30,12 @@ import (
 type System struct {
 	HostnameProvider HostnameProvider
 	UptimeProvider   UptimeProvider
+	LoadProvider     LoadProvider
 
 	appFs afero.Fs
 }
 
-// HostnameProvider is an internal only interface that abstracts the os.Hostname function.
+// HostnameProvider is an internal only interface that abstracts the hostname function.
 type HostnameProvider interface {
 	GetHostname() (string, error)
 }
@@ -42,4 +43,9 @@ type HostnameProvider interface {
 // UptimeProvider is an internal only interface that abstracts the uptime function.
 type UptimeProvider interface {
 	GetUptime() (time.Duration, error)
+}
+
+// LoadProvider is an internal only interface that abstracts the getloadavg function.
+type LoadProvider interface {
+	GetLoadAverage() ([3]float64, error)
 }

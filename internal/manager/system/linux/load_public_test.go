@@ -31,42 +31,68 @@ import (
 	"github.com/retr0h/osapi/internal/manager/system/linux"
 )
 
-type HostnamePublicTestSuite struct {
+// TODO(retr0h): table driven
+
+type LoadPublicTestSuite struct {
 	suite.Suite
 
-	appFs        afero.Fs
-	hostnameFile string
+	appFs       afero.Fs
+	loadAvgFile string
 }
 
-func (suite *HostnamePublicTestSuite) SetupTest() {
+func (suite *LoadPublicTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
-	suite.hostnameFile = "/proc/sys/kernel/hostname"
+	suite.loadAvgFile = "/proc/loadavg"
 }
 
-func (suite *HostnamePublicTestSuite) SetupSubTest() {
+func (suite *LoadPublicTestSuite) SetupSubTest() {
 	// initializes a new afero.Fs in the table tests
 	suite.SetupTest()
 }
 
-func (suite *HostnamePublicTestSuite) TearDownTest() {}
+func (suite *LoadPublicTestSuite) TearDownTest() {}
 
-func (suite *HostnamePublicTestSuite) TestGetHostname() {
+func (suite *LoadPublicTestSuite) TestGetHostnameOk() {
 	tests := []struct {
 		name    string
 		content []byte
-		want    string
+		want    [3]float64
 		wantErr bool
 	}{
 		{
-			name:    "when hostname is valid",
-			content: []byte(`linux-hostname`),
-			want:    "linux-hostname",
+			name:    "when loadavg is valid",
+			content: []byte("0.45 0.30 0.25 2/150 12345"),
+			want:    [3]float64{0.45, 0.30, 0.25},
 			wantErr: false,
 		},
 		{
-			name:    "when missing hostnameFile",
+			name:    "when missing loadAvgFile",
 			content: []byte{},
-			want:    "",
+			want:    [3]float64{},
+			wantErr: true,
+		},
+		{
+			name:    "when wrong format",
+			content: []byte(" "),
+			want:    [3]float64{},
+			wantErr: true,
+		},
+		{
+			name:    "when cannot parse 1m",
+			content: []byte("invalid 0.30 0.25 2/150 12345"),
+			want:    [3]float64{},
+			wantErr: true,
+		},
+		{
+			name:    "when cannot parse 5m",
+			content: []byte("0.45 invalid 0.25 2/150 12345"),
+			want:    [3]float64{},
+			wantErr: true,
+		},
+		{
+			name:    "when cannot parse 15m",
+			content: []byte("0.30 0.30 invalid 2/150 12345"),
+			want:    [3]float64{},
 			wantErr: true,
 		},
 	}
@@ -74,13 +100,13 @@ func (suite *HostnamePublicTestSuite) TestGetHostname() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			if len(tc.content) != 0 {
-				_ = afero.WriteFile(suite.appFs, suite.hostnameFile, tc.content, 0o644)
+				_ = afero.WriteFile(suite.appFs, suite.loadAvgFile, tc.content, 0o644)
 			}
 
 			sys := system.New(suite.appFs)
-			sys.HostnameProvider = linux.NewOSHostnameProvider(suite.appFs)
+			sys.LoadProvider = linux.NewOSLoadProvider(suite.appFs)
 
-			got, err := sys.GetHostname()
+			got, err := sys.GetLoadAverage()
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
@@ -94,6 +120,6 @@ func (suite *HostnamePublicTestSuite) TestGetHostname() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestHostnamePublicTestSuite(t *testing.T) {
-	suite.Run(t, new(HostnamePublicTestSuite))
+func TestLoadPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(LoadPublicTestSuite))
 }

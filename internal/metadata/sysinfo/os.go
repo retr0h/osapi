@@ -26,9 +26,16 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// TODO(retr0h): should it act like the unix package?
+// 	"golang.org/x/sys/unix"
+//	var loadAvg unix.Loadavg
+//	err := unix.Getloadavg(&loadAvg)
+
 // GetOSInfo get Operating System Information.
 func (si *SysInfo) GetOSInfo() *OS {
-	file, err := si.appFs.Open("/etc/os-release")
+	const osReleaseFile = "/etc/os-release"
+
+	file, err := si.appFs.Open(osReleaseFile)
 	if err != nil {
 		return &OS{}
 	}

@@ -64,6 +64,22 @@ func formatDuration(d time.Duration) string {
 	hours := (totalMinutes % (24 * 60)) / 60
 	minutes := totalMinutes % 60
 
+	// Pluralize days, hours, and minutes
+	dayStr := "day"
+	if days != 1 {
+		dayStr = "days"
+	}
+
+	hourStr := "hour"
+	if hours != 1 {
+		hourStr = "hours"
+	}
+
+	minuteStr := "minute"
+	if minutes != 1 {
+		minuteStr = "minutes"
+	}
+
 	// Format the result as a string
-	return fmt.Sprintf("%d days %d hours %d minutes", days, hours, minutes)
+	return fmt.Sprintf("%d %s, %d %s, %d %s", days, dayStr, hours, hourStr, minutes, minuteStr)
 }

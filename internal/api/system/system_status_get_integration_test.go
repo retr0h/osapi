@@ -91,7 +91,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatusOk() {
     "total": 0,
     "used": 0
 },
-"uptime": "4 days 1 hours 25 minutes"
+"uptime": "4 days, 1 hour, 25 minutes"
 }`
 	assert.JSONEq(suite.T(), want, rec.Body.String())
 }

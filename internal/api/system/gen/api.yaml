@@ -60,7 +60,7 @@ components:
         uptime:
           type: string
           description: The uptime of the system.
-          example: "1 day, 4 hours, 12 minutes"
+          example: "0 days, 4 hours, 1 minute"
         load_average:
           type: object
           description: The system load averages for 1, 5, and 15 minutes.

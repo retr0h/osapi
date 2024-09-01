@@ -41,21 +41,25 @@ func NewOSUptimeProvider(
 // GetUptime returns the system uptime as a duration. It is cross-compatible
 // with all Linux distributions.
 //
-// The /proc/uptime file contains two floating-point numbers:
-//  1. The first number represents the total number of seconds the system has
+// About /proc/uptime:
+//   - This file contains two floating-point numbers:
+//     1. The first number represents the total number of seconds the system has
 //     been up since the last boot.
-//  2. The second number indicates the total time (in seconds) that all CPUs
+//     2. The second number indicates the total time (in seconds) that all CPUs
 //     have spent idle, summed up across all CPUs.
+//   - These values are calculated by the Linux kernel and updated in real-time
+//     to reflect the current state of the system.
 //
-// These values are calculated by the Linux kernel and updated in real-time
-// to reflect the current state of the system.
+// See `proc(5)` manual page for further information.
 //
-// According to the `proc(5)` manual page:
+// Mocking:
+//   - Opted to parse /proc so Afero could be used for mocking.  However, this
+//     is likely to change as commands and go functions will need mocked.
 func (p *OSUptimeProvider) GetUptime() (time.Duration, error) {
-	const uptimePath = "/proc/uptime"
+	const uptimeFile = "/proc/uptime"
 
 	// Read the contents of /proc/uptime
-	data, err := afero.ReadFile(p.appFs, uptimePath)
+	data, err := afero.ReadFile(p.appFs, uptimeFile)
 	if err != nil {
 		return 0, fmt.Errorf("failed to read uptime: %w", err)
 	}

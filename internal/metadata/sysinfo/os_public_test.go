@@ -21,7 +21,6 @@
 package sysinfo_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -34,77 +33,94 @@ import (
 type OSPublicTestSuite struct {
 	suite.Suite
 
-	appFs afero.Fs
-	si    *sysinfo.SysInfo
+	appFs         afero.Fs
+	si            *sysinfo.SysInfo
+	osReleaseFile string
 }
 
 func (suite *OSPublicTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
 	suite.si = sysinfo.New(suite.appFs)
+	suite.osReleaseFile = "/etc/os-release"
 }
 
-func (suite *OSPublicTestSuite) TestGetOSInfoOk() {
-	type sysInfo struct {
-		distribution string
-		version      string
-	}
+func (suite *OSPublicTestSuite) SetupSubTest() {
+	// initializes a new afero.Fs in the table tests
+	suite.SetupTest()
+}
 
-	type test struct {
+func (suite *OSPublicTestSuite) TestGetOSInfo() {
+	tests := []struct {
 		name    string
-		version string
-		want    *sysInfo
-	}
-
-	tests := []test{
+		content []byte
+		want    struct {
+			distribution string
+			version      string
+		}
+	}{
 		{
-			name:    "Ubuntu",
-			version: "22.04",
-			want: &sysInfo{
+			name: "when distro is ubuntu",
+			content: []byte(`
+NAME=Ubuntu
+VERSION_ID=22.04`),
+			want: struct {
+				distribution string
+				version      string
+			}{
 				distribution: "ubuntu",
 				version:      "22.04",
 			},
 		},
 		{
-			name:    "Fedora",
-			version: "32",
-			want: &sysInfo{
+			name: "when distro is fedora",
+			content: []byte(`
+NAME=Fedora
+VERSION_ID=32`),
+			want: struct {
+				distribution string
+				version      string
+			}{
 				distribution: "fedora",
 				version:      "32",
+			},
+		},
+		{
+			name: "when cannot parse osReleaseFile",
+			content: []byte(`
+NAME^"invalid"`),
+			want: struct {
+				distribution string
+				version      string
+			}{
+				distribution: "",
+				version:      "",
+			},
+		},
+		{
+			name:    "when missing osReleaseFile",
+			content: []byte{},
+			want: struct {
+				distribution string
+				version      string
+			}{
+				distribution: "",
+				version:      "",
 			},
 		},
 	}
 
 	for _, tc := range tests {
-		osRelease := fmt.Sprintf(`
-NAME="%s"
-VERSION_ID="%s"
-`, tc.name, tc.version)
-		_ = afero.WriteFile(suite.appFs, "/etc/os-release", []byte(osRelease), 0o644)
+		suite.Run(tc.name, func() {
+			if len(tc.content) != 0 {
+				_ = afero.WriteFile(suite.appFs, suite.osReleaseFile, tc.content, 0o644)
+			}
 
-		got := suite.si.GetOSInfo()
+			got := suite.si.GetOSInfo()
 
-		assert.Equal(suite.T(), tc.want.distribution, got.Distribution)
-		assert.Equal(suite.T(), tc.want.version, got.Version)
+			assert.Equal(suite.T(), tc.want.distribution, got.Distribution)
+			assert.Equal(suite.T(), tc.want.version, got.Version)
+		})
 	}
-}
-
-func (suite *OSPublicTestSuite) TestGetOSInfoReturnsEmptyWhenMissingOSReleaseFile() {
-	got := suite.si.GetOSInfo()
-
-	assert.Empty(suite.T(), "", got.Distribution)
-	assert.Empty(suite.T(), "", got.Version)
-}
-
-func (suite *OSPublicTestSuite) TestGetOSInfoReturnsEmptyWhenCannotParseOSReleaseFile() {
-	osRelease := `
-NAME^"invalid"
-`
-	_ = afero.WriteFile(suite.appFs, "/etc/os-release", []byte(osRelease), 0o644)
-
-	got := suite.si.GetOSInfo()
-
-	assert.Empty(suite.T(), got.Distribution)
-	assert.Empty(suite.T(), got.Version)
 }
 
 // In order for `go test` to run this suite, we need to create

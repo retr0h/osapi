@@ -47,15 +47,16 @@ func NewOSHostnameProvider(
 //     a reliable and cross-distro way to fetch the system's hostname.
 //   - Modifications to this file directly impact the kernel's idea of the system hostname.
 //
-// Opted to use afero for mocking, since os.Hostname() in Go is tougher to mock
-// higher up in the API tests.  However, I'll likely need to figure this out anyways
-// as we will be running commands, which will need mocked.
+// See `proc(5)` manual page for further information.
+//
+// Mocking:
+//   - Opted to parse /proc so Afero could be used for mocking.  However, this
+//     is likely to change as commands and go functions will need mocked.
 func (p *OSHostnameProvider) GetHostname() (string, error) {
-	// Path to the file that contains the system's hostname
-	const hostnamePath = "/proc/sys/kernel/hostname"
+	const hostnameFile = "/proc/sys/kernel/hostname"
 
 	// Read the hostname file
-	data, err := afero.ReadFile(p.appFs, hostnamePath)
+	data, err := afero.ReadFile(p.appFs, hostnameFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read hostname: %w", err)
 	}

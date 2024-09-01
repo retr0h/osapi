@@ -20,10 +20,10 @@
 
 package ubuntu
 
-// HostnameProvider is an interface that abstracts the os.Hostname function.
+// HostnameProvider is an interface that abstracts the hostname function.
 type HostnameProvider interface {
 	GetHostname() (string, error)
 }
 
-// OSHostnameProvider implements HostnameProvider using os.Hostname.
+// OSHostnameProvider implements HostnameProvider.
 type OSHostnameProvider struct{}

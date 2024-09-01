@@ -18,16 +18,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package linux
 
 import (
-	"time"
+	"github.com/spf13/afero"
 )
 
-// Manager responsible for System operations.
-type Manager interface {
-	GetHostname() (string, error)
-	GetUptime() (time.Duration, error)
-	GetLoadAverage() ([3]float64, error)
-	RegisterProviders()
+// OSHostnameProvider implements HostnameProvider.
+type OSHostnameProvider struct {
+	appFs afero.Fs
+}
+
+// OSUptimeProvider implements UptimeProvider.
+type OSUptimeProvider struct {
+	appFs afero.Fs
+}
+
+// OSLoadProvider implements LoadProvider.
+type OSLoadProvider struct {
+	appFs afero.Fs
 }

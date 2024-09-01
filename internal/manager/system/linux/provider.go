@@ -22,18 +22,11 @@ package linux
 
 import (
 	"time"
-
-	"github.com/spf13/afero"
 )
 
-// HostnameProvider is an interface that abstracts the os.Hostname function.
+// HostnameProvider is an interface that abstracts the hostname function.
 type HostnameProvider interface {
 	GetHostname() (string, error)
-}
-
-// OSHostnameProvider implements HostnameProvider using os.Hostname.
-type OSHostnameProvider struct {
-	appFs afero.Fs
 }
 
 // UptimeProvider is an interface that abstracts the uptime function.
@@ -41,7 +34,7 @@ type UptimeProvider interface {
 	GetUptime() (time.Duration, error)
 }
 
-// OSUptimeProvider implements UptimeProvider.
-type OSUptimeProvider struct {
-	appFs afero.Fs
+// LoadProvider is an interface that abstracts the getloadavg function.
+type LoadProvider interface {
+	GetLoadAverage() ([3]float64, error)
 }

@@ -21,7 +21,6 @@
 package sysinfo_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -35,32 +34,35 @@ import (
 type SysInfoPublicTestSuite struct {
 	suite.Suite
 
-	appFs afero.Fs
-	sim   metadata.SysInfoManager
+	appFs         afero.Fs
+	sim           metadata.SysInfoManager
+	osReleaseFile string
 }
 
 func (suite *SysInfoPublicTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
 	suite.sim = sysinfo.New(suite.appFs)
+	suite.osReleaseFile = "/etc/os-release"
 }
 
 func (suite *SysInfoPublicTestSuite) TestGetSysInfoOk() {
-	type sysInfo struct {
-		distribution string
-		version      string
-	}
-
-	type test struct {
+	tests := []struct {
 		name    string
-		version string
-		want    *sysInfo
-	}
-
-	tests := []test{
+		content []byte
+		want    struct {
+			distribution string
+			version      string
+		}
+	}{
 		{
-			name:    "Ubuntu",
-			version: "22.04",
-			want: &sysInfo{
+			name: "when distro is ubuntu",
+			content: []byte(`
+NAME=Ubuntu
+VERSION_ID=22.04`),
+			want: struct {
+				distribution string
+				version      string
+			}{
 				distribution: "ubuntu",
 				version:      "22.04",
 			},
@@ -68,16 +70,14 @@ func (suite *SysInfoPublicTestSuite) TestGetSysInfoOk() {
 	}
 
 	for _, tc := range tests {
-		osRelease := fmt.Sprintf(`
-NAME="%s"
-VERSION_ID="%s"
-`, tc.name, tc.version)
-		_ = afero.WriteFile(suite.appFs, "/etc/os-release", []byte(osRelease), 0o644)
+		suite.Run(tc.name, func() {
+			_ = afero.WriteFile(suite.appFs, suite.osReleaseFile, tc.content, 0o644)
 
-		got := suite.sim.GetSysInfo()
+			got := suite.sim.GetSysInfo()
 
-		assert.Equal(suite.T(), tc.want.distribution, got.OS.Distribution)
-		assert.Equal(suite.T(), tc.want.version, got.OS.Version)
+			assert.Equal(suite.T(), tc.want.distribution, got.OS.Distribution)
+			assert.Equal(suite.T(), tc.want.version, got.OS.Version)
+		})
 	}
 }
 
@@ -89,13 +89,11 @@ func (suite *SysInfoPublicTestSuite) TestGetSysInfoReturnsEmptyWhenGetOSInfoErro
 }
 
 func (suite *SysInfoPublicTestSuite) TestIsLinuxVersionSupported() {
-	type test struct {
+	tests := []struct {
 		name    string
 		version string
 		want    bool
-	}
-
-	tests := []test{
+	}{
 		{
 			name:    "Ubuntu",
 			version: "22.04",
@@ -124,8 +122,10 @@ func (suite *SysInfoPublicTestSuite) TestIsLinuxVersionSupported() {
 	}
 
 	for _, tc := range tests {
-		got := suite.sim.IsLinuxVersionSupported(tc.name, tc.version)
-		assert.Equal(suite.T(), tc.want, got)
+		suite.Run(tc.name, func() {
+			got := suite.sim.IsLinuxVersionSupported(tc.name, tc.version)
+			assert.Equal(suite.T(), tc.want, got)
+		})
 	}
 }
 

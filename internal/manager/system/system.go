@@ -49,6 +49,11 @@ func (s *System) GetUptime() (time.Duration, error) {
 	return s.UptimeProvider.GetUptime()
 }
 
+// GetLoadAverage gets the system's load average.
+func (s *System) GetLoadAverage() ([3]float64, error) {
+	return s.LoadProvider.GetLoadAverage()
+}
+
 // RegisterProviders register system providers.
 func (s *System) RegisterProviders() {
 	var sim metadata.SysInfoManager = sysinfo.New(s.appFs)
@@ -59,5 +64,6 @@ func (s *System) RegisterProviders() {
 		// common hostname provider across linux distros
 		s.HostnameProvider = linux.NewOSHostnameProvider(s.appFs)
 		s.UptimeProvider = linux.NewOSUptimeProvider(s.appFs)
+		s.LoadProvider = linux.NewOSLoadProvider(s.appFs)
 	}
 }
