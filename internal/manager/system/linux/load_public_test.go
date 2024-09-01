@@ -31,8 +31,6 @@ import (
 	"github.com/retr0h/osapi/internal/manager/system/linux"
 )
 
-// TODO(retr0h): table driven
-
 type LoadPublicTestSuite struct {
 	suite.Suite
 
@@ -52,7 +50,7 @@ func (suite *LoadPublicTestSuite) SetupSubTest() {
 
 func (suite *LoadPublicTestSuite) TearDownTest() {}
 
-func (suite *LoadPublicTestSuite) TestGetHostnameOk() {
+func (suite *LoadPublicTestSuite) TestGetHostname() {
 	tests := []struct {
 		name    string
 		content []byte

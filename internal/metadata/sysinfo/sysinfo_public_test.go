@@ -45,6 +45,8 @@ func (suite *SysInfoPublicTestSuite) SetupTest() {
 	suite.osReleaseFile = "/etc/os-release"
 }
 
+// TODO Test case errors
+
 func (suite *SysInfoPublicTestSuite) TestGetSysInfoOk() {
 	tests := []struct {
 		name    string

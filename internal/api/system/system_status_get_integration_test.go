@@ -49,32 +49,35 @@ func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-	osRelease := `
-NAME="Ubuntu"
-VERSION_ID="22.04"
-`
-	_ = afero.WriteFile(suite.appFs, "/etc/os-release", []byte(osRelease), 0o644)
 }
 
-func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatusOk() {
-	procUptime := "350735.47 234388.90"
-	_ = afero.WriteFile(suite.appFs, "/proc/uptime", []byte(procUptime), 0o644)
-	procHostname := "test-hostname"
-	_ = afero.WriteFile(suite.appFs, "/proc/sys/kernel/hostname", []byte(procHostname), 0o644)
+func (suite *SystemStatusIntegrationTestSuite) SetupSubTest() {
+	// initializes a new afero.Fs in the table tests
+	suite.SetupTest()
+}
 
-	a := api.New(suite.appFs, suite.appConfig, suite.logger)
-	systemGen.RegisterHandlers(a, system.New(suite.appFs))
-
-	// Create a new request to the /system/status endpoint
-	req := httptest.NewRequest(http.MethodGet, "/system/status", nil)
-	rec := httptest.NewRecorder()
-
-	// Serve the request
-	a.ServeHTTP(rec, req)
-
-	assert.Equal(suite.T(), http.StatusOK, rec.Code)
-	want := `{
+func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
+	tests := []struct {
+		name string
+		uri  string
+		want struct {
+			code int
+			body string
+		}
+		files []struct {
+			content []byte
+			file    string
+		}
+	}{
+		{
+			name: "when http ok",
+			uri:  "/system/status",
+			want: struct {
+				code int
+				body string
+			}{
+				code: http.StatusOK,
+				body: `{
 "disk": {
     "free": 0,
     "total": 0,
@@ -92,8 +95,77 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatusOk() {
     "used": 0
 },
 "uptime": "4 days, 1 hour, 25 minutes"
-}`
-	assert.JSONEq(suite.T(), want, rec.Body.String())
+}`,
+			},
+			files: []struct {
+				content []byte
+				file    string
+			}{
+				{
+					content: []byte(`
+          NAME=Ubuntu
+          VERSION_ID=22.04`),
+					file: "/etc/os-release",
+				},
+				{
+					content: []byte(`350735.47 234388.90`),
+					file:    "/proc/uptime",
+				},
+				{
+					content: []byte("test-hostname"),
+					file:    "/proc/sys/kernel/hostname",
+				},
+			},
+		},
+		{
+			name: "when http error",
+			uri:  "/system/status",
+			want: struct {
+				code int
+				body string
+			}{
+				code: http.StatusInternalServerError,
+				body: `{}`,
+			},
+			files: []struct {
+				content []byte
+				file    string
+			}{
+				{
+					content: []byte(`
+          NAME=Ubuntu
+          VERSION_ID=22.04`),
+					file: "/etc/os-release",
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			for _, f := range tc.files {
+				if len(f.content) != 0 {
+					_ = afero.WriteFile(suite.appFs, f.file, f.content, 0o644)
+				}
+			}
+
+			a := api.New(suite.appFs, suite.appConfig, suite.logger)
+			systemGen.RegisterHandlers(a, system.New(suite.appFs))
+
+			// Create a new request to the /system/status endpoint
+			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
+			rec := httptest.NewRecorder()
+
+			// Serve the request
+			a.ServeHTTP(rec, req)
+
+			assert.Equal(suite.T(), tc.want.code, rec.Code)
+
+			if tc.want.code == http.StatusOK {
+				assert.JSONEq(suite.T(), tc.want.body, rec.Body.String())
+			}
+		})
+	}
 }
 
 // In order for `go test` to run this suite, we need to create
