@@ -11,7 +11,7 @@ require (
 	github.com/maragudk/goqite v0.2.3
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
-	github.com/samber/slog-echo v1.14.5
+	github.com/samber/slog-echo v1.14.6
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
