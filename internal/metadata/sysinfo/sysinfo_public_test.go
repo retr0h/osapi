@@ -45,7 +45,10 @@ func (suite *SysInfoPublicTestSuite) SetupTest() {
 	suite.osReleaseFile = "/etc/os-release"
 }
 
-// TODO Test case errors
+func (suite *SysInfoPublicTestSuite) SetupSubTest() {
+	// initializes a new afero.Fs in the table tests
+	suite.SetupTest()
+}
 
 func (suite *SysInfoPublicTestSuite) TestGetSysInfoOk() {
 	tests := []struct {
@@ -69,11 +72,24 @@ VERSION_ID=22.04`),
 				version:      "22.04",
 			},
 		},
+		{
+			name:    "when get os info errors",
+			content: []byte(``),
+			want: struct {
+				distribution string
+				version      string
+			}{
+				distribution: "",
+				version:      "",
+			},
+		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			_ = afero.WriteFile(suite.appFs, suite.osReleaseFile, tc.content, 0o644)
+			if len(tc.content) != 0 {
+				_ = afero.WriteFile(suite.appFs, suite.osReleaseFile, tc.content, 0o644)
+			}
 
 			got := suite.sim.GetSysInfo()
 
@@ -81,13 +97,6 @@ VERSION_ID=22.04`),
 			assert.Equal(suite.T(), tc.want.version, got.OS.Version)
 		})
 	}
-}
-
-func (suite *SysInfoPublicTestSuite) TestGetSysInfoReturnsEmptyWhenGetOSInfoErrors() {
-	got := suite.sim.GetSysInfo()
-
-	assert.Empty(suite.T(), got.OS.Distribution)
-	assert.Empty(suite.T(), got.OS.Version)
 }
 
 func (suite *SysInfoPublicTestSuite) TestIsLinuxVersionSupported() {
