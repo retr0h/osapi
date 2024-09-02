@@ -25,9 +25,9 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/retr0h/osapi/internal/manager/system/linux"
 	"github.com/retr0h/osapi/internal/metadata"
 	"github.com/retr0h/osapi/internal/metadata/sysinfo"
+	"github.com/retr0h/osapi/internal/provider/system/linux"
 )
 
 // New factory to create a new instance.

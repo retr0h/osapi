@@ -28,7 +28,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/manager/system"
+	"github.com/retr0h/osapi/internal/provider/system"
 )
 
 // GetSystemStatus (GET /system/status)

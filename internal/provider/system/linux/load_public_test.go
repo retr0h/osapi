@@ -27,8 +27,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/manager/system"
-	"github.com/retr0h/osapi/internal/manager/system/linux"
+	"github.com/retr0h/osapi/internal/provider/system"
+	"github.com/retr0h/osapi/internal/provider/system/linux"
 )
 
 type LoadPublicTestSuite struct {
