@@ -38,6 +38,11 @@ var clientPingCmd = &cobra.Command{
 			logFatal("failed to get ping endpoint", err)
 		}
 
+		if jsonOutput {
+			prettyPrintJSON(resp.Body)
+			return
+		}
+
 		logger.Info(
 			"response",
 			slog.Int("code", resp.StatusCode()),

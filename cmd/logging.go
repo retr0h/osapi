@@ -21,51 +21,37 @@
 package cmd
 
 import (
-	"log/slog"
-
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	"github.com/retr0h/osapi/internal/client"
+	"encoding/json"
+	"fmt"
+	"os"
 )
 
-var (
-	c          *client.Client
-	jsonOutput bool
-)
+// logFatal logs a fatal error message along with optional structured data
+// and then exits the program with a status code of 1.
+func logFatal(message string, err error, kvPairs ...any) {
+	if err != nil {
+		kvPairs = append(kvPairs, "error", err)
+	}
+	logger.Error(
+		message,
+		kvPairs...,
+	)
 
-// clientCmd represents the client command.
-var clientCmd = &cobra.Command{
-	Use:   "client",
-	Short: "The client subcommand",
-	PersistentPreRun: func(_ *cobra.Command, _ []string) {
-		validateDistribution()
-
-		logger.Info(
-			"client configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.String("client.url", appConfig.Client.URL),
-		)
-
-		cwr, err := client.NewClientWithResponses(appConfig)
-		if err != nil {
-			logFatal("failed to create http client", err)
-		}
-
-		c = client.New(
-			logger,
-			appConfig,
-			cwr,
-		)
-	},
+	os.Exit(1)
 }
 
-func init() {
-	rootCmd.AddCommand(clientCmd)
+// prettyPrintJSON unmarshals JSON from a byte slice, formats it with indentation,
+// and prints it to the standard output.
+func prettyPrintJSON(respBody []byte) {
+	var jsonObj interface{}
+	if err := json.Unmarshal(respBody, &jsonObj); err != nil {
+		logFatal("failed to unmarshal json", err)
+	}
 
-	clientCmd.PersistentFlags().
-		StringP("url", "l", "http://0.0.0.0:8080", "URL the client will connect to")
-	clientCmd.PersistentFlags().BoolVarP(&jsonOutput, "json", "j", false, "Enable JSON output")
+	prettyJSON, err := json.MarshalIndent(jsonObj, "", "  ")
+	if err != nil {
+		logFatal("failed to marshal json", err)
+	}
 
-	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
+	fmt.Println(string(prettyJSON))
 }
