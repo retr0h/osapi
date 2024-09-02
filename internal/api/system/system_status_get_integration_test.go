@@ -122,7 +122,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			},
 		},
 		{
-			name: "when http error",
+			name: "when get hostname errors",
 			uri:  "/system/status",
 			want: struct {
 				code int
@@ -140,6 +140,62 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
           NAME=Ubuntu
           VERSION_ID=22.04`),
 					file: "/etc/os-release",
+				},
+			},
+		},
+		{
+			name: "when get uptime errors",
+			uri:  "/system/status",
+			want: struct {
+				code int
+				body string
+			}{
+				code: http.StatusInternalServerError,
+				body: `{}`,
+			},
+			files: []struct {
+				content []byte
+				file    string
+			}{
+				{
+					content: []byte(`
+          NAME=Ubuntu
+          VERSION_ID=22.04`),
+					file: "/etc/os-release",
+				},
+				{
+					content: []byte("test-hostname"),
+					file:    "/proc/sys/kernel/hostname",
+				},
+			},
+		},
+		{
+			name: "when get loadavg errors",
+			uri:  "/system/status",
+			want: struct {
+				code int
+				body string
+			}{
+				code: http.StatusInternalServerError,
+				body: `{}`,
+			},
+			files: []struct {
+				content []byte
+				file    string
+			}{
+				{
+					content: []byte(`
+          NAME=Ubuntu
+          VERSION_ID=22.04`),
+					file: "/etc/os-release",
+				},
+				{
+					content: []byte("test-hostname"),
+					file:    "/proc/sys/kernel/hostname",
+				},
+				{
+					content: []byte(`350735.47 234388.90`),
+					file:    "/proc/uptime",
 				},
 			},
 		},
