@@ -59,6 +59,26 @@ components:
         ping:
           type: string
           example: pong
+    LoadAverage:
+      type: object
+      description: The system load averages for 1, 5, and 15 minutes.
+      properties:
+        1min:
+          type: number
+          description: Load average for the last 1 minute.
+          example: 0.32
+        5min:
+          type: number
+          description: Load average for the last 5 minutes.
+          example: 0.28
+        15min:
+          type: number
+          description: Load average for the last 15 minutes.
+          example: 0.25
+      required:
+        - 1min
+        - 5min
+        - 15min
     SystemStatus:
       type: object
       properties:
@@ -71,25 +91,7 @@ components:
           description: The uptime of the system.
           example: 0 days, 4 hours, 1 minute
         load_average:
-          type: object
-          description: The system load averages for 1, 5, and 15 minutes.
-          properties:
-            1min:
-              type: number
-              description: Load average for the last 1 minute.
-              example: 0.32
-            5min:
-              type: number
-              description: Load average for the last 5 minutes.
-              example: 0.28
-            15min:
-              type: number
-              description: Load average for the last 15 minutes.
-              example: 0.25
-          required:
-            - 1min
-            - 5min
-            - 15min
+          $ref: '#/components/schemas/LoadAverage'
         memory:
           type: object
           description: Memory usage information.

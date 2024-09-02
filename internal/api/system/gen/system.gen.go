@@ -19,6 +19,18 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// LoadAverage The system load averages for 1, 5, and 15 minutes.
+type LoadAverage struct {
+	// N15min Load average for the last 15 minutes.
+	N15min float32 `json:"15min"`
+
+	// N1min Load average for the last 1 minute.
+	N1min float32 `json:"1min"`
+
+	// N5min Load average for the last 5 minutes.
+	N5min float32 `json:"5min"`
+}
+
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
 	// Disk Disk usage information.
@@ -37,16 +49,7 @@ type SystemStatus struct {
 	Hostname string `json:"hostname"`
 
 	// LoadAverage The system load averages for 1, 5, and 15 minutes.
-	LoadAverage struct {
-		// N15min Load average for the last 15 minutes.
-		N15min float32 `json:"15min"`
-
-		// N1min Load average for the last 1 minute.
-		N1min float32 `json:"1min"`
-
-		// N5min Load average for the last 5 minutes.
-		N5min float32 `json:"5min"`
-	} `json:"load_average"`
+	LoadAverage LoadAverage `json:"load_average"`
 
 	// Memory Memory usage information.
 	Memory struct {

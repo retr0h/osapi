@@ -54,43 +54,49 @@ func (suite *LoadPublicTestSuite) TestGetHostname() {
 	tests := []struct {
 		name    string
 		content []byte
-		want    [3]float64
+		want    [3]float32
 		wantErr bool
 	}{
 		{
 			name:    "when loadavg is valid",
 			content: []byte("0.45 0.30 0.25 2/150 12345"),
-			want:    [3]float64{0.45, 0.30, 0.25},
+			want:    [3]float32{0.45, 0.30, 0.25},
 			wantErr: false,
 		},
 		{
 			name:    "when missing loadAvgFile",
 			content: []byte{},
-			want:    [3]float64{},
+			want:    [3]float32{},
 			wantErr: true,
 		},
 		{
 			name:    "when wrong format",
 			content: []byte(" "),
-			want:    [3]float64{},
+			want:    [3]float32{},
+			wantErr: true,
+		},
+		{
+			name:    "when cannot parse float32 when too large",
+			content: []byte("1e+40 0.30 0.25 2/150 12345"),
+			want:    [3]float32{},
 			wantErr: true,
 		},
 		{
 			name:    "when cannot parse 1m",
 			content: []byte("invalid 0.30 0.25 2/150 12345"),
-			want:    [3]float64{},
+			want:    [3]float32{},
 			wantErr: true,
 		},
 		{
 			name:    "when cannot parse 5m",
 			content: []byte("0.45 invalid 0.25 2/150 12345"),
-			want:    [3]float64{},
+			want:    [3]float32{},
 			wantErr: true,
 		},
 		{
 			name:    "when cannot parse 15m",
 			content: []byte("0.30 0.30 invalid 2/150 12345"),
-			want:    [3]float64{},
+			want:    [3]float32{},
 			wantErr: true,
 		},
 	}

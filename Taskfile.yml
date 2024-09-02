@@ -103,6 +103,16 @@ tasks:
   #   cmds:
   #     - goreleaser release --snapshot --clean
 
+  docker:build:
+    desc: Build an image from a Dockerfile
+    cmds:
+      - docker build -t osapi:latest .
+
+  docker:serve:
+    desc: Serve the API on a Docker instance
+    cmds:
+      - docker run -it -p 8080:8080 osapi:latest
+
   serve:
     desc: Live reload of server
     cmds:

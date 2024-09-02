@@ -50,7 +50,7 @@ func (s *System) GetUptime() (time.Duration, error) {
 }
 
 // GetLoadAverage gets the system's load average.
-func (s *System) GetLoadAverage() ([3]float64, error) {
+func (s *System) GetLoadAverage() ([3]float32, error) {
 	return s.LoadProvider.GetLoadAverage()
 }
 

@@ -36,5 +36,5 @@ type UptimeProvider interface {
 
 // LoadProvider is an interface that abstracts the getloadavg function.
 type LoadProvider interface {
-	GetLoadAverage() ([3]float64, error)
+	GetLoadAverage() ([3]float32, error)
 }

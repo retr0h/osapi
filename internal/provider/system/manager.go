@@ -28,6 +28,6 @@ import (
 type Manager interface {
 	GetHostname() (string, error)
 	GetUptime() (time.Duration, error)
-	GetLoadAverage() ([3]float64, error)
+	GetLoadAverage() ([3]float32, error)
 	RegisterProviders()
 }

@@ -52,9 +52,21 @@ func (s System) GetSystemStatus(
 		})
 	}
 
+	loadAvg, err := sm.GetLoadAverage()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
 	return ctx.JSON(http.StatusOK, gen.SystemStatus{
 		Hostname: hostname,
 		Uptime:   formatDuration(uptime),
+		LoadAverage: gen.LoadAverage{
+			N1min:  loadAvg[0],
+			N5min:  loadAvg[1],
+			N15min: loadAvg[2],
+		},
 	})
 }
 

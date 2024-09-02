@@ -85,9 +85,9 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 },
 "hostname": "test-hostname",
 "load_average": {
-    "15min": 0,
-    "1min": 0,
-    "5min": 0
+    "15min": 0.25,
+    "1min": 0.45,
+    "5min": 0.3
 },
 "memory": {
     "free": 0,
@@ -114,6 +114,10 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 				{
 					content: []byte("test-hostname"),
 					file:    "/proc/sys/kernel/hostname",
+				},
+				{
+					content: []byte("0.45 0.30 0.25 2/150 12345"),
+					file:    "/proc/loadavg",
 				},
 			},
 		},

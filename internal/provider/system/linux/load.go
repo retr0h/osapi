@@ -52,36 +52,36 @@ func NewOSLoadProvider(
 // Mocking:
 //   - Opted to parse /proc so Afero could be used for mocking.  However, this
 //     is likely to change as commands and go functions will need mocked.
-func (p *OSLoadProvider) GetLoadAverage() ([3]float64, error) {
+func (p *OSLoadProvider) GetLoadAverage() ([3]float32, error) {
 	const loadAvgFile = "/proc/loadavg"
 
 	data, err := afero.ReadFile(p.appFs, loadAvgFile)
 	if err != nil {
-		return [3]float64{}, fmt.Errorf("error reading /proc/loadavg: %w", err)
+		return [3]float32{}, fmt.Errorf("error reading /proc/loadavg: %w", err)
 	}
 
 	// Split the contents by spaces
 	fields := strings.Fields(string(data))
 	if len(fields) < 3 {
-		return [3]float64{}, fmt.Errorf("unexpected format in /proc/loadavg")
+		return [3]float32{}, fmt.Errorf("unexpected format in /proc/loadavg")
 	}
 
-	// Parse the first three fields as load averages
-	load1, err := strconv.ParseFloat(fields[0], 64)
+	// Parse the first three fields as load averages (float64)
+	load1, err := strconv.ParseFloat(fields[0], 32)
 	if err != nil {
-		return [3]float64{}, fmt.Errorf("error parsing 1-minute load average: %w", err)
+		return [3]float32{}, fmt.Errorf("error parsing 1-minute load average: %w", err)
 	}
 
-	load5, err := strconv.ParseFloat(fields[1], 64)
+	load5, err := strconv.ParseFloat(fields[1], 32)
 	if err != nil {
-		return [3]float64{}, fmt.Errorf("error parsing 5-minute load average: %w", err)
+		return [3]float32{}, fmt.Errorf("error parsing 5-minute load average: %w", err)
 	}
 
-	load15, err := strconv.ParseFloat(fields[2], 64)
+	load15, err := strconv.ParseFloat(fields[2], 32)
 	if err != nil {
-		return [3]float64{}, fmt.Errorf("error parsing 15-minute load average: %w", err)
+		return [3]float32{}, fmt.Errorf("error parsing 15-minute load average: %w", err)
 	}
 
-	// Return the load averages
-	return [3]float64{load1, load5, load15}, nil
+	// Convert float64 values to float32 and return them
+	return [3]float32{float32(load1), float32(load5), float32(load15)}, nil
 }

@@ -34,6 +34,6 @@ Get the system status:
 ```bash
 osapi client system status
 
-6:10PM INF client configuration debug=false client.url=http://0.0.0.0:8080
-6:10PM INF response code=200 hostname=Johns-MacBook-Pro-2.local
+10:38AM INF client configuration debug=false client.url=http://0.0.0.0:8080
+10:38AM INF response code=200 hostname=6b714859c1f0 uptime="0 days, 0 hours, 15 minutes" load.1m=0 load.5m=0 load.15m=0
 ```
