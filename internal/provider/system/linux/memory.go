@@ -62,7 +62,7 @@ func (p *OSMemoryProvider) GetMemory() ([]uint64, error) {
 
 	data, err := afero.ReadFile(p.appFs, memInfoFile)
 	if err != nil {
-		return nil, fmt.Errorf("could not read /proc/meminfo: %w", err)
+		return nil, fmt.Errorf("could not read %s: %w", memInfoFile, err)
 	}
 
 	var total, free, cached uint64

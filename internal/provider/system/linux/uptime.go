@@ -68,13 +68,13 @@ func (p *OSUptimeProvider) GetUptime() (time.Duration, error) {
 	// Read the contents of /proc/uptime
 	data, err := afero.ReadFile(p.appFs, uptimeFile)
 	if err != nil {
-		return 0, fmt.Errorf("failed to read uptime: %w", err)
+		return 0, fmt.Errorf("could not read %s: %w", uptimeFile, err)
 	}
 
 	// Split the data to get the uptime in seconds
 	fields := strings.Fields(string(data))
 	if len(fields) < 1 {
-		return 0, fmt.Errorf("unexpected format of /proc/uptime")
+		return 0, fmt.Errorf("unexpected format of %s", uptimeFile)
 	}
 
 	// Parse the uptime string into a float

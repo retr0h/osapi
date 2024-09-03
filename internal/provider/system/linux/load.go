@@ -59,13 +59,13 @@ func (p *OSLoadProvider) GetLoadAverage() ([3]float32, error) {
 
 	data, err := afero.ReadFile(p.appFs, loadAvgFile)
 	if err != nil {
-		return [3]float32{}, fmt.Errorf("error reading /proc/loadavg: %w", err)
+		return [3]float32{}, fmt.Errorf("could not read %s: %w", loadAvgFile, err)
 	}
 
 	// Split the contents by spaces
 	fields := strings.Fields(string(data))
 	if len(fields) < 3 {
-		return [3]float32{}, fmt.Errorf("unexpected format in /proc/loadavg")
+		return [3]float32{}, fmt.Errorf("unexpected format in %s", loadAvgFile)
 	}
 
 	// Parse the first three fields as load averages (float64)

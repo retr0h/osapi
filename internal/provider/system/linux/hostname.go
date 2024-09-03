@@ -65,7 +65,7 @@ func (p *OSHostnameProvider) GetHostname() (string, error) {
 	// Read the hostname file
 	data, err := afero.ReadFile(p.appFs, hostnameFile)
 	if err != nil {
-		return "", fmt.Errorf("failed to read hostname: %w", err)
+		return "", fmt.Errorf("could not read %s: %w", hostnameFile, err)
 	}
 
 	// Trim any surrounding whitespace or newline characters
