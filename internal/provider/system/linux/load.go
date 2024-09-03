@@ -38,6 +38,7 @@ func NewOSLoadProvider(
 }
 
 // GetLoadAverage retrieves the system's load average for 1, 5, and 15 minutes.
+//
 // Cross-platform within Unix-like systems: This works on Linux, BSD, and other
 // Unix-like operating systems that support getloadavg(), making it
 // distro-independent as long as the OS is Unix-based.
@@ -50,8 +51,9 @@ func NewOSLoadProvider(
 // See `proc(5)` manual page for further information.
 //
 // Mocking:
-//   - Opted to parse /proc so Afero could be used for mocking.  However, this
-//     is likely to change as commands and go functions will need mocked.
+//   - Afero is used for file system abstraction, which allows for easier testing and mocking
+//     of file reads. In the future, other methods for simulating system calls or commands
+//     might be considered for more comprehensive testing scenarios.
 func (p *OSLoadProvider) GetLoadAverage() ([3]float32, error) {
 	const loadAvgFile = "/proc/loadavg"
 

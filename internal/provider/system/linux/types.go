@@ -38,3 +38,8 @@ type OSUptimeProvider struct {
 type OSLoadProvider struct {
 	appFs afero.Fs
 }
+
+// OSMemoryProvider implements MemoryProvider.
+type OSMemoryProvider struct {
+	appFs afero.Fs
+}

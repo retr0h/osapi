@@ -39,6 +39,12 @@ func NewOSHostnameProvider(
 // GetHostname reads the system's hostname from /proc/sys/kernel/hostname.
 // It is cross-compatible with all Linux distributions.
 //
+// Cross-platform considerations: This function is specifically designed for Linux
+// systems where /proc/sys/kernel/hostname is available. For non-Linux Unix-like
+// systems (e.g., BSD or macOS), the file location and method to retrieve the
+// hostname may differ. On these systems, alternative approaches or system-specific
+// files should be used to obtain the hostname.
+//
 // About /proc/sys/kernel/hostname:
 //   - This file contains the current hostname of the system as recognized by the kernel.
 //   - It reflects the system's runtime hostname, which can be set using commands like
@@ -50,8 +56,9 @@ func NewOSHostnameProvider(
 // See `proc(5)` manual page for further information.
 //
 // Mocking:
-//   - Opted to parse /proc so Afero could be used for mocking.  However, this
-//     is likely to change as commands and go functions will need mocked.
+//   - Afero is used for file system abstraction, which allows for easier testing and mocking
+//     of file reads. In the future, other methods for simulating system calls or commands
+//     might be considered for more comprehensive testing scenarios.
 func (p *OSHostnameProvider) GetHostname() (string, error) {
 	const hostnameFile = "/proc/sys/kernel/hostname"
 

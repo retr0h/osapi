@@ -54,6 +54,11 @@ func (s *System) GetLoadAverage() ([3]float32, error) {
 	return s.LoadProvider.GetLoadAverage()
 }
 
+// GetMemory gets the system's memory info.
+func (s *System) GetMemory() ([]uint64, error) {
+	return s.MemoryProvider.GetMemory()
+}
+
 // RegisterProviders register system providers.
 func (s *System) RegisterProviders() {
 	var sim metadata.SysInfoManager = sysinfo.New(s.appFs)
@@ -65,5 +70,6 @@ func (s *System) RegisterProviders() {
 		s.HostnameProvider = linux.NewOSHostnameProvider(s.appFs)
 		s.UptimeProvider = linux.NewOSUptimeProvider(s.appFs)
 		s.LoadProvider = linux.NewOSLoadProvider(s.appFs)
+		s.MemoryProvider = linux.NewOSMemoryProvider(s.appFs)
 	}
 }

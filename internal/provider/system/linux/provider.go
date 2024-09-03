@@ -38,3 +38,8 @@ type UptimeProvider interface {
 type LoadProvider interface {
 	GetLoadAverage() ([3]float32, error)
 }
+
+// MemoryProvider is an interface that abstracts the meminfo function.
+type MemoryProvider interface {
+	GetMemory() ([]uint64, error)
+}

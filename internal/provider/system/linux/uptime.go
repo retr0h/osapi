@@ -41,6 +41,12 @@ func NewOSUptimeProvider(
 // GetUptime returns the system uptime as a duration. It is cross-compatible
 // with all Linux distributions.
 //
+// Cross-platform considerations: While this function is specifically designed
+// to work with Linux systems using /proc/uptime, it may not be directly
+// applicable to non-Linux Unix-like systems (e.g., BSD). For cross-platform
+// compatibility beyond Linux, alternative methods or system-specific files
+// would need to be considered.
+//
 // About /proc/uptime:
 //   - This file contains two floating-point numbers:
 //     1. The first number represents the total number of seconds the system has
@@ -53,8 +59,9 @@ func NewOSUptimeProvider(
 // See `proc(5)` manual page for further information.
 //
 // Mocking:
-//   - Opted to parse /proc so Afero could be used for mocking.  However, this
-//     is likely to change as commands and go functions will need mocked.
+//   - Afero is used for file system abstraction, which allows for easier testing and mocking
+//     of file reads. In the future, other methods for simulating system calls or commands
+//     might be considered for more comprehensive testing scenarios.
 func (p *OSUptimeProvider) GetUptime() (time.Duration, error) {
 	const uptimeFile = "/proc/uptime"
 

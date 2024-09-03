@@ -31,6 +31,7 @@ type System struct {
 	HostnameProvider HostnameProvider
 	UptimeProvider   UptimeProvider
 	LoadProvider     LoadProvider
+	MemoryProvider   MemoryProvider
 
 	appFs afero.Fs
 }
@@ -48,4 +49,9 @@ type UptimeProvider interface {
 // LoadProvider is an internal only interface that abstracts the getloadavg function.
 type LoadProvider interface {
 	GetLoadAverage() ([3]float32, error)
+}
+
+// MemoryProvider is an internal only interface that abstracts the meminfo function.
+type MemoryProvider interface {
+	GetMemory() ([]uint64, error)
 }
