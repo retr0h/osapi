@@ -25,8 +25,6 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/retr0h/osapi/internal/metadata"
-	"github.com/retr0h/osapi/internal/metadata/sysinfo"
 	"github.com/retr0h/osapi/internal/provider/system/linux"
 )
 
@@ -61,15 +59,10 @@ func (s *System) GetMemory() ([]uint64, error) {
 
 // RegisterProviders register system providers.
 func (s *System) RegisterProviders() {
-	var sim metadata.SysInfoManager = sysinfo.New(s.appFs)
-	si := sim.GetSysInfo()
-
-	switch si.OS.Distribution {
-	case "ubuntu":
-		// common hostname provider across linux distros
-		s.HostnameProvider = linux.NewOSHostnameProvider(s.appFs)
-		s.UptimeProvider = linux.NewOSUptimeProvider(s.appFs)
-		s.LoadProvider = linux.NewOSLoadProvider(s.appFs)
-		s.MemoryProvider = linux.NewOSMemoryProvider(s.appFs)
-	}
+	// TODO(retr0h): switch based on Platform
+	// common hostname provider across linux distros
+	s.HostnameProvider = linux.NewOSHostnameProvider(s.appFs)
+	s.UptimeProvider = linux.NewOSUptimeProvider(s.appFs)
+	s.LoadProvider = linux.NewOSLoadProvider(s.appFs)
+	s.MemoryProvider = linux.NewOSMemoryProvider(s.appFs)
 }

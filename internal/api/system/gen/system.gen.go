@@ -45,7 +45,7 @@ type Memory struct {
 
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
-	// Disk Disk usage information.
+	// Disk Local disk usage information.
 	Disk struct {
 		// Free Free disk space in bytes.
 		Free int `json:"free"`

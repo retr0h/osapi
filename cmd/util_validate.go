@@ -18,39 +18,55 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package sysinfo
+package cmd
 
 import (
+	"os"
 	"strings"
 
-	"gopkg.in/ini.v1"
+	"github.com/shirou/gopsutil/v4/host"
 )
 
-// TODO(retr0h): should it act like the unix package?
-// 	"golang.org/x/sys/unix"
-//	var loadAvg unix.Loadavg
-//	err := unix.Getloadavg(&loadAvg)
+var supportedVersions = []struct {
+	Distribution string
+	Version      string
+}{
+	{"ubuntu", "20.04"},
+	{"ubuntu", "22.04"},
+}
 
-// GetOSInfo get Operating System Information.
-func (si *SysInfo) GetOSInfo() *OS {
-	const osReleaseFile = "/etc/os-release"
+// IsLinuxVersionSupported checks if the given distribution and version are supported.
+func IsLinuxVersionSupported(distro string, version string) bool {
+	// Convert both distro and version to lowercase to make the check case-insensitive
+	distro = strings.ToLower(distro)
 
-	file, err := si.appFs.Open(osReleaseFile)
-	if err != nil {
-		return &OS{}
+	for _, supported := range supportedVersions {
+		if strings.ToLower(supported.Distribution) == distro && supported.Version == version {
+			return true
+		}
 	}
-	defer func() { _ = file.Close() }()
+	return false
+}
 
-	iniFile, err := ini.LoadSources(ini.LoadOptions{IgnoreInlineComment: true}, file)
+// validateDistribution checks if the CLI is being run on the correct Linux distribution.
+func validateDistribution() {
+	info, err := host.Info()
 	if err != nil {
-		return &OS{}
+		logFatal("failed to get host info", err)
 	}
 
-	distribution := iniFile.Section("").Key("NAME").String()
-	version := iniFile.Section("").Key("VERSION_ID").String()
+	if os.Getenv("IGNORE_LINUX") != "" {
+		return
+	}
 
-	return &OS{
-		Distribution: strings.ToLower(distribution),
-		Version:      strings.ToLower(version),
+	if !IsLinuxVersionSupported(info.Platform, info.PlatformVersion) {
+		logFatal(
+			"distro not supported",
+			nil,
+			"distro",
+			info.Platform,
+			"version",
+			info.PlatformVersion,
+		)
 	}
 }

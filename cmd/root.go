@@ -33,8 +33,6 @@ import (
 	"golang.org/x/term"
 
 	"github.com/retr0h/osapi/internal/config"
-	"github.com/retr0h/osapi/internal/metadata"
-	"github.com/retr0h/osapi/internal/metadata/sysinfo"
 )
 
 var (
@@ -42,26 +40,6 @@ var (
 	logger    = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	appFs     = afero.NewOsFs()
 )
-
-// validateDistribution checks if the CLI is being run on the correct Linux distribution.
-func validateDistribution() {
-	if os.Getenv("IGNORE_LINUX") != "" {
-		return
-	}
-
-	var sim metadata.SysInfoManager = sysinfo.New(appFs)
-	si := sim.GetSysInfo()
-	if !sim.IsLinuxVersionSupported(si.OS.Distribution, si.OS.Version) {
-		logFatal(
-			"distro not supported",
-			nil,
-			"distro",
-			si.OS.Distribution,
-			"version",
-			si.OS.Version,
-		)
-	}
-}
 
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{

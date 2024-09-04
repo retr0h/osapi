@@ -107,7 +107,7 @@ components:
           $ref: '#/components/schemas/Memory'
         disk:
           type: object
-          description: Disk usage information.
+          description: Local disk usage information.
           properties:
             total:
               type: integer

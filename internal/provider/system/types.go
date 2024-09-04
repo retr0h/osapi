@@ -21,8 +21,6 @@
 package system
 
 import (
-	"time"
-
 	"github.com/spf13/afero"
 )
 
@@ -34,24 +32,4 @@ type System struct {
 	MemoryProvider   MemoryProvider
 
 	appFs afero.Fs
-}
-
-// HostnameProvider is an internal only interface that abstracts the hostname function.
-type HostnameProvider interface {
-	GetHostname() (string, error)
-}
-
-// UptimeProvider is an internal only interface that abstracts the uptime function.
-type UptimeProvider interface {
-	GetUptime() (time.Duration, error)
-}
-
-// LoadProvider is an internal only interface that abstracts the getloadavg function.
-type LoadProvider interface {
-	GetLoadAverage() ([3]float32, error)
-}
-
-// MemoryProvider is an internal only interface that abstracts the meminfo function.
-type MemoryProvider interface {
-	GetMemory() ([]uint64, error)
 }

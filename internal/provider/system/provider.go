@@ -18,14 +18,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package metadata
+package system
 
 import (
-	"github.com/retr0h/osapi/internal/metadata/sysinfo"
+	"time"
 )
 
-// SysInfoManager manager responsible for SysInfo operations.
-type SysInfoManager interface {
-	GetSysInfo() *sysinfo.SysInfo
-	IsLinuxVersionSupported(distro string, version string) bool
+// HostnameProvider is an internal only interface that abstracts the hostname function.
+type HostnameProvider interface {
+	GetHostname() (string, error)
+}
+
+// UptimeProvider is an internal only interface that abstracts the uptime function.
+type UptimeProvider interface {
+	GetUptime() (time.Duration, error)
+}
+
+// LoadProvider is an internal only interface that abstracts the getloadavg function.
+type LoadProvider interface {
+	GetLoadAverage() ([3]float32, error)
+}
+
+// MemoryProvider is an internal only interface that abstracts the meminfo function.
+type MemoryProvider interface {
+	GetMemory() ([]uint64, error)
 }
