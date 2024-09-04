@@ -1,10 +1,42 @@
 openapi: 3.0.0
 info:
+  title: OSAPI - A CRUD API for managing Linux systems
   description: |
-    OSAPI API documentation.
+    OSAPI is a lightweight, minimalistic RESTful API designed to manage and
+    configure Linux systems as appliances. The API provides comprehensive
+    management capabilities, including reading the current state of the system
+    and making privileged, asynchronous changes to match a desired configuration
+    state.
+
+    OSAPI is built with pluggability and extensibility in mind, allowing it to
+    adapt to different Linux distributions and environments by implementing
+    custom handlers for various system operations.
+
+    Key Features:
+    - **RESTful API Design:** A RESTful approach for managing Linux systems,
+      enabling clear and organized endpoints for system configurations,
+      diagnostics, and state management.
+    - **Pluggable Architecture:** Easily extend or replace components to suit
+      different Linux environments. This flexibility allows users to customize
+      behavior based on specific distribution requirements or operational needs.
+    - **Task Queue for Privileged Actions:** Asynchronous task execution to
+      perform system modifications securely, ensuring that changes are managed
+      in a controlled and orderly manner.
+    - **System Information Gathering:** Provides detailed system insights, such
+      as OS details, hostname, and other environment-specific information,
+      facilitating diagnostics and monitoring.
+    - **CLI Equivalence:** All functionalities accessible via the API are also
+      available through an equivalent command-line interface, making the tool
+      adaptable to both programmatic and manual use cases.
+    - **Written in Go:** The API and its supporting tools are written in Go,
+      ensuring high performance, low resource usage, and easy cross-platform
+      deployment.
   version: 1.0.0
-  title: OSAPI API server
-  name: ping
+  contact:
+    url: https://github.com/retr0h/osapi
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: http://127.0.0.1:8080
     description: Mock API (local)

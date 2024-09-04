@@ -22,6 +22,7 @@ package api
 
 import (
 	"log/slog"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -42,11 +43,11 @@ func registerHandlers(
 ) {
 	var systemProvider systemImpl.Provider
 
-	// we already gate on this
+	// we already gate on this, squelching errors
 	info, _ := host.Info()
 
-	switch info.Platform {
-	case "Ubuntu":
+	switch strings.ToLower(info.Platform) {
+	case "ubuntu":
 		systemProvider = systemImpl.NewUbuntuProvider()
 	default:
 		systemProvider = systemImpl.NewDefaultLinuxProvider()
