@@ -28,38 +28,34 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system"
 )
 
 // GetSystemStatus (GET /system/status)
 func (s System) GetSystemStatus(
 	ctx echo.Context,
 ) error {
-	var sm system.Manager = system.New(s.appFs)
-	sm.RegisterProviders()
-
-	hostname, err := sm.GetHostname()
+	hostname, err := s.SystemProvider.GetHostname()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
-	uptime, err := sm.GetUptime()
+	uptime, err := s.SystemProvider.GetUptime()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
-	loadAvg, err := sm.GetLoadAverage()
+	loadAvgStats, err := s.SystemProvider.GetLoadAverageStats()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
-	memory, err := sm.GetMemory()
+	memStats, err := s.SystemProvider.GetMemoryStats()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
 			Error: err.Error(),
@@ -70,17 +66,17 @@ func (s System) GetSystemStatus(
 		Hostname: hostname,
 		Uptime:   formatDuration(uptime),
 		LoadAverage: gen.LoadAverage{
-			N1min:  loadAvg[0],
-			N5min:  loadAvg[1],
-			N15min: loadAvg[2],
+			N1min:  loadAvgStats.Load1,
+			N5min:  loadAvgStats.Load5,
+			N15min: loadAvgStats.Load15,
 		},
 		// Memory: When float64 values are encoded into JSON, large numbers can
 		// automatically be formatted in scientific notation, which is typical
 		// behavior for JSON encoders to save space and maintain precision.
 		Memory: gen.Memory{
-			Total: uint64ToInt(memory[0]),
-			Free:  uint64ToInt(memory[1]),
-			Used:  uint64ToInt(memory[2]),
+			Total: uint64ToInt(memStats.Total),
+			Free:  uint64ToInt(memStats.Free),
+			Used:  uint64ToInt(memStats.Cached),
 		},
 	})
 }

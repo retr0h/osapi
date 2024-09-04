@@ -21,13 +21,13 @@
 package system_test
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -35,43 +35,38 @@ import (
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
+	systemProvider "github.com/retr0h/osapi/internal/provider/system"
 )
 
 type SystemStatusIntegrationTestSuite struct {
 	suite.Suite
 
-	appFs     afero.Fs
 	appConfig config.Config
 	logger    *slog.Logger
 }
 
 func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
-	suite.appFs = afero.NewMemMapFs()
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *SystemStatusIntegrationTestSuite) SetupSubTest() {
-	// initializes a new afero.Fs in the table tests
-	suite.SetupTest()
-}
-
 func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	tests := []struct {
-		name string
-		uri  string
-		want struct {
+		name      string
+		uri       string
+		setupMock func() *systemProvider.MockSystem
+		want      struct {
 			code int
 			body string
-		}
-		files []struct {
-			content []byte
-			file    string
 		}
 	}{
 		{
 			name: "when http ok",
 			uri:  "/system/status",
+			setupMock: func() *systemProvider.MockSystem {
+				mock := systemProvider.NewDefaultMockSystem()
+				return mock
+			},
 			want: struct {
 				code int
 				body string
@@ -83,141 +78,61 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
     "total": 0,
     "used": 0
 },
-"hostname": "test-hostname",
+"hostname": "default-hostname",
 "load_average": {
-    "15min": 0.25,
-    "1min": 0.45,
-    "5min": 0.3
+    "15min": 0.2,
+    "1min": 1,
+    "5min": 0.5
 },
 "memory": {
-    "free": 8.388608e+06,
-    "total": 1.6777216e+07,
-    "used": 6.291456e+06
+    "free": 4.194304e+06,
+    "total": 8.388608e+06,
+    "used": 2.097152e+06
 },
-"uptime": "4 days, 1 hour, 25 minutes"
+"uptime": "0 days, 5 hours, 0 minutes"
 }`,
-			},
-			files: []struct {
-				content []byte
-				file    string
-			}{
-				{
-					content: []byte(`
-          NAME=Ubuntu
-          VERSION_ID=22.04`),
-					file: "/etc/os-release",
-				},
-				{
-					content: []byte(`350735.47 234388.90`),
-					file:    "/proc/uptime",
-				},
-				{
-					content: []byte("test-hostname"),
-					file:    "/proc/sys/kernel/hostname",
-				},
-				{
-					content: []byte("0.45 0.30 0.25 2/150 12345"),
-					file:    "/proc/loadavg",
-				},
-				{
-					content: []byte(`
-MemTotal:       16384 kB
-MemFree:        8192 kB
-Cached:         2048 kB`),
-					file: "/proc/meminfo",
-				},
 			},
 		},
 		{
 			name: "when get hostname errors",
 			uri:  "/system/status",
+			setupMock: func() *systemProvider.MockSystem {
+				mock := systemProvider.NewDefaultMockSystem()
+				mock.GetHostnameFunc = func() (string, error) {
+					return "", fmt.Errorf("GetHostname error")
+				}
+				return mock
+			},
 			want: struct {
 				code int
 				body string
 			}{
 				code: http.StatusInternalServerError,
 				body: `{}`,
-			},
-			files: []struct {
-				content []byte
-				file    string
-			}{
-				{
-					content: []byte(`
-          NAME=Ubuntu
-          VERSION_ID=22.04`),
-					file: "/etc/os-release",
-				},
 			},
 		},
 		{
-			name: "when get uptime errors",
-			uri:  "/system/status",
+			name: "when not found",
+			uri:  "/system/notfound",
+			setupMock: func() *systemProvider.MockSystem {
+				mock := systemProvider.NewDefaultMockSystem()
+				return mock
+			},
 			want: struct {
 				code int
 				body string
 			}{
-				code: http.StatusInternalServerError,
+				code: http.StatusNotFound,
 				body: `{}`,
-			},
-			files: []struct {
-				content []byte
-				file    string
-			}{
-				{
-					content: []byte(`
-          NAME=Ubuntu
-          VERSION_ID=22.04`),
-					file: "/etc/os-release",
-				},
-				{
-					content: []byte("test-hostname"),
-					file:    "/proc/sys/kernel/hostname",
-				},
-			},
-		},
-		{
-			name: "when get loadavg errors",
-			uri:  "/system/status",
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusInternalServerError,
-				body: `{}`,
-			},
-			files: []struct {
-				content []byte
-				file    string
-			}{
-				{
-					content: []byte(`
-          NAME=Ubuntu
-          VERSION_ID=22.04`),
-					file: "/etc/os-release",
-				},
-				{
-					content: []byte("test-hostname"),
-					file:    "/proc/sys/kernel/hostname",
-				},
-				{
-					content: []byte(`350735.47 234388.90`),
-					file:    "/proc/uptime",
-				},
 			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			for _, f := range tc.files {
-				if len(f.content) != 0 {
-					_ = afero.WriteFile(suite.appFs, f.file, f.content, 0o644)
-				}
-			}
-
-			a := api.New(suite.appFs, suite.appConfig, suite.logger)
-			systemGen.RegisterHandlers(a, system.New(suite.appFs))
+			mock := tc.setupMock()
+			a := api.New(suite.appConfig, suite.logger)
+			systemGen.RegisterHandlers(a, system.New(mock))
 
 			// Create a new request to the /system/status endpoint
 			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
@@ -228,6 +143,7 @@ Cached:         2048 kB`),
 
 			assert.Equal(suite.T(), tc.want.code, rec.Code)
 
+			fmt.Println(rec.Body.String())
 			if tc.want.code == http.StatusOK {
 				assert.JSONEq(suite.T(), tc.want.body, rec.Body.String())
 			}

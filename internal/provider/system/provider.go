@@ -24,22 +24,15 @@ import (
 	"time"
 )
 
-// HostnameProvider is an internal only interface that abstracts the hostname function.
-type HostnameProvider interface {
+// Provider implements the methods to interact with various system-level
+// components.
+type Provider interface {
+	// GetHostname retrieves the hostname of the system.
 	GetHostname() (string, error)
-}
-
-// UptimeProvider is an internal only interface that abstracts the uptime function.
-type UptimeProvider interface {
+	// GetMemoryStats retrieves memory statistics of the system.
+	GetMemoryStats() (*MemoryStats, error)
+	// GetLoadAverageStats retrieves the system load averages.
+	GetLoadAverageStats() (*LoadAverageStats, error)
+	// GetUptime retrieves the system uptime.
 	GetUptime() (time.Duration, error)
-}
-
-// LoadProvider is an internal only interface that abstracts the getloadavg function.
-type LoadProvider interface {
-	GetLoadAverage() ([3]float32, error)
-}
-
-// MemoryProvider is an internal only interface that abstracts the meminfo function.
-type MemoryProvider interface {
-	GetMemory() ([]uint64, error)
 }

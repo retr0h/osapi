@@ -26,39 +26,52 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	slogecho "github.com/samber/slog-echo"
-	"github.com/spf13/afero"
+	"github.com/shirou/gopsutil/v4/host"
 
 	"github.com/retr0h/osapi/internal/api/ping"             // testing only
 	pingGen "github.com/retr0h/osapi/internal/api/ping/gen" // testing only
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
+	systemImpl "github.com/retr0h/osapi/internal/provider/system"
 )
 
-// // registerHandlers initializes and registers all API handlers.
-// func registerHandlers(
-// 	e *echo.Echo,
-// ) {
-// 	handlers := []func(e *echo.Echo){
-// 		func(e *echo.Echo) {
-// 			pingHandler := ping.New()
-// 			pingGen.RegisterHandlers(e, pingHandler)
-// 		},
-// 		func(e *echo.Echo) {
-// 			systemHandler := system.New()
-// 			systemGen.RegisterHandlers(e, systemHandler)
-// 		},
-// 		// Add more handler functions as needed
-// 	}
+// registerHandlers initializes and registers all API handlers.
+func registerHandlers(
+	e *echo.Echo,
+) {
+	var systemProvider systemImpl.Provider
 
-// 	for _, register := range handlers {
-// 		register(e)
-// 	}
-// }
+	// we already gate on this
+	info, _ := host.Info()
+
+	switch info.Platform {
+	case "Ubuntu":
+		systemProvider = systemImpl.NewUbuntuProvider()
+	default:
+		systemProvider = systemImpl.NewDefaultLinuxProvider()
+	}
+
+	handlers := []func(e *echo.Echo){
+		func(e *echo.Echo) {
+			pingHandler := ping.New()
+			pingGen.RegisterHandlers(e, pingHandler)
+		},
+		func(e *echo.Echo) {
+			systemHandler := system.New(
+				systemProvider,
+			)
+			systemGen.RegisterHandlers(e, systemHandler)
+		},
+	}
+
+	for _, register := range handlers {
+		register(e)
+	}
+}
 
 // New initializes the Echo server.
 func New(
-	appFs afero.Fs,
 	appConfig config.Config,
 	logger *slog.Logger,
 ) *echo.Echo {
@@ -78,14 +91,7 @@ func New(
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CORSWithConfig(corsConfig))
 
-	// TODO(retr0h): Determine what to do about this
-	// registerHandlers(e)
-
-	pingHandler := ping.New()
-	pingGen.RegisterHandlers(e, pingHandler)
-
-	systemHandler := system.New(appFs)
-	systemGen.RegisterHandlers(e, systemHandler)
+	registerHandlers(e)
 
 	return e
 }

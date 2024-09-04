@@ -20,49 +20,22 @@
 
 package system
 
-import (
-	"time"
-
-	"github.com/spf13/afero"
-
-	"github.com/retr0h/osapi/internal/provider/system/linux"
-)
-
-// New factory to create a new instance.
-func New(
-	appFs afero.Fs,
-) *System {
-	return &System{
-		appFs: appFs,
-	}
+// MemoryStats holds memory information in bytes.
+type MemoryStats struct {
+	// Total memory in bytes
+	Total uint64
+	// Free memory in bytes
+	Free uint64
+	// Cached memory in bytes
+	Cached uint64
 }
 
-// GetHostname gets the system's hostname.
-func (s *System) GetHostname() (string, error) {
-	return s.HostnameProvider.GetHostname()
-}
-
-// GetUptime gets the system's uptime.
-func (s *System) GetUptime() (time.Duration, error) {
-	return s.UptimeProvider.GetUptime()
-}
-
-// GetLoadAverage gets the system's load average.
-func (s *System) GetLoadAverage() ([3]float32, error) {
-	return s.LoadProvider.GetLoadAverage()
-}
-
-// GetMemory gets the system's memory info.
-func (s *System) GetMemory() ([]uint64, error) {
-	return s.MemoryProvider.GetMemory()
-}
-
-// RegisterProviders register system providers.
-func (s *System) RegisterProviders() {
-	// TODO(retr0h): switch based on Platform
-	// common hostname provider across linux distros
-	s.HostnameProvider = linux.NewOSHostnameProvider(s.appFs)
-	s.UptimeProvider = linux.NewOSUptimeProvider(s.appFs)
-	s.LoadProvider = linux.NewOSLoadProvider(s.appFs)
-	s.MemoryProvider = linux.NewOSMemoryProvider(s.appFs)
+// LoadAverageStats represents the system load averages over 1, 5, and 15 minutes.
+type LoadAverageStats struct {
+	// Load average over the last 1 minute
+	Load1 float32
+	// Load average over the last 5 minutes
+	Load5 float32
+	// Load average over the last 15 minutes
+	Load15 float32
 }

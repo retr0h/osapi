@@ -35,7 +35,7 @@ var serverStartCmd = &cobra.Command{
 	Long: `Start the  OSAPI service.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		a := api.New(appFs, appConfig, logger)
+		a := api.New(appConfig, logger)
 		a.Logger.Fatal(a.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
 	},
 }

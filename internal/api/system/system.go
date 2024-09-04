@@ -21,9 +21,8 @@
 package system
 
 import (
-	"github.com/spf13/afero"
-
 	"github.com/retr0h/osapi/internal/api/system/gen"
+	"github.com/retr0h/osapi/internal/provider/system"
 )
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
@@ -31,9 +30,9 @@ var _ gen.ServerInterface = (*System)(nil)
 
 // New factory to create a new instance.
 func New(
-	appFs afero.Fs,
+	sp system.Provider,
 ) *System {
 	return &System{
-		appFs: appFs,
+		SystemProvider: sp,
 	}
 }

@@ -38,61 +38,97 @@ func (suite *SystemStatusTestSuite) SetupTest() {
 
 func (suite *SystemStatusTestSuite) TestFormatDurationOk() {
 	tests := []struct {
-		name string
-		d    time.Duration
-		want string
+		name  string
+		input time.Duration
+		want  string
 	}{
 		{
-			name: "0 days, 0 hours, 0 minutes",
-			d:    time.Duration(0) * time.Second,
-			want: "0 days, 0 hours, 0 minutes",
+			name:  "0 days, 0 hours, 0 minutes",
+			input: time.Duration(0) * time.Second,
+			want:  "0 days, 0 hours, 0 minutes",
 		},
 		{
-			name: "0 days, 0 hours, 1 minute",
-			d:    time.Duration(60) * time.Second,
-			want: "0 days, 0 hours, 1 minute",
+			name:  "0 days, 0 hours, 1 minute",
+			input: time.Duration(60) * time.Second,
+			want:  "0 days, 0 hours, 1 minute",
 		},
 		{
-			name: "0 days, 1 hour, 0 minutes",
-			d:    time.Duration(3600) * time.Second,
-			want: "0 days, 1 hour, 0 minutes",
+			name:  "0 days, 1 hour, 0 minutes",
+			input: time.Duration(3600) * time.Second,
+			want:  "0 days, 1 hour, 0 minutes",
 		},
 		{
-			name: "1 day, 0 hours, 0 minutes",
-			d:    time.Duration(24*3600) * time.Second,
-			want: "1 day, 0 hours, 0 minutes",
+			name:  "1 day, 0 hours, 0 minutes",
+			input: time.Duration(24*3600) * time.Second,
+			want:  "1 day, 0 hours, 0 minutes",
 		},
 		{
-			name: "1 day, 1 hour, 1 minute",
-			d:    time.Duration(24*3600+3600+60) * time.Second,
-			want: "1 day, 1 hour, 1 minute",
+			name:  "1 day, 1 hour, 1 minute",
+			input: time.Duration(24*3600+3600+60) * time.Second,
+			want:  "1 day, 1 hour, 1 minute",
 		},
 		{
-			name: "4 days, 1 hour, 25 minutes",
-			d:    time.Duration(int64(math.Trunc(350735.47))) * time.Second,
-			want: "4 days, 1 hour, 25 minutes",
+			name:  "4 days, 1 hour, 25 minutes",
+			input: time.Duration(int64(math.Trunc(350735.47))) * time.Second,
+			want:  "4 days, 1 hour, 25 minutes",
 		},
 		{
-			name: "2 days, 2 hours, 2 minutes",
-			d:    time.Duration(2*24*3600+2*3600+2*60) * time.Second,
-			want: "2 days, 2 hours, 2 minutes",
+			name:  "2 days, 2 hours, 2 minutes",
+			input: time.Duration(2*24*3600+2*3600+2*60) * time.Second,
+			want:  "2 days, 2 hours, 2 minutes",
 		},
 		{
-			name: "0 days, 0 hours, 59 minutes",
-			d:    time.Duration(59) * time.Minute,
-			want: "0 days, 0 hours, 59 minutes",
+			name:  "0 days, 0 hours, 59 minutes",
+			input: time.Duration(59) * time.Minute,
+			want:  "0 days, 0 hours, 59 minutes",
 		},
 		{
-			name: "0 days, 23 hours, 59 minutes",
-			d:    time.Duration(23*3600+59*60) * time.Second,
-			want: "0 days, 23 hours, 59 minutes",
+			name:  "0 days, 23 hours, 59 minutes",
+			input: time.Duration(23*3600+59*60) * time.Second,
+			want:  "0 days, 23 hours, 59 minutes",
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got := formatDuration(tc.d)
+			got := formatDuration(tc.input)
 			assert.Equal(suite.T(), tc.want, got)
+		})
+	}
+}
+
+func (suite *SystemStatusTestSuite) TestUint64ToInt() {
+	tests := []struct {
+		name  string
+		input uint64
+		want  int
+	}{
+		{
+			name:  "when within bounds - small value",
+			input: 123,
+			want:  123,
+		},
+		{
+			name:  "when within bounds - max int value",
+			input: uint64(math.MaxInt), // Maximum int value based on architecture
+			want:  math.MaxInt,
+		},
+		{
+			name:  "when overflow value - just above max int",
+			input: uint64(math.MaxInt) + 1,
+			want:  math.MaxInt, // Should return max int due to overflow protection
+		},
+		{
+			name:  "when overflow value - large uint64",
+			input: math.MaxUint64, // Largest uint64 value
+			want:  math.MaxInt,    // Should return max int due to overflow protection
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			result := uint64ToInt(tc.input)
+			assert.Equal(suite.T(), tc.want, result)
 		})
 	}
 }

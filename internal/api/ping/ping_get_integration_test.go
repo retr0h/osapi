@@ -27,7 +27,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -40,19 +39,17 @@ import (
 type PingIntegrationTestSuite struct {
 	suite.Suite
 
-	appFs     afero.Fs
 	appConfig config.Config
 	logger    *slog.Logger
 }
 
 func (suite *PingIntegrationTestSuite) SetupTest() {
-	suite.appFs = afero.NewMemMapFs()
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
 func (suite *PingIntegrationTestSuite) TestGetPingOk() {
-	a := api.New(suite.appFs, suite.appConfig, suite.logger)
+	a := api.New(suite.appConfig, suite.logger)
 	pingGen.RegisterHandlers(a, ping.New())
 
 	// Create a new request to the /ping endpoint

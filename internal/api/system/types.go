@@ -21,10 +21,12 @@
 package system
 
 import (
-	"github.com/spf13/afero"
+	"github.com/retr0h/osapi/internal/provider/system"
 )
 
 // System implementation of the System APIs operations.
 type System struct {
-	appFs afero.Fs
+	// SystemProvider implements the methods to interact with various system-level
+	// components.
+	SystemProvider system.Provider
 }
