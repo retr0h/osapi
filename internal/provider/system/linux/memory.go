@@ -37,7 +37,7 @@ func NewOSMemoryProvider(
 	}
 }
 
-// GetMemory retrieves the system's memory statistics from /proc/meminfo.
+// GetMemory retrieves the system's memory statistics from /proc/meminfo in bytes.
 //
 // Cross-platform within Unix-like systems: This function works on Linux-based systems
 // where /proc/meminfo is available. It is designed to be distro-independent as long

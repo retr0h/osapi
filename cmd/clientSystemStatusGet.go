@@ -54,6 +54,9 @@ var clientSystemStatusGetCmd = &cobra.Command{
 				slog.Int("load.1m", int(resp.JSON200.LoadAverage.N1min)),
 				slog.Int("load.5m", int(resp.JSON200.LoadAverage.N5min)),
 				slog.Int("load.15m", int(resp.JSON200.LoadAverage.N15min)),
+				slog.Int("memory.total", int(resp.JSON200.Memory.Total)),
+				slog.Int("memory.free", int(resp.JSON200.Memory.Free)),
+				slog.Int("memory.used", int(resp.JSON200.Memory.Used)),
 			)
 		default:
 			if jsonOutput {

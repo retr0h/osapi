@@ -79,6 +79,26 @@ components:
         - 1min
         - 5min
         - 15min
+    Memory:
+      type: object
+      description: Memory usage information.
+      properties:
+        total:
+          type: integer
+          description: Total memory in bytes.
+          example: 8388608
+        free:
+          type: integer
+          description: Free memory in bytes.
+          example: 2097152
+        used:
+          type: integer
+          description: Used memory in bytes.
+          example: 4194304
+      required:
+        - total
+        - free
+        - used
     SystemStatus:
       type: object
       properties:
@@ -93,25 +113,7 @@ components:
         load_average:
           $ref: '#/components/schemas/LoadAverage'
         memory:
-          type: object
-          description: Memory usage information.
-          properties:
-            total:
-              type: integer
-              description: Total memory in bytes.
-              example: 8388608
-            used:
-              type: integer
-              description: Used memory in bytes.
-              example: 4194304
-            free:
-              type: integer
-              description: Free memory in bytes.
-              example: 2097152
-          required:
-            - total
-            - used
-            - free
+          $ref: '#/components/schemas/Memory'
         disk:
           type: object
           description: Disk usage information.

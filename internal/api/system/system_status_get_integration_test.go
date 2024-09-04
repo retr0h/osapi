@@ -90,9 +90,9 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
     "5min": 0.3
 },
 "memory": {
-    "free": 0,
-    "total": 0,
-    "used": 0
+    "free": 8.388608e+06,
+    "total": 1.6777216e+07,
+    "used": 6.291456e+06
 },
 "uptime": "4 days, 1 hour, 25 minutes"
 }`,
@@ -118,6 +118,13 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 				{
 					content: []byte("0.45 0.30 0.25 2/150 12345"),
 					file:    "/proc/loadavg",
+				},
+				{
+					content: []byte(`
+MemTotal:       16384 kB
+MemFree:        8192 kB
+Cached:         2048 kB`),
+					file: "/proc/meminfo",
 				},
 			},
 		},

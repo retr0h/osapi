@@ -59,6 +59,13 @@ func (s System) GetSystemStatus(
 		})
 	}
 
+	memory, err := sm.GetMemory()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
 	return ctx.JSON(http.StatusOK, gen.SystemStatus{
 		Hostname: hostname,
 		Uptime:   formatDuration(uptime),
@@ -66,6 +73,14 @@ func (s System) GetSystemStatus(
 			N1min:  loadAvg[0],
 			N5min:  loadAvg[1],
 			N15min: loadAvg[2],
+		},
+		// Memory: When float64 values are encoded into JSON, large numbers can
+		// automatically be formatted in scientific notation, which is typical
+		// behavior for JSON encoders to save space and maintain precision.
+		Memory: gen.Memory{
+			Total: uint64ToInt(memory[0]),
+			Free:  uint64ToInt(memory[1]),
+			Used:  uint64ToInt(memory[2]),
 		},
 	})
 }
@@ -94,4 +109,13 @@ func formatDuration(d time.Duration) string {
 
 	// Format the result as a string
 	return fmt.Sprintf("%d %s, %d %s, %d %s", days, dayStr, hours, hourStr, minutes, minuteStr)
+}
+
+// uint64ToInt convert uint64 to int, with overflow protection.
+func uint64ToInt(value uint64) int {
+	maxInt := int(^uint(0) >> 1) // maximum value of int based on the architecture
+	if value > uint64(maxInt) {  // check for overflow
+		return maxInt // return max int to prevent overflow
+	}
+	return int(value) // conversion within bounds
 }

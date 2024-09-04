@@ -37,6 +37,18 @@ type LoadAverage struct {
 	N5min float32 `json:"5min"`
 }
 
+// Memory Memory usage information.
+type Memory struct {
+	// Free Free memory in bytes.
+	Free int `json:"free"`
+
+	// Total Total memory in bytes.
+	Total int `json:"total"`
+
+	// Used Used memory in bytes.
+	Used int `json:"used"`
+}
+
 // Pong defines model for Pong.
 type Pong struct {
 	Ping string `json:"ping"`
@@ -63,16 +75,7 @@ type SystemStatus struct {
 	LoadAverage LoadAverage `json:"load_average"`
 
 	// Memory Memory usage information.
-	Memory struct {
-		// Free Free memory in bytes.
-		Free int `json:"free"`
-
-		// Total Total memory in bytes.
-		Total int `json:"total"`
-
-		// Used Used memory in bytes.
-		Used int `json:"used"`
-	} `json:"memory"`
+	Memory Memory `json:"memory"`
 
 	// Uptime The uptime of the system.
 	Uptime string `json:"uptime"`
