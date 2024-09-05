@@ -73,11 +73,12 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			}{
 				code: http.StatusOK,
 				body: `{
-"disk": {
-    "free": 0,
-    "total": 0,
-    "used": 0
-},
+"disks": [{
+  "free":250000000000,
+  "name":"/dev/disk1",
+  "total":500000000000,
+  "used":250000000000
+}],
 "hostname": "default-hostname",
 "load_average": {
     "15min": 0.2,
@@ -143,7 +144,6 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 
 			assert.Equal(suite.T(), tc.want.code, rec.Code)
 
-			fmt.Println(rec.Body.String())
 			if tc.want.code == http.StatusOK {
 				assert.JSONEq(suite.T(), tc.want.body, rec.Body.String())
 			}

@@ -21,8 +21,10 @@
 package system
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/host"
 	"github.com/shirou/gopsutil/v4/load"
 	"github.com/shirou/gopsutil/v4/mem"
@@ -85,4 +87,49 @@ func (us *UbuntuSystem) GetUptime() (time.Duration, error) {
 		return 0, err
 	}
 	return time.Duration(hostInfo.Uptime) * time.Second, nil
+}
+
+// GetLocalDiskStats retrieves disk space statistics for local disks only.
+// It returns a slice of DiskUsageStats structs, each containing the total, used,
+// and free space in bytes for the corresponding local disk.
+// An error is returned if somethng goes wrong.
+func (us *UbuntuSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
+	partitions, err := disk.Partitions(false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get disk partitions: %w", err)
+	}
+
+	diskSpaces := make([]DiskUsageStats, 0, len(partitions))
+	for _, partition := range partitions {
+		// Skip non-local devices and network-mounted partitions
+		if partition.Device == "" || partition.Fstype == "" || !isLocalPartition(partition) {
+			continue
+		}
+
+		usage, err := disk.Usage(partition.Mountpoint)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get disk usage for %s: %w", partition.Mountpoint, err)
+		}
+
+		diskSpaces = append(diskSpaces, DiskUsageStats{
+			Total: usage.Total,
+			Used:  usage.Used,
+			Free:  usage.Free,
+			Name:  partition.Mountpoint,
+		})
+	}
+
+	return diskSpaces, nil
+}
+
+// isLocalPartition determines if a partition is a local disk (not network or special filesystems).
+func isLocalPartition(partition disk.PartitionStat) bool {
+	// Add conditions to filter only local filesystems, e.g., ext4, xfs, etc.
+	localFileSystems := map[string]bool{
+		"ext4":  true,
+		"xfs":   true,
+		"btrfs": true,
+	}
+
+	return localFileSystems[partition.Fstype]
 }

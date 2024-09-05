@@ -39,3 +39,15 @@ type LoadAverageStats struct {
 	// Load average over the last 15 minutes
 	Load15 float32
 }
+
+// DiskUsageStats holds information about disk space usage.
+type DiskUsageStats struct {
+	// Disk identifier, e.g., "/dev/sda1"
+	Name string
+	// Total disk space in bytes
+	Total uint64
+	// Used disk space in bytes
+	Used uint64
+	// Free disk space in bytes
+	Free uint64
+}

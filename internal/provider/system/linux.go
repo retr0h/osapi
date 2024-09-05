@@ -58,3 +58,11 @@ func (dls *DefaultLinuxSystem) GetLoadAverageStats() (*LoadAverageStats, error) 
 func (dls *DefaultLinuxSystem) GetUptime() (time.Duration, error) {
 	return 0, fmt.Errorf("GetUptime is not implemented for DefaultLinuxProvider")
 }
+
+// GetLocalDiskStats retrieves disk space statistics for local disks only.
+// It returns a slice of DiskUsageStats structs, each containing the total, used,
+// and free space in bytes for the corresponding local disk.
+// An error is returned if somethng goes wrong.
+func (dls *DefaultLinuxSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
+	return nil, fmt.Errorf("GetLocalDiskStats is not implemented for DefaultLinuxProvider")
+}

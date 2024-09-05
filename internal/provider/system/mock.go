@@ -26,10 +26,11 @@ import (
 
 // MockSystem is a mock implementation of the System interface for testing.
 type MockSystem struct {
-	GetHostnameFunc    func() (string, error)
-	GetMemoryStatsFunc func() (*MemoryStats, error)
-	GetLoadAverageFunc func() (*LoadAverageStats, error)
-	GetUptimeFunc      func() (time.Duration, error)
+	GetHostnameFunc         func() (string, error)
+	GetMemoryStatsFunc      func() (*MemoryStats, error)
+	GetLoadAverageStatsFunc func() (*LoadAverageStats, error)
+	GetUptimeFunc           func() (time.Duration, error)
+	GetLocalDiskStatsFunc   func() ([]DiskUsageStats, error)
 }
 
 // NewDefaultMockSystem creates a MockSystem with default return values.
@@ -45,11 +46,21 @@ func NewDefaultMockSystem() *MockSystem {
 				Cached: 2097152,
 			}, nil
 		},
-		GetLoadAverageFunc: func() (*LoadAverageStats, error) {
+		GetLoadAverageStatsFunc: func() (*LoadAverageStats, error) {
 			return &LoadAverageStats{1.0, 0.5, 0.2}, nil
 		},
 		GetUptimeFunc: func() (time.Duration, error) {
 			return time.Hour * 5, nil
+		},
+		GetLocalDiskStatsFunc: func() ([]DiskUsageStats, error) {
+			return []DiskUsageStats{
+				{
+					Name:  "/dev/disk1",
+					Total: 500000000000,
+					Used:  250000000000,
+					Free:  250000000000,
+				},
+			}, nil
 		},
 	}
 }
@@ -66,10 +77,15 @@ func (ms *MockSystem) GetMemoryStats() (*MemoryStats, error) {
 
 // GetLoadAverageStats mocked for tests
 func (ms *MockSystem) GetLoadAverageStats() (*LoadAverageStats, error) {
-	return ms.GetLoadAverageFunc()
+	return ms.GetLoadAverageStatsFunc()
 }
 
 // GetUptime mocked for tests
 func (ms *MockSystem) GetUptime() (time.Duration, error) {
 	return ms.GetUptimeFunc()
+}
+
+// GetLocalDiskStats mocked for tests
+func (ms *MockSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
+	return ms.GetLocalDiskStatsFunc()
 }

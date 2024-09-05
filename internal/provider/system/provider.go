@@ -35,4 +35,6 @@ type Provider interface {
 	GetLoadAverageStats() (*LoadAverageStats, error)
 	// GetUptime retrieves the system uptime.
 	GetUptime() (time.Duration, error)
+	// GetLocalDiskStats retrieves disk space statistics.
+	GetLocalDiskStats() ([]DiskUsageStats, error)
 }

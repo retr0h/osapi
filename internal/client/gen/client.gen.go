@@ -13,6 +13,24 @@ import (
 	"strings"
 )
 
+// Disk Local disk usage information.
+type Disk struct {
+	// Free Free disk space in bytes.
+	Free int `json:"free"`
+
+	// Name Disk identifier, e.g., "/dev/sda1".
+	Name string `json:"name"`
+
+	// Total Total disk space in bytes.
+	Total int `json:"total"`
+
+	// Used Used disk space in bytes.
+	Used int `json:"used"`
+}
+
+// Disks List of local disk usage information.
+type Disks = []Disk
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Code The error code.
@@ -56,17 +74,8 @@ type Pong struct {
 
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
-	// Disk Local disk usage information.
-	Disk struct {
-		// Free Free disk space in bytes.
-		Free int `json:"free"`
-
-		// Total Total disk space in bytes.
-		Total int `json:"total"`
-
-		// Used Used disk space in bytes.
-		Used int `json:"used"`
-	} `json:"disk"`
+	// Disks List of local disk usage information.
+	Disks *Disks `json:"disks,omitempty"`
 
 	// Hostname The hostname of the system.
 	Hostname string `json:"hostname"`

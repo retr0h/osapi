@@ -62,6 +62,25 @@ func (s System) GetSystemStatus(
 		})
 	}
 
+	diskStats, err := s.SystemProvider.GetLocalDiskStats()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
+	// Convert []systemDiskUsageStats to []gen.Disks
+	disks := make([]gen.Disk, 0, len(diskStats))
+	for _, d := range diskStats {
+		disk := gen.Disk{
+			Name:  d.Name,
+			Total: uint64ToInt(d.Total),
+			Used:  uint64ToInt(d.Used),
+			Free:  uint64ToInt(d.Free),
+		}
+		disks = append(disks, disk)
+	}
+
 	return ctx.JSON(http.StatusOK, gen.SystemStatus{
 		Hostname: hostname,
 		Uptime:   formatDuration(uptime),
@@ -78,6 +97,7 @@ func (s System) GetSystemStatus(
 			Free:  uint64ToInt(memStats.Free),
 			Used:  uint64ToInt(memStats.Cached),
 		},
+		Disks: &disks,
 	})
 }
 

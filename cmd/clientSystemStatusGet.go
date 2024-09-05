@@ -23,6 +23,7 @@ package cmd
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -46,6 +47,18 @@ var clientSystemStatusGetCmd = &cobra.Command{
 				return
 			}
 
+			// aggregate disk information
+			diskGroups := make([]any, 0, len(*resp.JSON200.Disks))
+			for i, disk := range *resp.JSON200.Disks {
+				group := slog.Group(strconv.Itoa(i),
+					slog.String("Name", disk.Name),
+					slog.Int("Total", disk.Total),
+					slog.Int("Used", disk.Used),
+					slog.Int("Free", disk.Free),
+				)
+				diskGroups = append(diskGroups, group)
+			}
+
 			logger.Info(
 				"response",
 				slog.Int("code", resp.StatusCode()),
@@ -54,9 +67,10 @@ var clientSystemStatusGetCmd = &cobra.Command{
 				slog.Int("load.1m", int(resp.JSON200.LoadAverage.N1min)),
 				slog.Int("load.5m", int(resp.JSON200.LoadAverage.N5min)),
 				slog.Int("load.15m", int(resp.JSON200.LoadAverage.N15min)),
-				slog.Int("memory.total", int(resp.JSON200.Memory.Total)),
-				slog.Int("memory.free", int(resp.JSON200.Memory.Free)),
-				slog.Int("memory.used", int(resp.JSON200.Memory.Used)),
+				slog.Int("memory.Total", int(resp.JSON200.Memory.Total)),
+				slog.Int("memory.Free", int(resp.JSON200.Memory.Free)),
+				slog.Int("memory.Used", int(resp.JSON200.Memory.Used)),
+				slog.Group("disks", diskGroups...),
 			)
 		default:
 			if jsonOutput {

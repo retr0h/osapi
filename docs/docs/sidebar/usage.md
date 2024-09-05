@@ -34,6 +34,6 @@ Get the system status:
 ```bash
 osapi client system status
 
-5:07PM INF client configuration debug=false client.url=http://0.0.0.0:8080
-5:07PM INF response code=200 hostname=c6072f8815fe uptime="1 day, 0 hours, 18 minutes" load.1m=0 load.5m=0 load.15m=0 memory.total=16788750336 memory.free=12436840448 memory.used=1214160896
+9:47PM INF client configuration debug=false client.url=http://0.0.0.0:8080
+9:47PM INF response code=200 hostname=55372261bbbe uptime="2 days, 4 hours, 58 minutes" load.1m=0 load.5m=0 load.15m=0 memory.Total=16788750336 memory.Free=686661632 memory.Used=14723842048 disks.0.Name=/etc/resolv.conf disks.0.Total=270233210880 disks.0.Used=20075712512 disks.0.Free=236396883968 disks.1.Name=/etc/hostname disks.1.Total=270233210880 disks.1.Used=20075712512 disks.1.Free=236396883968 disks.2.Name=/etc/hosts disks.2.Total=270233210880 disks.2.Used=20075712512 disks.2.Free=236396883968
 ```

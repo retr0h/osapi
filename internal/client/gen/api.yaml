@@ -131,6 +131,36 @@ components:
         - total
         - free
         - used
+    Disk:
+      type: object
+      description: Local disk usage information.
+      properties:
+        name:
+          type: string
+          description: Disk identifier, e.g., "/dev/sda1".
+          example: /dev/sda1
+        total:
+          type: integer
+          description: Total disk space in bytes.
+          example: 500000000000
+        used:
+          type: integer
+          description: Used disk space in bytes.
+          example: 250000000000
+        free:
+          type: integer
+          description: Free disk space in bytes.
+          example: 250000000000
+      required:
+        - name
+        - total
+        - used
+        - free
+    Disks:
+      type: array
+      description: List of local disk usage information.
+      items:
+        $ref: '#/components/schemas/Disk'
     SystemStatus:
       type: object
       properties:
@@ -146,26 +176,8 @@ components:
           $ref: '#/components/schemas/LoadAverage'
         memory:
           $ref: '#/components/schemas/Memory'
-        disk:
-          type: object
-          description: Local disk usage information.
-          properties:
-            total:
-              type: integer
-              description: Total disk space in bytes.
-              example: 500000000000
-            used:
-              type: integer
-              description: Used disk space in bytes.
-              example: 250000000000
-            free:
-              type: integer
-              description: Free disk space in bytes.
-              example: 250000000000
-          required:
-            - total
-            - used
-            - free
+        disks:
+          $ref: '#/components/schemas/Disks'
       required:
         - hostname
         - uptime

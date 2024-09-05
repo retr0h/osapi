@@ -119,7 +119,7 @@ func (suite *UbuntuPublicTestSuite) TestGetHostname() {
 			name: "when GetLoadAverageStats errors",
 			setupMock: func() *system.MockSystem {
 				mock := system.NewDefaultMockSystem()
-				mock.GetLoadAverageFunc = func() (*system.LoadAverageStats, error) {
+				mock.GetLoadAverageStatsFunc = func() (*system.LoadAverageStats, error) {
 					return nil, fmt.Errorf("GetLoadAverage error")
 				}
 				return mock
@@ -152,6 +152,39 @@ func (suite *UbuntuPublicTestSuite) TestGetHostname() {
 			},
 			fn: func(m *system.MockSystem) (interface{}, error) {
 				return m.GetUptime()
+			},
+			wantErr: true,
+		},
+		{
+			name: "when GetLocalDiskStats Ok",
+			setupMock: func() *system.MockSystem {
+				mock := system.NewDefaultMockSystem()
+				return mock
+			},
+			fn: func(m *system.MockSystem) (interface{}, error) {
+				return m.GetLocalDiskStats()
+			},
+			want: []system.DiskUsageStats{
+				{
+					Name:  "/dev/disk1",
+					Total: 500000000000,
+					Used:  250000000000,
+					Free:  250000000000,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "when GetLocalDiskStats errors",
+			setupMock: func() *system.MockSystem {
+				mock := system.NewDefaultMockSystem()
+				mock.GetLocalDiskStatsFunc = func() ([]system.DiskUsageStats, error) {
+					return nil, fmt.Errorf("GetLocalDiskStats error")
+				}
+				return mock
+			},
+			fn: func(m *system.MockSystem) (interface{}, error) {
+				return m.GetLocalDiskStats()
 			},
 			wantErr: true,
 		},
