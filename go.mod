@@ -9,7 +9,7 @@ require (
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/lmittmann/tint v1.0.5
 	github.com/maragudk/goqite v0.2.3
-	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
 	github.com/samber/slog-echo v1.14.6
 	github.com/shirou/gopsutil/v4 v4.24.8
