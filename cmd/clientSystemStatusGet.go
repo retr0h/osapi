@@ -48,8 +48,8 @@ var clientSystemStatusGetCmd = &cobra.Command{
 			}
 
 			// aggregate disk information
-			diskGroups := make([]any, 0, len(*resp.JSON200.Disks))
-			for i, disk := range *resp.JSON200.Disks {
+			diskGroups := make([]any, 0, len(resp.JSON200.Disks))
+			for i, disk := range resp.JSON200.Disks {
 				group := slog.Group(strconv.Itoa(i),
 					slog.String("Name", disk.Name),
 					slog.Int("Total", disk.Total),

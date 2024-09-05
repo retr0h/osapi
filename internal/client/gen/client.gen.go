@@ -75,7 +75,7 @@ type Pong struct {
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
 	// Disks List of local disk usage information.
-	Disks *Disks `json:"disks,omitempty"`
+	Disks Disks `json:"disks"`
 
 	// Hostname The hostname of the system.
 	Hostname string `json:"hostname"`

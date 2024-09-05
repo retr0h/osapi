@@ -97,7 +97,7 @@ func (s System) GetSystemStatus(
 			Free:  uint64ToInt(memStats.Free),
 			Used:  uint64ToInt(memStats.Cached),
 		},
-		Disks: &disks,
+		Disks: disks,
 	})
 }
 

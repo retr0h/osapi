@@ -183,7 +183,7 @@ components:
         - uptime
         - load_average
         - memory
-        - disk
+        - disks
     ErrorResponse:
       type: object
       properties:
