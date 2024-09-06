@@ -24,6 +24,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 )
 
 // logFatal logs a fatal error message along with optional structured data
@@ -54,4 +57,59 @@ func prettyPrintJSON(respBody []byte) {
 	}
 
 	fmt.Println(string(prettyJSON))
+}
+
+// section represents a header with its corresponding rows.
+type section struct {
+	Title   string
+	Headers []string
+	Rows    [][]string
+}
+
+// printStyledTable renders a styled table with padding.
+func printStyledTable(sections []section, additionalInfo string) {
+	re := lipgloss.NewRenderer(os.Stdout)
+
+	var (
+		HeaderStyle  = re.NewStyle().Foreground(purple).Bold(true).Align(lipgloss.Center)
+		CellStyle    = re.NewStyle().Padding(0, 1).Width(20)
+		OddRowStyle  = CellStyle.Foreground(gray)
+		EvenRowStyle = CellStyle.Foreground(lightGray)
+		BorderStyle  = re.NewStyle().Foreground(purple)
+		PaddingStyle = re.NewStyle().Padding(0, 2)
+		TitleStyle   = re.NewStyle().Bold(true).Foreground(purple).MarginBottom(1).Padding(0, 2)
+	)
+
+	// Render and apply padding to the system information first.
+	fmt.Println(PaddingStyle.Render(additionalInfo))
+
+	// Iterate over each section to render titles and tables.
+	for _, section := range sections {
+		// Render the section title if it exists.
+		if section.Title != "" {
+			fmt.Println(TitleStyle.Render(section.Title))
+		}
+
+		// Create the table and apply styles.
+		t := table.New().
+			Border(lipgloss.ThickBorder()).
+			BorderStyle(BorderStyle).
+			StyleFunc(func(row, _ int) lipgloss.Style {
+				switch {
+				case row == 0:
+					return HeaderStyle
+				case row%2 == 0:
+					return EvenRowStyle
+				default:
+					return OddRowStyle
+				}
+			})
+
+		// Add headers and rows for the current section to the table.
+		t.Headers(section.Headers...)
+		t.Rows(section.Rows...)
+
+		// Render the styled table.
+		fmt.Println(PaddingStyle.Render(t.String()))
+	}
 }

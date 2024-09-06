@@ -21,8 +21,9 @@
 package cmd
 
 import (
-	"log/slog"
+	"fmt"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -43,11 +44,13 @@ var clientPingCmd = &cobra.Command{
 			return
 		}
 
-		logger.Info(
-			"response",
-			slog.Int("code", resp.StatusCode()),
-			slog.String("data", resp.JSON200.Ping),
+		sections := []section{{}}
+		pingInfo := fmt.Sprintf(
+			"\n%s: %s\n",
+			lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Ping"), resp.JSON200.Ping,
 		)
+
+		printStyledTable(sections, pingInfo)
 	},
 }
 

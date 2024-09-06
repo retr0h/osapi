@@ -11,7 +11,7 @@
 
 # OS API
 
-<img src="asset/logo.png" align="left" width="250px" height="250px" />
+<img src="asset/logo.png" align="left" />
 
 A CRUD API for managing Linux systems.
 
@@ -22,11 +22,11 @@ them to be used as appliances.
 
 ## Documentation
 
-[Getting Started][] | [API][] | [Documentation][]
+[Getting Started][] | [API][] | [Usage][]
 
 [Getting Started]: https://retr0h.github.io/osapi/
 [API]: https://retr0h.github.io/osapi/category/api
-[Documentation]: https://retr0h.github.io/osapi/
+[Usage]: https://retr0h.github.io/osapi/sidebar/usage/
 
 ## License
 

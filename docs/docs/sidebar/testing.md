@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 3
 ---
 
 # Testing
@@ -7,23 +7,23 @@ sidebar_position: 5
 Install dependencies:
 
 ```bash
-task deps
+$ task deps
 ```
 
 To execute tests:
 
 ```bash
-task test
+$ task test
 ```
 
 Auto format code:
 
 ```bash
-task fmt
+$ task fmt
 ```
 
 List helpful targets:
 
 ```bash
-task
+$ task
 ```

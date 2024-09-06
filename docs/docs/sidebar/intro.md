@@ -4,9 +4,7 @@ sidebar_position: 1
 title: Home
 ---
 
-# Osapi
-
-<img src="img/logo.png" align="left" width="250px" height="250px" />
+<img src="img/logo.png" align="left" />
 
 A CRUD API for managing Linux systems.
 

@@ -21,11 +21,18 @@
 package cmd
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
-	"strconv"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+)
+
+var (
+	purple    = lipgloss.Color("99")
+	gray      = lipgloss.Color("245")
+	lightGray = lipgloss.Color("241")
 )
 
 // clientSystemStatusGetCmd represents the clientPing command.
@@ -47,31 +54,50 @@ var clientSystemStatusGetCmd = &cobra.Command{
 				return
 			}
 
-			// aggregate disk information
-			diskGroups := make([]any, 0, len(resp.JSON200.Disks))
-			for i, disk := range resp.JSON200.Disks {
-				group := slog.Group(strconv.Itoa(i),
-					slog.String("Name", disk.Name),
-					slog.Int("Total", disk.Total),
-					slog.Int("Used", disk.Used),
-					slog.Int("Free", disk.Free),
-				)
-				diskGroups = append(diskGroups, group)
+			diskRows := [][]string{}
+			for _, disk := range resp.JSON200.Disks {
+				diskRows = append(diskRows, []string{
+					disk.Name,
+					fmt.Sprintf("%d GB", disk.Total/1024/1024/1024),
+					fmt.Sprintf("%d GB", disk.Used/1024/1024/1024),
+					fmt.Sprintf("%d GB", disk.Free/1024/1024/1024),
+				})
 			}
 
-			logger.Info(
-				"response",
-				slog.Int("code", resp.StatusCode()),
-				slog.String("hostname", resp.JSON200.Hostname),
-				slog.String("uptime", resp.JSON200.Uptime),
-				slog.Int("load.1m", int(resp.JSON200.LoadAverage.N1min)),
-				slog.Int("load.5m", int(resp.JSON200.LoadAverage.N5min)),
-				slog.Int("load.15m", int(resp.JSON200.LoadAverage.N15min)),
-				slog.Int("memory.Total", int(resp.JSON200.Memory.Total)),
-				slog.Int("memory.Free", int(resp.JSON200.Memory.Free)),
-				slog.Int("memory.Used", int(resp.JSON200.Memory.Used)),
-				slog.Group("disks", diskGroups...),
+			sections := []section{
+				{
+					Title:   "Disks:",
+					Headers: []string{"DISK NAME", "TOTAL", "USED", "FREE"},
+					Rows:    diskRows,
+				},
+			}
+
+			systemInfo := fmt.Sprintf(
+				"\n%s: %s\n%s: %s\n%s: %.2f, %.2f, %.2f\n%s: %d GB used / %d GB total / %d GB free\n",
+				lipgloss.NewStyle().
+					Bold(true).
+					Foreground(purple).
+					Render("Hostname"),
+				resp.JSON200.Hostname,
+				lipgloss.NewStyle().
+					Bold(true).
+					Foreground(purple).
+					Render("Uptime"),
+				resp.JSON200.Uptime,
+				lipgloss.NewStyle().
+					Bold(true).
+					Foreground(purple).
+					Render("Load Average (1m, 5m, 15m)"),
+				resp.JSON200.LoadAverage.N1min,
+				resp.JSON200.LoadAverage.N5min,
+				resp.JSON200.LoadAverage.N15min,
+				lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Memory"),
+				resp.JSON200.Memory.Used/1024/1024/1024,
+				resp.JSON200.Memory.Total/1024/1024/1024,
+				resp.JSON200.Memory.Free/1024/1024/1024,
 			)
+
+			printStyledTable(sections, systemInfo)
 		default:
 			if jsonOutput {
 				prettyPrintJSON(resp.Body)
