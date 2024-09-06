@@ -65,27 +65,27 @@ func NewDefaultMockSystem() *MockSystem {
 	}
 }
 
-// GetHostname mocked for tests
+// GetHostname mocked for tests.
 func (ms *MockSystem) GetHostname() (string, error) {
 	return ms.GetHostnameFunc()
 }
 
-// GetMemoryStats mocked for tests
+// GetMemoryStats mocked for tests.
 func (ms *MockSystem) GetMemoryStats() (*MemoryStats, error) {
 	return ms.GetMemoryStatsFunc()
 }
 
-// GetLoadAverageStats mocked for tests
+// GetLoadAverageStats mocked for tests.
 func (ms *MockSystem) GetLoadAverageStats() (*LoadAverageStats, error) {
 	return ms.GetLoadAverageStatsFunc()
 }
 
-// GetUptime mocked for tests
+// GetUptime mocked for tests.
 func (ms *MockSystem) GetUptime() (time.Duration, error) {
 	return ms.GetUptimeFunc()
 }
 
-// GetLocalDiskStats mocked for tests
+// GetLocalDiskStats mocked for tests.
 func (ms *MockSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
 	return ms.GetLocalDiskStatsFunc()
 }

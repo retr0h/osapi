@@ -18,15 +18,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package network
 
-import (
-	"context"
+// MockNetwork is a mock implementation of the Network interface for testing.
+type MockNetwork struct {
+	GetResolvConfFunc func() (*DNSConfig, error)
+}
 
-	"github.com/retr0h/osapi/internal/client/gen"
-)
+// NewDefaultMockNetwork creates a MockNetwork with default return values.
+func NewDefaultMockNetwork() *MockNetwork {
+	return &MockNetwork{
+		GetResolvConfFunc: func() (*DNSConfig, error) {
+			return &DNSConfig{
+				DNSServers: []string{
+					"192.168.1.1",
+					"8.8.8.8",
+					"8.8.4.4",
+					"2001:4860:4860::8888",
+					"2001:4860:4860::8844",
+				},
+				SearchDomains: []string{
+					"example.com",
+					"local.lan",
+				},
+			}, nil
+		},
+	}
+}
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS() (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(context.TODO())
+// GetResolvConf mocked for tests.
+func (ms *MockNetwork) GetResolvConf() (*DNSConfig, error) {
+	return ms.GetResolvConfFunc()
 }

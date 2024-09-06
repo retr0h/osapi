@@ -18,15 +18,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package cmd
 
 import (
-	"context"
-
-	"github.com/retr0h/osapi/internal/client/gen"
+	"github.com/spf13/cobra"
 )
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS() (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(context.TODO())
+// clientNetworkCmd represents the clientNetworkCmd command.
+var clientNetworkCmd = &cobra.Command{
+	Use:   "network",
+	Short: "The network subcommand",
+}
+
+func init() {
+	clientCmd.AddCommand(clientNetworkCmd)
 }

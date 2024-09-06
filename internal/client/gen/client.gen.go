@@ -4,6 +4,7 @@
 package gen
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,7 +12,27 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/oapi-codegen/runtime"
 )
+
+// DNSConfig defines model for DNSConfig.
+type DNSConfig struct {
+	// SearchDomains List of search domains
+	SearchDomains *[]string `json:"searchDomains,omitempty"`
+
+	// Servers List of configured DNS servers
+	Servers *[]string `json:"servers,omitempty"`
+}
+
+// DNSConfigUpdate defines model for DNSConfigUpdate.
+type DNSConfigUpdate struct {
+	// SearchDomains New list of search domains to configure
+	SearchDomains *[]string `json:"searchDomains,omitempty"`
+
+	// Servers New list of DNS servers to configure
+	Servers *[]string `json:"servers,omitempty"`
+}
 
 // Disk Local disk usage information.
 type Disk struct {
@@ -30,18 +51,6 @@ type Disk struct {
 
 // Disks List of local disk usage information.
 type Disks = []Disk
-
-// ErrorResponse defines model for ErrorResponse.
-type ErrorResponse struct {
-	// Code The error code.
-	Code int `json:"code"`
-
-	// Details Additional details about the error, specifying which component failed.
-	Details *string `json:"details,omitempty"`
-
-	// Error A description of the error that occurred.
-	Error string `json:"error"`
-}
 
 // LoadAverage The system load averages for 1, 5, and 15 minutes.
 type LoadAverage struct {
@@ -89,6 +98,33 @@ type SystemStatus struct {
 	// Uptime The uptime of the system.
 	Uptime string `json:"uptime"`
 }
+
+// NetworkErrorResponse defines model for network.ErrorResponse.
+type NetworkErrorResponse struct {
+	// Code The error code.
+	Code int `json:"code"`
+
+	// Details Additional details about the error, specifying which component failed.
+	Details *string `json:"details,omitempty"`
+
+	// Error A description of the error that occurred.
+	Error string `json:"error"`
+}
+
+// SystemErrorResponse defines model for system.ErrorResponse.
+type SystemErrorResponse struct {
+	// Code The error code.
+	Code int `json:"code"`
+
+	// Details Additional details about the error, specifying which component failed.
+	Details *string `json:"details,omitempty"`
+
+	// Error A description of the error that occurred.
+	Error string `json:"error"`
+}
+
+// PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
+type PutNetworkDNSJSONRequestBody = DNSConfigUpdate
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -163,11 +199,70 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetNetworkDNS request
+	GetNetworkDNS(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PutNetworkDNSWithBody request with any body
+	PutNetworkDNSWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PutNetworkDNS(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteNetworkDNSServerID request
+	DeleteNetworkDNSServerID(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetPing request
 	GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSystemStatus request
 	GetSystemStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetNetworkDNS(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNetworkDNSRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PutNetworkDNSWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutNetworkDNSRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PutNetworkDNS(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutNetworkDNSRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteNetworkDNSServerID(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteNetworkDNSServerIDRequest(c.Server, serverId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -192,6 +287,107 @@ func (c *Client) GetSystemStatus(ctx context.Context, reqEditors ...RequestEdito
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetNetworkDNSRequest generates requests for GetNetworkDNS
+func NewGetNetworkDNSRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/network/dns")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPutNetworkDNSRequest calls the generic PutNetworkDNS builder with application/json body
+func NewPutNetworkDNSRequest(server string, body PutNetworkDNSJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPutNetworkDNSRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPutNetworkDNSRequestWithBody generates requests for PutNetworkDNS with any type of body
+func NewPutNetworkDNSRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/network/dns")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteNetworkDNSServerIDRequest generates requests for DeleteNetworkDNSServerID
+func NewDeleteNetworkDNSServerIDRequest(server string, serverId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "serverId", runtime.ParamLocationPath, serverId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/network/dns/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewGetPingRequest generates requests for GetPing
@@ -291,11 +487,91 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetNetworkDNSWithResponse request
+	GetNetworkDNSWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetNetworkDNSResponse, error)
+
+	// PutNetworkDNSWithBodyWithResponse request with any body
+	PutNetworkDNSWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutNetworkDNSResponse, error)
+
+	PutNetworkDNSWithResponse(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*PutNetworkDNSResponse, error)
+
+	// DeleteNetworkDNSServerIDWithResponse request
+	DeleteNetworkDNSServerIDWithResponse(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*DeleteNetworkDNSServerIDResponse, error)
+
 	// GetPingWithResponse request
 	GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error)
 
 	// GetSystemStatusWithResponse request
 	GetSystemStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemStatusResponse, error)
+}
+
+type GetNetworkDNSResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DNSConfig
+	JSON500      *NetworkErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNetworkDNSResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNetworkDNSResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PutNetworkDNSResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *NetworkErrorResponse
+	JSON500      *NetworkErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PutNetworkDNSResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PutNetworkDNSResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteNetworkDNSServerIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON404      *NetworkErrorResponse
+	JSON500      *NetworkErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteNetworkDNSServerIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteNetworkDNSServerIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetPingResponse struct {
@@ -324,7 +600,7 @@ type GetSystemStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *SystemStatus
-	JSON500      *ErrorResponse
+	JSON500      *SystemErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -343,6 +619,41 @@ func (r GetSystemStatusResponse) StatusCode() int {
 	return 0
 }
 
+// GetNetworkDNSWithResponse request returning *GetNetworkDNSResponse
+func (c *ClientWithResponses) GetNetworkDNSWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetNetworkDNSResponse, error) {
+	rsp, err := c.GetNetworkDNS(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNetworkDNSResponse(rsp)
+}
+
+// PutNetworkDNSWithBodyWithResponse request with arbitrary body returning *PutNetworkDNSResponse
+func (c *ClientWithResponses) PutNetworkDNSWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutNetworkDNSResponse, error) {
+	rsp, err := c.PutNetworkDNSWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePutNetworkDNSResponse(rsp)
+}
+
+func (c *ClientWithResponses) PutNetworkDNSWithResponse(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*PutNetworkDNSResponse, error) {
+	rsp, err := c.PutNetworkDNS(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePutNetworkDNSResponse(rsp)
+}
+
+// DeleteNetworkDNSServerIDWithResponse request returning *DeleteNetworkDNSServerIDResponse
+func (c *ClientWithResponses) DeleteNetworkDNSServerIDWithResponse(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*DeleteNetworkDNSServerIDResponse, error) {
+	rsp, err := c.DeleteNetworkDNSServerID(ctx, serverId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteNetworkDNSServerIDResponse(rsp)
+}
+
 // GetPingWithResponse request returning *GetPingResponse
 func (c *ClientWithResponses) GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error) {
 	rsp, err := c.GetPing(ctx, reqEditors...)
@@ -359,6 +670,105 @@ func (c *ClientWithResponses) GetSystemStatusWithResponse(ctx context.Context, r
 		return nil, err
 	}
 	return ParseGetSystemStatusResponse(rsp)
+}
+
+// ParseGetNetworkDNSResponse parses an HTTP response from a GetNetworkDNSWithResponse call
+func ParseGetNetworkDNSResponse(rsp *http.Response) (*GetNetworkDNSResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNetworkDNSResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DNSConfig
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePutNetworkDNSResponse parses an HTTP response from a PutNetworkDNSWithResponse call
+func ParsePutNetworkDNSResponse(rsp *http.Response) (*PutNetworkDNSResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PutNetworkDNSResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteNetworkDNSServerIDResponse parses an HTTP response from a DeleteNetworkDNSServerIDWithResponse call
+func ParseDeleteNetworkDNSServerIDResponse(rsp *http.Response) (*DeleteNetworkDNSServerIDResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteNetworkDNSServerIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseGetPingResponse parses an HTTP response from a GetPingWithResponse call
@@ -409,7 +819,7 @@ func ParseGetSystemStatusResponse(rsp *http.Response) (*GetSystemStatusResponse,
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest ErrorResponse
+		var dest SystemErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

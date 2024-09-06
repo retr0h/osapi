@@ -18,15 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package network
 
-import (
-	"context"
-
-	"github.com/retr0h/osapi/internal/client/gen"
-)
-
-// GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS() (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(context.TODO())
+// DNSConfig represents the DNS configuration with servers and search domains.
+type DNSConfig struct {
+	DNSServers    []string
+	SearchDomains []string
 }

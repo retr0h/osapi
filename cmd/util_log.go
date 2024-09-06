@@ -24,9 +24,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
+)
+
+var (
+	purple    = lipgloss.Color("99")
+	gray      = lipgloss.Color("245")
+	lightGray = lipgloss.Color("241")
 )
 
 // logFatal logs a fatal error message along with optional structured data
@@ -112,4 +119,12 @@ func printStyledTable(sections []section, additionalInfo string) {
 		// Render the styled table.
 		fmt.Println(PaddingStyle.Render(t.String()))
 	}
+}
+
+// formatList helper function to convert []string to a formatted string.
+func formatList(list []string) string {
+	if len(list) == 0 {
+		return "None"
+	}
+	return strings.Join(list, ", ")
 }

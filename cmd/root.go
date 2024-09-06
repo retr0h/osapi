@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/lmittmann/tint"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
@@ -36,6 +37,7 @@ import (
 
 var (
 	appConfig config.Config
+	appFs     = afero.NewOsFs()
 	logger    = slog.New(slog.NewTextHandler(os.Stdout, nil))
 )
 

@@ -28,20 +28,26 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	slogecho "github.com/samber/slog-echo"
 	"github.com/shirou/gopsutil/v4/host"
+	"github.com/spf13/afero"
 
+	"github.com/retr0h/osapi/internal/api/network"
+	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/api/ping"             // testing only
 	pingGen "github.com/retr0h/osapi/internal/api/ping/gen" // testing only
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
+	networkImpl "github.com/retr0h/osapi/internal/provider/network"
 	systemImpl "github.com/retr0h/osapi/internal/provider/system"
 )
 
 // registerHandlers initializes and registers all API handlers.
 func registerHandlers(
+	appFs afero.Fs,
 	e *echo.Echo,
 ) {
 	var systemProvider systemImpl.Provider
+	var networkProvider networkImpl.Provider
 
 	// we already gate on this, squelching errors
 	info, _ := host.Info()
@@ -49,8 +55,10 @@ func registerHandlers(
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
 		systemProvider = systemImpl.NewUbuntuProvider()
+		networkProvider = networkImpl.NewUbuntuProvider(appFs)
 	default:
 		systemProvider = systemImpl.NewDefaultLinuxProvider()
+		networkProvider = networkImpl.NewDefaultLinuxProvider()
 	}
 
 	handlers := []func(e *echo.Echo){
@@ -64,6 +72,12 @@ func registerHandlers(
 			)
 			systemGen.RegisterHandlers(e, systemHandler)
 		},
+		func(e *echo.Echo) {
+			networkHandler := network.New(
+				networkProvider,
+			)
+			networkGen.RegisterHandlers(e, networkHandler)
+		},
 	}
 
 	for _, register := range handlers {
@@ -73,6 +87,7 @@ func registerHandlers(
 
 // New initializes the Echo server.
 func New(
+	appFs afero.Fs,
 	appConfig config.Config,
 	logger *slog.Logger,
 ) *echo.Echo {
@@ -92,7 +107,7 @@ func New(
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CORSWithConfig(corsConfig))
 
-	registerHandlers(e)
+	registerHandlers(appFs, e)
 
 	return e
 }

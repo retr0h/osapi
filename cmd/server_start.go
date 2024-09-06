@@ -18,15 +18,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package cmd
 
 import (
-	"context"
+	"fmt"
 
-	"github.com/retr0h/osapi/internal/client/gen"
+	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/api"
 )
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS() (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(context.TODO())
+// serverStartCmd represents the serverStartCmd command.
+var serverStartCmd = &cobra.Command{
+	Use:   "start",
+	Short: "Start the OSAPI service",
+	Long: `Start the  OSAPI service.
+`,
+	Run: func(_ *cobra.Command, _ []string) {
+		a := api.New(appFs, appConfig, logger)
+		a.Logger.Fatal(a.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
+	},
+}
+
+func init() {
+	serverCmd.AddCommand(serverStartCmd)
 }

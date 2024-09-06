@@ -34,7 +34,7 @@ func NewDefaultLinuxProvider() *DefaultLinuxSystem {
 }
 
 // GetHostname retrieves the hostname of the system.
-// It returns the hostname as a string and an error if something goes wrong.
+// It returns the hostname as a string, and an error if something goes wrong.
 func (dls *DefaultLinuxSystem) GetHostname() (string, error) {
 	return "", fmt.Errorf("GetHostname is not implemented for DefaultLinuxProvider")
 }
@@ -54,7 +54,7 @@ func (dls *DefaultLinuxSystem) GetLoadAverageStats() (*LoadAverageStats, error) 
 }
 
 // GetUptime retrieves the system uptime.
-// It returns the uptime as a time.Duration and an error if something goes wrong.
+// It returns the uptime as a time.Duration, and an error if something goes wrong.
 func (dls *DefaultLinuxSystem) GetUptime() (time.Duration, error) {
 	return 0, fmt.Errorf("GetUptime is not implemented for DefaultLinuxProvider")
 }

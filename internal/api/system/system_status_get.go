@@ -30,41 +30,41 @@ import (
 	"github.com/retr0h/osapi/internal/api/system/gen"
 )
 
-// GetSystemStatus (GET /system/status)
+// GetSystemStatus get the system status endpoint.
 func (s System) GetSystemStatus(
 	ctx echo.Context,
 ) error {
 	hostname, err := s.SystemProvider.GetHostname()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
 	uptime, err := s.SystemProvider.GetUptime()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
 	loadAvgStats, err := s.SystemProvider.GetLoadAverageStats()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
 	memStats, err := s.SystemProvider.GetMemoryStats()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
 	diskStats, err := s.SystemProvider.GetLocalDiskStats()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.ErrorResponse{
+		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),
 		})
 	}

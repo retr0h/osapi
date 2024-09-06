@@ -25,18 +25,6 @@ type Disk struct {
 // Disks List of local disk usage information.
 type Disks = []Disk
 
-// ErrorResponse defines model for ErrorResponse.
-type ErrorResponse struct {
-	// Code The error code.
-	Code int `json:"code"`
-
-	// Details Additional details about the error, specifying which component failed.
-	Details *string `json:"details,omitempty"`
-
-	// Error A description of the error that occurred.
-	Error string `json:"error"`
-}
-
 // LoadAverage The system load averages for 1, 5, and 15 minutes.
 type LoadAverage struct {
 	// N15min Load average for the last 15 minutes.
@@ -77,6 +65,18 @@ type SystemStatus struct {
 
 	// Uptime The uptime of the system.
 	Uptime string `json:"uptime"`
+}
+
+// SystemErrorResponse defines model for system.ErrorResponse.
+type SystemErrorResponse struct {
+	// Code The error code.
+	Code int `json:"code"`
+
+	// Details Additional details about the error, specifying which component failed.
+	Details *string `json:"details,omitempty"`
+
+	// Error A description of the error that occurred.
+	Error string `json:"error"`
 }
 
 // ServerInterface represents all server handlers.

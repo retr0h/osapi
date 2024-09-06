@@ -29,13 +29,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	purple    = lipgloss.Color("99")
-	gray      = lipgloss.Color("245")
-	lightGray = lipgloss.Color("241")
-)
-
-// clientSystemStatusGetCmd represents the clientPing command.
+// clientSystemStatusGetCmd represents the clientSystemStatusGetCmd command.
 var clientSystemStatusGetCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Status of the server",

@@ -18,28 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package gen
 
-import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-
-	"github.com/retr0h/osapi/internal/api"
-)
-
-// serverStartCmd represents the serve command.
-var serverStartCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Start the OSAPI service",
-	Long: `Start the  OSAPI service.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		a := api.New(appConfig, logger)
-		a.Logger.Fatal(a.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
-	},
-}
-
-func init() {
-	serverCmd.AddCommand(serverStartCmd)
-}
+//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config cfg.yaml api.yaml

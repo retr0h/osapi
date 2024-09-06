@@ -18,15 +18,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package network
 
 import (
-	"context"
-
-	"github.com/retr0h/osapi/internal/client/gen"
+	"fmt"
 )
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS() (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(context.TODO())
+// DefaultLinuxNetwork implements the Network interface for Linux.
+type DefaultLinuxNetwork struct{}
+
+// NewDefaultLinuxProvider factory to create a new Linux instance.
+func NewDefaultLinuxProvider() *DefaultLinuxNetwork {
+	return &DefaultLinuxNetwork{}
+}
+
+// GetResolvConf reads the DNS configuration from /run/systemd/resolve/resolv.conf.
+// It returns a DNSConfig struct, and an error if something goes wrong.
+func (dun *DefaultLinuxNetwork) GetResolvConf() (*DNSConfig, error) {
+	return nil, fmt.Errorf("GetResolveConf is not implemented for DefaultLinuxProvider")
 }

@@ -18,15 +18,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package network
 
 import (
-	"context"
-
-	"github.com/retr0h/osapi/internal/client/gen"
+	"github.com/retr0h/osapi/internal/api/network/gen"
+	"github.com/retr0h/osapi/internal/provider/network"
 )
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS() (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(context.TODO())
+// ensure that we've conformed to the `ServerInterface` with a compile-time check
+var _ gen.ServerInterface = (*Network)(nil)
+
+// New factory to create a new instance.
+func New(
+	np network.Provider,
+) *Network {
+	return &Network{
+		NetworkProvider: np,
+	}
 }

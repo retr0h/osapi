@@ -98,20 +98,10 @@ tasks:
       - test -z "$(gofumpt -d -e . | tee /dev/stderr)"
       - test -z "$(golines -l --dry-run --base-formatter=gofumpt -w .)"
 
-  # build:
-  #   desc: Build ARCH compatible binary.
-  #   cmds:
-  #     - goreleaser release --snapshot --clean
-
-  docker:build:
-    desc: Build an image from a Dockerfile
+  dev:serve:
+    desc: Serve the API on an Ubuntu Linux VM
     cmds:
-      - docker build -t osapi:latest .
-
-  docker:serve:
-    desc: Serve the API on a Docker instance
-    cmds:
-      - docker run -it -p 8080:8080 osapi:latest
+      - ssh -L 8080:localhost:8080 nerd.lab
 
   serve:
     desc: Live reload of server

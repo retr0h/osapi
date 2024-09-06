@@ -18,15 +18,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package network
 
 import (
-	"context"
+	"net/http"
 
-	"github.com/retr0h/osapi/internal/client/gen"
+	"github.com/labstack/echo/v4"
+
+	"github.com/retr0h/osapi/internal/api/network/gen"
 )
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS() (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(context.TODO())
+// GetNetworkDNS get the network dns endpoint.
+func (n Network) GetNetworkDNS(
+	ctx echo.Context,
+) error {
+	dnsConfig, err := n.NetworkProvider.GetResolvConf()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
+	// TODO(retr0h): Correct openapi spec to remove pointers
+	searchDomains := dnsConfig.SearchDomains
+	servers := dnsConfig.DNSServers
+
+	return ctx.JSON(http.StatusOK, gen.DNSConfig{
+		SearchDomains: &searchDomains,
+		Servers:       &servers,
+	})
 }

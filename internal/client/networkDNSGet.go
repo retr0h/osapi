@@ -18,18 +18,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package client
 
 import (
-	"github.com/spf13/cobra"
+	"context"
+
+	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// clientSystemCmd represents the clientPing command.
-var clientSystemCmd = &cobra.Command{
-	Use:   "system",
-	Short: "The system subcommand",
-}
-
-func init() {
-	clientCmd.AddCommand(clientSystemCmd)
+// GetSystemStatus get the system status API endpoint.
+func (c *Client) GetSystemStatus() (*gen.GetSystemStatusResponse, error) {
+	return c.Client.GetSystemStatusWithResponse(context.TODO())
 }

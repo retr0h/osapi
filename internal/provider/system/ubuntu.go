@@ -39,7 +39,7 @@ func NewUbuntuProvider() *UbuntuSystem {
 }
 
 // GetHostname retrieves the hostname of the system.
-// It returns the hostname as a string and an error if something goes wrong.
+// It returns the hostname as a string, and an error if something goes wrong.
 func (us *UbuntuSystem) GetHostname() (string, error) {
 	hostInfo, err := host.Info()
 	if err != nil {
@@ -80,7 +80,7 @@ func (us *UbuntuSystem) GetLoadAverageStats() (*LoadAverageStats, error) {
 }
 
 // GetUptime retrieves the system uptime.
-// It returns the uptime as a time.Duration and an error if something goes wrong.
+// It returns the uptime as a time.Duration, and an error if something goes wrong.
 func (us *UbuntuSystem) GetUptime() (time.Duration, error) {
 	hostInfo, err := host.Info()
 	if err != nil {

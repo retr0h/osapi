@@ -21,20 +21,22 @@
 ---
 openapi: 3.0.0
 info:
-  title: System Status API
+  title: System Management API
   version: 1.0.0
-  name: system_status
 tags:
   - name: system_operations
     x-displayName: System
-    description: Operations related to the system status endpoint
+    description: Operations related to the system endpoint
+  - name: system_status
+    x-displayName: System/Status
+    description: Operations related to system status endpoint
 paths:
   /system/status:
     get:
       summary: Retrieve system status
       description: Get the current status of the system including hostname, uptime, load averages, memory, and disk usage.
       tags:
-        - system_operations
+        - system_status
       responses:
         '200':
           description: A JSON object containing the system's status information.
@@ -47,7 +49,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/system.ErrorResponse'
 components:
   schemas:
     LoadAverage:
@@ -144,17 +146,17 @@ components:
         - memory
         - disks
 
-    ErrorResponse:
+    system.ErrorResponse:
       type: object
       properties:
         error:
           type: string
           description: A description of the error that occurred.
-          example: "Failed to retrieve the system status."
+          example: "Failed to retrieve system status."
         details:
           type: string
           description: Additional details about the error, specifying which component failed.
-          example: "Failed to retrieve hostname."
+          example: "Failed to get hostname due to network timeout."
         code:
           type: integer
           description: The error code.

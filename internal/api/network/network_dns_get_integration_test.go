@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system_test
+package network_test
 
 import (
 	"fmt"
@@ -33,13 +33,13 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/api"
-	"github.com/retr0h/osapi/internal/api/system"
-	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
+	"github.com/retr0h/osapi/internal/api/network"
+	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/config"
-	systemProvider "github.com/retr0h/osapi/internal/provider/system"
+	networkProvider "github.com/retr0h/osapi/internal/provider/network"
 )
 
-type SystemStatusIntegrationTestSuite struct {
+type NetworkDNSIntegrationTestSuite struct {
 	suite.Suite
 
 	appFs     afero.Fs
@@ -47,17 +47,17 @@ type SystemStatusIntegrationTestSuite struct {
 	logger    *slog.Logger
 }
 
-func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
+func (suite *NetworkDNSIntegrationTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
+func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 	tests := []struct {
 		name      string
 		uri       string
-		setupMock func() *systemProvider.MockSystem
+		setupMock func() *networkProvider.MockNetwork
 		want      struct {
 			code int
 			body string
@@ -65,9 +65,9 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	}{
 		{
 			name: "when http ok",
-			uri:  "/system/status",
-			setupMock: func() *systemProvider.MockSystem {
-				mock := systemProvider.NewDefaultMockSystem()
+			uri:  "/network/dns",
+			setupMock: func() *networkProvider.MockNetwork {
+				mock := networkProvider.NewDefaultMockNetwork()
 				return mock
 			},
 			want: struct {
@@ -76,34 +76,26 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			}{
 				code: http.StatusOK,
 				body: `{
-"disks": [{
-  "free":250000000000,
-  "name":"/dev/disk1",
-  "total":500000000000,
-  "used":250000000000
-}],
-"hostname": "default-hostname",
-"load_average": {
-    "15min": 0.2,
-    "1min": 1,
-    "5min": 0.5
-},
-"memory": {
-    "free": 4.194304e+06,
-    "total": 8.388608e+06,
-    "used": 2.097152e+06
-},
-"uptime": "0 days, 5 hours, 0 minutes"
-}`,
+"searchDomains": [
+  "example.com",
+  "local.lan"
+],
+"servers": [
+  "192.168.1.1",
+  "8.8.8.8",
+  "8.8.4.4",
+  "2001:4860:4860::8888",
+  "2001:4860:4860::8844"
+]}`,
 			},
 		},
 		{
-			name: "when GetHostname errors",
-			uri:  "/system/status",
-			setupMock: func() *systemProvider.MockSystem {
-				mock := systemProvider.NewDefaultMockSystem()
-				mock.GetHostnameFunc = func() (string, error) {
-					return "", fmt.Errorf("GetHostname error")
+			name: "when GetResolvConf errors",
+			uri:  "/network/dns",
+			setupMock: func() *networkProvider.MockNetwork {
+				mock := networkProvider.NewDefaultMockNetwork()
+				mock.GetResolvConfFunc = func() (*networkProvider.DNSConfig, error) {
+					return nil, fmt.Errorf("GetResolvConf error")
 				}
 				return mock
 			},
@@ -117,9 +109,9 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		},
 		{
 			name: "when not found",
-			uri:  "/system/notfound",
-			setupMock: func() *systemProvider.MockSystem {
-				mock := systemProvider.NewDefaultMockSystem()
+			uri:  "/network/notfound",
+			setupMock: func() *networkProvider.MockNetwork {
+				mock := networkProvider.NewDefaultMockNetwork()
 				return mock
 			},
 			want: struct {
@@ -136,9 +128,9 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
 			a := api.New(suite.appFs, suite.appConfig, suite.logger)
-			systemGen.RegisterHandlers(a, system.New(mock))
+			networkGen.RegisterHandlers(a, network.New(mock))
 
-			// Create a new request to the system endpoint
+			// Create a new request to the network endpoint
 			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
 			rec := httptest.NewRecorder()
 
@@ -156,6 +148,6 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestSystemStatusIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(SystemStatusIntegrationTestSuite))
+func TestNetworkDNSIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(NetworkDNSIntegrationTestSuite))
 }

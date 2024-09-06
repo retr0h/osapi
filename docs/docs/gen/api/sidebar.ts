@@ -8,6 +8,34 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Network/DNS",
+      link: {
+        type: "doc",
+        id: "gen/api/network-management-api-dns-operations",
+      },
+      items: [
+        {
+          type: "doc",
+          id: "gen/api/get-network-dns",
+          label: "List DNS servers",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "gen/api/put-network-dns",
+          label: "Update DNS servers",
+          className: "api-method put",
+        },
+        {
+          type: "doc",
+          id: "gen/api/delete-network-dns-server-id",
+          label: "Delete a DNS server",
+          className: "api-method delete",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Ping",
       link: {
         type: "doc",
@@ -24,10 +52,10 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "System",
+      label: "System/Status",
       link: {
         type: "doc",
-        id: "gen/api/system-status-api-system-operations",
+        id: "gen/api/system-management-api-system-status",
       },
       items: [
         {
