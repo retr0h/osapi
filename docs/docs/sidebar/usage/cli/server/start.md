@@ -1,4 +1,4 @@
-# Server
+# Start
 
 Start the API server:
 

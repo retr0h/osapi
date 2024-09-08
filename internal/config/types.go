@@ -21,6 +21,7 @@
 package config
 
 // Config represents the root structure of the YAML configuration file.
+// This struct is used to unmarshal configuration data from Viper.
 type Config struct {
 	Client
 	Server
@@ -56,4 +57,20 @@ type CORS struct {
 }
 
 // Queue configuration settings.
-type Queue struct{}
+type Queue struct {
+	Database Database `mapstructure:"database"`
+}
+
+// Database represents the "database" configuration under the "queue" section.
+type Database struct {
+	// DriverName specifies the name of the database driver to use, such as "sqlite3".
+	DriverName string `mapstructure:"driver_name"`
+	// DataSourceName defines the data source name (DSN) for the database connection.
+	// The DSN format depends on the database driver used. For SQLite, this often
+	// includes the file path and query parameters like journal mode and timeout settings.
+	DataSourceName string `mapstructure:"data_source_name"`
+	// Maximum number of open connections to the database
+	MaxOpenConns int `mapstructure:"max_open_conns"`
+	// Maximum number of idle connections in the pool
+	MaxIdleConns int `mapstructure:"max_idle_conns"`
+}

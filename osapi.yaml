@@ -12,4 +12,8 @@ server:
         - http://localhost:3001
         - https://retr0h.github.io
 
-queue: {}
+queue:
+  database:
+    driver_name: sqlite3
+    data_source_name: file:database.db?_journal=WAL&_timeout=5000&_fk=true
+    database_name: osapi_jobs

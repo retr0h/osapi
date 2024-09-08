@@ -1,5 +1,6 @@
 cobertura.xml
 cover.out
+database.db*
 dist/
 result.xml
 .task/
