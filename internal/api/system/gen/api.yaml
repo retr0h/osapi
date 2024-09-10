@@ -26,10 +26,10 @@ info:
 tags:
   - name: system_operations
     x-displayName: System
-    description: Operations related to the system endpoint
+    description: Operations related to the system endpoint.
   - name: system_status
     x-displayName: System/Status
-    description: Operations related to system status endpoint
+    description: Operations related to system status endpoint.
 paths:
   /system/status:
     get:
@@ -45,7 +45,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SystemStatus'
         '500':
-          description: Error retrieving system status
+          description: Error retrieving system status.
           content:
             application/json:
               schema:

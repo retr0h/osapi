@@ -19,36 +19,8 @@
 # DEALINGS IN THE SOFTWARE.
 
 ---
-openapi: 3.0.0
-info:
-  version: 1.0.0
-  title: Minimal ping API Endpoint
-tags:
-  - name: ping_operations
-    x-displayName: Ping
-    description: Operations related to the ping endpoint.
-
-paths:
-  /ping:
-    get:
-      summary: Retrieve ping status
-      tags:
-        - ping_operations
-      responses:
-        '200':
-          description: ping response.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pong'
-
-components:
-  schemas:
-    Pong:
-      type: object
-      required:
-        - ping
-      properties:
-        ping:
-          type: string
-          example: pong
+package: gen
+output: queue.gen.go
+generate:
+  models: true
+  echo-server: true

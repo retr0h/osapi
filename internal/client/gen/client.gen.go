@@ -12,25 +12,26 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/oapi-codegen/runtime"
 )
 
 // DNSConfig defines model for DNSConfig.
 type DNSConfig struct {
-	// SearchDomains List of search domains
+	// SearchDomains List of search domains.
 	SearchDomains *[]string `json:"searchDomains,omitempty"`
 
-	// Servers List of configured DNS servers
+	// Servers List of configured DNS servers.
 	Servers *[]string `json:"servers,omitempty"`
 }
 
 // DNSConfigUpdate defines model for DNSConfigUpdate.
 type DNSConfigUpdate struct {
-	// SearchDomains New list of search domains to configure
+	// SearchDomains New list of search domains to configure.
 	SearchDomains *[]string `json:"searchDomains,omitempty"`
 
-	// Servers New list of DNS servers to configure
+	// Servers New list of DNS servers to configure.
 	Servers *[]string `json:"servers,omitempty"`
 }
 
@@ -81,6 +82,27 @@ type Pong struct {
 	Ping string `json:"ping"`
 }
 
+// QueueItem defines model for QueueItem.
+type QueueItem struct {
+	// Body String representation of the body of the queue item.
+	Body *string `json:"body,omitempty"`
+
+	// Created Creation timestamp of the queue item.
+	Created *time.Time `json:"created,omitempty"`
+
+	// Id Unique identifier of the queue item.
+	Id *string `json:"id,omitempty"`
+
+	// Received Number of times the queue item has been received.
+	Received *int `json:"received,omitempty"`
+
+	// Timeout Timeout timestamp for the queue item.
+	Timeout *time.Time `json:"timeout,omitempty"`
+
+	// Updated Last updated timestamp of the queue item.
+	Updated *time.Time `json:"updated,omitempty"`
+}
+
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
 	// Disks List of local disk usage information.
@@ -101,6 +123,18 @@ type SystemStatus struct {
 
 // NetworkErrorResponse defines model for network.ErrorResponse.
 type NetworkErrorResponse struct {
+	// Code The error code.
+	Code int `json:"code"`
+
+	// Details Additional details about the error, specifying which component failed.
+	Details *string `json:"details,omitempty"`
+
+	// Error A description of the error that occurred.
+	Error string `json:"error"`
+}
+
+// QueueErrorResponse defines model for queue.ErrorResponse.
+type QueueErrorResponse struct {
 	// Code The error code.
 	Code int `json:"code"`
 
@@ -213,6 +247,12 @@ type ClientInterface interface {
 	// GetPing request
 	GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetQueue request
+	GetQueue(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetQueueId request
+	GetQueueId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSystemStatus request
 	GetSystemStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
@@ -267,6 +307,30 @@ func (c *Client) DeleteNetworkDNSServerID(ctx context.Context, serverId string, 
 
 func (c *Client) GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPingRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetQueue(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetQueueId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueIdRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -417,6 +481,67 @@ func NewGetPingRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetQueueRequest generates requests for GetQueue
+func NewGetQueueRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/queue")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetQueueIdRequest generates requests for GetQueueId
+func NewGetQueueIdRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/queue/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetSystemStatusRequest generates requests for GetSystemStatus
 func NewGetSystemStatusRequest(server string) (*http.Request, error) {
 	var err error
@@ -500,6 +625,12 @@ type ClientWithResponsesInterface interface {
 
 	// GetPingWithResponse request
 	GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error)
+
+	// GetQueueWithResponse request
+	GetQueueWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueResponse, error)
+
+	// GetQueueIdWithResponse request
+	GetQueueIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIdResponse, error)
 
 	// GetSystemStatusWithResponse request
 	GetSystemStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemStatusResponse, error)
@@ -596,6 +727,52 @@ func (r GetPingResponse) StatusCode() int {
 	return 0
 }
 
+type GetQueueResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]QueueItem
+	JSON500      *QueueErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetQueueResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetQueueResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetQueueIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *QueueItem
+	JSON500      *QueueErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetQueueIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetQueueIdResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSystemStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -661,6 +838,24 @@ func (c *ClientWithResponses) GetPingWithResponse(ctx context.Context, reqEditor
 		return nil, err
 	}
 	return ParseGetPingResponse(rsp)
+}
+
+// GetQueueWithResponse request returning *GetQueueResponse
+func (c *ClientWithResponses) GetQueueWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueResponse, error) {
+	rsp, err := c.GetQueue(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetQueueResponse(rsp)
+}
+
+// GetQueueIdWithResponse request returning *GetQueueIdResponse
+func (c *ClientWithResponses) GetQueueIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIdResponse, error) {
+	rsp, err := c.GetQueueId(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetQueueIdResponse(rsp)
 }
 
 // GetSystemStatusWithResponse request returning *GetSystemStatusResponse
@@ -791,6 +986,72 @@ func ParseGetPingResponse(rsp *http.Response) (*GetPingResponse, error) {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetQueueResponse parses an HTTP response from a GetQueueWithResponse call
+func ParseGetQueueResponse(rsp *http.Response) (*GetQueueResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetQueueResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []QueueItem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest QueueErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetQueueIdResponse parses an HTTP response from a GetQueueIdWithResponse call
+func ParseGetQueueIdResponse(rsp *http.Response) (*GetQueueIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetQueueIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest QueueItem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest QueueErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 

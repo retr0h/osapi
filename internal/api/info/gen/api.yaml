@@ -22,7 +22,7 @@
 openapi: "3.0.0"
 servers:
   - url: http://127.0.0.1:8080
-    description: Mock API (local)
+    description: Mock API (local).
 info:
   title: OSAPI - A CRUD API for managing Linux systems
   description: |

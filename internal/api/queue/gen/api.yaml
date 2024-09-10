@@ -1,0 +1,128 @@
+# Copyright (c) 2024 John Dewey
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+
+---
+openapi: 3.0.0
+info:
+  title: Queue API
+  version: 1.0.0
+tags:
+  - name: queue_operations
+    x-displayName: Queue
+    description: Operations related to the queue endpoint.
+paths:
+  /queue:
+    get:
+      summary: List all queue items
+      description: Retrieve all items from the queue.
+      tags:
+        - queue_operations
+      responses:
+        '200':
+          description: A list of queue items.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QueueItem'
+        '500':
+          description: Error retrieving queue items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue.ErrorResponse'
+
+  /queue/{id}:
+    get:
+      summary: Get a queue item by ID
+      description: Retrieve a specific queue item by its ID.
+      tags:
+        - queue_operations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The queue item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueItem'
+        '404':
+          description: Queue item not found.
+        '500':
+          description: Error retrieving queue item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue.ErrorResponse'
+
+components:
+  schemas:
+    QueueItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the queue item.
+          example: m_6293e012e88beeedcaa32a66a183bc41
+        created:
+          type: string
+          format: date-time
+          description: Creation timestamp of the queue item.
+        updated:
+          type: string
+          format: date-time
+          description: Last updated timestamp of the queue item.
+        body:
+          type: string
+          description: String representation of the body of the queue item.
+          example: "This is the body of the queue item"
+        timeout:
+          type: string
+          format: date-time
+          description: Timeout timestamp for the queue item.
+        received:
+          type: integer
+          description: Number of times the queue item has been received.
+          example: 3
+
+    queue.ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: A description of the error that occurred.
+          example: "Failed to retrieve system status."
+        details:
+          type: string
+          description: Additional details about the error, specifying which component failed.
+          example: "Failed to get hostname due to network timeout."
+        code:
+          type: integer
+          description: The error code.
+          example: 500
+      required:
+        - error
+        - code

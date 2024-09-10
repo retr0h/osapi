@@ -52,6 +52,28 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Queue",
+      link: {
+        type: "doc",
+        id: "gen/api/queue-api-queue-operations",
+      },
+      items: [
+        {
+          type: "doc",
+          id: "gen/api/list-all-queue-items",
+          label: "List all queue items",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "gen/api/get-a-queue-item-by-id",
+          label: "Get a queue item by ID",
+          className: "api-method get",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "System/Status",
       link: {
         type: "doc",

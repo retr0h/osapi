@@ -6,31 +6,35 @@ package gen
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/oapi-codegen/runtime"
 )
 
-// DNSConfig defines model for DNSConfig.
-type DNSConfig struct {
-	// SearchDomains List of search domains.
-	SearchDomains *[]string `json:"searchDomains,omitempty"`
+// QueueItem defines model for QueueItem.
+type QueueItem struct {
+	// Body String representation of the body of the queue item.
+	Body *string `json:"body,omitempty"`
 
-	// Servers List of configured DNS servers.
-	Servers *[]string `json:"servers,omitempty"`
+	// Created Creation timestamp of the queue item.
+	Created *time.Time `json:"created,omitempty"`
+
+	// Id Unique identifier of the queue item.
+	Id *string `json:"id,omitempty"`
+
+	// Received Number of times the queue item has been received.
+	Received *int `json:"received,omitempty"`
+
+	// Timeout Timeout timestamp for the queue item.
+	Timeout *time.Time `json:"timeout,omitempty"`
+
+	// Updated Last updated timestamp of the queue item.
+	Updated *time.Time `json:"updated,omitempty"`
 }
 
-// DNSConfigUpdate defines model for DNSConfigUpdate.
-type DNSConfigUpdate struct {
-	// SearchDomains New list of search domains to configure.
-	SearchDomains *[]string `json:"searchDomains,omitempty"`
-
-	// Servers New list of DNS servers to configure.
-	Servers *[]string `json:"servers,omitempty"`
-}
-
-// NetworkErrorResponse defines model for network.ErrorResponse.
-type NetworkErrorResponse struct {
+// QueueErrorResponse defines model for queue.ErrorResponse.
+type QueueErrorResponse struct {
 	// Code The error code.
 	Code int `json:"code"`
 
@@ -41,20 +45,14 @@ type NetworkErrorResponse struct {
 	Error string `json:"error"`
 }
 
-// PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
-type PutNetworkDNSJSONRequestBody = DNSConfigUpdate
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List DNS servers
-	// (GET /network/dns)
-	GetNetworkDNS(ctx echo.Context) error
-	// Update DNS servers
-	// (PUT /network/dns)
-	PutNetworkDNS(ctx echo.Context) error
-	// Delete a DNS server
-	// (DELETE /network/dns/{serverId})
-	DeleteNetworkDNSServerID(ctx echo.Context, serverId string) error
+	// List all queue items
+	// (GET /queue)
+	GetQueue(ctx echo.Context) error
+	// Get a queue item by ID
+	// (GET /queue/{id})
+	GetQueueId(ctx echo.Context, id string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -62,37 +60,28 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// GetNetworkDNS converts echo context to params.
-func (w *ServerInterfaceWrapper) GetNetworkDNS(ctx echo.Context) error {
+// GetQueue converts echo context to params.
+func (w *ServerInterfaceWrapper) GetQueue(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetNetworkDNS(ctx)
+	err = w.Handler.GetQueue(ctx)
 	return err
 }
 
-// PutNetworkDNS converts echo context to params.
-func (w *ServerInterfaceWrapper) PutNetworkDNS(ctx echo.Context) error {
+// GetQueueId converts echo context to params.
+func (w *ServerInterfaceWrapper) GetQueueId(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "id" -------------
+	var id string
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PutNetworkDNS(ctx)
-	return err
-}
-
-// DeleteNetworkDNSServerID converts echo context to params.
-func (w *ServerInterfaceWrapper) DeleteNetworkDNSServerID(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "serverId" -------------
-	var serverId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "serverId", ctx.Param("serverId"), &serverId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter serverId: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteNetworkDNSServerID(ctx, serverId)
+	err = w.Handler.GetQueueId(ctx, id)
 	return err
 }
 
@@ -124,8 +113,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/network/dns", wrapper.GetNetworkDNS)
-	router.PUT(baseURL+"/network/dns", wrapper.PutNetworkDNS)
-	router.DELETE(baseURL+"/network/dns/:serverId", wrapper.DeleteNetworkDNSServerID)
+	router.GET(baseURL+"/queue", wrapper.GetQueue)
+	router.GET(baseURL+"/queue/:id", wrapper.GetQueueId)
 
 }
