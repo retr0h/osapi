@@ -18,18 +18,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package queue
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/retr0h/osapi/internal/api/queue/gen"
+	"github.com/retr0h/osapi/internal/queue"
 )
 
-// clientNetworkDNSCmd represents the clientNetworkDNS command.
-var clientNetworkDNSCmd = &cobra.Command{
-	Use:   "dns",
-	Short: "The dns subcommand",
-}
+// ensure that we've conformed to the `ServerInterface` with a compile-time check
+var _ gen.ServerInterface = (*Queue)(nil)
 
-func init() {
-	clientNetworkCmd.AddCommand(clientNetworkDNSCmd)
+// New factory to create a new instance.
+func New(
+	qm queue.Manager,
+) *Queue {
+	return &Queue{
+		Manager: qm,
+	}
 }

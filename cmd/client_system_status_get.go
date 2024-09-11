@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// clientSystemStatusGetCmd represents the clientSystemStatusGetCmd command.
+// clientSystemStatusGetCmd represents the clientSystemStatusGet command.
 var clientSystemStatusGetCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Status of the server",

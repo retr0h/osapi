@@ -23,6 +23,7 @@ package queue
 import (
 	"database/sql"
 	"log/slog"
+	"time"
 
 	"github.com/maragudk/goqite"
 	"github.com/retr0h/osapi/internal/config"
@@ -35,4 +36,22 @@ type Queue struct {
 
 	DB    *sql.DB
 	Queue *goqite.Queue
+}
+
+// Item represents an item in the goqite table.
+type Item struct {
+	// Unique identifier of the queue item
+	ID string `json:"id"       db:"id"`
+	// Creation timestamp of the queue item
+	Created time.Time `json:"created"  db:"created"`
+	// Last updated timestamp of the queue item
+	Updated time.Time `json:"updated"  db:"updated"`
+	// Name of the queue
+	Queue string `json:"queue"    db:"queue"`
+	// String representation of the body of the queue item
+	Body string `json:"body"     db:"body"`
+	// Timeout timestamp for the queue item
+	Timeout time.Time `json:"timeout"  db:"timeout"`
+	// Number of times the queue item has been received
+	Received int `json:"received" db:"received"`
 }

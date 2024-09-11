@@ -22,32 +22,32 @@ package cmd
 
 import (
 	"context"
+	"log/slog"
 
-	// "github.com/maragudk/goqite"
 	"github.com/spf13/cobra"
 )
 
-// queuePutCmd represents the queueStart command.
-var queuePutCmd = &cobra.Command{
+// queueClientPutCmd represents the queueClientPut command.
+var queueClientPutCmd = &cobra.Command{
 	Use:   "put",
 	Short: "Put a messge into the queue",
 	Long: `Puts a message into the queue for processing by the task runner.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		data := []byte("yo")
-		// err := q.Send(context.Background(), goqite.Message{
-		// 	Body: []byte("yo"),
-		// })
-		// if err != nil {
-		// 	logFatal("failed to put message into the queue", err)
-		// }
 		err := qm.Put(context.Background(), data)
 		if err != nil {
 			logFatal("failed to put message into the queue", err)
 		}
+
+		logger.Info(
+			"queue put",
+			slog.String("messageID", messageID),
+			slog.String("status", "ok"),
+		)
 	},
 }
 
 func init() {
-	queueClientCmd.AddCommand(queuePutCmd)
+	queueClientCmd.AddCommand(queueClientPutCmd)
 }

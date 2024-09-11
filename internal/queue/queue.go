@@ -53,9 +53,9 @@ func (q *Queue) SetupQueue() error {
 	return nil
 }
 
-// Receive a message from the queue, during which time it's not available to
+// Get a message from the queue, during which time it's not available to
 // other consumers (until the message timeout has passed).
-func (q *Queue) Receive(
+func (q *Queue) Get(
 	ctx context.Context,
 ) (*goqite.Message, error) {
 	m, err := q.Queue.Receive(ctx)
@@ -87,20 +87,4 @@ func (q *Queue) Delete(
 	msgID goqite.ID,
 ) error {
 	return q.Queue.Delete(ctx, msgID)
-}
-
-// isDatabaseInitialized checks if the necessary tables are present in the database.
-func (q *Queue) isDatabaseInitialized(db *sql.DB) bool {
-	var tableCount int
-	query := `SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='goqite';`
-	err := db.QueryRow(query).Scan(&tableCount)
-	if err != nil {
-		// log.Printf("error checking database initialization: %v", err)
-		q.logger.Error(
-			"eror checking database initialization",
-			slog.String("error", err.Error()),
-		)
-		return false
-	}
-	return tableCount > 0
 }

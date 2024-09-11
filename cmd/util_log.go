@@ -28,6 +28,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
+	"golang.org/x/term"
 )
 
 var (
@@ -77,9 +78,24 @@ type section struct {
 func printStyledTable(sections []section, additionalInfo string) {
 	re := lipgloss.NewRenderer(os.Stdout)
 
+	// Measure terminal width dynamically
+	termWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		termWidth = 80 // Default to 80 if unable to get terminal size
+	}
+
+	// Set a maximum width for the table
+	maxWidth := 100 // Adjust this to your preferred maximum width
+
+	// Calculate the dynamic width per cell, ensuring it does not exceed the max width
+	dynamicWidth := (termWidth - 10) / 3 // Adjust the divisor based on the number of columns
+	if dynamicWidth > maxWidth {
+		dynamicWidth = maxWidth
+	}
+
 	var (
 		HeaderStyle  = re.NewStyle().Foreground(purple).Bold(true).Align(lipgloss.Center)
-		CellStyle    = re.NewStyle().Padding(0, 1).Width(20)
+		CellStyle    = re.NewStyle().Padding(0, 1).Width(dynamicWidth)
 		OddRowStyle  = CellStyle.Foreground(gray)
 		EvenRowStyle = CellStyle.Foreground(lightGray)
 		BorderStyle  = re.NewStyle().Foreground(purple)

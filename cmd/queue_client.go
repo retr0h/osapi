@@ -30,7 +30,10 @@ import (
 	"github.com/retr0h/osapi/internal/queue"
 )
 
-var qm queue.Manager
+var (
+	qm        queue.Manager
+	messageID string
+)
 
 // queueClientCmd represents the queue command.
 var queueClientCmd = &cobra.Command{

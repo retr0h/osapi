@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// clientNetworkDNSGetCmd represents the clientNetworkDNSGetCmd command.
+// clientNetworkDNSGetCmd represents the clientNetworkDNSGet command.
 var clientNetworkDNSGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "DNS of the server",

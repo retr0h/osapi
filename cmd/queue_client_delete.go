@@ -21,15 +21,36 @@
 package cmd
 
 import (
+	"context"
+	"log/slog"
+
 	"github.com/spf13/cobra"
 )
 
-// clientNetworkDNSCmd represents the clientNetworkDNS command.
-var clientNetworkDNSCmd = &cobra.Command{
-	Use:   "dns",
-	Short: "The dns subcommand",
+// queueClientDeleteCmd represents the queueClientDelete command.
+var queueClientDeleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete a messge from the queue",
+	Long: `Deletes a message item from the queue.
+`,
+	Run: func(_ *cobra.Command, _ []string) {
+		err := qm.DeleteByID(context.Background(), messageID)
+		if err != nil {
+			logFatal("failed to get message from the queue", err)
+		}
+
+		logger.Info(
+			"queue delete",
+			slog.String("messageID", messageID),
+			slog.String("status", "ok"),
+		)
+	},
 }
 
 func init() {
-	clientNetworkCmd.AddCommand(clientNetworkDNSCmd)
+	queueClientCmd.AddCommand(queueClientDeleteCmd)
+
+	queueClientDeleteCmd.PersistentFlags().
+		StringVarP(&messageID, "message-id", "m", "", "The message ID of the queue item to delete")
+	_ = queueClientDeleteCmd.MarkPersistentFlagRequired("message-id")
 }

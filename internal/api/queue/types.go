@@ -18,18 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package queue
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/retr0h/osapi/internal/queue"
 )
 
-// clientNetworkDNSCmd represents the clientNetworkDNS command.
-var clientNetworkDNSCmd = &cobra.Command{
-	Use:   "dns",
-	Short: "The dns subcommand",
-}
-
-func init() {
-	clientNetworkCmd.AddCommand(clientNetworkDNSCmd)
+// Queue implementation of the Queue APIs operations.
+type Queue struct {
+	// Manager responsible for Queue operations.
+	Manager queue.Manager
 }

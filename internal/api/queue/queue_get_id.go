@@ -18,18 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package queue
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/labstack/echo/v4"
 )
 
-// clientNetworkDNSCmd represents the clientNetworkDNS command.
-var clientNetworkDNSCmd = &cobra.Command{
-	Use:   "dns",
-	Short: "The dns subcommand",
-}
-
-func init() {
-	clientNetworkCmd.AddCommand(clientNetworkDNSCmd)
+// GetQueueID get the queue message by id.
+func (q Queue) GetQueueID(
+	_ echo.Context,
+	_ string,
+) error {
+	return nil
 }

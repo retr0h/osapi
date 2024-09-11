@@ -28,7 +28,7 @@ import (
 	"github.com/retr0h/osapi/internal/api"
 )
 
-// serverStartCmd represents the serverStartCmd command.
+// serverStartCmd represents the serverStart command.
 var serverStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start the OSAPI service",

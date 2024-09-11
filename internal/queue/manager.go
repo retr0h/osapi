@@ -36,10 +36,14 @@ type Manager interface {
 	SetupSchema(ctx context.Context) error
 	// SetupQueue sets up the queue with the specified name.
 	SetupQueue() error
-	// Receive a message from the queue, during which time it's not available to
-	Receive(
+	// Get a message from the queue, during which time it's not available to
+	Get(
 		ctx context.Context,
 	) (*goqite.Message, error)
+	// GetAll the message in the queue.
+	GetAll(ctx context.Context, limit int, offset int) ([]Item, error)
+	// GetByID fetches a single item from the database by its ID.
+	GetByID(ctx context.Context, messageID string) (*Item, error)
 	// Put the message into the queue.
 	Put(
 		ctx context.Context,
@@ -50,4 +54,8 @@ type Manager interface {
 		ctx context.Context,
 		msgID goqite.ID,
 	) error
+	// DeleteByID deletes a row from the database by its ID.
+	DeleteByID(ctx context.Context, messageID string) error
+	// Count counts the number of rows in the table.
+	Count(ctx context.Context) (int, error)
 }

@@ -23,29 +23,65 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
-// queueGetCmd represents the queueStart command.
-var queueGetCmd = &cobra.Command{
+// queueClientGetCmd represents the queueClientGet command.
+var queueClientGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get a messge from the queue",
-	Long: `Gets a message from the queue for viewing.
+	Long: `Gets a message item from the queue for viewing.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		m, err := qm.Receive(context.Background())
+		item, err := qm.GetByID(context.Background(), messageID)
 		if err != nil {
 			logFatal("failed to get message from the queue", err)
 		}
 
-		if m != nil {
-			sections := []section{{}}
+		if item != nil {
 			queueMsg := fmt.Sprintf(
-				"\n%s: %s\n",
-				lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Message"), string(m.Body),
+				"\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %d\n",
+				lipgloss.NewStyle().
+					Bold(true).
+					Foreground(purple).
+					Render("ID"),
+				item.ID,
+				lipgloss.NewStyle().
+					Bold(true).
+					Foreground(purple).
+					Render("Created"),
+				item.Created.Format(time.RFC3339),
+				lipgloss.NewStyle().
+					Bold(true).
+					Foreground(purple).
+					Render("Updated"),
+				item.Updated.Format(time.RFC3339),
+				lipgloss.NewStyle().
+					Bold(true).
+					Foreground(purple).
+					Render("Timeout"),
+				item.Timeout.Format(time.RFC3339),
+				lipgloss.NewStyle().
+					Bold(true).
+					Foreground(purple).
+					Render("Received"),
+				item.Received,
 			)
+
+			itemRows := [][]string{}
+			itemRows = append(itemRows, []string{
+				string(item.Body),
+			})
+
+			sections := []section{
+				{
+					Headers: []string{"Body"},
+					Rows:    itemRows,
+				},
+			}
 
 			printStyledTable(sections, queueMsg)
 		}
@@ -53,5 +89,9 @@ var queueGetCmd = &cobra.Command{
 }
 
 func init() {
-	queueClientCmd.AddCommand(queueGetCmd)
+	queueClientCmd.AddCommand(queueClientGetCmd)
+
+	queueClientGetCmd.PersistentFlags().
+		StringVarP(&messageID, "message-id", "m", "", "The message ID of the queue item to fetch")
+	_ = queueClientGetCmd.MarkPersistentFlagRequired("message-id")
 }

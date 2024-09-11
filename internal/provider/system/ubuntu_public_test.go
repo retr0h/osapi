@@ -39,7 +39,7 @@ func (suite *UbuntuPublicTestSuite) SetupTest() {}
 
 func (suite *UbuntuPublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuPublicTestSuite) TestGetHostname() {
+func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 	tests := []struct {
 		name      string
 		setupMock func() *system.MockSystem

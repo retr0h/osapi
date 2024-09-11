@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// clientNetworkCmd represents the clientNetworkCmd command.
+// clientNetworkCmd represents the clientNetwork command.
 var clientNetworkCmd = &cobra.Command{
 	Use:   "network",
 	Short: "The network subcommand",

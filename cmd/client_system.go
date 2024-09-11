@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// clientSystemCmd represents the clientSystemCmd command.
+// clientSystemCmd represents the clientSystem command.
 var clientSystemCmd = &cobra.Command{
 	Use:   "system",
 	Short: "The system subcommand",

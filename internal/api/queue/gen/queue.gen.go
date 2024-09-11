@@ -52,7 +52,7 @@ type ServerInterface interface {
 	GetQueue(ctx echo.Context) error
 	// Get a queue item by ID
 	// (GET /queue/{id})
-	GetQueueId(ctx echo.Context, id string) error
+	GetQueueID(ctx echo.Context, id string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -69,8 +69,8 @@ func (w *ServerInterfaceWrapper) GetQueue(ctx echo.Context) error {
 	return err
 }
 
-// GetQueueId converts echo context to params.
-func (w *ServerInterfaceWrapper) GetQueueId(ctx echo.Context) error {
+// GetQueueID converts echo context to params.
+func (w *ServerInterfaceWrapper) GetQueueID(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
 	var id string
@@ -81,7 +81,7 @@ func (w *ServerInterfaceWrapper) GetQueueId(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetQueueId(ctx, id)
+	err = w.Handler.GetQueueID(ctx, id)
 	return err
 }
 
@@ -114,6 +114,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/queue", wrapper.GetQueue)
-	router.GET(baseURL+"/queue/:id", wrapper.GetQueueId)
+	router.GET(baseURL+"/queue/:id", wrapper.GetQueueID)
 
 }

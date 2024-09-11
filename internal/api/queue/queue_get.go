@@ -18,18 +18,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package queue
 
 import (
-	"github.com/spf13/cobra"
+	"net/http"
+	"time"
+
+	"github.com/labstack/echo/v4"
+
+	"github.com/retr0h/osapi/internal/api/queue/gen"
 )
 
-// clientNetworkDNSCmd represents the clientNetworkDNS command.
-var clientNetworkDNSCmd = &cobra.Command{
-	Use:   "dns",
-	Short: "The dns subcommand",
-}
+// GetQueue get the queue.
+func (q Queue) GetQueue(
+	ctx echo.Context,
+) error {
+	// hostname, err := s.SystemProvider.GetHostname()
+	// if err != nil {
+	// 	return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
+	// 		Error: err.Error(),
+	// 	})
+	// }
 
-func init() {
-	clientNetworkCmd.AddCommand(clientNetworkDNSCmd)
+	body := "example body"
+	id := "foo"
+	received := 10
+	created := time.Now()
+	timeout := created.Add(time.Hour)
+	updated := created.Add(time.Minute)
+
+	return ctx.JSON(http.StatusOK, []gen.QueueItem{
+		{
+			Body:     &body,
+			Id:       &id,
+			Received: &received,
+			Created:  &created,
+			Timeout:  &timeout,
+			Updated:  &updated,
+		},
+	})
 }

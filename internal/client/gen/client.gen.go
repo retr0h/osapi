@@ -250,8 +250,8 @@ type ClientInterface interface {
 	// GetQueue request
 	GetQueue(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetQueueId request
-	GetQueueId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetQueueID request
+	GetQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSystemStatus request
 	GetSystemStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -329,8 +329,8 @@ func (c *Client) GetQueue(ctx context.Context, reqEditors ...RequestEditorFn) (*
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetQueueId(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetQueueIdRequest(c.Server, id)
+func (c *Client) GetQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueIDRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -508,8 +508,8 @@ func NewGetQueueRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewGetQueueIdRequest generates requests for GetQueueId
-func NewGetQueueIdRequest(server string, id string) (*http.Request, error) {
+// NewGetQueueIDRequest generates requests for GetQueueID
+func NewGetQueueIDRequest(server string, id string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -629,8 +629,8 @@ type ClientWithResponsesInterface interface {
 	// GetQueueWithResponse request
 	GetQueueWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueResponse, error)
 
-	// GetQueueIdWithResponse request
-	GetQueueIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIdResponse, error)
+	// GetQueueIDWithResponse request
+	GetQueueIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIDResponse, error)
 
 	// GetSystemStatusWithResponse request
 	GetSystemStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemStatusResponse, error)
@@ -750,7 +750,7 @@ func (r GetQueueResponse) StatusCode() int {
 	return 0
 }
 
-type GetQueueIdResponse struct {
+type GetQueueIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *QueueItem
@@ -758,7 +758,7 @@ type GetQueueIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetQueueIdResponse) Status() string {
+func (r GetQueueIDResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -766,7 +766,7 @@ func (r GetQueueIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetQueueIdResponse) StatusCode() int {
+func (r GetQueueIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -849,13 +849,13 @@ func (c *ClientWithResponses) GetQueueWithResponse(ctx context.Context, reqEdito
 	return ParseGetQueueResponse(rsp)
 }
 
-// GetQueueIdWithResponse request returning *GetQueueIdResponse
-func (c *ClientWithResponses) GetQueueIdWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIdResponse, error) {
-	rsp, err := c.GetQueueId(ctx, id, reqEditors...)
+// GetQueueIDWithResponse request returning *GetQueueIDResponse
+func (c *ClientWithResponses) GetQueueIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIDResponse, error) {
+	rsp, err := c.GetQueueID(ctx, id, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetQueueIdResponse(rsp)
+	return ParseGetQueueIDResponse(rsp)
 }
 
 // GetSystemStatusWithResponse request returning *GetSystemStatusResponse
@@ -1025,15 +1025,15 @@ func ParseGetQueueResponse(rsp *http.Response) (*GetQueueResponse, error) {
 	return response, nil
 }
 
-// ParseGetQueueIdResponse parses an HTTP response from a GetQueueIdWithResponse call
-func ParseGetQueueIdResponse(rsp *http.Response) (*GetQueueIdResponse, error) {
+// ParseGetQueueIDResponse parses an HTTP response from a GetQueueIDWithResponse call
+func ParseGetQueueIDResponse(rsp *http.Response) (*GetQueueIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetQueueIdResponse{
+	response := &GetQueueIDResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

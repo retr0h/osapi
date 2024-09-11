@@ -1,3 +1,6 @@
+//go:build test
+// +build test
+
 // Copyright (c) 2024 John Dewey
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy

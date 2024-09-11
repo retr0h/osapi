@@ -66,7 +66,7 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
-          id: "gen/api/get-a-queue-item-by-id",
+          id: "gen/api/get-queue-id",
           label: "Get a queue item by ID",
           className: "api-method get",
         },

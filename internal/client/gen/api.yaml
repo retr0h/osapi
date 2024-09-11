@@ -175,6 +175,7 @@ paths:
       description: Retrieve a specific queue item by its ID.
       tags:
         - Queue_API_queue_operations
+      operationId: GetQueueID
       parameters:
         - name: id
           in: path
