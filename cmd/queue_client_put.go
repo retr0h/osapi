@@ -21,8 +21,8 @@
 package cmd
 
 import (
-	"context"
-	"log/slog"
+	// "context"
+	// "log/slog"
 
 	"github.com/spf13/cobra"
 )
@@ -34,17 +34,17 @@ var queueClientPutCmd = &cobra.Command{
 	Long: `Puts a message into the queue for processing by the task runner.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		data := []byte("yo")
-		err := qm.Put(context.Background(), data)
-		if err != nil {
-			logFatal("failed to put message into the queue", err)
-		}
+		// data := []byte("yo")
+		// err := qm.Put(context.Background(), data)
+		// if err != nil {
+		// 	logFatal("failed to put message into the queue", err)
+		// }
 
-		logger.Info(
-			"queue put",
-			slog.String("messageID", messageID),
-			slog.String("status", "ok"),
-		)
+		// logger.Info(
+		// 	"queue put",
+		// 	slog.String("messageID", messageID),
+		// 	slog.String("status", "ok"),
+		// )
 	},
 }
 

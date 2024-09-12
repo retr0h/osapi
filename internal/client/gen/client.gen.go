@@ -20,7 +20,7 @@ import (
 // DNSConfig defines model for DNSConfig.
 type DNSConfig struct {
 	// SearchDomains List of search domains.
-	SearchDomains *[]string `json:"searchDomains,omitempty"`
+	SearchDomains *[]string `json:"search_domains,omitempty"`
 
 	// Servers List of configured DNS servers.
 	Servers *[]string `json:"servers,omitempty"`
@@ -29,7 +29,7 @@ type DNSConfig struct {
 // DNSConfigUpdate defines model for DNSConfigUpdate.
 type DNSConfigUpdate struct {
 	// SearchDomains New list of search domains to configure.
-	SearchDomains *[]string `json:"searchDomains,omitempty"`
+	SearchDomains *[]string `json:"search_domains,omitempty"`
 
 	// Servers New list of DNS servers to configure.
 	Servers *[]string `json:"servers,omitempty"`
@@ -103,6 +103,14 @@ type QueueItem struct {
 	Updated *time.Time `json:"updated,omitempty"`
 }
 
+// QueueResponse defines model for QueueResponse.
+type QueueResponse struct {
+	Items *[]QueueItem `json:"items,omitempty"`
+
+	// TotalItems The total number of queue items.
+	TotalItems *int `json:"total_items,omitempty"`
+}
+
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
 	// Disks List of local disk usage information.
@@ -155,6 +163,12 @@ type SystemErrorResponse struct {
 
 	// Error A description of the error that occurred.
 	Error string `json:"error"`
+}
+
+// GetQueueParams defines parameters for GetQueue.
+type GetQueueParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
@@ -248,7 +262,7 @@ type ClientInterface interface {
 	GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetQueue request
-	GetQueue(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetQueue(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetQueueID request
 	GetQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -317,8 +331,8 @@ func (c *Client) GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*h
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetQueue(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetQueueRequest(c.Server)
+func (c *Client) GetQueue(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetQueueRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -482,7 +496,7 @@ func NewGetPingRequest(server string) (*http.Request, error) {
 }
 
 // NewGetQueueRequest generates requests for GetQueue
-func NewGetQueueRequest(server string) (*http.Request, error) {
+func NewGetQueueRequest(server string, params *GetQueueParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -498,6 +512,44 @@ func NewGetQueueRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Offset != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "offset", runtime.ParamLocationQuery, *params.Offset); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -627,7 +679,7 @@ type ClientWithResponsesInterface interface {
 	GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error)
 
 	// GetQueueWithResponse request
-	GetQueueWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueResponse, error)
+	GetQueueWithResponse(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*GetQueueResponse, error)
 
 	// GetQueueIDWithResponse request
 	GetQueueIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIDResponse, error)
@@ -730,7 +782,7 @@ func (r GetPingResponse) StatusCode() int {
 type GetQueueResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]QueueItem
+	JSON200      *QueueResponse
 	JSON500      *QueueErrorResponse
 }
 
@@ -841,8 +893,8 @@ func (c *ClientWithResponses) GetPingWithResponse(ctx context.Context, reqEditor
 }
 
 // GetQueueWithResponse request returning *GetQueueResponse
-func (c *ClientWithResponses) GetQueueWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueResponse, error) {
-	rsp, err := c.GetQueue(ctx, reqEditors...)
+func (c *ClientWithResponses) GetQueueWithResponse(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*GetQueueResponse, error) {
+	rsp, err := c.GetQueue(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1007,7 +1059,7 @@ func ParseGetQueueResponse(rsp *http.Response) (*GetQueueResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []QueueItem
+		var dest QueueResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

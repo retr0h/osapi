@@ -21,18 +21,10 @@
 package cmd
 
 import (
-	"context"
 	"log/slog"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/retr0h/osapi/internal/queue"
-)
-
-var (
-	qm        queue.Manager
-	messageID string
 )
 
 // queueClientCmd represents the queue command.
@@ -48,23 +40,6 @@ var queueClientCmd = &cobra.Command{
 			slog.Int("queue.database.max_open_conns", appConfig.Database.MaxOpenConns),
 			slog.Int("queue.database.max_idle_conns", appConfig.Database.MaxIdleConns),
 		)
-
-		db, err := queue.OpenDB(appConfig)
-		if err != nil {
-			logFatal("failed to open database", err)
-		}
-
-		qm = queue.New(logger, appConfig, db)
-
-		err = qm.SetupSchema(context.Background())
-		if err != nil {
-			logFatal("failed to set up database schema", err)
-		}
-
-		err = qm.SetupQueue()
-		if err != nil {
-			logFatal("failed to initalize queue", err)
-		}
 	},
 }
 
@@ -72,13 +47,17 @@ func init() {
 	queueCmd.AddCommand(queueClientCmd)
 
 	queueClientCmd.PersistentFlags().
-		StringP("driver-name", "t", "sqlite3", "Name of the database driver to use")
+		StringP("driver-name", "t", "sqlite", "Name of the database driver to use")
 	queueClientCmd.PersistentFlags().
 		StringP("dsn", "s", ":memory:?_journal=WAL&_timeout=5000&_fk=true", "The data source name (DSN) for the database connection")
 	queueClientCmd.PersistentFlags().
 		IntP("max-open-conns", "o", 1, "The maximum number of open connections to the database")
 	queueClientCmd.PersistentFlags().
 		IntP("max-idle-conns", "i", 1, "The maximum number of idle connections in the pool")
+
+	queueClientCmd.PersistentFlags().
+		StringP("url", "u", "http://0.0.0.0:8080", "URL the client will connect to")
+	queueClientCmd.PersistentFlags().BoolVarP(&jsonOutput, "json", "j", false, "Enable JSON output")
 
 	_ = viper.BindPFlag(
 		"queue.database.driver_name",
@@ -96,4 +75,5 @@ func init() {
 		"queue.database.max_idle_conns",
 		queueClientCmd.PersistentFlags().Lookup("max-idle-conns"),
 	)
+	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
 }

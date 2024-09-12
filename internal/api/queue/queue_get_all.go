@@ -29,24 +29,52 @@ import (
 	"github.com/retr0h/osapi/internal/api/queue/gen"
 )
 
-// GetQueueID get the queue message by id.
-func (q Queue) GetQueueID(
+// GetQueue get the queue.
+func (q Queue) GetQueue(
 	ctx echo.Context,
-	messageID string,
+	params gen.GetQueueParams,
 ) error {
-	queueItem, err := q.Manager.GetByID(context.Background(), messageID)
+	// NOTE(retr0h): Viper also defines defaults, this feels unnecessary...
+	limit := 10
+	offset := 0
+
+	if params.Limit != nil {
+		limit = *params.Limit
+	}
+
+	if params.Offset != nil {
+		offset = *params.Offset
+	}
+
+	queueItems, err := q.Manager.GetAll(context.Background(), limit, offset)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
-	return ctx.JSON(http.StatusOK, gen.QueueItem{
-		Body:     &queueItem.Body,
-		Id:       &queueItem.ID,
-		Received: &queueItem.Received,
-		Created:  &queueItem.Created,
-		Timeout:  &queueItem.Timeout,
-		Updated:  &queueItem.Updated,
+	items := make([]gen.QueueItem, 0, len(queueItems))
+	for _, i := range queueItems {
+		item := gen.QueueItem{
+			Body:     &i.Body,
+			Id:       &i.ID,
+			Received: &i.Received,
+			Created:  &i.Created,
+			Timeout:  &i.Timeout,
+			Updated:  &i.Updated,
+		}
+		items = append(items, item)
+	}
+
+	totalItems, err := q.Manager.Count(context.Background())
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, gen.QueueResponse{
+		Items:      &items,
+		TotalItems: &totalItems,
 	})
 }

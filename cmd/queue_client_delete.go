@@ -21,8 +21,8 @@
 package cmd
 
 import (
-	"context"
-	"log/slog"
+	// "context"
+	// "log/slog"
 
 	"github.com/spf13/cobra"
 )
@@ -34,16 +34,16 @@ var queueClientDeleteCmd = &cobra.Command{
 	Long: `Deletes a message item from the queue.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		err := qm.DeleteByID(context.Background(), messageID)
-		if err != nil {
-			logFatal("failed to get message from the queue", err)
-		}
+		// err := qm.DeleteByID(context.Background(), messageID)
+		// if err != nil {
+		// 	logFatal("failed to get message from the queue", err)
+		// }
 
-		logger.Info(
-			"queue delete",
-			slog.String("messageID", messageID),
-			slog.String("status", "ok"),
-		)
+		// logger.Info(
+		// 	"queue delete",
+		// 	slog.String("messageID", messageID),
+		// 	slog.String("status", "ok"),
+		// )
 	},
 }
 

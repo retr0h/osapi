@@ -63,7 +63,7 @@ type Queue struct {
 
 // Database represents the "database" configuration under the "queue" section.
 type Database struct {
-	// DriverName specifies the name of the database driver to use, such as "sqlite3".
+	// DriverName specifies the name of the database driver to use, such as "sqlite".
 	DriverName string `mapstructure:"driver_name"`
 	// DataSourceName defines the data source name (DSN) for the database connection.
 	// The DSN format depends on the database driver used. For SQLite, this often

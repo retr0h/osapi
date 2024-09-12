@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"github.com/maragudk/goqite"
-	_ "github.com/mattn/go-sqlite3" //lint:ignore
+	_ "modernc.org/sqlite" //lint:ignore
 
 	"github.com/retr0h/osapi/internal/config"
 )

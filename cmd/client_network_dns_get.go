@@ -36,7 +36,7 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 	Long: `Obtain the current DNS configuration.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := c.GetNetworkDNS()
+		resp, err := handler.GetNetworkDNS()
 		if err != nil {
 			logFatal("failed to get network dns endpoint", err)
 		}

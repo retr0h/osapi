@@ -1,5 +1,3 @@
-// Copyright (c) 2024 John Dewey
-
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
@@ -18,7 +16,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network_test
+package queue_test
 
 import (
 	"fmt"
@@ -32,29 +30,36 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/api"
-	"github.com/retr0h/osapi/internal/api/network"
-	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
+	"github.com/retr0h/osapi/internal/api/queue"
+	queueGen "github.com/retr0h/osapi/internal/api/queue/gen"
 	"github.com/retr0h/osapi/internal/config"
-	networkProvider "github.com/retr0h/osapi/internal/provider/network"
+	queueManager "github.com/retr0h/osapi/internal/queue"
 )
 
-type NetworkDNSIntegrationTestSuite struct {
+type QueueGetIDIntegrationTestSuite struct {
 	suite.Suite
 
 	appConfig config.Config
 	logger    *slog.Logger
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) SetupTest() {
-	suite.appConfig = config.Config{}
+func (suite *QueueGetIDIntegrationTestSuite) SetupTest() {
+	suite.appConfig = config.Config{
+		Queue: config.Queue{
+			Database: config.Database{
+				DriverName:     "sqlite",
+				DataSourceName: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
+			},
+		},
+	}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
+func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 	tests := []struct {
 		name      string
 		uri       string
-		setupMock func() *networkProvider.Mock
+		setupMock func() *queueManager.Mock
 		want      struct {
 			code int
 			body string
@@ -62,9 +67,9 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 	}{
 		{
 			name: "when http ok",
-			uri:  "/network/dns",
-			setupMock: func() *networkProvider.Mock {
-				mock := networkProvider.NewDefaultMock()
+			uri:  "/queue/message-id",
+			setupMock: func() *queueManager.Mock {
+				mock := queueManager.NewDefaultMock()
 				return mock
 			},
 			want: struct {
@@ -73,26 +78,22 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 			}{
 				code: http.StatusOK,
 				body: `{
-"search_domains": [
-  "example.com",
-  "local.lan"
-],
-"servers": [
-  "192.168.1.1",
-  "8.8.8.8",
-  "8.8.4.4",
-  "2001:4860:4860::8888",
-  "2001:4860:4860::8844"
-]}`,
+    "body": "test body",
+    "created": "2024-09-10T12:00:00Z",
+    "id": "message-id",
+    "received": 5,
+    "timeout": "2024-09-10T13:00:00Z",
+    "updated": "2024-09-10T12:01:00Z"
+}`,
 			},
 		},
 		{
-			name: "when GetResolvConf errors",
-			uri:  "/network/dns",
-			setupMock: func() *networkProvider.Mock {
-				mock := networkProvider.NewDefaultMock()
-				mock.GetResolvConfFunc = func() (*networkProvider.DNSConfig, error) {
-					return nil, fmt.Errorf("GetResolvConf error")
+			name: "when GetByID errors",
+			uri:  "/queue/invalid",
+			setupMock: func() *queueManager.Mock {
+				mock := queueManager.NewDefaultMock()
+				mock.GetByIDFunc = func() (*queueManager.Item, error) {
+					return nil, fmt.Errorf("GetByID error")
 				}
 				return mock
 			},
@@ -104,30 +105,15 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 				body: `{}`,
 			},
 		},
-		{
-			name: "when not found",
-			uri:  "/network/notfound",
-			setupMock: func() *networkProvider.Mock {
-				mock := networkProvider.NewDefaultMock()
-				return mock
-			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusNotFound,
-				body: `{}`,
-			},
-		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(mock))
+			queueGen.RegisterHandlers(a.Echo, queue.New(mock))
 
-			// Create a new request to the network endpoint
+			// Create a new request to the system endpoint
 			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
 			rec := httptest.NewRecorder()
 
@@ -145,6 +131,6 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestNetworkDNSIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkDNSIntegrationTestSuite))
+func TestQueueGetIDIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(QueueGetIDIntegrationTestSuite))
 }

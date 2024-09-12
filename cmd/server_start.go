@@ -21,11 +21,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/retr0h/osapi/internal/api"
+	"github.com/retr0h/osapi/internal/queue"
 )
 
 // serverStartCmd represents the serverStart command.
@@ -35,8 +37,30 @@ var serverStartCmd = &cobra.Command{
 	Long: `Start the  OSAPI service.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		a := api.New(appFs, appConfig, logger)
-		a.Logger.Fatal(a.Start(fmt.Sprintf(":%d", appConfig.Server.Port)))
+		db, err := queue.OpenDB(appConfig)
+		if err != nil {
+			logFatal("failed to open database", err)
+		}
+
+		var qm queue.Manager = queue.New(logger, appConfig, db)
+
+		err = qm.SetupSchema(context.Background())
+		if err != nil {
+			logFatal("failed to set up database schema", err)
+		}
+
+		err = qm.SetupQueue()
+		if err != nil {
+			logFatal("failed to initalize queue", err)
+		}
+
+		server := api.New(appConfig, logger)
+		handlers := server.CreateHandlers(appFs, qm)
+		server.RegisterHandlers(handlers)
+
+		server.Echo.Logger.Fatal(
+			server.Echo.Start(fmt.Sprintf(":%d", appConfig.Server.Port)),
+		)
 	},
 }
 

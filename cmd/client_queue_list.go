@@ -21,8 +21,9 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
@@ -34,62 +35,89 @@ var (
 	pageSize   int
 )
 
-// queueClientListCmd represents the queueClientList command.
-var queueClientListCmd = &cobra.Command{
+// clientQueueListCmd represents the clientQueueList command.
+var clientQueueListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List messges in the queue",
 	Long: `List all messages in the queue for viewing.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		offset := (pageNumber - 1) * pageSize
-
-		items, err := qm.GetAll(context.Background(), pageSize, offset)
+		resp, err := handler.GetQueueAll(pageSize, offset)
 		if err != nil {
-			logFatal("failed to get message from the queue", err)
+			logFatal("failed to get queue endpoint", err)
 		}
 
-		itemRows := [][]string{}
-		for _, item := range items {
-			itemRows = append(itemRows, []string{
-				item.ID,
-				item.Created.Format(time.RFC3339),
-				item.Body,
-			})
+		switch resp.StatusCode() {
+		case http.StatusOK:
+			if jsonOutput {
+				prettyPrintJSON(resp.Body)
+				return
+			}
+
+			if resp.JSON200 == nil {
+				logFatal("failed response", fmt.Errorf("list queue response was nil"))
+			}
+
+			if resp.JSON200.Items == nil {
+				logFatal("failed response", fmt.Errorf("items in response were nil"))
+			}
+
+			itemRows := [][]string{}
+			for _, item := range *resp.JSON200.Items {
+				itemRows = append(itemRows, []string{
+					safeString(item.Id),
+					item.Created.Format(time.RFC3339),
+					safeString(item.Body),
+				})
+			}
+
+			sections := []section{
+				{
+					Title:   "Items:",
+					Headers: []string{"ID", "Created", "Body"},
+					Rows:    itemRows,
+				},
+			}
+
+			totalItems := safeInt(resp.JSON200.TotalItems)
+			totalPages := calculateTotalPages(totalItems, pageSize)
+
+			itemsInfo := fmt.Sprintf(
+				"\n%s: %d\n%s: %d\n",
+				lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Total Items"),
+				totalItems,
+				lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Total Pages"),
+				totalPages,
+			)
+
+			printStyledTable(sections, itemsInfo)
+		default:
+			if jsonOutput {
+				prettyPrintJSON(resp.Body)
+				return
+			}
+
+			errorMsg := "unknown error"
+			if resp.JSON500 != nil {
+				errorMsg = resp.JSON500.Error
+			}
+
+			logger.Error(
+				"error in response",
+				slog.Int("code", resp.StatusCode()),
+				slog.String("error", errorMsg),
+			)
 		}
-
-		sections := []section{
-			{
-				Title:   "Items:",
-				Headers: []string{"ID", "Created", "Body"},
-				Rows:    itemRows,
-			},
-		}
-
-		totalItems, err := qm.Count(context.Background())
-		if err != nil {
-			logFatal("failed to get queue count", err)
-		}
-
-		totalPages := calculateTotalPages(totalItems, pageSize)
-
-		itemsInfo := fmt.Sprintf(
-			"\n%s: %d\n%s: %d\n",
-			lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Total Items"),
-			totalItems,
-			lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Total Pages"),
-			totalPages,
-		)
-
-		printStyledTable(sections, itemsInfo)
 	},
 }
 
 func init() {
-	queueClientCmd.AddCommand(queueClientListCmd)
+	clientQueueCmd.AddCommand(clientQueueListCmd)
 
-	queueClientListCmd.PersistentFlags().
+	clientQueueListCmd.PersistentFlags().
 		IntVarP(&pageSize, "limit", "l", 10, "Number of items to fetch per page")
-	queueClientListCmd.PersistentFlags().
+	clientQueueListCmd.PersistentFlags().
 		IntVarP(&pageNumber, "page", "p", 1, "Page number to fetch")
 }
 

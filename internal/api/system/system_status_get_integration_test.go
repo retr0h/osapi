@@ -28,7 +28,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -42,13 +41,11 @@ import (
 type SystemStatusIntegrationTestSuite struct {
 	suite.Suite
 
-	appFs     afero.Fs
 	appConfig config.Config
 	logger    *slog.Logger
 }
 
 func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
-	suite.appFs = afero.NewMemMapFs()
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
@@ -57,7 +54,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	tests := []struct {
 		name      string
 		uri       string
-		setupMock func() *systemProvider.MockSystem
+		setupMock func() *systemProvider.Mock
 		want      struct {
 			code int
 			body string
@@ -66,8 +63,8 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		{
 			name: "when http ok",
 			uri:  "/system/status",
-			setupMock: func() *systemProvider.MockSystem {
-				mock := systemProvider.NewDefaultMockSystem()
+			setupMock: func() *systemProvider.Mock {
+				mock := systemProvider.NewDefaultMock()
 				return mock
 			},
 			want: struct {
@@ -100,8 +97,8 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		{
 			name: "when GetHostname errors",
 			uri:  "/system/status",
-			setupMock: func() *systemProvider.MockSystem {
-				mock := systemProvider.NewDefaultMockSystem()
+			setupMock: func() *systemProvider.Mock {
+				mock := systemProvider.NewDefaultMock()
 				mock.GetHostnameFunc = func() (string, error) {
 					return "", fmt.Errorf("GetHostname error")
 				}
@@ -118,8 +115,8 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		{
 			name: "when not found",
 			uri:  "/system/notfound",
-			setupMock: func() *systemProvider.MockSystem {
-				mock := systemProvider.NewDefaultMockSystem()
+			setupMock: func() *systemProvider.Mock {
+				mock := systemProvider.NewDefaultMock()
 				return mock
 			},
 			want: struct {
@@ -135,15 +132,15 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			a := api.New(suite.appFs, suite.appConfig, suite.logger)
-			systemGen.RegisterHandlers(a, system.New(mock))
+			a := api.New(suite.appConfig, suite.logger)
+			systemGen.RegisterHandlers(a.Echo, system.New(mock))
 
 			// Create a new request to the system endpoint
 			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
 			rec := httptest.NewRecorder()
 
 			// Serve the request
-			a.ServeHTTP(rec, req)
+			a.Echo.ServeHTTP(rec, req)
 
 			assert.Equal(suite.T(), tc.want.code, rec.Code)
 

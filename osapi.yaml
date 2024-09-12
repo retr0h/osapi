@@ -14,5 +14,5 @@ server:
 
 queue:
   database:
-    driver_name: sqlite3
+    driver_name: sqlite
     data_source_name: file:database.db?_journal=WAL&_timeout=5000&_fk=true

@@ -23,14 +23,14 @@
 
 package network
 
-// MockNetwork is a mock implementation of the Network interface for testing.
-type MockNetwork struct {
+// Mock is a mock implementation of the Network interface for testing.
+type Mock struct {
 	GetResolvConfFunc func() (*DNSConfig, error)
 }
 
-// NewDefaultMockNetwork creates a MockNetwork with default return values.
-func NewDefaultMockNetwork() *MockNetwork {
-	return &MockNetwork{
+// NewDefaultMock creates a Mock with default return values.
+func NewDefaultMock() *Mock {
+	return &Mock{
 		GetResolvConfFunc: func() (*DNSConfig, error) {
 			return &DNSConfig{
 				DNSServers: []string{
@@ -50,6 +50,6 @@ func NewDefaultMockNetwork() *MockNetwork {
 }
 
 // GetResolvConf mocked for tests.
-func (ms *MockNetwork) GetResolvConf() (*DNSConfig, error) {
-	return ms.GetResolvConfFunc()
+func (m *Mock) GetResolvConf() (*DNSConfig, error) {
+	return m.GetResolvConfFunc()
 }

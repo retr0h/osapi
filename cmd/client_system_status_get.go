@@ -36,7 +36,7 @@ var clientSystemStatusGetCmd = &cobra.Command{
 	Long: `Obtain the current system status.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := c.GetSystemStatus()
+		resp, err := handler.GetSystemStatus()
 		if err != nil {
 			logFatal("failed to get system status endpoint", err)
 		}
@@ -49,13 +49,16 @@ var clientSystemStatusGetCmd = &cobra.Command{
 			}
 
 			diskRows := [][]string{}
-			for _, disk := range resp.JSON200.Disks {
-				diskRows = append(diskRows, []string{
-					disk.Name,
-					fmt.Sprintf("%d GB", disk.Total/1024/1024/1024),
-					fmt.Sprintf("%d GB", disk.Used/1024/1024/1024),
-					fmt.Sprintf("%d GB", disk.Free/1024/1024/1024),
-				})
+
+			if resp.JSON200 != nil && resp.JSON200.Disks != nil {
+				for _, disk := range resp.JSON200.Disks {
+					diskRows = append(diskRows, []string{
+						disk.Name,
+						fmt.Sprintf("%d GB", disk.Total/1024/1024/1024),
+						fmt.Sprintf("%d GB", disk.Used/1024/1024/1024),
+						fmt.Sprintf("%d GB", disk.Free/1024/1024/1024),
+					})
+				}
 			}
 
 			sections := []section{

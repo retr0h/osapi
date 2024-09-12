@@ -60,18 +60,18 @@ func (suite *DBPublicTestSuite) TearDownTest() {}
 func (suite *DBPublicTestSuite) TestDB() {
 	tests := []struct {
 		name      string
-		setupMock func() *queue.MockQueue
-		fn        func(*queue.MockQueue) (interface{}, error)
+		setupMock func() *queue.Mock
+		fn        func(*queue.Mock) (interface{}, error)
 		want      interface{}
 		wantErr   bool
 	}{
 		{
 			name: "when GetAll Ok",
-			setupMock: func() *queue.MockQueue {
-				mock := queue.NewDefaultMockQueue()
+			setupMock: func() *queue.Mock {
+				mock := queue.NewDefaultMock()
 				return mock
 			},
-			fn: func(m *queue.MockQueue) (interface{}, error) {
+			fn: func(m *queue.Mock) (interface{}, error) {
 				return m.GetAll(context.Background(), 0, 1)
 			},
 			want: []queue.Item{
@@ -88,25 +88,25 @@ func (suite *DBPublicTestSuite) TestDB() {
 		},
 		{
 			name: "when GetAll errors",
-			setupMock: func() *queue.MockQueue {
-				mock := queue.NewDefaultMockQueue()
+			setupMock: func() *queue.Mock {
+				mock := queue.NewDefaultMock()
 				mock.GetAllFunc = func() ([]queue.Item, error) {
 					return nil, fmt.Errorf("GetAll error")
 				}
 				return mock
 			},
-			fn: func(m *queue.MockQueue) (interface{}, error) {
+			fn: func(m *queue.Mock) (interface{}, error) {
 				return m.GetAll(context.Background(), 0, 1)
 			},
 			wantErr: true,
 		},
 		{
 			name: "when GetByID Ok",
-			setupMock: func() *queue.MockQueue {
-				mock := queue.NewDefaultMockQueue()
+			setupMock: func() *queue.Mock {
+				mock := queue.NewDefaultMock()
 				return mock
 			},
-			fn: func(m *queue.MockQueue) (interface{}, error) {
+			fn: func(m *queue.Mock) (interface{}, error) {
 				return m.GetByID(context.Background(), suite.messageID)
 			},
 			want: &queue.Item{
@@ -121,14 +121,14 @@ func (suite *DBPublicTestSuite) TestDB() {
 		},
 		{
 			name: "when GetByID errors",
-			setupMock: func() *queue.MockQueue {
-				mock := queue.NewDefaultMockQueue()
+			setupMock: func() *queue.Mock {
+				mock := queue.NewDefaultMock()
 				mock.GetByIDFunc = func() (*queue.Item, error) {
 					return nil, fmt.Errorf("GetByID error")
 				}
 				return mock
 			},
-			fn: func(m *queue.MockQueue) (interface{}, error) {
+			fn: func(m *queue.Mock) (interface{}, error) {
 				return m.GetByID(context.Background(), suite.messageID)
 			},
 			wantErr: true,

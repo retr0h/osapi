@@ -21,51 +21,15 @@
 package cmd
 
 import (
-	"log/slog"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	"github.com/retr0h/osapi/internal/client"
 )
 
-var (
-	handler    client.Manager
-	jsonOutput bool
-)
-
-// clientCmd represents the client command.
-var clientCmd = &cobra.Command{
-	Use:   "client",
-	Short: "The client subcommand",
-	PersistentPreRun: func(_ *cobra.Command, _ []string) {
-		validateDistribution()
-
-		logger.Info(
-			"client configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.String("client.url", appConfig.Client.URL),
-		)
-
-		cwr, err := client.NewClientWithResponses(appConfig)
-		if err != nil {
-			logFatal("failed to create http client", err)
-		}
-
-		handler = client.New(
-			logger,
-			appConfig,
-			cwr,
-		)
-	},
+// clientQueueCmd represents the clientQueue command.
+var clientQueueCmd = &cobra.Command{
+	Use:   "queue",
+	Short: "The queue subcommand",
 }
 
 func init() {
-	rootCmd.AddCommand(clientCmd)
-
-	clientCmd.PersistentFlags().
-		StringP("url", "u", "http://0.0.0.0:8080", "URL the client will connect to")
-	clientCmd.PersistentFlags().BoolVarP(&jsonOutput, "json", "j", false, "Enable JSON output")
-
-	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
+	clientCmd.AddCommand(clientQueueCmd)
 }

@@ -27,8 +27,8 @@ import (
 	"time"
 )
 
-// MockSystem is a mock implementation of the System interface for testing.
-type MockSystem struct {
+// Mock is a mock implementation of the System interface for testing.
+type Mock struct {
 	GetHostnameFunc         func() (string, error)
 	GetMemoryStatsFunc      func() (*MemoryStats, error)
 	GetLoadAverageStatsFunc func() (*LoadAverageStats, error)
@@ -36,9 +36,9 @@ type MockSystem struct {
 	GetLocalDiskStatsFunc   func() ([]DiskUsageStats, error)
 }
 
-// NewDefaultMockSystem creates a MockSystem with default return values.
-func NewDefaultMockSystem() *MockSystem {
-	return &MockSystem{
+// NewDefaultMock creates a Mock with default return values.
+func NewDefaultMock() *Mock {
+	return &Mock{
 		GetHostnameFunc: func() (string, error) {
 			return "default-hostname", nil
 		},
@@ -69,26 +69,26 @@ func NewDefaultMockSystem() *MockSystem {
 }
 
 // GetHostname mocked for tests.
-func (ms *MockSystem) GetHostname() (string, error) {
-	return ms.GetHostnameFunc()
+func (m *Mock) GetHostname() (string, error) {
+	return m.GetHostnameFunc()
 }
 
 // GetMemoryStats mocked for tests.
-func (ms *MockSystem) GetMemoryStats() (*MemoryStats, error) {
-	return ms.GetMemoryStatsFunc()
+func (m *Mock) GetMemoryStats() (*MemoryStats, error) {
+	return m.GetMemoryStatsFunc()
 }
 
 // GetLoadAverageStats mocked for tests.
-func (ms *MockSystem) GetLoadAverageStats() (*LoadAverageStats, error) {
-	return ms.GetLoadAverageStatsFunc()
+func (m *Mock) GetLoadAverageStats() (*LoadAverageStats, error) {
+	return m.GetLoadAverageStatsFunc()
 }
 
 // GetUptime mocked for tests.
-func (ms *MockSystem) GetUptime() (time.Duration, error) {
-	return ms.GetUptimeFunc()
+func (m *Mock) GetUptime() (time.Duration, error) {
+	return m.GetUptimeFunc()
 }
 
 // GetLocalDiskStats mocked for tests.
-func (ms *MockSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
-	return ms.GetLocalDiskStatsFunc()
+func (m *Mock) GetLocalDiskStats() ([]DiskUsageStats, error) {
+	return m.GetLocalDiskStatsFunc()
 }

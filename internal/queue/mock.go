@@ -39,19 +39,20 @@ const (
 	itemReceived  = 5
 )
 
-// MockQueue is a mock implementation of the Queue interface for testing.
-type MockQueue struct {
+// Mock is a mock implementation of the Queue interface for testing.
+type Mock struct {
 	GetAllFunc  func() ([]Item, error)
 	GetByIDFunc func() (*Item, error)
+	CountFunc   func() (int, error)
 }
 
-// NewDefaultMockQueue creates a MockQueue with default return values.
-func NewDefaultMockQueue() *MockQueue {
+// NewDefaultMock creates a Mock with default return values.
+func NewDefaultMock() *Mock {
 	fixedCreated, _ := GetMockFixedTime()
 	timeout := fixedCreated.Add(time.Hour)
 	updated := fixedCreated.Add(time.Minute)
 
-	return &MockQueue{
+	return &Mock{
 		GetAllFunc: func() ([]Item, error) {
 			return []Item{
 				{
@@ -74,11 +75,21 @@ func NewDefaultMockQueue() *MockQueue {
 				Updated:  updated,
 			}, nil
 		},
+		CountFunc: func() (int, error) {
+			return 10, nil
+		},
 	}
 }
 
+// SetupSchema mocked for tests
+func (m *Mock) SetupSchema(
+	_ context.Context,
+) error {
+	return nil
+}
+
 // SetupQueue mocked for tests.
-func (mq *MockQueue) SetupQueue() error {
+func (m *Mock) SetupQueue() error {
 	// q.Queue = goqite.New(goqite.NewOpts{
 	// 	DB:   q.DB,
 	// 	Name: "osapi_jobs",
@@ -87,31 +98,31 @@ func (mq *MockQueue) SetupQueue() error {
 }
 
 // Get mocked for tests.
-func (mq *MockQueue) Get(
+func (m *Mock) Get(
 	_ context.Context,
 ) (*goqite.Message, error) {
 	return nil, nil
 }
 
 // GetAll mocked for tests
-func (mq *MockQueue) GetAll(
+func (m *Mock) GetAll(
 	_ context.Context,
 	_ int,
 	_ int,
 ) ([]Item, error) {
-	return mq.GetAllFunc()
+	return m.GetAllFunc()
 }
 
 // GetByID mocked for tests
-func (mq *MockQueue) GetByID(
+func (m *Mock) GetByID(
 	_ context.Context,
 	_ string,
 ) (*Item, error) {
-	return mq.GetByIDFunc()
+	return m.GetByIDFunc()
 }
 
 // Put mocked for tests.
-func (mq *MockQueue) Put(
+func (m *Mock) Put(
 	_ context.Context,
 	_ []byte,
 ) error {
@@ -119,11 +130,26 @@ func (mq *MockQueue) Put(
 }
 
 // Delete mocked for tests.
-func (mq *MockQueue) Delete(
+func (m *Mock) Delete(
 	_ context.Context,
 	_ goqite.ID,
 ) error {
 	return nil
+}
+
+// DeleteByID mocked for tests.
+func (m *Mock) DeleteByID(
+	_ context.Context,
+	_ string,
+) error {
+	return nil
+}
+
+// Count mocked for tests.
+func (m *Mock) Count(
+	_ context.Context,
+) (int, error) {
+	return m.CountFunc()
 }
 
 // GetMockFixedTime parses and returns the fixedTime constant as a time.Time value.

@@ -21,59 +21,67 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"time"
+	"log/slog"
+	"net/http"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
-// queueClientGetCmd represents the queueClientGet command.
-var queueClientGetCmd = &cobra.Command{
+var messageID string
+
+// clientQueueGetIDCmd represents the clientQueueGetID command.
+var clientQueueGetIDCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get a messge from the queue",
 	Long: `Gets a message item from the queue for viewing.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		item, err := qm.GetByID(context.Background(), messageID)
+		resp, err := handler.GetQueueID(messageID)
 		if err != nil {
-			logFatal("failed to get message from the queue", err)
+			logFatal("failed to get queue endpoint", err)
 		}
 
-		if item != nil {
+		switch resp.StatusCode() {
+		case http.StatusOK:
+			if jsonOutput {
+				prettyPrintJSON(resp.Body)
+				return
+			}
+
 			queueMsg := fmt.Sprintf(
 				"\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %d\n",
 				lipgloss.NewStyle().
 					Bold(true).
 					Foreground(purple).
 					Render("ID"),
-				item.ID,
+				safeString(resp.JSON200.Id),
 				lipgloss.NewStyle().
 					Bold(true).
 					Foreground(purple).
 					Render("Created"),
-				item.Created.Format(time.RFC3339),
+				safeTime(resp.JSON200.Created),
 				lipgloss.NewStyle().
 					Bold(true).
 					Foreground(purple).
 					Render("Updated"),
-				item.Updated.Format(time.RFC3339),
+				safeTime(resp.JSON200.Updated),
 				lipgloss.NewStyle().
 					Bold(true).
 					Foreground(purple).
 					Render("Timeout"),
-				item.Timeout.Format(time.RFC3339),
+				safeTime(resp.JSON200.Timeout),
 				lipgloss.NewStyle().
 					Bold(true).
 					Foreground(purple).
 					Render("Received"),
-				item.Received,
+				safeInt(resp.JSON200.Received),
 			)
 
 			itemRows := [][]string{}
 			itemRows = append(itemRows, []string{
-				string(item.Body),
+				safeString(resp.JSON200.Body),
 			})
 
 			sections := []section{
@@ -84,14 +92,31 @@ var queueClientGetCmd = &cobra.Command{
 			}
 
 			printStyledTable(sections, queueMsg)
+
+		default:
+			if jsonOutput {
+				prettyPrintJSON(resp.Body)
+				return
+			}
+
+			errorMsg := "unknown error"
+			if resp.JSON500 != nil {
+				errorMsg = resp.JSON500.Error
+			}
+
+			logger.Error(
+				"error in response",
+				slog.Int("code", resp.StatusCode()),
+				slog.String("error", errorMsg),
+			)
 		}
 	},
 }
 
 func init() {
-	queueClientCmd.AddCommand(queueClientGetCmd)
+	clientQueueCmd.AddCommand(clientQueueGetIDCmd)
 
-	queueClientGetCmd.PersistentFlags().
+	clientQueueGetIDCmd.PersistentFlags().
 		StringVarP(&messageID, "message-id", "m", "", "The message ID of the queue item to fetch")
-	_ = queueClientGetCmd.MarkPersistentFlagRequired("message-id")
+	_ = clientQueueGetIDCmd.MarkPersistentFlagRequired("message-id")
 }

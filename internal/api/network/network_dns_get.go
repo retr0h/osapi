@@ -39,7 +39,6 @@ func (n Network) GetNetworkDNS(
 		})
 	}
 
-	// TODO(retr0h): Correct openapi spec to remove pointers
 	searchDomains := dnsConfig.SearchDomains
 	servers := dnsConfig.DNSServers
 

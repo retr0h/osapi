@@ -53,18 +53,18 @@ func (suite *QueuePublicTestSuite) TearDownTest() {}
 func (suite *QueuePublicTestSuite) TestDB() {
 	tests := []struct {
 		name      string
-		setupMock func() *queue.MockQueue
-		fn        func(*queue.MockQueue) (interface{}, error)
+		setupMock func() *queue.Mock
+		fn        func(*queue.Mock) (interface{}, error)
 		want      interface{}
 		wantErr   bool
 	}{
 		{
 			name: "when GetAll Ok",
-			setupMock: func() *queue.MockQueue {
-				mock := queue.NewDefaultMockQueue()
+			setupMock: func() *queue.Mock {
+				mock := queue.NewDefaultMock()
 				return mock
 			},
-			fn: func(m *queue.MockQueue) (interface{}, error) {
+			fn: func(m *queue.Mock) (interface{}, error) {
 				return m.GetAll(context.Background(), 0, 1)
 			},
 			want: []queue.Item{

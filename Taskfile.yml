@@ -98,6 +98,16 @@ tasks:
     cmds:
       - ssh -L 8080:localhost:8080 nerd.lab
 
+  docker:build:
+    desc: Build an image from a Dockerfile
+    cmds:
+      - docker build -t osapi:latest .
+
+  docker:serve:
+    desc: Serve the API on a Docker instance
+    cmds:
+      - docker run -it -p 8080:8080 osapi:latest
+
   serve:
     desc: Live reload of server
     cmds:
@@ -108,4 +118,4 @@ tasks:
     cmds:
       - redocly join --prefix-tags-with-info-prop title -o internal/client/gen/api.yaml internal/api/*/gen/api.yaml
       - go generate ./...
-      - task: docs:generate
+        # - task: docs:generate

@@ -18,43 +18,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package queue
+package client
 
 import (
-	"net/http"
-	"time"
-
-	"github.com/labstack/echo/v4"
-
-	"github.com/retr0h/osapi/internal/api/queue/gen"
+	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// GetQueue get the queue.
-func (q Queue) GetQueue(
-	ctx echo.Context,
-) error {
-	// hostname, err := s.SystemProvider.GetHostname()
-	// if err != nil {
-	// 	return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
-	// 		Error: err.Error(),
-	// 	})
-	// }
+// Manager defines an interface for interacting with various client
+// services and operations.
+type Manager interface {
+	// GetNetworkDNS get the network dns get API endpoint.
+	GetNetworkDNS() (*gen.GetNetworkDNSResponse, error)
 
-	body := "example body"
-	id := "foo"
-	received := 10
-	created := time.Now()
-	timeout := created.Add(time.Hour)
-	updated := created.Add(time.Minute)
+	// GetPing ping the API endpoint.
+	GetPing() (*gen.GetPingResponse, error)
 
-	return ctx.JSON(http.StatusOK, []gen.QueueItem{
-		{
-			Body:     &body,
-			Id:       &id,
-			Received: &received,
-			Created:  &created,
-			Timeout:  &timeout,
-			Updated:  &updated,
-		},
-	})
+	// GetQueueAll list the queue through the queue API endpoint.
+	GetQueueAll(
+		limit int,
+		offset int,
+	) (*gen.GetQueueResponse, error)
+	// GetQueueID fetches a single item through the queue API endpoint.
+	GetQueueID(
+		messageID string,
+	) (*gen.GetQueueIDResponse, error)
+
+	// GetSystemStatus get the system status API endpoint.
+	GetSystemStatus() (*gen.GetSystemStatusResponse, error)
 }

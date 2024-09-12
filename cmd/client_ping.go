@@ -34,7 +34,7 @@ var clientPingCmd = &cobra.Command{
 	Long: `Interact with the server by issuing a ping.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := c.GetPing()
+		resp, err := handler.GetPing()
 		if err != nil {
 			logFatal("failed to get ping endpoint", err)
 		}

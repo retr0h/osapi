@@ -33,6 +33,14 @@ type QueueItem struct {
 	Updated *time.Time `json:"updated,omitempty"`
 }
 
+// QueueResponse defines model for QueueResponse.
+type QueueResponse struct {
+	Items *[]QueueItem `json:"items,omitempty"`
+
+	// TotalItems The total number of queue items.
+	TotalItems *int `json:"total_items,omitempty"`
+}
+
 // QueueErrorResponse defines model for queue.ErrorResponse.
 type QueueErrorResponse struct {
 	// Code The error code.
@@ -45,11 +53,17 @@ type QueueErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// GetQueueParams defines parameters for GetQueue.
+type GetQueueParams struct {
+	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List all queue items
 	// (GET /queue)
-	GetQueue(ctx echo.Context) error
+	GetQueue(ctx echo.Context, params GetQueueParams) error
 	// Get a queue item by ID
 	// (GET /queue/{id})
 	GetQueueID(ctx echo.Context, id string) error
@@ -64,8 +78,24 @@ type ServerInterfaceWrapper struct {
 func (w *ServerInterfaceWrapper) GetQueue(ctx echo.Context) error {
 	var err error
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetQueueParams
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", ctx.QueryParams(), &params.Offset)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter offset: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetQueue(ctx)
+	err = w.Handler.GetQueue(ctx, params)
 	return err
 }
 

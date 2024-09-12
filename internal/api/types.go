@@ -20,5 +20,11 @@
 
 package api
 
+import (
+	"github.com/labstack/echo/v4"
+)
+
 // Server implementation of the Server's API operations.
-type Server struct{}
+type Server struct {
+	Echo *echo.Echo
+}

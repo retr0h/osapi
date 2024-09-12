@@ -18,54 +18,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package client
 
 import (
-	"log/slog"
+	"context"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	"github.com/retr0h/osapi/internal/client"
+	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-var (
-	handler    client.Manager
-	jsonOutput bool
-)
-
-// clientCmd represents the client command.
-var clientCmd = &cobra.Command{
-	Use:   "client",
-	Short: "The client subcommand",
-	PersistentPreRun: func(_ *cobra.Command, _ []string) {
-		validateDistribution()
-
-		logger.Info(
-			"client configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.String("client.url", appConfig.Client.URL),
-		)
-
-		cwr, err := client.NewClientWithResponses(appConfig)
-		if err != nil {
-			logFatal("failed to create http client", err)
-		}
-
-		handler = client.New(
-			logger,
-			appConfig,
-			cwr,
-		)
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(clientCmd)
-
-	clientCmd.PersistentFlags().
-		StringP("url", "u", "http://0.0.0.0:8080", "URL the client will connect to")
-	clientCmd.PersistentFlags().BoolVarP(&jsonOutput, "json", "j", false, "Enable JSON output")
-
-	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
+// GetQueueID fetches a single item through the queue API endpoint.
+func (c *Client) GetQueueID(
+	messageID string,
+) (*gen.GetQueueIDResponse, error) {
+	return c.Client.GetQueueIDWithResponse(context.TODO(), messageID)
 }

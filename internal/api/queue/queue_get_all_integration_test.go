@@ -19,16 +19,13 @@
 package queue_test
 
 import (
-	"context"
-	// "fmt"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -39,93 +36,105 @@ import (
 	queueManager "github.com/retr0h/osapi/internal/queue"
 )
 
-type QueueGetIntegrationTestSuite struct {
+type QueueGetAllIntegrationTestSuite struct {
 	suite.Suite
 
-	appFs     afero.Fs
 	appConfig config.Config
 	logger    *slog.Logger
-	created   time.Time
-	updated   time.Time
-	timeout   time.Time
-	received  int
 }
 
-func (suite *QueueGetIntegrationTestSuite) SetupTest() {
-	suite.appFs = afero.NewMemMapFs()
+func (suite *QueueGetAllIntegrationTestSuite) SetupTest() {
 	suite.appConfig = config.Config{
 		Queue: config.Queue{
 			Database: config.Database{
-				DriverName:     "sqlite3",
+				DriverName:     "sqlite",
 				DataSourceName: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
 			},
 		},
 	}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-	suite.created = time.Now()
-	suite.updated = suite.created.Add(time.Minute)
-	suite.timeout = suite.created.Add(time.Hour)
-	suite.received = 10
 }
 
-func (suite *QueueGetIntegrationTestSuite) TestGetSystemStatus() {
+func (suite *QueueGetAllIntegrationTestSuite) TestGetQueueAll() {
 	tests := []struct {
-		name string
-		uri  string
-		// setupMock func() *systemProvider.MockSystem
-		want struct {
+		name      string
+		uri       string
+		setupMock func() *queueManager.Mock
+		want      struct {
 			code int
 			body string
 		}
 	}{
-		// {
-		// 	name: "when http ok",
-		// 	uri:  "/queue",
-		// 	// setupMock: func() *systemProvider.MockSystem {
-		// 	// 	mock := systemProvider.NewDefaultMockSystem()
-		// 	// 	return mock
-		// 	// },
-		// 	want: struct {
-		// 		code int
-		// 		body string
-		// 	}{
-		// 		code: http.StatusOK,
-		// 		body: fmt.Sprintf(`{
-		// "body":"example body",
-		// "created":"%s",
-		// "id":"foo",
-		// "received":%d,
-		// "timeout":"%s",
-		// "updated":"%s"
-		// }`, suite.created, suite.received, suite.timeout, suite.updated),
-		// 	},
-		// },
-		// {
-		// 	name: "when GetHostname errors",
-		// 	uri:  "/system/status",
-		// 	setupMock: func() *systemProvider.MockSystem {
-		// 		mock := systemProvider.NewDefaultMockSystem()
-		// 		mock.GetHostnameFunc = func() (string, error) {
-		// 			return "", fmt.Errorf("GetHostname error")
-		// 		}
-		// 		return mock
-		// 	},
-		// 	want: struct {
-		// 		code int
-		// 		body string
-		// 	}{
-		// 		code: http.StatusInternalServerError,
-		// 		body: `{}`,
-		// 	},
-		// },
+		{
+			name: "when http ok",
+			uri:  "/queue",
+			setupMock: func() *queueManager.Mock {
+				mock := queueManager.NewDefaultMock()
+				return mock
+			},
+			want: struct {
+				code int
+				body string
+			}{
+				code: http.StatusOK,
+				body: `{
+"items": [
+  {
+    "body": "test body",
+    "created": "2024-09-10T12:00:00Z",
+    "id": "message-id",
+    "received": 5,
+    "timeout": "2024-09-10T13:00:00Z",
+    "updated": "2024-09-10T12:01:00Z"
+  }
+],
+"total_items": 10
+}`,
+			},
+		},
+		{
+			name: "when GetAll errors",
+			uri:  "/queue",
+			setupMock: func() *queueManager.Mock {
+				mock := queueManager.NewDefaultMock()
+				mock.GetAllFunc = func() ([]queueManager.Item, error) {
+					return nil, fmt.Errorf("GetAll error")
+				}
+				return mock
+			},
+			want: struct {
+				code int
+				body string
+			}{
+				code: http.StatusInternalServerError,
+				body: `{}`,
+			},
+		},
+		{
+			name: "when Count errors",
+			uri:  "/queue",
+			setupMock: func() *queueManager.Mock {
+				mock := queueManager.NewDefaultMock()
+				mock.CountFunc = func() (int, error) {
+					return 0, fmt.Errorf("Count error")
+				}
+				return mock
+			},
+			want: struct {
+				code int
+				body string
+			}{
+				code: http.StatusInternalServerError,
+				body: `{}`,
+			},
+		},
 		{
 			name: "when not found",
-			uri:  "/system/notfound",
-			// setupMock: func() *systemProvider.MockSystem {
-			// 	mock := systemProvider.NewDefaultMockSystem()
-			// 	return mock
-			// },
+			uri:  "/notfound",
+			setupMock: func() *queueManager.Mock {
+				mock := queueManager.NewDefaultMock()
+				return mock
+			},
 			want: struct {
 				code int
 				body string
@@ -138,21 +147,16 @@ func (suite *QueueGetIntegrationTestSuite) TestGetSystemStatus() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			// mock := tc.setupMock()
-			a := api.New(suite.appFs, suite.appConfig, suite.logger)
-			db, _ := queueManager.OpenDB(suite.appConfig)
-			var qm queueManager.Manager = queueManager.New(suite.logger, suite.appConfig, db)
-			_ = qm.SetupSchema(context.Background())
-			_ = qm.SetupQueue()
-
-			queueGen.RegisterHandlers(a, queue.New(qm))
+			mock := tc.setupMock()
+			a := api.New(suite.appConfig, suite.logger)
+			queueGen.RegisterHandlers(a.Echo, queue.New(mock))
 
 			// Create a new request to the system endpoint
 			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
 			rec := httptest.NewRecorder()
 
 			// Serve the request
-			a.ServeHTTP(rec, req)
+			a.Echo.ServeHTTP(rec, req)
 
 			assert.Equal(suite.T(), tc.want.code, rec.Code)
 
@@ -165,6 +169,6 @@ func (suite *QueueGetIntegrationTestSuite) TestGetSystemStatus() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestQueueGetIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(QueueGetIntegrationTestSuite))
+func TestQueueGetAllIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(QueueGetAllIntegrationTestSuite))
 }

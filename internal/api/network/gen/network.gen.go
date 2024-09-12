@@ -14,7 +14,7 @@ import (
 // DNSConfig defines model for DNSConfig.
 type DNSConfig struct {
 	// SearchDomains List of search domains.
-	SearchDomains *[]string `json:"searchDomains,omitempty"`
+	SearchDomains *[]string `json:"search_domains,omitempty"`
 
 	// Servers List of configured DNS servers.
 	Servers *[]string `json:"servers,omitempty"`
@@ -23,7 +23,7 @@ type DNSConfig struct {
 // DNSConfigUpdate defines model for DNSConfigUpdate.
 type DNSConfigUpdate struct {
 	// SearchDomains New list of search domains to configure.
-	SearchDomains *[]string `json:"searchDomains,omitempty"`
+	SearchDomains *[]string `json:"search_domains,omitempty"`
 
 	// Servers New list of DNS servers to configure.
 	Servers *[]string `json:"servers,omitempty"`

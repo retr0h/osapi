@@ -34,24 +34,25 @@ import (
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/api/ping"             // testing only
 	pingGen "github.com/retr0h/osapi/internal/api/ping/gen" // testing only
+	"github.com/retr0h/osapi/internal/api/queue"
+	queueGen "github.com/retr0h/osapi/internal/api/queue/gen"
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
 	networkImpl "github.com/retr0h/osapi/internal/provider/network"
 	systemImpl "github.com/retr0h/osapi/internal/provider/system"
+	queueImpl "github.com/retr0h/osapi/internal/queue"
 )
 
-// registerHandlers initializes and registers all API handlers.
-func registerHandlers(
+// CreateHandlers initializes handlers and returns a slice of functions to register them.
+func (s *Server) CreateHandlers(
 	appFs afero.Fs,
-	e *echo.Echo,
-) {
+	qm queueImpl.Manager,
+) []func(e *echo.Echo) {
 	var systemProvider systemImpl.Provider
 	var networkProvider networkImpl.Provider
 
-	// we already gate on this, squelching errors
 	info, _ := host.Info()
-
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
 		systemProvider = systemImpl.NewUbuntuProvider()
@@ -61,36 +62,38 @@ func registerHandlers(
 		networkProvider = networkImpl.NewDefaultLinuxProvider()
 	}
 
-	handlers := []func(e *echo.Echo){
+	return []func(e *echo.Echo){
 		func(e *echo.Echo) {
 			pingHandler := ping.New()
 			pingGen.RegisterHandlers(e, pingHandler)
 		},
 		func(e *echo.Echo) {
-			systemHandler := system.New(
-				systemProvider,
-			)
+			systemHandler := system.New(systemProvider)
 			systemGen.RegisterHandlers(e, systemHandler)
 		},
 		func(e *echo.Echo) {
-			networkHandler := network.New(
-				networkProvider,
-			)
+			networkHandler := network.New(networkProvider)
 			networkGen.RegisterHandlers(e, networkHandler)
 		},
+		func(e *echo.Echo) {
+			queueHandler := queue.New(qm)
+			queueGen.RegisterHandlers(e, queueHandler)
+		},
 	}
+}
 
-	for _, register := range handlers {
-		register(e)
+// RegisterHandlers registers a list of handlers with the Echo instance.
+func (s *Server) RegisterHandlers(handlers []func(e *echo.Echo)) {
+	for _, handler := range handlers {
+		handler(s.Echo)
 	}
 }
 
 // New initializes the Echo server.
 func New(
-	appFs afero.Fs,
 	appConfig config.Config,
 	logger *slog.Logger,
-) *echo.Echo {
+) *Server {
 	e := echo.New()
 	e.HideBanner = true
 
@@ -107,7 +110,7 @@ func New(
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CORSWithConfig(corsConfig))
 
-	registerHandlers(appFs, e)
-
-	return e
+	return &Server{
+		Echo: e,
+	}
 }
