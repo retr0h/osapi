@@ -21,7 +21,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -37,22 +36,6 @@ var (
 	gray      = lipgloss.Color("245")
 	lightGray = lipgloss.Color("241")
 )
-
-// prettyPrintJSON unmarshals JSON from a byte slice, formats it with indentation,
-// and prints it to the standard output.
-func prettyPrintJSON(respBody []byte) {
-	var jsonObj interface{}
-	if err := json.Unmarshal(respBody, &jsonObj); err != nil {
-		logFatal("failed to unmarshal json", err)
-	}
-
-	prettyJSON, err := json.MarshalIndent(jsonObj, "", "  ")
-	if err != nil {
-		logFatal("failed to marshal json", err)
-	}
-
-	fmt.Println(string(prettyJSON))
-}
 
 // section represents a header with its corresponding rows.
 type section struct {
@@ -76,11 +59,16 @@ func printStyledTable(sections []section, additionalInfo string) {
 	maxWidth := 100 // Adjust this to your preferred maximum width
 
 	for _, section := range sections {
+		headerCount := len(section.Headers)
+		if headerCount == 0 {
+			headerCount = 1 // Default to 1 if there are no headers
+		}
+
 		// Calculate the maximum header length for the current section
 		maxHeaderLength := getMaxHeaderLength(section.Headers)
 
 		// Calculate the dynamic width per cell, ensuring it does not exceed the max width
-		dynamicWidth := (termWidth - 10) / len(section.Headers)
+		dynamicWidth := (termWidth - 10) / headerCount
 		if dynamicWidth < maxHeaderLength {
 			dynamicWidth = maxHeaderLength
 		}

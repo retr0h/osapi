@@ -21,63 +21,49 @@
 package cmd
 
 import (
-	"fmt"
+	// "context"
 	"log/slog"
 	"net/http"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
-// clientNetworkDNSGetCmd represents the clientNetworkDNSGet command.
-var clientNetworkDNSGetCmd = &cobra.Command{
-	Use:   "get",
-	Short: "DNS of the server",
-	Long: `Obtain the current DNS configuration.
+var messageBody string
+
+// clientQueuePutCmd represents the clientQueuePut command.
+var clientQueuePutCmd = &cobra.Command{
+	Use:   "put",
+	Short: "Put a messge into the queue",
+	Long: `Puts a message into the queue for processing by the task runner.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.GetNetworkDNS()
+		errorMsg := "unknown error"
+		resp, err := handler.PostQueue(messageBody)
 		if err != nil {
-			logFatal("failed to get network dns endpoint", err)
+			logFatal("failed to get queue endpoint", err)
 		}
 
 		switch resp.StatusCode() {
-		case http.StatusOK:
-			if jsonOutput {
-				logger.Info(
-					"network dns",
-					slog.String("response", string(resp.Body)),
-				)
-				return
-			}
-
-			var searchDomainsList, serversList []string
-			if resp.JSON200.SearchDomains != nil {
-				searchDomainsList = *resp.JSON200.SearchDomains
-			}
-			if resp.JSON200.Servers != nil {
-				serversList = *resp.JSON200.Servers
-			}
-
-			sections := []section{{}}
-			dnsConfig := fmt.Sprintf(
-				"\n%s: %s\n%s: %s",
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Search Domains"),
-				formatList(searchDomainsList),
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Servers"),
-				formatList(serversList),
+		case http.StatusCreated:
+			logger.Info(
+				"queue put",
+				slog.String("message_body", messageBody),
+				slog.String("response", string(resp.Body)),
+				slog.String("status", "ok"),
 			)
 
-			printStyledTable(sections, dnsConfig)
+		case http.StatusBadRequest:
+			if resp.JSON400 != nil {
+				errorMsg = resp.JSON400.Error
+			}
+
+			logger.Error(
+				"bad request",
+				slog.Int("code", resp.StatusCode()),
+				slog.String("response", errorMsg),
+			)
 
 		default:
-			errorMsg := "unknown error"
 			if resp.JSON500 != nil {
 				errorMsg = resp.JSON500.Error
 			}
@@ -85,12 +71,16 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 			logger.Error(
 				"error in response",
 				slog.Int("code", resp.StatusCode()),
-				slog.String("error", errorMsg),
+				slog.String("response", errorMsg),
 			)
 		}
 	},
 }
 
 func init() {
-	clientNetworkDNSCmd.AddCommand(clientNetworkDNSGetCmd)
+	clientQueueCmd.AddCommand(clientQueuePutCmd)
+
+	clientQueuePutCmd.PersistentFlags().
+		StringVarP(&messageBody, "message-body", "b", "", "The message body of the queue item to add")
+	_ = clientQueuePutCmd.MarkPersistentFlagRequired("message-body")
 }

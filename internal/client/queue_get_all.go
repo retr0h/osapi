@@ -26,7 +26,7 @@ import (
 	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// GetQueueAll list the queue through the queue API endpoint.
+// GetQueueAll gets all items through the queue API endpoint.
 func (c *Client) GetQueueAll(
 	limit int,
 	offset int,

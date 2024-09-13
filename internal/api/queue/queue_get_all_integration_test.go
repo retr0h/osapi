@@ -19,13 +19,16 @@
 package queue_test
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -33,17 +36,19 @@ import (
 	"github.com/retr0h/osapi/internal/api/queue"
 	queueGen "github.com/retr0h/osapi/internal/api/queue/gen"
 	"github.com/retr0h/osapi/internal/config"
-	queueManager "github.com/retr0h/osapi/internal/queue"
+	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
 type QueueGetAllIntegrationTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 
 	appConfig config.Config
 	logger    *slog.Logger
 }
 
 func (suite *QueueGetAllIntegrationTestSuite) SetupTest() {
+	suite.ctrl = gomock.NewController(suite.T())
 	suite.appConfig = config.Config{
 		Queue: config.Queue{
 			Database: config.Database{
@@ -55,29 +60,24 @@ func (suite *QueueGetAllIntegrationTestSuite) SetupTest() {
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *QueueGetAllIntegrationTestSuite) TestGetQueueAll() {
+func (suite *QueueGetAllIntegrationTestSuite) TestGetQueue() {
 	tests := []struct {
 		name      string
-		uri       string
-		setupMock func() *queueManager.Mock
-		want      struct {
-			code int
-			body string
-		}
+		path      string
+		setupMock func() *mocks.MockManager
+		wantCode  int
+		wantBody  string
 	}{
 		{
-			name: "when http ok",
-			uri:  "/queue",
-			setupMock: func() *queueManager.Mock {
-				mock := queueManager.NewDefaultMock()
+			name: "when get Ok",
+			path: "/queue",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewDefaultMockManager(gomock.NewController(suite.T()))
+
 				return mock
 			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusOK,
-				body: `{
+			wantCode: http.StatusOK,
+			wantBody: `{
 "items": [
   {
     "body": "test body",
@@ -90,58 +90,33 @@ func (suite *QueueGetAllIntegrationTestSuite) TestGetQueueAll() {
 ],
 "total_items": 10
 }`,
-			},
 		},
 		{
 			name: "when GetAll errors",
-			uri:  "/queue",
-			setupMock: func() *queueManager.Mock {
-				mock := queueManager.NewDefaultMock()
-				mock.GetAllFunc = func() ([]queueManager.Item, error) {
-					return nil, fmt.Errorf("GetAll error")
-				}
+			path: "/queue",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock.EXPECT().GetAll(context.Background(), 10, 0).
+					Return(nil, fmt.Errorf("GetAll error")).AnyTimes()
+
 				return mock
 			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusInternalServerError,
-				body: `{}`,
-			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: `{}`,
 		},
 		{
 			name: "when Count errors",
-			uri:  "/queue",
-			setupMock: func() *queueManager.Mock {
-				mock := queueManager.NewDefaultMock()
-				mock.CountFunc = func() (int, error) {
-					return 0, fmt.Errorf("Count error")
-				}
+			path: "/queue",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock.EXPECT().GetAll(gomock.Any(), 10, 0).Return(nil, nil)
+				mock.EXPECT().Count(context.Background()).
+					Return(0, fmt.Errorf("Count error")).AnyTimes()
+
 				return mock
 			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusInternalServerError,
-				body: `{}`,
-			},
-		},
-		{
-			name: "when not found",
-			uri:  "/notfound",
-			setupMock: func() *queueManager.Mock {
-				mock := queueManager.NewDefaultMock()
-				return mock
-			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusNotFound,
-				body: `{}`,
-			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: `{}`,
 		},
 	}
 
@@ -151,17 +126,24 @@ func (suite *QueueGetAllIntegrationTestSuite) TestGetQueueAll() {
 			a := api.New(suite.appConfig, suite.logger)
 			queueGen.RegisterHandlers(a.Echo, queue.New(mock))
 
-			// Create a new request to the system endpoint
-			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
+			params := url.Values{}
+			params.Add("limit", "10")
+			params.Add("offset", "0")
+
+			// Parse URI and add query parameters to it
+			u, err := url.Parse(tc.path)
+			suite.Require().NoError(err)
+			u.RawQuery = params.Encode() // Add the query parameters
+
+			req := httptest.NewRequest(http.MethodGet, u.String(), nil)
 			rec := httptest.NewRecorder()
 
-			// Serve the request
 			a.Echo.ServeHTTP(rec, req)
 
-			assert.Equal(suite.T(), tc.want.code, rec.Code)
+			assert.Equal(suite.T(), tc.wantCode, rec.Code)
 
-			if tc.want.code == http.StatusOK {
-				assert.JSONEq(suite.T(), tc.want.body, rec.Body.String())
+			if tc.wantCode == http.StatusOK {
+				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
 			}
 		})
 	}

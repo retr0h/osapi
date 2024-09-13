@@ -18,39 +18,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package queue
 
 import (
-	"github.com/retr0h/osapi/internal/client/gen"
+	"context"
+	"fmt"
+
+	"github.com/retr0h/osapi/internal/errors"
 )
 
-// Manager defines an interface for interacting with various client
-// services and operations.
-type Manager interface {
-	// GetNetworkDNS get the network dns get API endpoint.
-	GetNetworkDNS() (*gen.GetNetworkDNSResponse, error)
+// DeleteByID deletes a row from the database by its ID.
+func (q *Queue) DeleteByID(ctx context.Context, messageID string) error {
+	const query = `DELETE FROM goqite WHERE id = ?`
 
-	// GetPing ping the API endpoint.
-	GetPing() (*gen.GetPingResponse, error)
+	stmt, err := q.DB.PrepareContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("failed to prepare delete statement: %w", err)
+	}
+	defer func() { _ = stmt.Close() }()
 
-	// GetQueueAll gets all items through the queue API endpoint.
-	GetQueueAll(
-		limit int,
-		offset int,
-	) (*gen.GetQueueResponse, error)
-	// GetQueueID fetches a single item through the queue API endpoint.
-	GetQueueByID(
-		messageID string,
-	) (*gen.GetQueueIDResponse, error)
-	// DeleteQueueByID deletes a single item through the queue API endpoint.
-	DeleteQueueByID(
-		messageID string,
-	) (*gen.DeleteQueueIDResponse, error)
-	// PostQueue inserts a single item into the queue API endpoint.
-	PostQueue(
-		messageBody string,
-	) (*gen.PostQueueResponse, error)
+	result, err := stmt.ExecContext(ctx, messageID)
+	if err != nil {
+		return fmt.Errorf("failed to execute delete statement: %w", err)
+	}
 
-	// GetSystemStatus get the system status API endpoint.
-	GetSystemStatus() (*gen.GetSystemStatusResponse, error)
+	// Check if the delete operation affected any rows.
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to retrieve affected rows: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		// Return the custom NotFoundError instead of a generic error
+		return errors.NewNotFoundError(fmt.Sprintf("no item found with ID %s", messageID))
+	}
+
+	return nil
 }

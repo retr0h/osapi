@@ -29,10 +29,7 @@ import (
 	"github.com/retr0h/osapi/internal/client"
 )
 
-var (
-	handler    client.Manager
-	jsonOutput bool
-)
+var handler client.Manager
 
 // clientCmd represents the client command.
 var clientCmd = &cobra.Command{
@@ -41,7 +38,7 @@ var clientCmd = &cobra.Command{
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		validateDistribution()
 
-		logger.Info(
+		logger.Debug(
 			"client configuration",
 			slog.Bool("debug", appConfig.Debug),
 			slog.String("client.url", appConfig.Client.URL),
@@ -65,7 +62,6 @@ func init() {
 
 	clientCmd.PersistentFlags().
 		StringP("url", "u", "http://0.0.0.0:8080", "URL the client will connect to")
-	clientCmd.PersistentFlags().BoolVarP(&jsonOutput, "json", "j", false, "Enable JSON output")
 
 	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
 }

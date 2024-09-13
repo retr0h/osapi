@@ -21,7 +21,6 @@
 package queue
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -29,7 +28,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/queue/gen"
 )
 
-// GetQueue get the queue.
+// GetQueue gets all items through the queue API endpoint.
 func (q Queue) GetQueue(
 	ctx echo.Context,
 	params gen.GetQueueParams,
@@ -46,7 +45,7 @@ func (q Queue) GetQueue(
 		offset = *params.Offset
 	}
 
-	queueItems, err := q.Manager.GetAll(context.Background(), limit, offset)
+	queueItems, err := q.Manager.GetAll(ctx.Request().Context(), limit, offset)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
 			Error: err.Error(),
@@ -66,7 +65,7 @@ func (q Queue) GetQueue(
 		items = append(items, item)
 	}
 
-	totalItems, err := q.Manager.Count(context.Background())
+	totalItems, err := q.Manager.Count(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
 			Error: err.Error(),

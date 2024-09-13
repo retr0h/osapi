@@ -22,89 +22,83 @@ package queue_test
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"regexp"
 	"testing"
-	"time"
 
-	"github.com/retr0h/osapi/internal/queue"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/retr0h/osapi/internal/queue"
 )
 
-type QueuePublicTestSuite struct {
+type DBCountPublicTestSuite struct {
 	suite.Suite
 
-	fixedCreated time.Time
-	updated      time.Time
-	timeout      time.Time
+	db   *sql.DB
+	mock sqlmock.Sqlmock
 }
 
-func (suite *QueuePublicTestSuite) SetupTest() {
-	suite.fixedCreated, _ = queue.GetMockFixedTime()
-	suite.timeout = suite.fixedCreated.Add(time.Hour)
-	suite.updated = suite.fixedCreated.Add(time.Minute)
+func (suite *DBCountPublicTestSuite) SetupTest() {
+	db, mock, err := sqlmock.New()
+	suite.Require().NoError(err)
+	suite.db = db
+	suite.mock = mock
 }
 
-func (suite *QueuePublicTestSuite) SetupSubTest() {
+func (suite *DBCountPublicTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *QueuePublicTestSuite) TearDownTest() {}
+func (suite *DBCountPublicTestSuite) TearDownTest() {
+	suite.Require().NoError(suite.mock.ExpectationsWereMet())
+}
 
-func (suite *QueuePublicTestSuite) TestDB() {
+func (suite *DBCountPublicTestSuite) TestCount() {
 	tests := []struct {
-		name      string
-		setupMock func() *queue.Mock
-		fn        func(*queue.Mock) (interface{}, error)
-		want      interface{}
-		wantErr   bool
+		name        string
+		setupMock   func()
+		want        interface{}
+		wantErr     bool
+		wantErrType error
 	}{
 		{
-			name: "when GetAll Ok",
-			setupMock: func() *queue.Mock {
-				mock := queue.NewDefaultMock()
-				return mock
+			name: "when Count Ok",
+			setupMock: func() {
+				query := regexp.QuoteMeta("SELECT COUNT(*) FROM goqite")
+				suite.mock.ExpectQuery(query).
+					WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3))
 			},
-			fn: func(m *queue.Mock) (interface{}, error) {
-				return m.GetAll(context.Background(), 0, 1)
-			},
-			want: []queue.Item{
-				{
-					Body:     "test body",
-					ID:       "message-id",
-					Received: 5,
-					Created:  suite.fixedCreated,
-					Timeout:  suite.timeout,
-					Updated:  suite.updated,
-				},
-			},
+			want:    3,
 			wantErr: false,
 		},
-		// {
-		// 	name: "when GetHostname errors",
-		// 	setupMock: func() *system.MockSystem {
-		// 		mock := system.NewDefaultMockSystem()
-		// 		mock.GetHostnameFunc = func() (string, error) {
-		// 			return "", fmt.Errorf("GetHostname error")
-		// 		}
-		// 		return mock
-		// 	},
-		// 	fn: func(m *system.MockSystem) (interface{}, error) {
-		// 		return m.GetHostname()
-		// 	},
-		// 	wantErr: true,
-		// },
+		{
+			name: "when Count fails to execute scan",
+			setupMock: func() {
+				query := regexp.QuoteMeta("SELECT COUNT(*) FROM goqite")
+				suite.mock.ExpectQuery(query).
+					WillReturnError(fmt.Errorf("query error"))
+			},
+			want:        0,
+			wantErr:     true,
+			wantErrType: fmt.Errorf("failed to count rows: query error"),
+		},
 	}
-
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
-			got, err := tc.fn(mock)
+			tc.setupMock()
+
+			q := &queue.Queue{DB: suite.db}
+			got, err := q.Count(context.Background())
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
 				assert.Equal(suite.T(), tc.want, got)
 			} else {
 				assert.Error(suite.T(), err)
+				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
 			}
 		})
 	}
@@ -112,6 +106,6 @@ func (suite *QueuePublicTestSuite) TestDB() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestQueuePublicTestSuite(t *testing.T) {
-	suite.Run(t, new(QueuePublicTestSuite))
+func TestDBCountPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(DBCountPublicTestSuite))
 }

@@ -52,11 +52,9 @@ func (suite *PingIntegrationTestSuite) TestGetPingOk() {
 	a := api.New(suite.appConfig, suite.logger)
 	pingGen.RegisterHandlers(a.Echo, ping.New())
 
-	// Create a new request to the /ping endpoint
 	req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 	rec := httptest.NewRecorder()
 
-	// Serve the request
 	a.Echo.ServeHTTP(rec, req)
 
 	assert.Equal(suite.T(), http.StatusOK, rec.Code)

@@ -18,39 +18,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package errors
 
 import (
-	"github.com/retr0h/osapi/internal/client/gen"
+	"fmt"
 )
 
-// Manager defines an interface for interacting with various client
-// services and operations.
-type Manager interface {
-	// GetNetworkDNS get the network dns get API endpoint.
-	GetNetworkDNS() (*gen.GetNetworkDNSResponse, error)
+// NewNotFoundError creates a new NotFoundError.
+func NewNotFoundError(message string) error {
+	return &NotFoundError{Message: message}
+}
 
-	// GetPing ping the API endpoint.
-	GetPing() (*gen.GetPingResponse, error)
-
-	// GetQueueAll gets all items through the queue API endpoint.
-	GetQueueAll(
-		limit int,
-		offset int,
-	) (*gen.GetQueueResponse, error)
-	// GetQueueID fetches a single item through the queue API endpoint.
-	GetQueueByID(
-		messageID string,
-	) (*gen.GetQueueIDResponse, error)
-	// DeleteQueueByID deletes a single item through the queue API endpoint.
-	DeleteQueueByID(
-		messageID string,
-	) (*gen.DeleteQueueIDResponse, error)
-	// PostQueue inserts a single item into the queue API endpoint.
-	PostQueue(
-		messageBody string,
-	) (*gen.PostQueueResponse, error)
-
-	// GetSystemStatus get the system status API endpoint.
-	GetSystemStatus() (*gen.GetSystemStatusResponse, error)
+// Error implements the error interface for NotFoundError.
+func (e *NotFoundError) Error() string {
+	return fmt.Sprintf("not found: %s", e.Message)
 }

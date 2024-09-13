@@ -30,7 +30,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/system/gen"
 )
 
-// GetSystemStatus get the system status endpoint.
+// GetSystemStatus get the system status API endpoint.
 func (s System) GetSystemStatus(
 	ctx echo.Context,
 ) error {

@@ -28,7 +28,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/network/gen"
 )
 
-// GetNetworkDNS get the network dns endpoint.
+// GetNetworkDNS get the network dns get API endpoint.
 func (n Network) GetNetworkDNS(
 	ctx echo.Context,
 ) error {

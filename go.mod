@@ -5,6 +5,7 @@ go 1.22
 toolchain go1.22.2
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/charmbracelet/lipgloss v0.13.0
 	github.com/golang/mock v1.6.0
 	github.com/labstack/echo/v4 v4.12.0

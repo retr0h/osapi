@@ -21,60 +21,39 @@
 package cmd
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
-// clientNetworkDNSGetCmd represents the clientNetworkDNSGet command.
-var clientNetworkDNSGetCmd = &cobra.Command{
-	Use:   "get",
-	Short: "DNS of the server",
-	Long: `Obtain the current DNS configuration.
+// clientQueueDeleteIDCmd represents the clientQueueDeleteID command.
+var clientQueueDeleteIDCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete a messge from the queue",
+	Long: `Deletes a message item from the queue.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.GetNetworkDNS()
+		resp, err := handler.DeleteQueueByID(messageID)
 		if err != nil {
-			logFatal("failed to get network dns endpoint", err)
+			logFatal("failed to get queue endpoint", err)
 		}
 
 		switch resp.StatusCode() {
-		case http.StatusOK:
-			if jsonOutput {
-				logger.Info(
-					"network dns",
-					slog.String("response", string(resp.Body)),
-				)
-				return
-			}
-
-			var searchDomainsList, serversList []string
-			if resp.JSON200.SearchDomains != nil {
-				searchDomainsList = *resp.JSON200.SearchDomains
-			}
-			if resp.JSON200.Servers != nil {
-				serversList = *resp.JSON200.Servers
-			}
-
-			sections := []section{{}}
-			dnsConfig := fmt.Sprintf(
-				"\n%s: %s\n%s: %s",
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Search Domains"),
-				formatList(searchDomainsList),
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Servers"),
-				formatList(serversList),
+		case http.StatusNoContent:
+			logger.Info(
+				"queue delete",
+				slog.String("message_id", messageID),
+				slog.String("response", string(resp.Body)),
+				slog.String("status", "ok"),
 			)
 
-			printStyledTable(sections, dnsConfig)
+		case http.StatusNotFound:
+			logger.Error(
+				"not found",
+				slog.Int("code", resp.StatusCode()),
+				slog.String("message-id", messageID),
+			)
 
 		default:
 			errorMsg := "unknown error"
@@ -92,5 +71,9 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 }
 
 func init() {
-	clientNetworkDNSCmd.AddCommand(clientNetworkDNSGetCmd)
+	clientQueueCmd.AddCommand(clientQueueDeleteIDCmd)
+
+	clientQueueDeleteIDCmd.PersistentFlags().
+		StringVarP(&messageID, "message-id", "m", "", "The message ID of the queue item to delete")
+	_ = clientQueueDeleteIDCmd.MarkPersistentFlagRequired("message-id")
 }

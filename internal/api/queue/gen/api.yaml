@@ -29,6 +29,42 @@ tags:
     description: Operations related to the queue endpoint.
 paths:
   /queue:
+    post:
+      summary: Add an item to the queue
+      description: Add a new item to the queue.
+      tags:
+        - queue_operations
+      requestBody:
+        description: The queue item to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/QueueItem'
+                - type: object
+                  required:
+                    - body
+      responses:
+        '201':
+          description: The queue item was added successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueItem'
+        '400':
+          description: Invalid request payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue.ErrorResponse'
+        '500':
+          description: Error adding queue item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue.ErrorResponse'
+
     get:
       summary: List all queue items
       description: Retrieve all items from the queue, including the total count.
@@ -85,8 +121,40 @@ paths:
                 $ref: '#/components/schemas/QueueItem'
         '404':
           description: Queue item not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue.ErrorResponse'
         '500':
           description: Error retrieving queue item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue.ErrorResponse'
+
+    delete:
+      summary: Delete a queue item by ID
+      description: Deletes a specific queue item by its ID.
+      tags:
+        - queue_operations
+      operationId: DeleteQueueID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Queue item deleted successfully. No content returned.
+        '404':
+          description: Queue item not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue.ErrorResponse'
+        '500':
+          description: Error deleting queue item.
           content:
             application/json:
               schema:

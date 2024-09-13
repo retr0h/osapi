@@ -18,39 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package errors
 
-import (
-	"github.com/retr0h/osapi/internal/client/gen"
-)
-
-// Manager defines an interface for interacting with various client
-// services and operations.
-type Manager interface {
-	// GetNetworkDNS get the network dns get API endpoint.
-	GetNetworkDNS() (*gen.GetNetworkDNSResponse, error)
-
-	// GetPing ping the API endpoint.
-	GetPing() (*gen.GetPingResponse, error)
-
-	// GetQueueAll gets all items through the queue API endpoint.
-	GetQueueAll(
-		limit int,
-		offset int,
-	) (*gen.GetQueueResponse, error)
-	// GetQueueID fetches a single item through the queue API endpoint.
-	GetQueueByID(
-		messageID string,
-	) (*gen.GetQueueIDResponse, error)
-	// DeleteQueueByID deletes a single item through the queue API endpoint.
-	DeleteQueueByID(
-		messageID string,
-	) (*gen.DeleteQueueIDResponse, error)
-	// PostQueue inserts a single item into the queue API endpoint.
-	PostQueue(
-		messageBody string,
-	) (*gen.PostQueueResponse, error)
-
-	// GetSystemStatus get the system status API endpoint.
-	GetSystemStatus() (*gen.GetSystemStatusResponse, error)
+// NotFoundError represents an error when an item is not found.
+type NotFoundError struct {
+	Message string
 }

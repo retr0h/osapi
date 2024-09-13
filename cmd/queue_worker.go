@@ -27,10 +27,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// queueClientCmd represents the queue command.
-var queueClientCmd = &cobra.Command{
-	Use:   "client",
-	Short: "The client subcommand",
+// queueWorkerCmd represents the queueWorker command.
+var queueWorkerCmd = &cobra.Command{
+	Use:   "worker",
+	Short: "The worker subcommand",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		logger.Info(
 			"queue configuration",
@@ -44,36 +44,31 @@ var queueClientCmd = &cobra.Command{
 }
 
 func init() {
-	queueCmd.AddCommand(queueClientCmd)
+	queueCmd.AddCommand(queueWorkerCmd)
 
-	queueClientCmd.PersistentFlags().
+	queueWorkerCmd.PersistentFlags().
 		StringP("driver-name", "t", "sqlite", "Name of the database driver to use")
-	queueClientCmd.PersistentFlags().
+	queueWorkerCmd.PersistentFlags().
 		StringP("dsn", "s", ":memory:?_journal=WAL&_timeout=5000&_fk=true", "The data source name (DSN) for the database connection")
-	queueClientCmd.PersistentFlags().
+	queueWorkerCmd.PersistentFlags().
 		IntP("max-open-conns", "o", 1, "The maximum number of open connections to the database")
-	queueClientCmd.PersistentFlags().
+	queueWorkerCmd.PersistentFlags().
 		IntP("max-idle-conns", "i", 1, "The maximum number of idle connections in the pool")
-
-	queueClientCmd.PersistentFlags().
-		StringP("url", "u", "http://0.0.0.0:8080", "URL the client will connect to")
-	queueClientCmd.PersistentFlags().BoolVarP(&jsonOutput, "json", "j", false, "Enable JSON output")
 
 	_ = viper.BindPFlag(
 		"queue.database.driver_name",
-		queueClientCmd.PersistentFlags().Lookup("driver-name"),
+		queueWorkerCmd.PersistentFlags().Lookup("driver-name"),
 	)
 	_ = viper.BindPFlag(
 		"queue.database.data_source_name",
-		queueClientCmd.PersistentFlags().Lookup("dsn"),
+		queueWorkerCmd.PersistentFlags().Lookup("dsn"),
 	)
 	_ = viper.BindPFlag(
 		"queue.database.max_open_conns",
-		queueClientCmd.PersistentFlags().Lookup("max-open-conns"),
+		queueWorkerCmd.PersistentFlags().Lookup("max-open-conns"),
 	)
 	_ = viper.BindPFlag(
 		"queue.database.max_idle_conns",
-		queueClientCmd.PersistentFlags().Lookup("max-idle-conns"),
+		queueWorkerCmd.PersistentFlags().Lookup("max-idle-conns"),
 	)
-	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
 }

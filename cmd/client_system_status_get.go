@@ -44,7 +44,10 @@ var clientSystemStatusGetCmd = &cobra.Command{
 		switch resp.StatusCode() {
 		case http.StatusOK:
 			if jsonOutput {
-				prettyPrintJSON(resp.Body)
+				logger.Info(
+					"system status",
+					slog.String("response", string(resp.Body)),
+				)
 				return
 			}
 
@@ -96,11 +99,6 @@ var clientSystemStatusGetCmd = &cobra.Command{
 
 			printStyledTable(sections, systemInfo)
 		default:
-			if jsonOutput {
-				prettyPrintJSON(resp.Body)
-				return
-			}
-
 			errorMsg := "unknown error"
 			if resp.JSON500 != nil {
 				errorMsg = resp.JSON500.Error
@@ -109,7 +107,7 @@ var clientSystemStatusGetCmd = &cobra.Command{
 			logger.Error(
 				"error in response",
 				slog.Int("code", resp.StatusCode()),
-				slog.String("error", errorMsg),
+				slog.String("response", errorMsg),
 			)
 		}
 	},

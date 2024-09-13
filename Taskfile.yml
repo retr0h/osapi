@@ -118,4 +118,4 @@ tasks:
     cmds:
       - redocly join --prefix-tags-with-info-prop title -o internal/client/gen/api.yaml internal/api/*/gen/api.yaml
       - go generate ./...
-        # - task: docs:generate
+      - task: docs:generate

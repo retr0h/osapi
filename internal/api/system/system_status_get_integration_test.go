@@ -53,26 +53,20 @@ func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
 func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	tests := []struct {
 		name      string
-		uri       string
+		path      string
 		setupMock func() *systemProvider.Mock
-		want      struct {
-			code int
-			body string
-		}
+		wantCode  int
+		wantBody  string
 	}{
 		{
-			name: "when http ok",
-			uri:  "/system/status",
+			name: "when get ok",
+			path: "/system/status",
 			setupMock: func() *systemProvider.Mock {
 				mock := systemProvider.NewDefaultMock()
 				return mock
 			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusOK,
-				body: `{
+			wantCode: http.StatusOK,
+			wantBody: `{
 "disks": [{
   "free":250000000000,
   "name":"/dev/disk1",
@@ -92,11 +86,10 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 },
 "uptime": "0 days, 5 hours, 0 minutes"
 }`,
-			},
 		},
 		{
 			name: "when GetHostname errors",
-			uri:  "/system/status",
+			path: "/system/status",
 			setupMock: func() *systemProvider.Mock {
 				mock := systemProvider.NewDefaultMock()
 				mock.GetHostnameFunc = func() (string, error) {
@@ -104,28 +97,18 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 				}
 				return mock
 			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusInternalServerError,
-				body: `{}`,
-			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: `{}`,
 		},
 		{
-			name: "when not found",
-			uri:  "/system/notfound",
+			name: "when endpoint found",
+			path: "/system/notfound",
 			setupMock: func() *systemProvider.Mock {
 				mock := systemProvider.NewDefaultMock()
 				return mock
 			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusNotFound,
-				body: `{}`,
-			},
+			wantCode: http.StatusNotFound,
+			wantBody: `{}`,
 		},
 	}
 
@@ -135,17 +118,15 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			a := api.New(suite.appConfig, suite.logger)
 			systemGen.RegisterHandlers(a.Echo, system.New(mock))
 
-			// Create a new request to the system endpoint
-			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()
 
-			// Serve the request
 			a.Echo.ServeHTTP(rec, req)
 
-			assert.Equal(suite.T(), tc.want.code, rec.Code)
+			assert.Equal(suite.T(), tc.wantCode, rec.Code)
 
-			if tc.want.code == http.StatusOK {
-				assert.JSONEq(suite.T(), tc.want.body, rec.Body.String())
+			if tc.wantCode == http.StatusOK {
+				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
 			}
 		})
 	}

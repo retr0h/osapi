@@ -51,7 +51,10 @@ var clientQueueListCmd = &cobra.Command{
 		switch resp.StatusCode() {
 		case http.StatusOK:
 			if jsonOutput {
-				prettyPrintJSON(resp.Body)
+				logger.Info(
+					"queue list",
+					slog.String("response", string(resp.Body)),
+				)
 				return
 			}
 
@@ -93,11 +96,6 @@ var clientQueueListCmd = &cobra.Command{
 
 			printStyledTable(sections, itemsInfo)
 		default:
-			if jsonOutput {
-				prettyPrintJSON(resp.Body)
-				return
-			}
-
 			errorMsg := "unknown error"
 			if resp.JSON500 != nil {
 				errorMsg = resp.JSON500.Error
@@ -106,7 +104,7 @@ var clientQueueListCmd = &cobra.Command{
 			logger.Error(
 				"error in response",
 				slog.Int("code", resp.StatusCode()),
-				slog.String("error", errorMsg),
+				slog.String("response", errorMsg),
 			)
 		}
 	},

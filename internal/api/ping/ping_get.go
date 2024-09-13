@@ -28,7 +28,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/ping/gen" // testing only
 )
 
-// GetPing (GET /ping)
+// GetPing ping the API endpoint.
 func (p Ping) GetPing(
 	ctx echo.Context,
 ) error {

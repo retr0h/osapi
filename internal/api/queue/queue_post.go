@@ -18,39 +18,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package queue
 
 import (
-	"github.com/retr0h/osapi/internal/client/gen"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+
+	"github.com/retr0h/osapi/internal/api/queue/gen"
 )
 
-// Manager defines an interface for interacting with various client
-// services and operations.
-type Manager interface {
-	// GetNetworkDNS get the network dns get API endpoint.
-	GetNetworkDNS() (*gen.GetNetworkDNSResponse, error)
+// PostQueue puts a single item into the queue API endpoint.
+func (q Queue) PostQueue(
+	ctx echo.Context,
+) error {
+	var newItem gen.PostQueueJSONBody
 
-	// GetPing ping the API endpoint.
-	GetPing() (*gen.GetPingResponse, error)
+	if err := ctx.Bind(&newItem); err != nil {
+		return ctx.JSON(http.StatusBadRequest, gen.QueueErrorResponse{
+			Error: err.Error(),
+		})
+	}
 
-	// GetQueueAll gets all items through the queue API endpoint.
-	GetQueueAll(
-		limit int,
-		offset int,
-	) (*gen.GetQueueResponse, error)
-	// GetQueueID fetches a single item through the queue API endpoint.
-	GetQueueByID(
-		messageID string,
-	) (*gen.GetQueueIDResponse, error)
-	// DeleteQueueByID deletes a single item through the queue API endpoint.
-	DeleteQueueByID(
-		messageID string,
-	) (*gen.DeleteQueueIDResponse, error)
-	// PostQueue inserts a single item into the queue API endpoint.
-	PostQueue(
-		messageBody string,
-	) (*gen.PostQueueResponse, error)
+	body := newItem.Body
 
-	// GetSystemStatus get the system status API endpoint.
-	GetSystemStatus() (*gen.GetSystemStatusResponse, error)
+	err := q.Manager.Put(ctx.Request().Context(), []byte(body))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
+	return ctx.NoContent(http.StatusCreated)
 }

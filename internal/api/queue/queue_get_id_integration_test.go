@@ -19,6 +19,7 @@
 package queue_test
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -26,6 +27,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -33,17 +35,21 @@ import (
 	"github.com/retr0h/osapi/internal/api/queue"
 	queueGen "github.com/retr0h/osapi/internal/api/queue/gen"
 	"github.com/retr0h/osapi/internal/config"
-	queueManager "github.com/retr0h/osapi/internal/queue"
+	"github.com/retr0h/osapi/internal/errors"
+	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
 type QueueGetIDIntegrationTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 
 	appConfig config.Config
 	logger    *slog.Logger
 }
 
 func (suite *QueueGetIDIntegrationTestSuite) SetupTest() {
+	suite.ctrl = gomock.NewController(suite.T())
+
 	suite.appConfig = config.Config{
 		Queue: config.Queue{
 			Database: config.Database{
@@ -58,52 +64,55 @@ func (suite *QueueGetIDIntegrationTestSuite) SetupTest() {
 func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 	tests := []struct {
 		name      string
-		uri       string
-		setupMock func() *queueManager.Mock
-		want      struct {
-			code int
-			body string
-		}
+		path      string
+		setupMock func() *mocks.MockManager
+		wantCode  int
+		wantBody  string
 	}{
 		{
-			name: "when http ok",
-			uri:  "/queue/message-id",
-			setupMock: func() *queueManager.Mock {
-				mock := queueManager.NewDefaultMock()
+			name: "when get Ok",
+			path: "/queue/message-id",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewDefaultMockManager(gomock.NewController(suite.T()))
+
 				return mock
 			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusOK,
-				body: `{
-    "body": "test body",
-    "created": "2024-09-10T12:00:00Z",
-    "id": "message-id",
-    "received": 5,
-    "timeout": "2024-09-10T13:00:00Z",
-    "updated": "2024-09-10T12:01:00Z"
-}`,
+			wantCode: http.StatusOK,
+			wantBody: `{
+"body": "test body",
+"created": "2024-09-10T12:00:00Z",
+"id": "message-id",
+"received": 5,
+"timeout": "2024-09-10T13:00:00Z",
+"updated": "2024-09-10T12:01:00Z"
+		}`,
+		},
+		{
+			name: "when GetByID finds no item (no rows affected)",
+			path: "/queue/message-id",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock.EXPECT().GetByID(context.Background(), "message-id").
+					Return(nil, errors.NewNotFoundError("no item found with ID message-id")).
+					AnyTimes()
+
+				return mock
 			},
+			wantCode: http.StatusNotFound,
+			wantBody: `{}`,
 		},
 		{
 			name: "when GetByID errors",
-			uri:  "/queue/invalid",
-			setupMock: func() *queueManager.Mock {
-				mock := queueManager.NewDefaultMock()
-				mock.GetByIDFunc = func() (*queueManager.Item, error) {
-					return nil, fmt.Errorf("GetByID error")
-				}
+			path: "/queue/message-id",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock.EXPECT().GetByID(gomock.Any(), "message-id").
+					Return(nil, fmt.Errorf("GetByID error")).AnyTimes()
+
 				return mock
 			},
-			want: struct {
-				code int
-				body string
-			}{
-				code: http.StatusInternalServerError,
-				body: `{}`,
-			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: `{}`,
 		},
 	}
 
@@ -113,17 +122,15 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 			a := api.New(suite.appConfig, suite.logger)
 			queueGen.RegisterHandlers(a.Echo, queue.New(mock))
 
-			// Create a new request to the system endpoint
-			req := httptest.NewRequest(http.MethodGet, tc.uri, nil)
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()
 
-			// Serve the request
 			a.Echo.ServeHTTP(rec, req)
 
-			assert.Equal(suite.T(), tc.want.code, rec.Code)
+			assert.Equal(suite.T(), tc.wantCode, rec.Code)
 
-			if tc.want.code == http.StatusOK {
-				assert.JSONEq(suite.T(), tc.want.body, rec.Body.String())
+			if tc.wantCode == http.StatusOK {
+				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
 			}
 		})
 	}

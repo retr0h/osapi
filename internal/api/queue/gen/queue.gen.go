@@ -59,11 +59,41 @@ type GetQueueParams struct {
 	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
+// PostQueueJSONBody defines parameters for PostQueue.
+type PostQueueJSONBody struct {
+	// Body String representation of the body of the queue item.
+	Body string `json:"body"`
+
+	// Created Creation timestamp of the queue item.
+	Created *time.Time `json:"created,omitempty"`
+
+	// Id Unique identifier of the queue item.
+	Id *string `json:"id,omitempty"`
+
+	// Received Number of times the queue item has been received.
+	Received *int `json:"received,omitempty"`
+
+	// Timeout Timeout timestamp for the queue item.
+	Timeout *time.Time `json:"timeout,omitempty"`
+
+	// Updated Last updated timestamp of the queue item.
+	Updated *time.Time `json:"updated,omitempty"`
+}
+
+// PostQueueJSONRequestBody defines body for PostQueue for application/json ContentType.
+type PostQueueJSONRequestBody PostQueueJSONBody
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List all queue items
 	// (GET /queue)
 	GetQueue(ctx echo.Context, params GetQueueParams) error
+	// Add an item to the queue
+	// (POST /queue)
+	PostQueue(ctx echo.Context) error
+	// Delete a queue item by ID
+	// (DELETE /queue/{id})
+	DeleteQueueID(ctx echo.Context, id string) error
 	// Get a queue item by ID
 	// (GET /queue/{id})
 	GetQueueID(ctx echo.Context, id string) error
@@ -96,6 +126,31 @@ func (w *ServerInterfaceWrapper) GetQueue(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetQueue(ctx, params)
+	return err
+}
+
+// PostQueue converts echo context to params.
+func (w *ServerInterfaceWrapper) PostQueue(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostQueue(ctx)
+	return err
+}
+
+// DeleteQueueID converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteQueueID(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteQueueID(ctx, id)
 	return err
 }
 
@@ -144,6 +199,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/queue", wrapper.GetQueue)
+	router.POST(baseURL+"/queue", wrapper.PostQueue)
+	router.DELETE(baseURL+"/queue/:id", wrapper.DeleteQueueID)
 	router.GET(baseURL+"/queue/:id", wrapper.GetQueueID)
 
 }

@@ -18,39 +18,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package client
+package queue
 
 import (
-	"github.com/retr0h/osapi/internal/client/gen"
+	"context"
+	"fmt"
 )
 
-// Manager defines an interface for interacting with various client
-// services and operations.
-type Manager interface {
-	// GetNetworkDNS get the network dns get API endpoint.
-	GetNetworkDNS() (*gen.GetNetworkDNSResponse, error)
+// Count counts the number of rows in the table.
+func (q *Queue) Count(ctx context.Context) (int, error) {
+	const query = `SELECT COUNT(*) FROM goqite`
 
-	// GetPing ping the API endpoint.
-	GetPing() (*gen.GetPingResponse, error)
+	var count int
+	row := q.DB.QueryRowContext(ctx, query)
 
-	// GetQueueAll gets all items through the queue API endpoint.
-	GetQueueAll(
-		limit int,
-		offset int,
-	) (*gen.GetQueueResponse, error)
-	// GetQueueID fetches a single item through the queue API endpoint.
-	GetQueueByID(
-		messageID string,
-	) (*gen.GetQueueIDResponse, error)
-	// DeleteQueueByID deletes a single item through the queue API endpoint.
-	DeleteQueueByID(
-		messageID string,
-	) (*gen.DeleteQueueIDResponse, error)
-	// PostQueue inserts a single item into the queue API endpoint.
-	PostQueue(
-		messageBody string,
-	) (*gen.PostQueueResponse, error)
+	err := row.Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count rows: %w", err)
+	}
 
-	// GetSystemStatus get the system status API endpoint.
-	GetSystemStatus() (*gen.GetSystemStatusResponse, error)
+	return count, nil
 }

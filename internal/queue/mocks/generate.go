@@ -18,39 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package mocks
 
-import (
-	// "context"
-	// "log/slog"
-
-	"github.com/spf13/cobra"
-)
-
-// queueClientDeleteCmd represents the queueClientDelete command.
-var queueClientDeleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete a messge from the queue",
-	Long: `Deletes a message item from the queue.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		// err := qm.DeleteByID(context.Background(), messageID)
-		// if err != nil {
-		// 	logFatal("failed to get message from the queue", err)
-		// }
-
-		// logger.Info(
-		// 	"queue delete",
-		// 	slog.String("messageID", messageID),
-		// 	slog.String("status", "ok"),
-		// )
-	},
-}
-
-func init() {
-	queueClientCmd.AddCommand(queueClientDeleteCmd)
-
-	queueClientDeleteCmd.PersistentFlags().
-		StringVarP(&messageID, "message-id", "m", "", "The message ID of the queue item to delete")
-	_ = queueClientDeleteCmd.MarkPersistentFlagRequired("message-id")
-}
+//go:generate go run github.com/golang/mock/mockgen -source=../manager.go -destination=queue.gen.go -package=mocks

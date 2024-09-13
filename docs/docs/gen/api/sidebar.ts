@@ -60,6 +60,12 @@ const sidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
+          id: "gen/api/add-an-item-to-the-queue",
+          label: "Add an item to the queue",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
           id: "gen/api/list-all-queue-items",
           label: "List all queue items",
           className: "api-method get",
@@ -69,6 +75,12 @@ const sidebar: SidebarsConfig = {
           id: "gen/api/get-queue-id",
           label: "Get a queue item by ID",
           className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "gen/api/delete-queue-id",
+          label: "Delete a queue item by ID",
+          className: "api-method delete",
         },
       ],
     },

@@ -36,9 +36,10 @@ import (
 )
 
 var (
-	appConfig config.Config
-	appFs     = afero.NewOsFs()
-	logger    = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	appConfig  config.Config
+	appFs      = afero.NewOsFs()
+	logger     = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	jsonOutput bool
 )
 
 // rootCmd represents the base command when called without any subcommands.
@@ -69,6 +70,8 @@ func init() {
 	cobra.OnInitialize(initConfig, initLogger)
 
 	rootCmd.PersistentFlags().BoolP("debug", "d", false, "Enable or disable debug mode")
+	rootCmd.PersistentFlags().BoolVarP(&jsonOutput, "json", "j", false, "Enable JSON output")
+
 	rootCmd.PersistentFlags().
 		StringP("osapi-file", "f", "osapi.yaml", "Path to config file")
 
@@ -106,4 +109,8 @@ func initLogger() {
 			NoColor:    !term.IsTerminal(int(os.Stdout.Fd())),
 		}),
 	)
+
+	if jsonOutput {
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	}
 }

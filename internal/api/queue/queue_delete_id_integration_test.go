@@ -1,5 +1,3 @@
-// Copyright (c) 2024 John Dewey
-
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
@@ -18,9 +16,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network_test
+package queue_test
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -28,78 +27,83 @@ import (
 	"os"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/api"
-	"github.com/retr0h/osapi/internal/api/network"
-	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
+	"github.com/retr0h/osapi/internal/api/queue"
+	queueGen "github.com/retr0h/osapi/internal/api/queue/gen"
 	"github.com/retr0h/osapi/internal/config"
-	networkProvider "github.com/retr0h/osapi/internal/provider/network"
+	"github.com/retr0h/osapi/internal/errors"
+	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
-type NetworkDNSIntegrationTestSuite struct {
+type QueueDeleteIDIntegrationTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 
 	appConfig config.Config
 	logger    *slog.Logger
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) SetupTest() {
-	suite.appConfig = config.Config{}
+func (suite *QueueDeleteIDIntegrationTestSuite) SetupTest() {
+	suite.ctrl = gomock.NewController(suite.T())
+
+	suite.appConfig = config.Config{
+		Queue: config.Queue{
+			Database: config.Database{
+				DriverName:     "sqlite",
+				DataSourceName: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
+			},
+		},
+	}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
+func (suite *QueueDeleteIDIntegrationTestSuite) TestDeleteQueueID() {
 	tests := []struct {
 		name      string
 		path      string
-		setupMock func() *networkProvider.Mock
+		setupMock func() *mocks.MockManager
 		wantCode  int
 		wantBody  string
 	}{
 		{
-			name: "when get ok",
-			path: "/network/dns",
-			setupMock: func() *networkProvider.Mock {
-				mock := networkProvider.NewDefaultMock()
+			name: "when delete Ok",
+			path: "/queue/message-id",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewDefaultMockManager(gomock.NewController(suite.T()))
+
 				return mock
 			},
-			wantCode: http.StatusOK,
-			wantBody: `{
-"search_domains": [
-  "example.com",
-  "local.lan"
-],
-"servers": [
-  "192.168.1.1",
-  "8.8.8.8",
-  "8.8.4.4",
-  "2001:4860:4860::8888",
-  "2001:4860:4860::8844"
-]}`,
-		},
-		{
-			name: "when GetResolvConf errors",
-			path: "/network/dns",
-			setupMock: func() *networkProvider.Mock {
-				mock := networkProvider.NewDefaultMock()
-				mock.GetResolvConfFunc = func() (*networkProvider.DNSConfig, error) {
-					return nil, fmt.Errorf("GetResolvConf error")
-				}
-				return mock
-			},
-			wantCode: http.StatusInternalServerError,
+			wantCode: http.StatusNoContent,
 			wantBody: `{}`,
 		},
 		{
-			name: "when endpoint found",
-			path: "/network/notfound",
-			setupMock: func() *networkProvider.Mock {
-				mock := networkProvider.NewDefaultMock()
+			name: "when DeleteByID finds no item (no rows affected)",
+			path: "/queue/message-id",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock.EXPECT().DeleteByID(context.Background(), "message-id").
+					Return(errors.NewNotFoundError("no item found with ID message-id")).AnyTimes()
+
 				return mock
 			},
 			wantCode: http.StatusNotFound,
+			wantBody: `{}`,
+		},
+		{
+			name: "when DeleteByID errors",
+			path: "/queue/message-id",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock.EXPECT().DeleteByID(context.Background(), "message-id").
+					Return(fmt.Errorf("DeleteByID error")).AnyTimes()
+
+				return mock
+			},
+			wantCode: http.StatusInternalServerError,
 			wantBody: `{}`,
 		},
 	}
@@ -108,9 +112,9 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(mock))
+			queueGen.RegisterHandlers(a.Echo, queue.New(mock))
 
-			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			req := httptest.NewRequest(http.MethodDelete, tc.path, nil)
 			rec := httptest.NewRecorder()
 
 			a.Echo.ServeHTTP(rec, req)
@@ -126,6 +130,6 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestNetworkDNSIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkDNSIntegrationTestSuite))
+func TestQueueDeleteIDIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(QueueDeleteIDIntegrationTestSuite))
 }

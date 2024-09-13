@@ -21,38 +21,49 @@
 package queue
 
 import (
-	"net/http"
+	"context"
+	"database/sql"
+	"fmt"
 
-	"github.com/labstack/echo/v4"
-
-	"github.com/retr0h/osapi/internal/api/queue/gen"
 	"github.com/retr0h/osapi/internal/errors"
 )
 
-// GetQueueID fetches a single item through the queue API endpoint.
-func (q Queue) GetQueueID(
-	ctx echo.Context,
-	messageID string,
-) error {
-	queueItem, err := q.Manager.GetByID(ctx.Request().Context(), messageID)
-	if err != nil {
-		if _, ok := err.(*errors.NotFoundError); ok {
-			return ctx.JSON(http.StatusNotFound, gen.QueueErrorResponse{
-				Error: err.Error(),
-			})
-		}
+// GetByID fetches a single item from the database by its ID.
+func (q *Queue) GetByID(ctx context.Context, messageID string) (*Item, error) {
+	const query = `
+		SELECT id, created, updated, queue, body, timeout, received
+		FROM goqite
+		WHERE id = ?
+	`
 
-		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
-			Error: err.Error(),
-		})
+	var item Item
+	var created, updated, timeout string
+
+	// Execute the query and scan the result into the item struct
+	row := q.DB.QueryRowContext(ctx, query, messageID)
+	err := row.Scan(&item.ID, &created, &updated, &item.Queue, &item.Body, &timeout, &item.Received)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Return the custom NotFoundError instead of a generic error
+			return nil, errors.NewNotFoundError(fmt.Sprintf("no item found with ID %s", messageID))
+		}
+		return nil, fmt.Errorf("failed to scan item: %w", err)
 	}
 
-	return ctx.JSON(http.StatusOK, gen.QueueItem{
-		Body:     &queueItem.Body,
-		Id:       &queueItem.ID,
-		Received: &queueItem.Received,
-		Created:  &queueItem.Created,
-		Timeout:  &queueItem.Timeout,
-		Updated:  &queueItem.Updated,
-	})
+	item.Created, err = parseTimestamp(created)
+	if err != nil {
+		return nil, fmt.Errorf("invalid created timestamp: %w", err)
+	}
+
+	item.Updated, err = parseTimestamp(updated)
+	if err != nil {
+		return nil, fmt.Errorf("invalid updated timestamp: %w", err)
+	}
+
+	item.Timeout, err = parseTimestamp(timeout)
+	if err != nil {
+		return nil, fmt.Errorf("invalid timeout timestamp: %w", err)
+	}
+
+	return &item, nil
 }

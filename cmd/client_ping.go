@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -40,7 +41,10 @@ var clientPingCmd = &cobra.Command{
 		}
 
 		if jsonOutput {
-			prettyPrintJSON(resp.Body)
+			logger.Info(
+				"ping",
+				slog.String("response", string(resp.Body)),
+			)
 			return
 		}
 

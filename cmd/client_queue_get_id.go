@@ -38,7 +38,8 @@ var clientQueueGetIDCmd = &cobra.Command{
 	Long: `Gets a message item from the queue for viewing.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.GetQueueID(messageID)
+		errorMsg := "unknown error"
+		resp, err := handler.GetQueueByID(messageID)
 		if err != nil {
 			logFatal("failed to get queue endpoint", err)
 		}
@@ -46,7 +47,11 @@ var clientQueueGetIDCmd = &cobra.Command{
 		switch resp.StatusCode() {
 		case http.StatusOK:
 			if jsonOutput {
-				prettyPrintJSON(resp.Body)
+				logger.Info(
+					"queue get",
+					slog.String("message_id", messageID),
+					slog.String("response", string(resp.Body)),
+				)
 				return
 			}
 
@@ -93,21 +98,21 @@ var clientQueueGetIDCmd = &cobra.Command{
 
 			printStyledTable(sections, queueMsg)
 
-		default:
-			if jsonOutput {
-				prettyPrintJSON(resp.Body)
-				return
-			}
-
-			errorMsg := "unknown error"
-			if resp.JSON500 != nil {
-				errorMsg = resp.JSON500.Error
+		case http.StatusNotFound:
+			if resp.JSON404 != nil {
+				errorMsg = resp.JSON404.Error
 			}
 
 			logger.Error(
+				"not found",
+				slog.Int("code", resp.StatusCode()),
+				slog.String("response", errorMsg),
+			)
+		default:
+			logger.Error(
 				"error in response",
 				slog.Int("code", resp.StatusCode()),
-				slog.String("error", errorMsg),
+				slog.String("response", errorMsg),
 			)
 		}
 	},

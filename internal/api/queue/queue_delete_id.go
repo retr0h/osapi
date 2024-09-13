@@ -18,36 +18,34 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package queue
 
 import (
-	// "context"
-	// "log/slog"
+	"net/http"
 
-	"github.com/spf13/cobra"
+	"github.com/labstack/echo/v4"
+
+	"github.com/retr0h/osapi/internal/api/queue/gen"
+	"github.com/retr0h/osapi/internal/errors"
 )
 
-// queueClientPutCmd represents the queueClientPut command.
-var queueClientPutCmd = &cobra.Command{
-	Use:   "put",
-	Short: "Put a messge into the queue",
-	Long: `Puts a message into the queue for processing by the task runner.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		// data := []byte("yo")
-		// err := qm.Put(context.Background(), data)
-		// if err != nil {
-		// 	logFatal("failed to put message into the queue", err)
-		// }
+// DeleteQueueID deletes a single item through the queue API endpoint.
+func (q Queue) DeleteQueueID(
+	ctx echo.Context,
+	messageID string,
+) error {
+	err := q.Manager.DeleteByID(ctx.Request().Context(), messageID)
+	if err != nil {
+		if _, ok := err.(*errors.NotFoundError); ok {
+			return ctx.JSON(http.StatusNotFound, gen.QueueErrorResponse{
+				Error: err.Error(),
+			})
+		}
 
-		// logger.Info(
-		// 	"queue put",
-		// 	slog.String("messageID", messageID),
-		// 	slog.String("status", "ok"),
-		// )
-	},
-}
+		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
+			Error: err.Error(),
+		})
+	}
 
-func init() {
-	queueClientCmd.AddCommand(queueClientPutCmd)
+	return ctx.NoContent(http.StatusNoContent)
 }

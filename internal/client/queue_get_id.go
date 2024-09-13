@@ -26,8 +26,8 @@ import (
 	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// GetQueueID fetches a single item through the queue API endpoint.
-func (c *Client) GetQueueID(
+// GetQueueByID fetches a single item through the queue API endpoint.
+func (c *Client) GetQueueByID(
 	messageID string,
 ) (*gen.GetQueueIDResponse, error) {
 	return c.Client.GetQueueIDWithResponse(context.TODO(), messageID)
