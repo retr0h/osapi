@@ -21,37 +21,19 @@
 package api
 
 import (
-	"log/slog"
-
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	slogecho "github.com/samber/slog-echo"
 
-	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/api/ping"
+	pingGen "github.com/retr0h/osapi/internal/api/ping/gen"
 )
 
-// New initialize a new Server and configure an Echo server.
-func New(
-	appConfig config.Config,
-	logger *slog.Logger,
-) *Server {
-	e := echo.New()
-	e.HideBanner = true
-
-	// Initialize CORS configuration
-	corsConfig := middleware.CORSConfig{}
-
-	allowOrigins := appConfig.Server.Security.CORS.AllowOrigins
-	if len(allowOrigins) > 0 {
-		corsConfig.AllowOrigins = allowOrigins
-	}
-
-	e.Use(slogecho.New(logger))
-	e.Use(middleware.Recover())
-	e.Use(middleware.RequestID())
-	e.Use(middleware.CORSWithConfig(corsConfig))
-
-	return &Server{
-		Echo: e,
+// GetPingHandler returns ping handler for registration.
+func (s *Server) GetPingHandler() []func(e *echo.Echo) {
+	return []func(e *echo.Echo){
+		// NOTE(retr0h): will eventualy remove the ping handler
+		func(e *echo.Echo) {
+			pingHandler := ping.New()
+			pingGen.RegisterHandlers(e, pingHandler)
+		},
 	}
 }

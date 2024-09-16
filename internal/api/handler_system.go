@@ -21,37 +21,32 @@
 package api
 
 import (
-	"log/slog"
+	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	slogecho "github.com/samber/slog-echo"
+	"github.com/shirou/gopsutil/v4/host"
 
-	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/api/system"
+	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
+	systemImpl "github.com/retr0h/osapi/internal/provider/system"
 )
 
-// New initialize a new Server and configure an Echo server.
-func New(
-	appConfig config.Config,
-	logger *slog.Logger,
-) *Server {
-	e := echo.New()
-	e.HideBanner = true
+// GetSystemHandler returns system handler for registration.
+func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
+	var systemProvider systemImpl.Provider
 
-	// Initialize CORS configuration
-	corsConfig := middleware.CORSConfig{}
-
-	allowOrigins := appConfig.Server.Security.CORS.AllowOrigins
-	if len(allowOrigins) > 0 {
-		corsConfig.AllowOrigins = allowOrigins
+	info, _ := host.Info()
+	switch strings.ToLower(info.Platform) {
+	case "ubuntu":
+		systemProvider = systemImpl.NewUbuntuProvider()
+	default:
+		systemProvider = systemImpl.NewDefaultLinuxProvider()
 	}
 
-	e.Use(slogecho.New(logger))
-	e.Use(middleware.Recover())
-	e.Use(middleware.RequestID())
-	e.Use(middleware.CORSWithConfig(corsConfig))
-
-	return &Server{
-		Echo: e,
+	return []func(e *echo.Echo){
+		func(e *echo.Echo) {
+			systemHandler := system.New(systemProvider)
+			systemGen.RegisterHandlers(e, systemHandler)
+		},
 	}
 }

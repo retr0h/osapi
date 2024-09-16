@@ -21,37 +21,35 @@
 package api
 
 import (
-	"log/slog"
+	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	slogecho "github.com/samber/slog-echo"
+	"github.com/shirou/gopsutil/v4/host"
+	"github.com/spf13/afero"
 
-	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/api/network"
+	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
+	networkImpl "github.com/retr0h/osapi/internal/provider/network"
 )
 
-// New initialize a new Server and configure an Echo server.
-func New(
-	appConfig config.Config,
-	logger *slog.Logger,
-) *Server {
-	e := echo.New()
-	e.HideBanner = true
+// GetNetworkHandler returns network handler for registration.
+func (s *Server) GetNetworkHandler(
+	appFs afero.Fs,
+) []func(e *echo.Echo) {
+	var networkProvider networkImpl.Provider
 
-	// Initialize CORS configuration
-	corsConfig := middleware.CORSConfig{}
-
-	allowOrigins := appConfig.Server.Security.CORS.AllowOrigins
-	if len(allowOrigins) > 0 {
-		corsConfig.AllowOrigins = allowOrigins
+	info, _ := host.Info()
+	switch strings.ToLower(info.Platform) {
+	case "ubuntu":
+		networkProvider = networkImpl.NewUbuntuProvider(appFs)
+	default:
+		networkProvider = networkImpl.NewDefaultLinuxProvider()
 	}
 
-	e.Use(slogecho.New(logger))
-	e.Use(middleware.Recover())
-	e.Use(middleware.RequestID())
-	e.Use(middleware.CORSWithConfig(corsConfig))
-
-	return &Server{
-		Echo: e,
+	return []func(e *echo.Echo){
+		func(e *echo.Echo) {
+			networkHandler := network.New(networkProvider)
+			networkGen.RegisterHandlers(e, networkHandler)
+		},
 	}
 }

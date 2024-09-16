@@ -21,37 +21,40 @@
 package api
 
 import (
-	"log/slog"
-
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	slogecho "github.com/samber/slog-echo"
+	"github.com/spf13/afero"
 
-	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/api/queue"
+	queueGen "github.com/retr0h/osapi/internal/api/queue/gen"
+	queueImpl "github.com/retr0h/osapi/internal/queue"
 )
 
-// New initialize a new Server and configure an Echo server.
-func New(
-	appConfig config.Config,
-	logger *slog.Logger,
-) *Server {
-	e := echo.New()
-	e.HideBanner = true
-
-	// Initialize CORS configuration
-	corsConfig := middleware.CORSConfig{}
-
-	allowOrigins := appConfig.Server.Security.CORS.AllowOrigins
-	if len(allowOrigins) > 0 {
-		corsConfig.AllowOrigins = allowOrigins
+// CreateHandlers initializes handlers and returns a slice of functions to register them.
+func (s *Server) CreateHandlers(
+	appFs afero.Fs,
+	qm queueImpl.Manager,
+) []func(e *echo.Echo) {
+	handlers := []func(e *echo.Echo){
+		func(e *echo.Echo) {
+			queueHandler := queue.New(qm)
+			queueGen.RegisterHandlers(e, queueHandler)
+		},
 	}
 
-	e.Use(slogecho.New(logger))
-	e.Use(middleware.Recover())
-	e.Use(middleware.RequestID())
-	e.Use(middleware.CORSWithConfig(corsConfig))
+	systemHandler := s.GetSystemHandler()
+	pingHandler := s.GetPingHandler()
+	networkHandler := s.GetNetworkHandler(appFs)
 
-	return &Server{
-		Echo: e,
+	handlers = append(handlers, systemHandler...)
+	handlers = append(handlers, pingHandler...)
+	handlers = append(handlers, networkHandler...)
+
+	return handlers
+}
+
+// RegisterHandlers registers a list of handlers with the Echo instance.
+func (s *Server) RegisterHandlers(handlers []func(e *echo.Echo)) {
+	for _, handler := range handlers {
+		handler(s.Echo)
 	}
 }
