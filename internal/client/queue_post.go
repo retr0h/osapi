@@ -28,11 +28,12 @@ import (
 
 // PostQueue inserts a single item into the queue API endpoint.
 func (c *Client) PostQueue(
+	ctx context.Context,
 	messageBody string,
 ) (*gen.PostQueueResponse, error) {
 	body := gen.PostQueueJSONRequestBody{
 		Body: messageBody,
 	}
 
-	return c.Client.PostQueueWithResponse(context.TODO(), body)
+	return c.Client.PostQueueWithResponse(ctx, body)
 }

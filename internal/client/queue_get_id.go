@@ -28,7 +28,8 @@ import (
 
 // GetQueueByID fetches a single item through the queue API endpoint.
 func (c *Client) GetQueueByID(
+	ctx context.Context,
 	messageID string,
 ) (*gen.GetQueueIDResponse, error) {
-	return c.Client.GetQueueIDWithResponse(context.TODO(), messageID)
+	return c.Client.GetQueueIDWithResponse(ctx, messageID)
 }

@@ -21,6 +21,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -43,7 +44,7 @@ var clientQueueListCmd = &cobra.Command{
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		offset := (pageNumber - 1) * pageSize
-		resp, err := handler.GetQueueAll(pageSize, offset)
+		resp, err := handler.GetQueueAll(context.TODO(), pageSize, offset)
 		if err != nil {
 			logFatal("failed to get queue endpoint", err)
 		}

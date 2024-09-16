@@ -21,6 +21,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -35,7 +36,7 @@ var clientPingCmd = &cobra.Command{
 	Long: `Interact with the server by issuing a ping.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.GetPing()
+		resp, err := handler.GetPing(context.TODO())
 		if err != nil {
 			logFatal("failed to get ping endpoint", err)
 		}

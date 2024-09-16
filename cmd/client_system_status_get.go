@@ -21,6 +21,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -36,7 +37,7 @@ var clientSystemStatusGetCmd = &cobra.Command{
 	Long: `Obtain the current system status.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.GetSystemStatus()
+		resp, err := handler.GetSystemStatus(context.TODO())
 		if err != nil {
 			logFatal("failed to get system status endpoint", err)
 		}

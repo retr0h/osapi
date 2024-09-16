@@ -27,6 +27,8 @@ import (
 )
 
 // GetSystemStatus get the system status API endpoint.
-func (c *Client) GetSystemStatus() (*gen.GetSystemStatusResponse, error) {
-	return c.Client.GetSystemStatusWithResponse(context.TODO())
+func (c *Client) GetSystemStatus(
+	ctx context.Context,
+) (*gen.GetSystemStatusResponse, error) {
+	return c.Client.GetSystemStatusWithResponse(ctx)
 }

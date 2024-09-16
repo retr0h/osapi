@@ -27,6 +27,8 @@ import (
 )
 
 // GetPing ping the API endpoint.
-func (c *Client) GetPing() (*gen.GetPingResponse, error) {
-	return c.Client.GetPingWithResponse(context.TODO())
+func (c *Client) GetPing(
+	ctx context.Context,
+) (*gen.GetPingResponse, error) {
+	return c.Client.GetPingWithResponse(ctx)
 }

@@ -21,6 +21,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -39,7 +40,7 @@ var clientQueueGetIDCmd = &cobra.Command{
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		errorMsg := "unknown error"
-		resp, err := handler.GetQueueByID(messageID)
+		resp, err := handler.GetQueueByID(context.TODO(), messageID)
 		if err != nil {
 			logFatal("failed to get queue endpoint", err)
 		}

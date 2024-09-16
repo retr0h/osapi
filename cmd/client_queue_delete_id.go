@@ -21,6 +21,7 @@
 package cmd
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -34,7 +35,7 @@ var clientQueueDeleteIDCmd = &cobra.Command{
 	Long: `Deletes a message item from the queue.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.DeleteQueueByID(messageID)
+		resp, err := handler.DeleteQueueByID(context.TODO(), messageID)
 		if err != nil {
 			logFatal("failed to get queue endpoint", err)
 		}

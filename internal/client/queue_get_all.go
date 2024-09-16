@@ -28,6 +28,7 @@ import (
 
 // GetQueueAll gets all items through the queue API endpoint.
 func (c *Client) GetQueueAll(
+	ctx context.Context,
 	limit int,
 	offset int,
 ) (*gen.GetQueueResponse, error) {
@@ -35,5 +36,5 @@ func (c *Client) GetQueueAll(
 		Limit:  &limit,
 		Offset: &offset,
 	}
-	return c.Client.GetQueueWithResponse(context.TODO(), params)
+	return c.Client.GetQueueWithResponse(ctx, params)
 }

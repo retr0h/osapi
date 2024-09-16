@@ -28,7 +28,8 @@ import (
 
 // DeleteQueueByID deletes a single item through the queue API endpoint.
 func (c *Client) DeleteQueueByID(
+	ctx context.Context,
 	messageID string,
 ) (*gen.DeleteQueueIDResponse, error) {
-	return c.Client.DeleteQueueIDWithResponse(context.TODO(), messageID)
+	return c.Client.DeleteQueueIDWithResponse(ctx, messageID)
 }

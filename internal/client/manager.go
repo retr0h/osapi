@@ -21,6 +21,8 @@
 package client
 
 import (
+	"context"
+
 	"github.com/retr0h/osapi/internal/client/gen"
 )
 
@@ -31,26 +33,34 @@ type Manager interface {
 	GetNetworkDNS() (*gen.GetNetworkDNSResponse, error)
 
 	// GetPing ping the API endpoint.
-	GetPing() (*gen.GetPingResponse, error)
+	GetPing(
+		ctx context.Context,
+	) (*gen.GetPingResponse, error)
 
+	// DeleteQueueByID deletes a single item through the queue API endpoint.
+	DeleteQueueByID(
+		ctx context.Context,
+		messageID string,
+	) (*gen.DeleteQueueIDResponse, error)
+	// GetQueueID fetches a single item through the queue API endpoint.
+	GetQueueByID(
+		ctx context.Context,
+		messageID string,
+	) (*gen.GetQueueIDResponse, error)
 	// GetQueueAll gets all items through the queue API endpoint.
 	GetQueueAll(
+		ctx context.Context,
 		limit int,
 		offset int,
 	) (*gen.GetQueueResponse, error)
-	// GetQueueID fetches a single item through the queue API endpoint.
-	GetQueueByID(
-		messageID string,
-	) (*gen.GetQueueIDResponse, error)
-	// DeleteQueueByID deletes a single item through the queue API endpoint.
-	DeleteQueueByID(
-		messageID string,
-	) (*gen.DeleteQueueIDResponse, error)
 	// PostQueue inserts a single item into the queue API endpoint.
 	PostQueue(
+		ctx context.Context,
 		messageBody string,
 	) (*gen.PostQueueResponse, error)
 
 	// GetSystemStatus get the system status API endpoint.
-	GetSystemStatus() (*gen.GetSystemStatusResponse, error)
+	GetSystemStatus(
+		ctx context.Context,
+	) (*gen.GetSystemStatusResponse, error)
 }
