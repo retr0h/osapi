@@ -21,19 +21,11 @@
 package network
 
 import (
-	"github.com/spf13/afero"
+	"fmt"
 )
 
-// UbuntuNetwork implements the Network interface for Ubuntu.
-type UbuntuNetwork struct {
-	appFs afero.Fs
-}
-
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	appFs afero.Fs,
-) *UbuntuNetwork {
-	return &UbuntuNetwork{
-		appFs: appFs,
-	}
+// GetResolvConf reads the DNS configuration from /run/systemd/resolve/resolv.conf.
+// It returns a DNSConfig struct, and an error if something goes wrong.
+func (dun *DefaultLinuxNetwork) GetResolvConf() (*DNSConfig, error) {
+	return nil, fmt.Errorf("GetResolveConf is not implemented for DefaultLinuxProvider")
 }

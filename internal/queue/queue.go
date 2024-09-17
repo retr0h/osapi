@@ -21,7 +21,6 @@
 package queue
 
 import (
-	"context"
 	"database/sql"
 	"log/slog"
 
@@ -51,40 +50,4 @@ func (q *Queue) SetupQueue() error {
 		Name: "osapi_jobs",
 	})
 	return nil
-}
-
-// Get a message from the queue, during which time it's not available to
-// other consumers (until the message timeout has passed).
-func (q *Queue) Get(
-	ctx context.Context,
-) (*goqite.Message, error) {
-	m, err := q.Queue.Receive(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
-// Put the message into the queue.
-func (q *Queue) Put(
-	ctx context.Context,
-	data []byte,
-) error {
-	err := q.Queue.Send(ctx, goqite.Message{
-		Body: data,
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Delete the message from the queue, so it doesn't get redelivered.
-func (q *Queue) Delete(
-	ctx context.Context,
-	msgID goqite.ID,
-) error {
-	return q.Queue.Delete(ctx, msgID)
 }

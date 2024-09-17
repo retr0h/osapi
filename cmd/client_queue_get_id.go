@@ -22,11 +22,9 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -56,34 +54,14 @@ var clientQueueGetIDCmd = &cobra.Command{
 				return
 			}
 
-			queueMsg := fmt.Sprintf(
-				"\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %d\n",
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("ID"),
-				safeString(resp.JSON200.Id),
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Created"),
-				safeTime(resp.JSON200.Created),
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Updated"),
-				safeTime(resp.JSON200.Updated),
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Timeout"),
-				safeTime(resp.JSON200.Timeout),
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Received"),
-				safeInt(resp.JSON200.Received),
-			)
+			queueData := map[string]interface{}{
+				"ID":       safeString(resp.JSON200.Id),
+				"Created":  safeTime(resp.JSON200.Created),
+				"Updated":  safeTime(resp.JSON200.Updated),
+				"Timeout":  safeTime(resp.JSON200.Timeout),
+				"Received": safeInt(resp.JSON200.Received),
+			}
+			printStyledMap(queueData)
 
 			itemRows := [][]string{}
 			itemRows = append(itemRows, []string{
@@ -92,12 +70,11 @@ var clientQueueGetIDCmd = &cobra.Command{
 
 			sections := []section{
 				{
-					Headers: []string{"Body"},
+					Headers: []string{"BODY"},
 					Rows:    itemRows,
 				},
 			}
-
-			printStyledTable(sections, queueMsg)
+			printStyledTable(sections)
 
 		case http.StatusNotFound:
 			if resp.JSON404 != nil {

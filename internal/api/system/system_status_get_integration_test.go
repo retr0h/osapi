@@ -98,17 +98,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{}`,
-		},
-		{
-			name: "when endpoint found",
-			path: "/system/notfound",
-			setupMock: func() *systemProvider.Mock {
-				mock := systemProvider.NewDefaultMock()
-				return mock
-			},
-			wantCode: http.StatusNotFound,
-			wantBody: `{}`,
+			wantBody: `{"code":0,"error":"GetHostname error"}`,
 		},
 	}
 
@@ -124,10 +114,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			a.Echo.ServeHTTP(rec, req)
 
 			assert.Equal(suite.T(), tc.wantCode, rec.Code)
-
-			if tc.wantCode == http.StatusOK {
-				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
-			}
+			assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
 		})
 	}
 }

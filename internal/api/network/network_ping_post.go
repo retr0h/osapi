@@ -18,41 +18,58 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package queue
+package network
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/retr0h/osapi/internal/api/queue/gen"
+	"github.com/retr0h/osapi/internal/api/network/gen"
 )
 
-// PostQueue puts a single item into the queue API endpoint.
-func (q Queue) PostQueue(
+// PostNetworkPing post the network ping API endpoint.
+func (n Network) PostNetworkPing(
 	ctx echo.Context,
 ) error {
-	var newItem gen.PostQueueJSONBody
+	var newPingAddress gen.PostNetworkPingJSONBody
 
-	if err := ctx.Bind(&newItem); err != nil {
-		return ctx.JSON(http.StatusBadRequest, gen.QueueErrorResponse{
+	if err := ctx.Bind(&newPingAddress); err != nil {
+		return ctx.JSON(http.StatusBadRequest, gen.NetworkErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
-	// TODO(retr0h): Update tests for this case
-	if newItem.Body == "" {
-		return ctx.JSON(http.StatusBadRequest, gen.QueueErrorResponse{
-			Error: "Body field is required and cannot be empty",
+	if newPingAddress.Address == "" {
+		return ctx.JSON(http.StatusBadRequest, gen.NetworkErrorResponse{
+			Error: "Address field is required and cannot be empty",
 		})
 	}
 
-	err := q.Manager.Put(ctx.Request().Context(), []byte(newItem.Body))
+	pingResult, err := n.NetworkProvider.PingHost(newPingAddress.Address)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
+		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
 			Error: err.Error(),
 		})
 	}
 
-	return ctx.NoContent(http.StatusCreated)
+	return ctx.JSON(http.StatusOK, gen.PingResponse{
+		AvgRTT:          durationToString(&pingResult.AvgRTT),
+		MaxRTT:          durationToString(&pingResult.MaxRTT),
+		MinRTT:          durationToString(&pingResult.MinRTT),
+		PacketLoss:      &pingResult.PacketLoss,
+		PacketsReceived: &pingResult.PacketsReceived,
+		PacketsSent:     &pingResult.PacketsSent,
+	})
+}
+
+// durationToString convert *time.Duration to *string.
+func durationToString(d *time.Duration) *string {
+	if d == nil {
+		return nil
+	}
+	str := fmt.Sprintf("%v", *d)
+	return &str
 }

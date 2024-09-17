@@ -42,7 +42,7 @@ func NewPlainMockManager(ctrl *gomock.Controller) *MockManager {
 	return NewMockManager(ctrl)
 }
 
-// NewDefaultMockManager creates a Mock with defaultas.
+// NewDefaultMockManager creates a Mock with defaults.
 func NewDefaultMockManager(ctrl *gomock.Controller) *MockManager {
 	mock := NewMockManager(ctrl)
 

@@ -22,36 +22,67 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/spf13/cobra"
 )
 
-var messageBody string
+var address string
 
-// clientQueuePutCmd represents the clientQueuePut command.
-var clientQueuePutCmd = &cobra.Command{
-	Use:   "put",
-	Short: "Put a messge into the queue",
-	Long: `Puts a message into the queue for processing by the task runner.
+// clientNetworkPingCmd represents the clientNetworkPing command.
+var clientNetworkPingCmd = &cobra.Command{
+	Use:   "ping",
+	Short: "Ping the specified server",
+	Long: `Ping the specified server and return results.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		errorMsg := "unknown error"
-		resp, err := handler.PostQueue(context.TODO(), messageBody)
+		resp, err := handler.PostNetworkPing(context.TODO(), address)
 		if err != nil {
-			logFatal("failed to post queue endpoint", err)
+			logFatal("failed to post network ping endpoint", err)
 		}
 
 		switch resp.StatusCode() {
-		case http.StatusCreated:
-			logger.Info(
-				"queue put",
-				slog.String("message_body", messageBody),
-				slog.String("response", string(resp.Body)),
-				slog.String("status", "ok"),
-			)
+		case http.StatusOK:
+			if jsonOutput {
+				logger.Info(
+					"network ping",
+					slog.String("response", string(resp.Body)),
+				)
+				return
+			}
 
+			if resp.JSON200 == nil {
+				logFatal("failed response", fmt.Errorf("post network ping was nil"))
+			}
+
+			respRows := [][]string{}
+			respRows = append(respRows, []string{
+				safeString(resp.JSON200.AvgRTT),
+				safeString(resp.JSON200.MaxRTT),
+				safeString(resp.JSON200.MinRTT),
+				float64ToString(resp.JSON200.PacketLoss),
+				intToString(resp.JSON200.PacketsReceived),
+				intToString(resp.JSON200.PacketsSent),
+			})
+
+			sections := []section{
+				{
+					Title: "Ping Response",
+					Headers: []string{
+						"AVG RTT",
+						"MAX RTT",
+						"MIN RTT",
+						"PACKET LOSS",
+						"PACKETS RECEIVED",
+						"PACKETS SENT",
+					},
+					Rows: respRows,
+				},
+			}
+			printStyledTable(sections)
 		case http.StatusBadRequest:
 			if resp.JSON400 != nil {
 				errorMsg = resp.JSON400.Error
@@ -64,6 +95,7 @@ var clientQueuePutCmd = &cobra.Command{
 			)
 
 		default:
+			errorMsg := "unknown error"
 			if resp.JSON500 != nil {
 				errorMsg = resp.JSON500.Error
 			}
@@ -71,16 +103,16 @@ var clientQueuePutCmd = &cobra.Command{
 			logger.Error(
 				"error in response",
 				slog.Int("code", resp.StatusCode()),
-				slog.String("response", errorMsg),
+				slog.String("error", errorMsg),
 			)
 		}
 	},
 }
 
 func init() {
-	clientQueueCmd.AddCommand(clientQueuePutCmd)
+	clientNetworkCmd.AddCommand(clientNetworkPingCmd)
 
-	clientQueuePutCmd.PersistentFlags().
-		StringVarP(&messageBody, "message-body", "b", "", "The message body of the queue item to add")
-	_ = clientQueuePutCmd.MarkPersistentFlagRequired("message-body")
+	clientNetworkPingCmd.PersistentFlags().
+		StringVarP(&messageBody, "address", "a", "", "The address to ping")
+	_ = clientNetworkPingCmd.MarkPersistentFlagRequired("address")
 }

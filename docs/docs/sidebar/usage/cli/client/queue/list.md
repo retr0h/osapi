@@ -2,7 +2,6 @@
 
 ```bash
 $ osapi client queue list
-12:21PM INF queue configuration debug=false queue.database.driver_name=sqlite3 queue.database.data_source_name="file:database.db?_journal=WAL&_timeout=5000&_fk=true" queue.database.max_open_conns=1 queue.database.max_idle_conns=1
 
   Total Items: 17
   Total Pages: 2
@@ -10,7 +9,7 @@ $ osapi client queue list
   Items:
 
   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-  ┃                        ID                        ┃                     Created                      ┃                       Body                       ┃
+  ┃                        ID                        ┃                     CREATED                      ┃                       BODY                       ┃
   ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
   ┃ m_254f916e833dbb1efe7092e58c7c6e55               ┃ 2024-09-11T03:40:40Z                             ┃ yo                                               ┃
   ┃ m_b9f89ed63c04264776695e30b085c1dc               ┃ 2024-09-11T04:11:05Z                             ┃ yo                                               ┃

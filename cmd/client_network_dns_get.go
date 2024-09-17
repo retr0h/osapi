@@ -21,11 +21,10 @@
 package cmd
 
 import (
-	"fmt"
+	"context"
 	"log/slog"
 	"net/http"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +35,7 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 	Long: `Obtain the current DNS configuration.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.GetNetworkDNS()
+		resp, err := handler.GetNetworkDNS(context.TODO())
 		if err != nil {
 			logFatal("failed to get network dns endpoint", err)
 		}
@@ -59,22 +58,11 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 				serversList = *resp.JSON200.Servers
 			}
 
-			sections := []section{{}}
-			dnsConfig := fmt.Sprintf(
-				"\n%s: %s\n%s: %s",
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Search Domains"),
-				formatList(searchDomainsList),
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Servers"),
-				formatList(serversList),
-			)
-
-			printStyledTable(sections, dnsConfig)
+			dnsData := map[string]interface{}{
+				"Search Domains": formatList(searchDomainsList),
+				"Servers":        formatList(serversList),
+			}
+			printStyledMap(dnsData)
 
 		default:
 			errorMsg := "unknown error"

@@ -26,7 +26,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -52,9 +51,29 @@ var clientSystemStatusGetCmd = &cobra.Command{
 				return
 			}
 
+			if resp.JSON200 == nil {
+				logFatal("failed response", fmt.Errorf("system data response was nil"))
+			}
+
+			systemData := map[string]interface{}{
+				"Load Average (1m, 5m, 15m)": fmt.Sprintf(
+					"%.2f, %.2f, %.2f",
+					resp.JSON200.LoadAverage.N1min,
+					resp.JSON200.LoadAverage.N5min,
+					resp.JSON200.LoadAverage.N15min,
+				),
+				"Memory": fmt.Sprintf(
+					"%d GB used / %d GB total / %d GB free",
+					resp.JSON200.Memory.Used/1024/1024/1024,
+					resp.JSON200.Memory.Total/1024/1024/1024,
+					resp.JSON200.Memory.Free/1024/1024/1024,
+				),
+			}
+			printStyledMap(systemData)
+
 			diskRows := [][]string{}
 
-			if resp.JSON200 != nil && resp.JSON200.Disks != nil {
+			if resp.JSON200.Disks != nil {
 				for _, disk := range resp.JSON200.Disks {
 					diskRows = append(diskRows, []string{
 						disk.Name,
@@ -67,38 +86,12 @@ var clientSystemStatusGetCmd = &cobra.Command{
 
 			sections := []section{
 				{
-					Title:   "Disks:",
+					Title:   "Disks",
 					Headers: []string{"DISK NAME", "TOTAL", "USED", "FREE"},
 					Rows:    diskRows,
 				},
 			}
-
-			systemInfo := fmt.Sprintf(
-				"\n%s: %s\n%s: %s\n%s: %.2f, %.2f, %.2f\n%s: %d GB used / %d GB total / %d GB free\n",
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Hostname"),
-				resp.JSON200.Hostname,
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Uptime"),
-				resp.JSON200.Uptime,
-				lipgloss.NewStyle().
-					Bold(true).
-					Foreground(purple).
-					Render("Load Average (1m, 5m, 15m)"),
-				resp.JSON200.LoadAverage.N1min,
-				resp.JSON200.LoadAverage.N5min,
-				resp.JSON200.LoadAverage.N15min,
-				lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Memory"),
-				resp.JSON200.Memory.Used/1024/1024/1024,
-				resp.JSON200.Memory.Total/1024/1024/1024,
-				resp.JSON200.Memory.Free/1024/1024/1024,
-			)
-
-			printStyledTable(sections, systemInfo)
+			printStyledTable(sections)
 		default:
 			errorMsg := "unknown error"
 			if resp.JSON500 != nil {

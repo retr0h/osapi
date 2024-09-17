@@ -1,6 +1,3 @@
-//go:build test
-// +build test
-
 // Copyright (c) 2024 John Dewey
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,33 +20,11 @@
 
 package network
 
-// Mock is a mock implementation of the Network interface for testing.
-type Mock struct {
-	GetResolvConfFunc func() (*DNSConfig, error)
-}
+import (
+	"fmt"
+)
 
-// NewDefaultMock creates a Mock with default return values.
-func NewDefaultMock() *Mock {
-	return &Mock{
-		GetResolvConfFunc: func() (*DNSConfig, error) {
-			return &DNSConfig{
-				DNSServers: []string{
-					"192.168.1.1",
-					"8.8.8.8",
-					"8.8.4.4",
-					"2001:4860:4860::8888",
-					"2001:4860:4860::8844",
-				},
-				SearchDomains: []string{
-					"example.com",
-					"local.lan",
-				},
-			}, nil
-		},
-	}
-}
-
-// GetResolvConf mocked for tests.
-func (m *Mock) GetResolvConf() (*DNSConfig, error) {
-	return m.GetResolvConfFunc()
+// PingHost pings the given host and returns the ping statistics or an error.
+func (dun *DefaultLinuxNetwork) PingHost(_ string) (*PingResult, error) {
+	return nil, fmt.Errorf("PingHost is not implemented for DefaultLinuxProvider")
 }

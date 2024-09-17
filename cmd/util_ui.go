@@ -44,9 +44,8 @@ type section struct {
 	Rows    [][]string
 }
 
-// printStyledTable renders a styled table with padding.
 // printStyledTable renders a styled table with dynamic column widths.
-func printStyledTable(sections []section, additionalInfo string) {
+func printStyledTable(sections []section) {
 	re := lipgloss.NewRenderer(os.Stdout)
 
 	// Measure terminal width dynamically
@@ -83,15 +82,13 @@ func printStyledTable(sections []section, additionalInfo string) {
 			EvenRowStyle = CellStyle.Foreground(lightGray)
 			BorderStyle  = re.NewStyle().Foreground(purple)
 			PaddingStyle = re.NewStyle().Padding(0, 2)
-			TitleStyle   = re.NewStyle().Bold(true).Foreground(purple).MarginBottom(1).Padding(0, 2)
+			TitleStyle   = re.NewStyle().Bold(true).Foreground(purple).PaddingLeft(2)
+			ColonStyle   = re.NewStyle().Bold(false).MarginBottom(1)
 		)
 
-		// Render and apply padding to the system information first.
-		fmt.Println(PaddingStyle.Render(additionalInfo))
-
-		// Render the section title if it exists.
 		if section.Title != "" {
-			fmt.Println(TitleStyle.Render(section.Title))
+			titleWithColon := TitleStyle.Render(section.Title) + ColonStyle.Render(":")
+			fmt.Println(titleWithColon)
 		}
 
 		// Create the table and apply styles.
@@ -116,6 +113,27 @@ func printStyledTable(sections []section, additionalInfo string) {
 		// Render the styled table.
 		fmt.Println(PaddingStyle.Render(t.String()))
 	}
+}
+
+// printStyledMap format and print the map into a styled, padded table.
+func printStyledMap(data map[string]interface{}) {
+	paddingStyle := lipgloss.NewStyle().Padding(1, 2)
+
+	var builder strings.Builder
+
+	for key, value := range data {
+		styledKey := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(purple).
+			Render(key)
+
+		formattedLine := fmt.Sprintf("\n%s: %v", styledKey, value)
+		builder.WriteString(formattedLine)
+	}
+
+	paddedOutput := paddingStyle.Render(builder.String())
+
+	fmt.Println(paddedOutput)
 }
 
 // formatList helper function to convert []string to a formatted string.
@@ -159,4 +177,20 @@ func safeTime(t *time.Time) string {
 		return t.Format(time.RFC3339)
 	}
 	return ""
+}
+
+// float64ToString converts a *float64 to a string. Returns "N/A" if nil.
+func float64ToString(f *float64) string {
+	if f != nil {
+		return fmt.Sprintf("%f", *f)
+	}
+	return "N/A"
+}
+
+// intToString converts a *int to a string. Returns "N/A" if nil.
+func intToString(i *int) string {
+	if i != nil {
+		return fmt.Sprintf("%d", *i)
+	}
+	return "N/A"
 }

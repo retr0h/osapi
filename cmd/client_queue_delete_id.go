@@ -37,7 +37,7 @@ var clientQueueDeleteIDCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		resp, err := handler.DeleteQueueByID(context.TODO(), messageID)
 		if err != nil {
-			logFatal("failed to get queue endpoint", err)
+			logFatal("failed to delete queue endpoint", err)
 		}
 
 		switch resp.StatusCode() {

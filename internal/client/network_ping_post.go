@@ -18,22 +18,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package client
 
 import (
-	"github.com/spf13/afero"
+	"context"
+
+	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// UbuntuNetwork implements the Network interface for Ubuntu.
-type UbuntuNetwork struct {
-	appFs afero.Fs
-}
-
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	appFs afero.Fs,
-) *UbuntuNetwork {
-	return &UbuntuNetwork{
-		appFs: appFs,
+// PostNetworkPing post the network ping API endpoint.
+func (c *Client) PostNetworkPing(
+	ctx context.Context,
+	address string,
+) (*gen.PostNetworkPingResponse, error) {
+	body := gen.PostNetworkPingJSONRequestBody{
+		Address: "8.8.8.8",
 	}
+
+	return c.Client.PostNetworkPingWithResponse(ctx, body)
 }

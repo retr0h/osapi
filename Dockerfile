@@ -22,4 +22,9 @@ WORKDIR /app
 COPY --from=builder /build/osapi .
 COPY --from=builder /build/osapi.yaml .
 
+# Non root
+RUN useradd -m -d /home/nonroot -s /bin/bash nonroot
+RUN chown -R nonroot:nonroot /app
+USER nonroot
+
 CMD ["./osapi", "server", "start"]

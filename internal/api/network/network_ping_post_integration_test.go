@@ -21,6 +21,7 @@
 package network_test
 
 import (
+	"bytes"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -29,6 +30,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -39,7 +41,7 @@ import (
 	"github.com/retr0h/osapi/internal/provider/network/mocks"
 )
 
-type NetworkDNSIntegrationTestSuite struct {
+type NetworkPingIntegrationTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
@@ -47,24 +49,26 @@ type NetworkDNSIntegrationTestSuite struct {
 	logger    *slog.Logger
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) SetupTest() {
+func (suite *NetworkPingIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
+func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 	tests := []struct {
 		name      string
 		path      string
+		body      string
 		setupMock func() *mocks.MockProvider
 		wantCode  int
 		wantBody  string
 	}{
 		{
 			name: "when get ok",
-			path: "/network/dns",
+			path: "/network/ping",
+			body: `{"address": "example.com"}`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
@@ -72,30 +76,51 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 			},
 			wantCode: http.StatusOK,
 			wantBody: `{
-"search_domains": [
-  "example.com",
-  "local.lan"
-],
-"servers": [
-  "192.168.1.1",
-  "8.8.8.8",
-  "8.8.4.4",
-  "2001:4860:4860::8888",
-  "2001:4860:4860::8844"
-]}`,
+"avgRTT":"15ms",
+"maxRTT":"20ms",
+"minRTT":"10ms",
+"packetLoss":0,
+"packetsReceived":3,
+"packetsSent":3
+      }`,
 		},
 		{
-			name: "when GetResolvConf errors",
-			path: "/network/dns",
+			name: "when body is missing Address",
+			path: "/network/ping",
+			body: `{}`,
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"code":0,"error":"Address field is required and cannot be empty"}`,
+		},
+		{
+			name: "when body is malformed",
+			path: "/network/ping",
+			body: `{"body": }`, // Malformed JSON
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"code":0,"error":"code=400, message=Syntax error: offset=10, error=invalid character '}' looking for beginning of value, internal=invalid character '}' looking for beginning of value"}`,
+		},
+		{
+			name: "when PingHost errors",
+			path: "/network/ping",
+			body: `{"address": "example.com"}`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetResolvConf().
-					Return(nil, fmt.Errorf("GetResolvConf error")).AnyTimes()
+				mock.EXPECT().PingHost("example.com").
+					Return(nil, fmt.Errorf("PingHost error")).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"GetResolvConf error"}`,
+			wantBody: `{"code":0,"error":"PingHost error"}`,
 		},
 	}
 
@@ -105,7 +130,8 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 			a := api.New(suite.appConfig, suite.logger)
 			networkGen.RegisterHandlers(a.Echo, network.New(mock))
 
-			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			req := httptest.NewRequest(http.MethodPost, tc.path, bytes.NewBufferString(tc.body))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 
 			a.Echo.ServeHTTP(rec, req)
@@ -118,6 +144,6 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestNetworkDNSIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkDNSIntegrationTestSuite))
+func TestNetworkPingIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(NetworkPingIntegrationTestSuite))
 }

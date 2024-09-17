@@ -77,6 +77,27 @@ type Memory struct {
 	Used int `json:"used"`
 }
 
+// PingResponse defines model for PingResponse.
+type PingResponse struct {
+	// AvgRTT Average round-trip time as a string in Go's time.Duration format.
+	AvgRTT *string `json:"avgRTT,omitempty"`
+
+	// MaxRTT Maximum round-trip time as a string in Go's time.Duration format.
+	MaxRTT *string `json:"maxRTT,omitempty"`
+
+	// MinRTT Minimum round-trip time as a string in Go's time.Duration format.
+	MinRTT *string `json:"minRTT,omitempty"`
+
+	// PacketLoss Percentage of packet loss.
+	PacketLoss *float64 `json:"packetLoss,omitempty"`
+
+	// PacketsReceived Number of packets received.
+	PacketsReceived *int `json:"packetsReceived,omitempty"`
+
+	// PacketsSent Number of packets sent.
+	PacketsSent *int `json:"packetsSent,omitempty"`
+}
+
 // Pong defines model for Pong.
 type Pong struct {
 	Ping string `json:"ping"`
@@ -165,6 +186,12 @@ type SystemErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// PostNetworkPingJSONBody defines parameters for PostNetworkPing.
+type PostNetworkPingJSONBody struct {
+	// Address The IP address or hostname of the server to ping.
+	Address string `json:"address"`
+}
+
 // GetQueueParams defines parameters for GetQueue.
 type GetQueueParams struct {
 	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
@@ -179,6 +206,9 @@ type PostQueueJSONBody struct {
 
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
 type PutNetworkDNSJSONRequestBody = DNSConfigUpdate
+
+// PostNetworkPingJSONRequestBody defines body for PostNetworkPing for application/json ContentType.
+type PostNetworkPingJSONRequestBody PostNetworkPingJSONBody
 
 // PostQueueJSONRequestBody defines body for PostQueue for application/json ContentType.
 type PostQueueJSONRequestBody PostQueueJSONBody
@@ -267,6 +297,11 @@ type ClientInterface interface {
 	// DeleteNetworkDNSServerID request
 	DeleteNetworkDNSServerID(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PostNetworkPingWithBody request with any body
+	PostNetworkPingWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostNetworkPing(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetPing request
 	GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -326,6 +361,30 @@ func (c *Client) PutNetworkDNS(ctx context.Context, body PutNetworkDNSJSONReques
 
 func (c *Client) DeleteNetworkDNSServerID(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteNetworkDNSServerIDRequest(c.Server, serverId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostNetworkPingWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostNetworkPingRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostNetworkPing(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostNetworkPingRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -517,6 +576,46 @@ func NewDeleteNetworkDNSServerIDRequest(server string, serverId string) (*http.R
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewPostNetworkPingRequest calls the generic PostNetworkPing builder with application/json body
+func NewPostNetworkPingRequest(server string, body PostNetworkPingJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostNetworkPingRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostNetworkPingRequestWithBody generates requests for PostNetworkPing with any type of body
+func NewPostNetworkPingRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/network/ping")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -802,6 +901,11 @@ type ClientWithResponsesInterface interface {
 	// DeleteNetworkDNSServerIDWithResponse request
 	DeleteNetworkDNSServerIDWithResponse(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*DeleteNetworkDNSServerIDResponse, error)
 
+	// PostNetworkPingWithBodyWithResponse request with any body
+	PostNetworkPingWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error)
+
+	PostNetworkPingWithResponse(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error)
+
 	// GetPingWithResponse request
 	GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error)
 
@@ -886,6 +990,30 @@ func (r DeleteNetworkDNSServerIDResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r DeleteNetworkDNSServerIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostNetworkPingResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PingResponse
+	JSON400      *NetworkErrorResponse
+	JSON500      *NetworkErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostNetworkPingResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostNetworkPingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1066,6 +1194,23 @@ func (c *ClientWithResponses) DeleteNetworkDNSServerIDWithResponse(ctx context.C
 	return ParseDeleteNetworkDNSServerIDResponse(rsp)
 }
 
+// PostNetworkPingWithBodyWithResponse request with arbitrary body returning *PostNetworkPingResponse
+func (c *ClientWithResponses) PostNetworkPingWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error) {
+	rsp, err := c.PostNetworkPingWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostNetworkPingResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostNetworkPingWithResponse(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error) {
+	rsp, err := c.PostNetworkPing(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostNetworkPingResponse(rsp)
+}
+
 // GetPingWithResponse request returning *GetPingResponse
 func (c *ClientWithResponses) GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error) {
 	rsp, err := c.GetPing(ctx, reqEditors...)
@@ -1214,6 +1359,46 @@ func ParseDeleteNetworkDNSServerIDResponse(rsp *http.Response) (*DeleteNetworkDN
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostNetworkPingResponse parses an HTTP response from a PostNetworkPingWithResponse call
+func ParsePostNetworkPingResponse(rsp *http.Response) (*PostNetworkPingResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostNetworkPingResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PingResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest NetworkErrorResponse

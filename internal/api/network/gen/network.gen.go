@@ -29,6 +29,27 @@ type DNSConfigUpdate struct {
 	Servers *[]string `json:"servers,omitempty"`
 }
 
+// PingResponse defines model for PingResponse.
+type PingResponse struct {
+	// AvgRTT Average round-trip time as a string in Go's time.Duration format.
+	AvgRTT *string `json:"avgRTT,omitempty"`
+
+	// MaxRTT Maximum round-trip time as a string in Go's time.Duration format.
+	MaxRTT *string `json:"maxRTT,omitempty"`
+
+	// MinRTT Minimum round-trip time as a string in Go's time.Duration format.
+	MinRTT *string `json:"minRTT,omitempty"`
+
+	// PacketLoss Percentage of packet loss.
+	PacketLoss *float64 `json:"packetLoss,omitempty"`
+
+	// PacketsReceived Number of packets received.
+	PacketsReceived *int `json:"packetsReceived,omitempty"`
+
+	// PacketsSent Number of packets sent.
+	PacketsSent *int `json:"packetsSent,omitempty"`
+}
+
 // NetworkErrorResponse defines model for network.ErrorResponse.
 type NetworkErrorResponse struct {
 	// Code The error code.
@@ -41,8 +62,17 @@ type NetworkErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// PostNetworkPingJSONBody defines parameters for PostNetworkPing.
+type PostNetworkPingJSONBody struct {
+	// Address The IP address or hostname of the server to ping.
+	Address string `json:"address"`
+}
+
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
 type PutNetworkDNSJSONRequestBody = DNSConfigUpdate
+
+// PostNetworkPingJSONRequestBody defines body for PostNetworkPing for application/json ContentType.
+type PostNetworkPingJSONRequestBody PostNetworkPingJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -55,6 +85,9 @@ type ServerInterface interface {
 	// Delete a DNS server
 	// (DELETE /network/dns/{serverId})
 	DeleteNetworkDNSServerID(ctx echo.Context, serverId string) error
+	// Ping a remote server
+	// (POST /network/ping)
+	PostNetworkPing(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -96,6 +129,15 @@ func (w *ServerInterfaceWrapper) DeleteNetworkDNSServerID(ctx echo.Context) erro
 	return err
 }
 
+// PostNetworkPing converts echo context to params.
+func (w *ServerInterfaceWrapper) PostNetworkPing(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostNetworkPing(ctx)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -127,5 +169,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/network/dns", wrapper.GetNetworkDNS)
 	router.PUT(baseURL+"/network/dns", wrapper.PutNetworkDNS)
 	router.DELETE(baseURL+"/network/dns/:serverId", wrapper.DeleteNetworkDNSServerID)
+	router.POST(baseURL+"/network/ping", wrapper.PostNetworkPing)
 
 }

@@ -72,7 +72,7 @@ func (suite *QueueGetAllIntegrationTestSuite) TestGetQueue() {
 			name: "when get Ok",
 			path: "/queue",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewDefaultMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -95,20 +95,20 @@ func (suite *QueueGetAllIntegrationTestSuite) TestGetQueue() {
 			name: "when GetAll errors",
 			path: "/queue",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().GetAll(context.Background(), 10, 0).
 					Return(nil, fmt.Errorf("GetAll error")).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{}`,
+			wantBody: `{"code":0,"error":"GetAll error"}`,
 		},
 		{
 			name: "when Count errors",
 			path: "/queue",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().GetAll(gomock.Any(), 10, 0).Return(nil, nil)
 				mock.EXPECT().Count(context.Background()).
 					Return(0, fmt.Errorf("Count error")).AnyTimes()
@@ -116,7 +116,7 @@ func (suite *QueueGetAllIntegrationTestSuite) TestGetQueue() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{}`,
+			wantBody: `{"code":0,"error":"Count error"}`,
 		},
 	}
 
@@ -141,10 +141,7 @@ func (suite *QueueGetAllIntegrationTestSuite) TestGetQueue() {
 			a.Echo.ServeHTTP(rec, req)
 
 			assert.Equal(suite.T(), tc.wantCode, rec.Code)
-
-			if tc.wantCode == http.StatusOK {
-				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
-			}
+			assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
 		})
 	}
 }

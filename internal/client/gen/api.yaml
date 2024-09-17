@@ -60,6 +60,45 @@ tags:
     x-displayName: System/Status
     description: Operations related to system status endpoint.
 paths:
+  /network/ping:
+    post:
+      summary: Ping a remote server
+      description: Send a ping to a remote server to verify network connectivity.
+      tags:
+        - Network_Management_API_network_operations
+      requestBody:
+        description: The server to ping.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  description: The IP address or hostname of the server to ping.
+                  example: 8.8.8.8
+              required:
+                - address
+      responses:
+        '200':
+          description: Successful ping response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+        '400':
+          description: Invalid request payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/network.ErrorResponse'
+        '500':
+          description: Error performing the ping operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/network.ErrorResponse'
   /network/dns:
     get:
       summary: List DNS servers
@@ -304,6 +343,34 @@ paths:
                 $ref: '#/components/schemas/system.ErrorResponse'
 components:
   schemas:
+    PingResponse:
+      type: object
+      properties:
+        packetsSent:
+          type: integer
+          description: Number of packets sent.
+          example: 4
+        packetsReceived:
+          type: integer
+          description: Number of packets received.
+          example: 4
+        packetLoss:
+          type: number
+          format: double
+          description: Percentage of packet loss.
+          example: 0
+        minRTT:
+          type: string
+          description: Minimum round-trip time as a string in Go's time.Duration format.
+          example: 14.637103ms
+        avgRTT:
+          type: string
+          description: Average round-trip time as a string in Go's time.Duration format.
+          example: 18.647498ms
+        maxRTT:
+          type: string
+          description: Maximum round-trip time as a string in Go's time.Duration format.
+          example: 24.309240ms
     DNSConfig:
       type: object
       properties:

@@ -20,20 +20,10 @@
 
 package network
 
-import (
-	"fmt"
-)
-
 // DefaultLinuxNetwork implements the Network interface for Linux.
 type DefaultLinuxNetwork struct{}
 
 // NewDefaultLinuxProvider factory to create a new Linux instance.
 func NewDefaultLinuxProvider() *DefaultLinuxNetwork {
 	return &DefaultLinuxNetwork{}
-}
-
-// GetResolvConf reads the DNS configuration from /run/systemd/resolve/resolv.conf.
-// It returns a DNSConfig struct, and an error if something goes wrong.
-func (dun *DefaultLinuxNetwork) GetResolvConf() (*DNSConfig, error) {
-	return nil, fmt.Errorf("GetResolveConf is not implemented for DefaultLinuxProvider")
 }

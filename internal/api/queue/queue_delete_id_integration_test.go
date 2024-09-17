@@ -73,7 +73,7 @@ func (suite *QueueDeleteIDIntegrationTestSuite) TestDeleteQueueID() {
 			name: "when delete Ok",
 			path: "/queue/message-id",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewDefaultMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -84,27 +84,27 @@ func (suite *QueueDeleteIDIntegrationTestSuite) TestDeleteQueueID() {
 			name: "when DeleteByID finds no item (no rows affected)",
 			path: "/queue/message-id",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().DeleteByID(context.Background(), "message-id").
 					Return(errors.NewNotFoundError("no item found with ID message-id")).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusNotFound,
-			wantBody: `{}`,
+			wantBody: `{"code":0,"error":"not found: no item found with ID message-id"}`,
 		},
 		{
 			name: "when DeleteByID errors",
 			path: "/queue/message-id",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().DeleteByID(context.Background(), "message-id").
 					Return(fmt.Errorf("DeleteByID error")).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{}`,
+			wantBody: `{"code":0,"error":"DeleteByID error"}`,
 		},
 	}
 
@@ -121,7 +121,9 @@ func (suite *QueueDeleteIDIntegrationTestSuite) TestDeleteQueueID() {
 
 			assert.Equal(suite.T(), tc.wantCode, rec.Code)
 
-			if tc.wantCode == http.StatusOK {
+			if tc.wantCode == http.StatusNoContent {
+				assert.Empty(suite.T(), rec.Body.String())
+			} else {
 				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
 			}
 		})

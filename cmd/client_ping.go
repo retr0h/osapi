@@ -22,10 +22,8 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -49,13 +47,10 @@ var clientPingCmd = &cobra.Command{
 			return
 		}
 
-		sections := []section{{}}
-		pingInfo := fmt.Sprintf(
-			"\n%s: %s\n",
-			lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Ping"), resp.JSON200.Ping,
-		)
-
-		printStyledTable(sections, pingInfo)
+		pingData := map[string]interface{}{
+			"Ping": resp.JSON200.Ping,
+		}
+		printStyledMap(pingData)
 	},
 }
 

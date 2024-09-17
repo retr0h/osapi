@@ -24,7 +24,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// PutNetworkDNS put the network dns endpoint.
+// PutNetworkDNS TODO ...
 func (n Network) PutNetworkDNS(
 	_ echo.Context,
 ) error {

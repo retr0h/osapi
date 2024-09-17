@@ -8,6 +8,22 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Network",
+      link: {
+        type: "doc",
+        id: "gen/api/network-management-api-network-operations",
+      },
+      items: [
+        {
+          type: "doc",
+          id: "gen/api/ping-a-remote-server",
+          label: "Ping a remote server",
+          className: "api-method post",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Network/DNS",
       link: {
         type: "doc",

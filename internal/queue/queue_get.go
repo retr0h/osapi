@@ -18,22 +18,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package queue
 
 import (
-	"github.com/spf13/afero"
+	"context"
+
+	"github.com/maragudk/goqite"
 )
 
-// UbuntuNetwork implements the Network interface for Ubuntu.
-type UbuntuNetwork struct {
-	appFs afero.Fs
-}
-
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	appFs afero.Fs,
-) *UbuntuNetwork {
-	return &UbuntuNetwork{
-		appFs: appFs,
+// Get a message from the queue, during which time it's not available to
+// other consumers (until the message timeout has passed).
+func (q *Queue) Get(
+	ctx context.Context,
+) (*goqite.Message, error) {
+	m, err := q.Queue.Receive(ctx)
+	if err != nil {
+		return nil, err
 	}
+
+	return m, nil
 }

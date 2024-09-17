@@ -30,7 +30,14 @@ import (
 // services and operations.
 type Manager interface {
 	// GetNetworkDNS get the network dns get API endpoint.
-	GetNetworkDNS() (*gen.GetNetworkDNSResponse, error)
+	GetNetworkDNS(
+		ctx context.Context,
+	) (*gen.GetNetworkDNSResponse, error)
+	// PostNetworkPing post the network ping API endpoint.
+	PostNetworkPing(
+		ctx context.Context,
+		address string,
+	) (*gen.PostNetworkPingResponse, error)
 
 	// GetPing ping the API endpoint.
 	GetPing(

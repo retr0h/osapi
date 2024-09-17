@@ -37,3 +37,9 @@ sidebar_position: 5
 
    Ensure that anything that can be accomplished through the API also has an
    equivalent option available via the CLI.
+
+8. **Least Privilege Mode**
+
+   Run the API service in least privilege mode to enhance security. The API will
+   only return data the running user has access to, gracefully handling
+   permission errors by skipping over resources that require higher privileges.

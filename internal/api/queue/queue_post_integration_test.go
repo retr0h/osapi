@@ -93,21 +93,21 @@ func (suite *QueuePostIntegrationTestSuite) TestGetQueueAll() {
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"error":"code=400, message=Syntax error: unexpected token '}'"}`,
+			wantBody: `{"code":0,"error":"code=400, message=Syntax error: offset=10, error=invalid character '}' looking for beginning of value, internal=invalid character '}' looking for beginning of value"}`,
 		},
 		{
 			name: "when Put errors",
 			path: "/queue",
 			body: `{"body": "message-body"}`,
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().Put(context.Background(), []byte("message-body")).
 					Return(fmt.Errorf("Put error")).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{}`,
+			wantBody: `{"code":0,"error":"Put error"}`,
 		},
 	}
 
@@ -125,7 +125,9 @@ func (suite *QueuePostIntegrationTestSuite) TestGetQueueAll() {
 
 			assert.Equal(suite.T(), tc.wantCode, rec.Code)
 
-			if tc.wantCode == http.StatusOK {
+			if tc.wantCode == http.StatusCreated {
+				assert.Empty(suite.T(), rec.Body.String())
+			} else {
 				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
 			}
 		})

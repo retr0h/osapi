@@ -27,7 +27,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -67,35 +66,37 @@ var clientQueueListCmd = &cobra.Command{
 				logFatal("failed response", fmt.Errorf("items in response were nil"))
 			}
 
+			totalItems := safeInt(resp.JSON200.TotalItems)
+			totalPages := calculateTotalPages(totalItems, pageSize)
+
+			itemsData := map[string]interface{}{
+				"Total Items": totalItems,
+				"Total Pages": totalPages,
+			}
+			printStyledMap(itemsData)
+
 			itemRows := [][]string{}
 			for _, item := range *resp.JSON200.Items {
+				createdTime := "N/A"
+				if item.Created != nil {
+					createdTime = item.Created.Format(time.RFC3339)
+				}
+
 				itemRows = append(itemRows, []string{
 					safeString(item.Id),
-					item.Created.Format(time.RFC3339),
+					createdTime,
 					safeString(item.Body),
 				})
 			}
 
 			sections := []section{
 				{
-					Title:   "Items:",
-					Headers: []string{"ID", "Created", "Body"},
+					Title:   "Items",
+					Headers: []string{"ID", "CREATED", "BODY"},
 					Rows:    itemRows,
 				},
 			}
-
-			totalItems := safeInt(resp.JSON200.TotalItems)
-			totalPages := calculateTotalPages(totalItems, pageSize)
-
-			itemsInfo := fmt.Sprintf(
-				"\n%s: %d\n%s: %d\n",
-				lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Total Items"),
-				totalItems,
-				lipgloss.NewStyle().Bold(true).Foreground(purple).Render("Total Pages"),
-				totalPages,
-			)
-
-			printStyledTable(sections, itemsInfo)
+			printStyledTable(sections)
 		default:
 			errorMsg := "unknown error"
 			if resp.JSON500 != nil {

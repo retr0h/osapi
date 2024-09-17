@@ -73,7 +73,7 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 			name: "when get Ok",
 			path: "/queue/message-id",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewDefaultMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -91,7 +91,7 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 			name: "when GetByID finds no item (no rows affected)",
 			path: "/queue/message-id",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().GetByID(context.Background(), "message-id").
 					Return(nil, errors.NewNotFoundError("no item found with ID message-id")).
 					AnyTimes()
@@ -99,20 +99,20 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 				return mock
 			},
 			wantCode: http.StatusNotFound,
-			wantBody: `{}`,
+			wantBody: `{"code":0,"error":"not found: no item found with ID message-id"}`,
 		},
 		{
 			name: "when GetByID errors",
 			path: "/queue/message-id",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainMockManager(gomock.NewController(suite.T()))
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().GetByID(gomock.Any(), "message-id").
 					Return(nil, fmt.Errorf("GetByID error")).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{}`,
+			wantBody: `{"code":0,"error":"GetByID error"}`,
 		},
 	}
 
@@ -128,10 +128,7 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 			a.Echo.ServeHTTP(rec, req)
 
 			assert.Equal(suite.T(), tc.wantCode, rec.Code)
-
-			if tc.wantCode == http.StatusOK {
-				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
-			}
+			assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
 		})
 	}
 }

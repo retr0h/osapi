@@ -27,6 +27,8 @@ import (
 )
 
 // GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS() (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(context.TODO())
+func (c *Client) GetNetworkDNS(
+	ctx context.Context,
+) (*gen.GetNetworkDNSResponse, error) {
+	return c.Client.GetNetworkDNSWithResponse(ctx)
 }

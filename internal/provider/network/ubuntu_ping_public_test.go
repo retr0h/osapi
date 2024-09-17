@@ -21,103 +21,99 @@
 package network_test
 
 import (
-	"fmt"
-	"log/slog"
-	"net/http"
-	"net/http/httptest"
-	"os"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/api"
-	"github.com/retr0h/osapi/internal/api/network"
-	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
-	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/provider/network"
 	"github.com/retr0h/osapi/internal/provider/network/mocks"
 )
 
-type NetworkDNSIntegrationTestSuite struct {
+type UbuntuPingPublicTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
-	appConfig config.Config
-	logger    *slog.Logger
+	appFs          afero.Fs
+	resolvConfFile string
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) SetupTest() {
+func (suite *UbuntuPingPublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
-	suite.appConfig = config.Config{}
-	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	suite.appFs = afero.NewMemMapFs()
+	suite.resolvConfFile = "/run/systemd/resolve/resolv.conf"
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
+func (suite *UbuntuPingPublicTestSuite) SetupSubTest() {
+	suite.SetupTest()
+}
+
+func (suite *UbuntuPingPublicTestSuite) TearDownTest() {}
+
+func (suite *UbuntuPingPublicTestSuite) TestPingHost() {
 	tests := []struct {
-		name      string
-		path      string
-		setupMock func() *mocks.MockProvider
-		wantCode  int
-		wantBody  string
+		name        string
+		setupMock   func() *mocks.MockProvider
+		address     string
+		want        *network.PingResult
+		wantErr     bool
+		wantErrType error
 	}{
 		{
-			name: "when get ok",
-			path: "/network/dns",
+			name:    "when PingHost Ok",
+			address: "example.com",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			wantCode: http.StatusOK,
-			wantBody: `{
-"search_domains": [
-  "example.com",
-  "local.lan"
-],
-"servers": [
-  "192.168.1.1",
-  "8.8.8.8",
-  "8.8.4.4",
-  "2001:4860:4860::8888",
-  "2001:4860:4860::8844"
-]}`,
+			want: &network.PingResult{
+				PacketsSent:     3,
+				PacketsReceived: 3,
+				PacketLoss:      0,
+				MinRTT:          10 * time.Millisecond,
+				AvgRTT:          15 * time.Millisecond,
+				MaxRTT:          20 * time.Millisecond,
+			},
+			wantErr: false,
 		},
 		{
-			name: "when GetResolvConf errors",
-			path: "/network/dns",
+			name:    "when PingHost returns an error",
+			address: "example.com",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetResolvConf().
-					Return(nil, fmt.Errorf("GetResolvConf error")).AnyTimes()
+				mock.EXPECT().PingHost("example.com").Return(nil, assert.AnError)
 
 				return mock
 			},
-			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"GetResolvConf error"}`,
+			want:        nil,
+			wantErr:     true,
+			wantErrType: assert.AnError,
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(mock))
+			got, err := mock.PingHost(tc.address)
 
-			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
-			rec := httptest.NewRecorder()
-
-			a.Echo.ServeHTTP(rec, req)
-
-			assert.Equal(suite.T(), tc.wantCode, rec.Code)
-			assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
+			if !tc.wantErr {
+				assert.NoError(suite.T(), err)
+				assert.Equal(suite.T(), tc.want, got)
+			} else {
+				assert.Error(suite.T(), err)
+				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+			}
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestNetworkDNSIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkDNSIntegrationTestSuite))
+func TestUbuntuPingPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuPingPublicTestSuite))
 }

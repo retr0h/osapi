@@ -18,22 +18,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package mocks
 
 import (
-	"github.com/spf13/afero"
+	"time"
+
+	"github.com/golang/mock/gomock"
+
+	"github.com/retr0h/osapi/internal/provider/network"
 )
 
-// UbuntuNetwork implements the Network interface for Ubuntu.
-type UbuntuNetwork struct {
-	appFs afero.Fs
+// NewPlainMockProvider creates a Mock without defaults.
+func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+	return NewMockProvider(ctrl)
 }
 
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	appFs afero.Fs,
-) *UbuntuNetwork {
-	return &UbuntuNetwork{
-		appFs: appFs,
-	}
+// NewDefaultMockProvider creates a Mock with defaults.
+func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+	mock := NewMockProvider(ctrl)
+
+	// Set up default expectations for the mock methods
+	mock.EXPECT().GetResolvConf().Return(&network.DNSConfig{
+		DNSServers: []string{
+			"192.168.1.1",
+			"8.8.8.8",
+			"8.8.4.4",
+			"2001:4860:4860::8888",
+			"2001:4860:4860::8844",
+		},
+		SearchDomains: []string{
+			"example.com",
+			"local.lan",
+		},
+	}, nil).AnyTimes()
+
+	mock.EXPECT().PingHost("example.com").Return(&network.PingResult{
+		PacketsSent:     3,
+		PacketsReceived: 3,
+		PacketLoss:      0,
+		MinRTT:          10 * time.Millisecond,
+		AvgRTT:          15 * time.Millisecond,
+		MaxRTT:          20 * time.Millisecond,
+	}, nil).AnyTimes()
+
+	return mock
 }
