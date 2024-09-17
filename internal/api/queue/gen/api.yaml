@@ -40,11 +40,14 @@ paths:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/QueueItem'
-                - type: object
-                  required:
-                    - body
+              type: object
+              properties:
+                body:
+                  type: string
+                  description: String representation of the body of the queue item.
+              required:
+                - body
+              additionalProperties: false
       responses:
         '201':
           description: The queue item was added successfully.

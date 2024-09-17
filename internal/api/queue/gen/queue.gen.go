@@ -63,21 +63,6 @@ type GetQueueParams struct {
 type PostQueueJSONBody struct {
 	// Body String representation of the body of the queue item.
 	Body string `json:"body"`
-
-	// Created Creation timestamp of the queue item.
-	Created *time.Time `json:"created,omitempty"`
-
-	// Id Unique identifier of the queue item.
-	Id *string `json:"id,omitempty"`
-
-	// Received Number of times the queue item has been received.
-	Received *int `json:"received,omitempty"`
-
-	// Timeout Timeout timestamp for the queue item.
-	Timeout *time.Time `json:"timeout,omitempty"`
-
-	// Updated Last updated timestamp of the queue item.
-	Updated *time.Time `json:"updated,omitempty"`
 }
 
 // PostQueueJSONRequestBody defines body for PostQueue for application/json ContentType.
