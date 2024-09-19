@@ -18,24 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package mocks
 
-import (
-	"github.com/retr0h/osapi/internal/api/network/gen"
-	"github.com/retr0h/osapi/internal/provider/dns"
-	"github.com/retr0h/osapi/internal/provider/network"
-)
-
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*Network)(nil)
-
-// New factory to create a new instance.
-func New(
-	np network.Provider,
-	dnsp dns.Provider,
-) *Network {
-	return &Network{
-		NetworkProvider: np,
-		DNSProvider:     dnsp,
-	}
-}
+//go:generate go run github.com/golang/mock/mockgen -source=../provider.go -destination=dns.gen.go -package=mocks

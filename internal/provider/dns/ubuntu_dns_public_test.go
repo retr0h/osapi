@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network_test
+package dns_test
 
 import (
 	"testing"
@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/provider/network"
+	"github.com/retr0h/osapi/internal/provider/dns"
 )
 
 type UbuntuDNSPublicTestSuite struct {
@@ -52,7 +52,7 @@ func (suite *UbuntuDNSPublicTestSuite) TestGetResolvConf() {
 	tests := []struct {
 		name    string
 		content []byte
-		want    *network.DNSConfig
+		want    *dns.Config
 		wantErr bool
 	}{
 		{
@@ -65,7 +65,7 @@ nameserver 2001:4860:4860::8888
 nameserver 2001:4860:4860::8844
 search example.com local.lan
 options edns0`),
-			want: &network.DNSConfig{
+			want: &dns.Config{
 				DNSServers: []string{
 					"192.168.1.1",
 					"8.8.8.8",
@@ -83,7 +83,7 @@ options edns0`),
 		{
 			name:    "when GetResolvConf missing resolvConfFile",
 			content: []byte{},
-			want:    &network.DNSConfig{},
+			want:    &dns.Config{},
 			wantErr: true,
 		},
 	}
@@ -94,7 +94,7 @@ options edns0`),
 				_ = afero.WriteFile(suite.appFs, suite.resolvConfFile, tc.content, 0o644)
 			}
 
-			net := network.NewUbuntuProvider(suite.appFs)
+			net := dns.NewUbuntuProvider(suite.appFs)
 			got, err := net.GetResolvConf()
 
 			if !tc.wantErr {

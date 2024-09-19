@@ -18,24 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package dns
 
-import (
-	"github.com/retr0h/osapi/internal/api/network/gen"
-	"github.com/retr0h/osapi/internal/provider/dns"
-	"github.com/retr0h/osapi/internal/provider/network"
-)
+// LinuxDNS implements the DNS interface for Linux.
+type LinuxDNS struct{}
 
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*Network)(nil)
-
-// New factory to create a new instance.
-func New(
-	np network.Provider,
-	dnsp dns.Provider,
-) *Network {
-	return &Network{
-		NetworkProvider: np,
-		DNSProvider:     dnsp,
-	}
+// NewDefaultLinuxProvider factory to create a new Linux instance.
+func NewDefaultLinuxProvider() *LinuxDNS {
+	return &LinuxDNS{}
 }

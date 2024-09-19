@@ -29,6 +29,7 @@ import (
 
 	"github.com/retr0h/osapi/internal/api/network"
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
+	dnsImpl "github.com/retr0h/osapi/internal/provider/dns"
 	networkImpl "github.com/retr0h/osapi/internal/provider/network"
 )
 
@@ -37,18 +38,21 @@ func (s *Server) GetNetworkHandler(
 	appFs afero.Fs,
 ) []func(e *echo.Echo) {
 	var networkProvider networkImpl.Provider
+	var dnsProvider dnsImpl.Provider
 
 	info, _ := host.Info()
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
 		networkProvider = networkImpl.NewUbuntuProvider(appFs)
+		dnsProvider = dnsImpl.NewUbuntuProvider(appFs)
 	default:
 		networkProvider = networkImpl.NewDefaultLinuxProvider()
+		dnsProvider = dnsImpl.NewDefaultLinuxProvider()
 	}
 
 	return []func(e *echo.Echo){
 		func(e *echo.Echo) {
-			networkHandler := network.New(networkProvider)
+			networkHandler := network.New(networkProvider, dnsProvider)
 			networkGen.RegisterHandlers(e, networkHandler)
 		},
 	}

@@ -36,7 +36,8 @@ import (
 	"github.com/retr0h/osapi/internal/api/network"
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/config"
-	"github.com/retr0h/osapi/internal/provider/network/mocks"
+	dnsMocks "github.com/retr0h/osapi/internal/provider/dns/mocks"
+	networkMocks "github.com/retr0h/osapi/internal/provider/network/mocks"
 )
 
 type NetworkDNSIntegrationTestSuite struct {
@@ -58,15 +59,15 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 	tests := []struct {
 		name      string
 		path      string
-		setupMock func() *mocks.MockProvider
+		setupMock func() *dnsMocks.MockProvider
 		wantCode  int
 		wantBody  string
 	}{
 		{
 			name: "when get ok",
 			path: "/network/dns",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+			setupMock: func() *dnsMocks.MockProvider {
+				mock := dnsMocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -87,8 +88,8 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 		{
 			name: "when GetResolvConf errors",
 			path: "/network/dns",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
+			setupMock: func() *dnsMocks.MockProvider {
+				mock := dnsMocks.NewPlainMockProvider(suite.ctrl)
 				mock.EXPECT().GetResolvConf().
 					Return(nil, fmt.Errorf("GetResolvConf error")).AnyTimes()
 
@@ -101,9 +102,11 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
+			networkMock := networkMocks.NewDefaultMockProvider(suite.ctrl)
+			dnsMock := tc.setupMock()
+
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(mock))
+			networkGen.RegisterHandlers(a.Echo, network.New(networkMock, dnsMock))
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()

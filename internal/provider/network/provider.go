@@ -23,9 +23,6 @@ package network
 // Provider implements the methods to interact with various system-level
 // components.
 type Provider interface {
-	// GetResolvConf retrieves the DNS configuration.
-	GetResolvConf() (*DNSConfig, error)
-
 	// PingHost pings the given host and returns the ping statistics or an error.
 	PingHost(address string) (*PingResult, error)
 }

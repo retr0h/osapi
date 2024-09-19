@@ -18,24 +18,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package mocks
 
 import (
-	"github.com/retr0h/osapi/internal/api/network/gen"
+	"github.com/golang/mock/gomock"
+
 	"github.com/retr0h/osapi/internal/provider/dns"
-	"github.com/retr0h/osapi/internal/provider/network"
 )
 
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*Network)(nil)
+// NewPlainMockProvider creates a Mock without defaults.
+func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+	return NewMockProvider(ctrl)
+}
 
-// New factory to create a new instance.
-func New(
-	np network.Provider,
-	dnsp dns.Provider,
-) *Network {
-	return &Network{
-		NetworkProvider: np,
-		DNSProvider:     dnsp,
-	}
+// NewDefaultMockProvider creates a Mock with defaults.
+func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+	mock := NewMockProvider(ctrl)
+
+	// Set up default expectations for the mock methods
+	mock.EXPECT().GetResolvConf().Return(&dns.Config{
+		DNSServers: []string{
+			"192.168.1.1",
+			"8.8.8.8",
+			"8.8.4.4",
+			"2001:4860:4860::8888",
+			"2001:4860:4860::8844",
+		},
+		SearchDomains: []string{
+			"example.com",
+			"local.lan",
+		},
+	}, nil).AnyTimes()
+
+	return mock
 }

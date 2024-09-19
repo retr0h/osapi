@@ -38,6 +38,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/network"
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/config"
+	dnsMocks "github.com/retr0h/osapi/internal/provider/dns/mocks"
 	"github.com/retr0h/osapi/internal/provider/network/mocks"
 )
 
@@ -126,9 +127,11 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
+			networkMock := tc.setupMock()
+			dnsMock := dnsMocks.NewDefaultMockProvider(suite.ctrl)
+
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(mock))
+			networkGen.RegisterHandlers(a.Echo, network.New(networkMock, dnsMock))
 
 			req := httptest.NewRequest(http.MethodPost, tc.path, bytes.NewBufferString(tc.body))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

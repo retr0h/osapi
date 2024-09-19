@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package dns
 
 import (
 	"bufio"
@@ -27,7 +27,7 @@ import (
 )
 
 // GetResolvConf reads the DNS configuration from /run/systemd/resolve/resolv.conf.
-// It returns a DNSConfig struct, and an error if something goes wrong.
+// It returns a Config struct, and an error if something goes wrong.
 //
 // Cross-platform considerations: This function is designed specifically for Linux systems
 // that utilize systemd-resolved for managing DNS configurations. It reads from
@@ -51,16 +51,16 @@ import (
 //     of file reads.
 //
 // See `systemd-resolved.service(8)` manual page for further information.
-func (un *UbuntuNetwork) GetResolvConf() (*DNSConfig, error) {
+func (u *UbuntuDNS) GetResolvConf() (*Config, error) {
 	const resolvConfFile = "/run/systemd/resolve/resolv.conf"
 
-	file, err := un.appFs.Open(resolvConfFile)
+	file, err := u.appFs.Open(resolvConfFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open %s: %w", resolvConfFile, err)
 	}
 	defer func() { _ = file.Close() }()
 
-	config := &DNSConfig{}
+	config := &Config{}
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()

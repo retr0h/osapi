@@ -32,7 +32,7 @@ import (
 func (n Network) GetNetworkDNS(
 	ctx echo.Context,
 ) error {
-	dnsConfig, err := n.NetworkProvider.GetResolvConf()
+	dnsConfig, err := n.DNSProvider.GetResolvConf()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
 			Error: err.Error(),
