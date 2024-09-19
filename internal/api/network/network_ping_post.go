@@ -56,9 +56,9 @@ func (n Network) PostNetworkPing(
 	}
 
 	return ctx.JSON(http.StatusOK, gen.PingResponse{
-		AvgRTT:          durationToString(&pingResult.AvgRTT),
-		MaxRTT:          durationToString(&pingResult.MaxRTT),
-		MinRTT:          durationToString(&pingResult.MinRTT),
+		AvgRtt:          durationToString(&pingResult.AvgRTT),
+		MaxRtt:          durationToString(&pingResult.MaxRTT),
+		MinRtt:          durationToString(&pingResult.MinRTT),
 		PacketLoss:      &pingResult.PacketLoss,
 		PacketsReceived: &pingResult.PacketsReceived,
 		PacketsSent:     &pingResult.PacketsSent,

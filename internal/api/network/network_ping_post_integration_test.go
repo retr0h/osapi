@@ -77,12 +77,12 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 			},
 			wantCode: http.StatusOK,
 			wantBody: `{
-"avgRTT":"15ms",
-"maxRTT":"20ms",
-"minRTT":"10ms",
-"packetLoss":0,
-"packetsReceived":3,
-"packetsSent":3
+"avg_rtt":"15ms",
+"max_rtt":"20ms",
+"min_rtt":"10ms",
+"packet_loss":0,
+"packets_received":3,
+"packets_sent":3
       }`,
 		},
 		{

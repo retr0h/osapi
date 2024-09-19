@@ -31,23 +31,23 @@ type DNSConfigUpdate struct {
 
 // PingResponse defines model for PingResponse.
 type PingResponse struct {
-	// AvgRTT Average round-trip time as a string in Go's time.Duration format.
-	AvgRTT *string `json:"avgRTT,omitempty"`
+	// AvgRtt Average round-trip time as a string in Go's time.Duration format.
+	AvgRtt *string `json:"avg_rtt,omitempty"`
 
-	// MaxRTT Maximum round-trip time as a string in Go's time.Duration format.
-	MaxRTT *string `json:"maxRTT,omitempty"`
+	// MaxRtt Maximum round-trip time as a string in Go's time.Duration format.
+	MaxRtt *string `json:"max_rtt,omitempty"`
 
-	// MinRTT Minimum round-trip time as a string in Go's time.Duration format.
-	MinRTT *string `json:"minRTT,omitempty"`
+	// MinRtt Minimum round-trip time as a string in Go's time.Duration format.
+	MinRtt *string `json:"min_rtt,omitempty"`
 
 	// PacketLoss Percentage of packet loss.
-	PacketLoss *float64 `json:"packetLoss,omitempty"`
+	PacketLoss *float64 `json:"packet_loss,omitempty"`
 
 	// PacketsReceived Number of packets received.
-	PacketsReceived *int `json:"packetsReceived,omitempty"`
+	PacketsReceived *int `json:"packets_received,omitempty"`
 
 	// PacketsSent Number of packets sent.
-	PacketsSent *int `json:"packetsSent,omitempty"`
+	PacketsSent *int `json:"packets_sent,omitempty"`
 }
 
 // NetworkErrorResponse defines model for network.ErrorResponse.

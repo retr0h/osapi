@@ -60,9 +60,9 @@ var clientNetworkPingCmd = &cobra.Command{
 
 			respRows := [][]string{}
 			respRows = append(respRows, []string{
-				safeString(resp.JSON200.AvgRTT),
-				safeString(resp.JSON200.MaxRTT),
-				safeString(resp.JSON200.MinRTT),
+				safeString(resp.JSON200.AvgRtt),
+				safeString(resp.JSON200.MaxRtt),
+				safeString(resp.JSON200.MinRtt),
 				float64ToString(resp.JSON200.PacketLoss),
 				intToString(resp.JSON200.PacketsReceived),
 				intToString(resp.JSON200.PacketsSent),

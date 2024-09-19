@@ -156,28 +156,28 @@ components:
     PingResponse:
       type: object
       properties:
-        packetsSent:
+        packets_sent:
           type: integer
           description: Number of packets sent.
           example: 4
-        packetsReceived:
+        packets_received:
           type: integer
           description: Number of packets received.
           example: 4
-        packetLoss:
+        packet_loss:
           type: number
           format: double
           description: Percentage of packet loss.
           example: 0.0
-        minRTT:
+        min_rtt:
           type: string
           description: Minimum round-trip time as a string in Go's time.Duration format.
           example: "14.637103ms"
-        avgRTT:
+        avg_rtt:
           type: string
           description: Average round-trip time as a string in Go's time.Duration format.
           example: "18.647498ms"
-        maxRTT:
+        max_rtt:
           type: string
           description: Maximum round-trip time as a string in Go's time.Duration format.
           example: "24.309240ms"
