@@ -37,21 +37,6 @@ func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
 func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
-	// Set up default expectations for the mock methods
-	mock.EXPECT().GetResolvConf().Return(&network.DNSConfig{
-		DNSServers: []string{
-			"192.168.1.1",
-			"8.8.8.8",
-			"8.8.4.4",
-			"2001:4860:4860::8888",
-			"2001:4860:4860::8844",
-		},
-		SearchDomains: []string{
-			"example.com",
-			"local.lan",
-		},
-	}, nil).AnyTimes()
-
 	mock.EXPECT().PingHost("example.com").Return(&network.PingResult{
 		PacketsSent:     3,
 		PacketsReceived: 3,

@@ -42,11 +42,9 @@ func (s *Server) CreateHandlers(
 	}
 
 	systemHandler := s.GetSystemHandler()
-	pingHandler := s.GetPingHandler()
 	networkHandler := s.GetNetworkHandler(appFs)
 
 	handlers = append(handlers, systemHandler...)
-	handlers = append(handlers, pingHandler...)
 	handlers = append(handlers, networkHandler...)
 
 	return handlers

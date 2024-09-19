@@ -98,11 +98,6 @@ type PingResponse struct {
 	PacketsSent *int `json:"packetsSent,omitempty"`
 }
 
-// Pong defines model for Pong.
-type Pong struct {
-	Ping string `json:"ping"`
-}
-
 // QueueItem defines model for QueueItem.
 type QueueItem struct {
 	// Body String representation of the body of the queue item.
@@ -302,9 +297,6 @@ type ClientInterface interface {
 
 	PostNetworkPing(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetPing request
-	GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetQueue request
 	GetQueue(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -385,18 +377,6 @@ func (c *Client) PostNetworkPingWithBody(ctx context.Context, contentType string
 
 func (c *Client) PostNetworkPing(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostNetworkPingRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetPing(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetPingRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -616,33 +596,6 @@ func NewPostNetworkPingRequestWithBody(server string, contentType string, body i
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetPingRequest generates requests for GetPing
-func NewGetPingRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/ping")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -906,9 +859,6 @@ type ClientWithResponsesInterface interface {
 
 	PostNetworkPingWithResponse(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error)
 
-	// GetPingWithResponse request
-	GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error)
-
 	// GetQueueWithResponse request
 	GetQueueWithResponse(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*GetQueueResponse, error)
 
@@ -1014,28 +964,6 @@ func (r PostNetworkPingResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PostNetworkPingResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetPingResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *Pong
-}
-
-// Status returns HTTPResponse.Status
-func (r GetPingResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetPingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1209,15 +1137,6 @@ func (c *ClientWithResponses) PostNetworkPingWithResponse(ctx context.Context, b
 		return nil, err
 	}
 	return ParsePostNetworkPingResponse(rsp)
-}
-
-// GetPingWithResponse request returning *GetPingResponse
-func (c *ClientWithResponses) GetPingWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetPingResponse, error) {
-	rsp, err := c.GetPing(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetPingResponse(rsp)
 }
 
 // GetQueueWithResponse request returning *GetQueueResponse
@@ -1406,32 +1325,6 @@ func ParsePostNetworkPingResponse(rsp *http.Response) (*PostNetworkPingResponse,
 			return nil, err
 		}
 		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetPingResponse parses an HTTP response from a GetPingWithResponse call
-func ParseGetPingResponse(rsp *http.Response) (*GetPingResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetPingResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Pong
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
 
 	}
 

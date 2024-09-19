@@ -52,22 +52,6 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Ping",
-      link: {
-        type: "doc",
-        id: "gen/api/minimal-ping-api-endpoint-ping-operations",
-      },
-      items: [
-        {
-          type: "doc",
-          id: "gen/api/retrieve-ping-status",
-          label: "Retrieve ping status",
-          className: "api-method get",
-        },
-      ],
-    },
-    {
-      type: "category",
       label: "Queue",
       link: {
         type: "doc",

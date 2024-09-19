@@ -39,11 +39,6 @@ type Manager interface {
 		address string,
 	) (*gen.PostNetworkPingResponse, error)
 
-	// GetPing ping the API endpoint.
-	GetPing(
-		ctx context.Context,
-	) (*gen.GetPingResponse, error)
-
 	// DeleteQueueByID deletes a single item through the queue API endpoint.
 	DeleteQueueByID(
 		ctx context.Context,

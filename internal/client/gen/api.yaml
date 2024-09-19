@@ -47,9 +47,6 @@ tags:
   - name: Network_Management_API_dns_operations
     x-displayName: Network/DNS
     description: Operations related to DNS configuration.
-  - name: Minimal_ping_API_Endpoint_ping_operations
-    x-displayName: Ping
-    description: Operations related to the ping endpoint.
   - name: Queue_API_queue_operations
     x-displayName: Queue
     description: Operations related to the queue endpoint.
@@ -175,18 +172,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/network.ErrorResponse'
-  /ping:
-    get:
-      summary: Retrieve ping status
-      tags:
-        - Minimal_ping_API_Endpoint_ping_operations
-      responses:
-        '200':
-          description: ping response.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pong'
   /queue:
     post:
       summary: Add an item to the queue
@@ -423,14 +408,6 @@ components:
       required:
         - error
         - code
-    Pong:
-      type: object
-      required:
-        - ping
-      properties:
-        ping:
-          type: string
-          example: pong
     QueueItem:
       type: object
       properties:
@@ -607,9 +584,6 @@ x-tagGroups:
     tags:
       - Network_Management_API_network_operations
       - Network_Management_API_dns_operations
-  - name: Minimal ping API Endpoint
-    tags:
-      - Minimal_ping_API_Endpoint_ping_operations
   - name: Queue API
     tags:
       - Queue_API_queue_operations

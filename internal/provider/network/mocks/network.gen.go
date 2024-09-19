@@ -34,21 +34,6 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 	return m.recorder
 }
 
-// GetResolvConf mocks base method.
-func (m *MockProvider) GetResolvConf() (*network.DNSConfig, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResolvConf")
-	ret0, _ := ret[0].(*network.DNSConfig)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetResolvConf indicates an expected call of GetResolvConf.
-func (mr *MockProviderMockRecorder) GetResolvConf() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResolvConf", reflect.TypeOf((*MockProvider)(nil).GetResolvConf))
-}
-
 // PingHost mocks base method.
 func (m *MockProvider) PingHost(address string) (*network.PingResult, error) {
 	m.ctrl.T.Helper()
