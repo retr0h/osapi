@@ -66,7 +66,6 @@ func (q *Queue) isDatabaseInitialized() bool {
 	query := `SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='goqite';`
 	err := q.DB.QueryRow(query).Scan(&tableCount)
 	if err != nil {
-		// log.Printf("error checking database initialization: %v", err)
 		q.logger.Error(
 			"eror checking database initialization",
 			slog.String("error", err.Error()),

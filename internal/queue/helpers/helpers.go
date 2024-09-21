@@ -18,40 +18,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package queue
+package helpers
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
+	"os"
 
-	"github.com/retr0h/osapi/internal/errors"
+	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/queue"
 )
 
-// DeleteByID deletes a row from the database by its ID.
-func (q *Queue) DeleteByID(ctx context.Context, messageID string) error {
-	const query = `DELETE FROM goqite WHERE id = ?`
+// SetupDatabase setup database for integration testing.
+func SetupDatabase() (queue.Manager, error) {
+	var qm queue.Manager
 
-	stmt, err := q.DB.PrepareContext(ctx, query)
+	appConfig := config.Config{
+		Queue: config.Queue{
+			Database: config.Database{
+				DriverName:     "sqlite",
+				DataSourceName: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
+				MaxOpenConns:   1,
+				MaxIdleConns:   1,
+			},
+		},
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	db, err := queue.OpenDB(appConfig)
 	if err != nil {
-		return fmt.Errorf("failed to prepare delete statement: %w", err)
+		return nil, err
 	}
-	defer func() { _ = stmt.Close() }()
 
-	result, err := stmt.ExecContext(ctx, messageID)
+	qm = queue.New(logger, appConfig, db)
+
+	err = qm.SetupSchema(context.Background())
 	if err != nil {
-		return fmt.Errorf("failed to execute delete statement: %w", err)
+		return nil, err
 	}
 
-	// Check if the delete operation affected any rows.
-	rowsAffected, err := result.RowsAffected()
+	err = qm.SetupQueue()
 	if err != nil {
-		return fmt.Errorf("failed to retrieve affected rows: %w", err)
+		return nil, err
 	}
 
-	if rowsAffected == 0 {
-		// Return the custom NotFoundError instead of a generic error
-		return errors.NewNotFoundError(fmt.Sprintf("no item found with ID %s", messageID))
-	}
-
-	return nil
+	return qm, nil
 }

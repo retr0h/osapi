@@ -30,8 +30,6 @@ import (
 
 // Manager responsible for Queue operations.
 type Manager interface {
-	// OpenDB initializes and returns a database connection.
-	// OpenDB() (*sql.DB, error)
 	// SetupSchema setup the schema for use with the queue.
 	SetupSchema(ctx context.Context) error
 	// SetupQueue sets up the queue with the specified name.
@@ -50,12 +48,10 @@ type Manager interface {
 		data []byte,
 	) error
 	// Delete the message from the queue, so it doesn't get redelivered.
-	Delete(
+	DeleteByID(
 		ctx context.Context,
-		msgID goqite.ID,
+		messageID string,
 	) error
-	// DeleteByID deletes a row from the database by its ID.
-	DeleteByID(ctx context.Context, messageID string) error
 	// Count counts the number of rows in the table.
 	Count(ctx context.Context) (int, error)
 }

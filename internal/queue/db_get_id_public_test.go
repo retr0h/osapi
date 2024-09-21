@@ -65,7 +65,7 @@ func (suite *DBGetIDPublicTestSuite) TearDownTest() {
 	suite.Require().NoError(suite.mock.ExpectationsWereMet())
 }
 
-func (suite *DBGetIDPublicTestSuite) TestBGetID() {
+func (suite *DBGetIDPublicTestSuite) TestGetByID() {
 	tests := []struct {
 		name        string
 		setupMock   func()

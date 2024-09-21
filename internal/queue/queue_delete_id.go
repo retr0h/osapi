@@ -26,10 +26,12 @@ import (
 	"github.com/maragudk/goqite"
 )
 
-// Delete the message from the queue, so it doesn't get redelivered.
-func (q *Queue) Delete(
+// DeleteByID the message from the queue, so it doesn't get redelivered.
+func (q *Queue) DeleteByID(
 	ctx context.Context,
-	msgID goqite.ID,
+	messageID string,
 ) error {
-	return q.Queue.Delete(ctx, msgID)
+	iD := goqite.ID(messageID)
+
+	return q.Queue.Delete(ctx, iD)
 }
