@@ -21,13 +21,13 @@
 package system_test
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -35,17 +35,20 @@ import (
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
-	systemProvider "github.com/retr0h/osapi/internal/provider/system"
+	"github.com/retr0h/osapi/internal/provider/system/mocks"
 )
 
 type SystemStatusIntegrationTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 
 	appConfig config.Config
 	logger    *slog.Logger
 }
 
 func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
+	suite.ctrl = gomock.NewController(suite.T())
+
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
@@ -54,15 +57,16 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	tests := []struct {
 		name      string
 		path      string
-		setupMock func() *systemProvider.Mock
+		setupMock func() *mocks.MockProvider
 		wantCode  int
 		wantBody  string
 	}{
 		{
 			name: "when get ok",
 			path: "/system/status",
-			setupMock: func() *systemProvider.Mock {
-				mock := systemProvider.NewDefaultMock()
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
 				return mock
 			},
 			wantCode: http.StatusOK,
@@ -90,15 +94,15 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		{
 			name: "when GetHostname errors",
 			path: "/system/status",
-			setupMock: func() *systemProvider.Mock {
-				mock := systemProvider.NewDefaultMock()
-				mock.GetHostnameFunc = func() (string, error) {
-					return "", fmt.Errorf("GetHostname error")
-				}
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetHostname().Return("", assert.AnError)
+
 				return mock
 			},
+
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"GetHostname error"}`,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 	}
 

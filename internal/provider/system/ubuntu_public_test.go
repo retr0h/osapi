@@ -21,39 +21,46 @@
 package system_test
 
 import (
-	"fmt"
+	// "fmt"
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/provider/system"
+	"github.com/retr0h/osapi/internal/provider/system/mocks"
 )
 
 type UbuntuPublicTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuPublicTestSuite) SetupTest() {}
+func (suite *UbuntuPublicTestSuite) SetupTest() {
+	suite.ctrl = gomock.NewController(suite.T())
+}
 
 func (suite *UbuntuPublicTestSuite) TearDownTest() {}
 
 func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 	tests := []struct {
-		name      string
-		setupMock func() *system.Mock
-		fn        func(*system.Mock) (interface{}, error)
-		want      interface{}
-		wantErr   bool
+		name        string
+		setupMock   func() *mocks.MockProvider
+		fn          func(*mocks.MockProvider) (interface{}, error)
+		want        interface{}
+		wantErr     bool
+		wantErrType error
 	}{
 		{
 			name: "when GetHostname Ok",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetHostname()
 			},
 			want:    "default-hostname",
@@ -61,25 +68,26 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 		},
 		{
 			name: "when GetHostname errors",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
-				mock.GetHostnameFunc = func() (string, error) {
-					return "", fmt.Errorf("GetHostname error")
-				}
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetHostname().Return("", assert.AnError)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetHostname()
 			},
-			wantErr: true,
+			wantErr:     true,
+			wantErrType: assert.AnError,
 		},
 		{
 			name: "when GetMemoryStats Ok",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetMemoryStats()
 			},
 			want: &system.MemoryStats{
@@ -91,25 +99,26 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 		},
 		{
 			name: "when GetMemoryStats errors",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
-				mock.GetMemoryStatsFunc = func() (*system.MemoryStats, error) {
-					return nil, fmt.Errorf("GetMemoryStats error")
-				}
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetMemoryStats().Return(nil, assert.AnError)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetMemoryStats()
 			},
-			wantErr: true,
+			wantErr:     true,
+			wantErrType: assert.AnError,
 		},
 		{
 			name: "when GetLoadAverageStats Ok",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetLoadAverageStats()
 			},
 			want:    &system.LoadAverageStats{1.0, 0.5, 0.2},
@@ -117,25 +126,26 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 		},
 		{
 			name: "when GetLoadAverageStats errors",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
-				mock.GetLoadAverageStatsFunc = func() (*system.LoadAverageStats, error) {
-					return nil, fmt.Errorf("GetLoadAverage error")
-				}
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetLoadAverageStats().Return(nil, assert.AnError)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetLoadAverageStats()
 			},
-			wantErr: true,
+			wantErr:     true,
+			wantErrType: assert.AnError,
 		},
 		{
 			name: "when GetUptime Ok",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetUptime()
 			},
 			want:    time.Hour * 5,
@@ -143,25 +153,26 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 		},
 		{
 			name: "when GetUptime errors",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
-				mock.GetUptimeFunc = func() (time.Duration, error) {
-					return 0, fmt.Errorf("GetUptime error")
-				}
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetUptime().Return(0*time.Second, assert.AnError)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetUptime()
 			},
-			wantErr: true,
+			wantErr:     true,
+			wantErrType: assert.AnError,
 		},
 		{
 			name: "when GetLocalDiskStats Ok",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetLocalDiskStats()
 			},
 			want: []system.DiskUsageStats{
@@ -176,17 +187,17 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 		},
 		{
 			name: "when GetLocalDiskStats errors",
-			setupMock: func() *system.Mock {
-				mock := system.NewDefaultMock()
-				mock.GetLocalDiskStatsFunc = func() ([]system.DiskUsageStats, error) {
-					return nil, fmt.Errorf("GetLocalDiskStats error")
-				}
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetLocalDiskStats().Return(nil, assert.AnError)
+
 				return mock
 			},
-			fn: func(m *system.Mock) (interface{}, error) {
+			fn: func(m *mocks.MockProvider) (interface{}, error) {
 				return m.GetLocalDiskStats()
 			},
-			wantErr: true,
+			wantErr:     true,
+			wantErrType: assert.AnError,
 		},
 	}
 
@@ -200,6 +211,7 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 				assert.Equal(suite.T(), tc.want, got)
 			} else {
 				assert.Error(suite.T(), err)
+				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
 			}
 		})
 	}
