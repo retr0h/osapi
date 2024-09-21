@@ -51,14 +51,7 @@ type QueuePostIntegrationTestSuite struct {
 func (suite *QueuePostIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
-	suite.appConfig = config.Config{
-		Queue: config.Queue{
-			Database: config.Database{
-				DriverName:     "sqlite",
-				DataSourceName: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
-			},
-		},
-	}
+	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
