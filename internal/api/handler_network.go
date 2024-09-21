@@ -29,8 +29,8 @@ import (
 
 	"github.com/retr0h/osapi/internal/api/network"
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
-	dnsImpl "github.com/retr0h/osapi/internal/provider/dns"
 	networkImpl "github.com/retr0h/osapi/internal/provider/network"
+	dnsImpl "github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
 // GetNetworkHandler returns network handler for registration.

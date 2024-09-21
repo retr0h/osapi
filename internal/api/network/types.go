@@ -21,8 +21,8 @@
 package network
 
 import (
-	"github.com/retr0h/osapi/internal/provider/dns"
 	"github.com/retr0h/osapi/internal/provider/network"
+	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
 // Network implementation of the System APIs operations.

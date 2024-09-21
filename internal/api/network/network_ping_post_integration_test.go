@@ -38,7 +38,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/network"
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/config"
-	dnsMocks "github.com/retr0h/osapi/internal/provider/dns/mocks"
+	dnsMocks "github.com/retr0h/osapi/internal/provider/network/dns/mocks"
 	"github.com/retr0h/osapi/internal/provider/network/mocks"
 )
 

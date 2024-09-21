@@ -21,3 +21,5 @@ sidebar_position: 1
   - `/system/power/shutdown` - Shutdown the system.
   - `/system/power/reboot` - Reboot the system.
   - `/system/power/hibernate` - Hibernate the system.
+- Hostname
+  - `/system/hostname`

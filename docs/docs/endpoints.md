@@ -36,8 +36,6 @@ The client and server components are generated from an OpenAPI spec.
 - Firewall
   - `/network/firewall/rules`
   - `/network/firewall/rules/{rule-id}`
-- Hostname
-  - `/network/hostname`
 
 ### Storage Management
 
@@ -67,16 +65,16 @@ The client and server components are generated from an OpenAPI spec.
 
 ### NTP (Network Time Protocol)
 
-- `/services/ntp/servers`
-- `/services/ntp/servers/{server-id}`
-- `/services/ntp/config`
-- `/services/ntp/peers`
-- `/services/ntp/peers/{peer-id}`
+- `/ntp/servers`
+- `/ntp/servers/{server-id}`
+- `/ntp/config`
+- `/ntp/peers`
+- `/ntp/peers/{peer-id}`
 
 ### Cron Jobs
 
-- `/services/cron/jobs`
-- `/services/cron/jobs/{job-id}`
+- `/cron/jobs`
+- `/cron/jobs/{job-id}`
 
 ### Security
 

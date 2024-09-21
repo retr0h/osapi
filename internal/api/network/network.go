@@ -22,8 +22,8 @@ package network
 
 import (
 	"github.com/retr0h/osapi/internal/api/network/gen"
-	"github.com/retr0h/osapi/internal/provider/dns"
 	"github.com/retr0h/osapi/internal/provider/network"
+	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
