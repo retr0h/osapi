@@ -21,7 +21,6 @@ package queue_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -95,12 +94,12 @@ func (suite *QueuePostIntegrationTestSuite) TestGetQueueAll() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().Put(context.Background(), []byte("message-body")).
-					Return(fmt.Errorf("Put error")).AnyTimes()
+					Return(assert.AnError).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"Put error"}`,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 	}
 

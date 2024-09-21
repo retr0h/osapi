@@ -23,7 +23,6 @@ package queue_test
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -89,10 +88,10 @@ func (suite *DBDeleteByIDTestSuite) TestDeleteByID() {
 			setupMock: func() {
 				query := regexp.QuoteMeta(`DELETE FROM goqite WHERE id = ?`)
 
-				suite.mock.ExpectPrepare(query).WillReturnError(fmt.Errorf("prepare error"))
+				suite.mock.ExpectPrepare(query).WillReturnError(assert.AnError)
 			},
 			wantErr:     true,
-			wantErrType: fmt.Errorf("failed to prepare delete statement: prepare error"),
+			wantErrType: assert.AnError,
 		},
 		{
 			name: "when DeleteByID fails to execute statement",
@@ -102,10 +101,10 @@ func (suite *DBDeleteByIDTestSuite) TestDeleteByID() {
 				suite.mock.ExpectPrepare(query)
 				suite.mock.ExpectExec(query).
 					WithArgs("message-id").
-					WillReturnError(fmt.Errorf("execution error"))
+					WillReturnError(assert.AnError)
 			},
 			wantErr:     true,
-			wantErrType: fmt.Errorf("failed to execute delete statement: execution error"),
+			wantErrType: assert.AnError,
 		},
 		{
 			name: "when DeleteByID fails to retrieve affected rows",
@@ -115,10 +114,10 @@ func (suite *DBDeleteByIDTestSuite) TestDeleteByID() {
 				suite.mock.ExpectPrepare(query)
 				suite.mock.ExpectExec(query).
 					WithArgs("message-id").
-					WillReturnResult(sqlmock.NewErrorResult(fmt.Errorf("rows affected error")))
+					WillReturnResult(sqlmock.NewErrorResult(assert.AnError))
 			},
 			wantErr:     true,
-			wantErrType: fmt.Errorf("failed to retrieve affected rows: rows affected error"),
+			wantErrType: assert.AnError,
 		},
 	}
 

@@ -23,7 +23,6 @@ package queue_test
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -108,11 +107,11 @@ func (suite *DBGetAllTestSuite) TestGetAll() {
 
 				suite.mock.ExpectQuery(query).
 					WithArgs(10, 0).
-					WillReturnError(fmt.Errorf("query execution failed"))
+					WillReturnError(assert.AnError)
 			},
 			want:        nil,
 			wantErr:     true,
-			wantErrType: fmt.Errorf("query execution failed"),
+			wantErrType: assert.AnError,
 		},
 		{
 			name: "when GetAll fails to execute scan",
@@ -125,7 +124,7 @@ func (suite *DBGetAllTestSuite) TestGetAll() {
 				rows := sqlmock.NewRows([]string{"id", "created", "updated", "queue", "body", "timeout", "received"}).
 					AddRow("1", suite.fixedCreated, suite.updated, "test-queue", "test-body", suite.timeout, 1)
 
-				rows.RowError(0, fmt.Errorf("scan error"))
+				rows.RowError(0, assert.AnError)
 
 				suite.mock.ExpectQuery(query).
 					WithArgs(10, 0).
@@ -133,7 +132,7 @@ func (suite *DBGetAllTestSuite) TestGetAll() {
 			},
 			want:        nil,
 			wantErr:     true,
-			wantErrType: fmt.Errorf("scan error"),
+			wantErrType: assert.AnError,
 		},
 	}
 

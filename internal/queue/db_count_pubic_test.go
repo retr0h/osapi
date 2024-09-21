@@ -23,7 +23,6 @@ package queue_test
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -79,11 +78,11 @@ func (suite *DBCountPublicTestSuite) TestCount() {
 			setupMock: func() {
 				query := regexp.QuoteMeta("SELECT COUNT(*) FROM goqite")
 				suite.mock.ExpectQuery(query).
-					WillReturnError(fmt.Errorf("query error"))
+					WillReturnError(assert.AnError)
 			},
 			want:        0,
 			wantErr:     true,
-			wantErrType: fmt.Errorf("failed to count rows: query error"),
+			wantErrType: assert.AnError,
 		},
 	}
 	for _, tc := range tests {

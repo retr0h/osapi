@@ -20,7 +20,6 @@ package queue_test
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -90,12 +89,12 @@ func (suite *QueueGetAllIntegrationTestSuite) TestGetQueue() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().GetAll(context.Background(), 10, 0).
-					Return(nil, fmt.Errorf("GetAll error")).AnyTimes()
+					Return(nil, assert.AnError).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"GetAll error"}`,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 		{
 			name: "when Count errors",
@@ -104,12 +103,12 @@ func (suite *QueueGetAllIntegrationTestSuite) TestGetQueue() {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().GetAll(gomock.Any(), 10, 0).Return(nil, nil)
 				mock.EXPECT().Count(context.Background()).
-					Return(0, fmt.Errorf("Count error")).AnyTimes()
+					Return(0, assert.AnError).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"Count error"}`,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 	}
 

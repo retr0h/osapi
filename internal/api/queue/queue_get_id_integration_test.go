@@ -20,7 +20,6 @@ package queue_test
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -100,12 +99,12 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().GetByID(gomock.Any(), "message-id").
-					Return(nil, fmt.Errorf("GetByID error")).AnyTimes()
+					Return(nil, assert.AnError).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"GetByID error"}`,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 	}
 

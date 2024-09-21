@@ -20,7 +20,6 @@ package queue_test
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -92,12 +91,12 @@ func (suite *QueueDeleteIDIntegrationTestSuite) TestDeleteQueueID() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().DeleteByID(context.Background(), "message-id").
-					Return(fmt.Errorf("DeleteByID error")).AnyTimes()
+					Return(assert.AnError).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"DeleteByID error"}`,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 	}
 

@@ -21,7 +21,6 @@
 package network_test
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -91,12 +90,12 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 			setupMock: func() *dnsMocks.MockProvider {
 				mock := dnsMocks.NewPlainMockProvider(suite.ctrl)
 				mock.EXPECT().GetResolvConf().
-					Return(nil, fmt.Errorf("GetResolvConf error")).AnyTimes()
+					Return(nil, assert.AnError).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"GetResolvConf error"}`,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 	}
 

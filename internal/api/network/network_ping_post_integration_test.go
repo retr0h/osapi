@@ -22,7 +22,6 @@ package network_test
 
 import (
 	"bytes"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -116,12 +115,12 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
 				mock.EXPECT().PingHost("example.com").
-					Return(nil, fmt.Errorf("PingHost error")).AnyTimes()
+					Return(nil, assert.AnError).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"PingHost error"}`,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 	}
 
