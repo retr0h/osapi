@@ -27,8 +27,6 @@ import (
 // Provider implements the methods to interact with various system-level
 // components.
 type Provider interface {
-	// GetHostname retrieves the hostname of the system.
-	GetHostname() (string, error)
 	// GetMemoryStats retrieves memory statistics of the system.
 	GetMemoryStats() (*MemoryStats, error)
 	// GetLoadAverageStats retrieves the system load averages.

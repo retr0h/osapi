@@ -33,12 +33,6 @@ func NewDefaultLinuxProvider() *DefaultLinuxSystem {
 	return &DefaultLinuxSystem{}
 }
 
-// GetHostname retrieves the hostname of the system.
-// It returns the hostname as a string, and an error if something goes wrong.
-func (dls *DefaultLinuxSystem) GetHostname() (string, error) {
-	return "", fmt.Errorf("GetHostname is not implemented for DefaultLinuxProvider")
-}
-
 // GetMemoryStats retrieves memory statistics of the system.
 // It returns a MemoryStats struct with total, free, and cached memory in
 // bytes, and an error if something goes wrong.

@@ -29,23 +29,27 @@ import (
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	systemImpl "github.com/retr0h/osapi/internal/provider/system"
+	"github.com/retr0h/osapi/internal/provider/system/hostname"
 )
 
 // GetSystemHandler returns system handler for registration.
 func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 	var systemProvider systemImpl.Provider
+	var hostnameProvider hostname.Provider
 
 	info, _ := host.Info()
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
 		systemProvider = systemImpl.NewUbuntuProvider()
+		hostnameProvider = hostname.NewUbuntuProvider()
 	default:
 		systemProvider = systemImpl.NewDefaultLinuxProvider()
+		hostnameProvider = hostname.NewDefaultLinuxProvider()
 	}
 
 	return []func(e *echo.Echo){
 		func(e *echo.Echo) {
-			systemHandler := system.New(systemProvider)
+			systemHandler := system.New(systemProvider, hostnameProvider)
 			systemGen.RegisterHandlers(e, systemHandler)
 		},
 	}

@@ -18,18 +18,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package hostname
 
 import (
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
+	"fmt"
 )
 
-// System implementation of the System APIs operations.
-type System struct {
-	// SystemProvider implements the methods to interact with various system-level
-	// components.
-	SystemProvider system.Provider
-	// HostnameProvider implements the methods to interact with various hostname components.
-	HostnameProvider hostname.Provider
+// LinuxHostname implements the Hostname interface for Linux.
+type LinuxHostname struct{}
+
+// NewDefaultLinuxProvider factory to create a new Linux instance.
+func NewDefaultLinuxProvider() *LinuxHostname {
+	return &LinuxHostname{}
+}
+
+// Get retrieves the hostname of the system.
+// It returns the hostname as a string, and an error if something goes wrong.
+func (dls *LinuxHostname) Get() (string, error) {
+	return "", fmt.Errorf("Get is not implemented for DefaultLinuxProvider")
 }

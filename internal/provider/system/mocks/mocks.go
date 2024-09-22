@@ -37,7 +37,6 @@ func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
 func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
-	mock.EXPECT().GetHostname().Return("default-hostname", nil).AnyTimes()
 	mock.EXPECT().GetMemoryStats().Return(&system.MemoryStats{
 		Total:  8388608,
 		Free:   4194304,

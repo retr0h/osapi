@@ -23,6 +23,7 @@ package system
 import (
 	"github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/provider/system"
+	"github.com/retr0h/osapi/internal/provider/system/hostname"
 )
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
@@ -31,8 +32,10 @@ var _ gen.ServerInterface = (*System)(nil)
 // New factory to create a new instance.
 func New(
 	sp system.Provider,
+	hp hostname.Provider,
 ) *System {
 	return &System{
-		SystemProvider: sp,
+		SystemProvider:   sp,
+		HostnameProvider: hp,
 	}
 }

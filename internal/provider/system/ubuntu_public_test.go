@@ -54,33 +54,6 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 		wantErrType error
 	}{
 		{
-			name: "when GetHostname Ok",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			fn: func(m *mocks.MockProvider) (interface{}, error) {
-				return m.GetHostname()
-			},
-			want:    "default-hostname",
-			wantErr: false,
-		},
-		{
-			name: "when GetHostname errors",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetHostname().Return("", assert.AnError)
-
-				return mock
-			},
-			fn: func(m *mocks.MockProvider) (interface{}, error) {
-				return m.GetHostname()
-			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
-		},
-		{
 			name: "when GetMemoryStats Ok",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)

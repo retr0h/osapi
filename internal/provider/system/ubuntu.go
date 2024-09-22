@@ -41,16 +41,6 @@ func NewUbuntuProvider() *UbuntuSystem {
 	return &UbuntuSystem{}
 }
 
-// GetHostname retrieves the hostname of the system.
-// It returns the hostname as a string, and an error if something goes wrong.
-func (us *UbuntuSystem) GetHostname() (string, error) {
-	hostInfo, err := host.Info()
-	if err != nil {
-		return "", err
-	}
-	return hostInfo.Hostname, nil
-}
-
 // GetMemoryStats retrieves memory statistics of the system.
 // It returns a MemoryStats struct with total, free, and cached memory in
 // bytes, and an error if something goes wrong.

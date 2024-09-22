@@ -35,6 +35,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
+	hostnameMocks "github.com/retr0h/osapi/internal/provider/system/hostname/mocks"
 	"github.com/retr0h/osapi/internal/provider/system/mocks"
 )
 
@@ -55,17 +56,23 @@ func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
 
 func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	tests := []struct {
-		name      string
-		path      string
-		setupMock func() *mocks.MockProvider
-		wantCode  int
-		wantBody  string
+		name              string
+		path              string
+		setupMock         func() *mocks.MockProvider
+		setupHostnameMock func() *hostnameMocks.MockProvider
+		wantCode          int
+		wantBody          string
 	}{
 		{
 			name: "when get ok",
 			path: "/system/status",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupHostnameMock: func() *hostnameMocks.MockProvider {
+				mock := hostnameMocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -92,15 +99,19 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 }`,
 		},
 		{
-			name: "when GetHostname errors",
+			name: "when hostname.Get errors",
 			path: "/system/status",
 			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetHostname().Return("", assert.AnError)
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
+			setupHostnameMock: func() *hostnameMocks.MockProvider {
+				mock := hostnameMocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().Get().Return("", assert.AnError)
 
+				return mock
+			},
 			wantCode: http.StatusInternalServerError,
 			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
@@ -109,8 +120,9 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
+			hostnameMock := tc.setupHostnameMock()
 			a := api.New(suite.appConfig, suite.logger)
-			systemGen.RegisterHandlers(a.Echo, system.New(mock))
+			systemGen.RegisterHandlers(a.Echo, system.New(mock, hostnameMock))
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()

@@ -35,21 +35,6 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 	return m.recorder
 }
 
-// GetHostname mocks base method.
-func (m *MockProvider) GetHostname() (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHostname")
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetHostname indicates an expected call of GetHostname.
-func (mr *MockProviderMockRecorder) GetHostname() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHostname", reflect.TypeOf((*MockProvider)(nil).GetHostname))
-}
-
 // GetLoadAverageStats mocks base method.
 func (m *MockProvider) GetLoadAverageStats() (*system.LoadAverageStats, error) {
 	m.ctrl.T.Helper()

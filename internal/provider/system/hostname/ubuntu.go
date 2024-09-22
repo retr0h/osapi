@@ -18,18 +18,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package hostname
 
 import (
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
+	"github.com/shirou/gopsutil/v4/host"
 )
 
-// System implementation of the System APIs operations.
-type System struct {
-	// SystemProvider implements the methods to interact with various system-level
-	// components.
-	SystemProvider system.Provider
-	// HostnameProvider implements the methods to interact with various hostname components.
-	HostnameProvider hostname.Provider
+// UbuntuHostname implements the System interface for Ubuntu.
+type UbuntuHostname struct{}
+
+// NewUbuntuProvider factory to create a new Ubuntu instance.
+func NewUbuntuProvider() *UbuntuHostname {
+	return &UbuntuHostname{}
+}
+
+// Get retrieves the hostname of the system.
+// It returns the hostname as a string, and an error if something goes wrong.
+func (u *UbuntuHostname) Get() (string, error) {
+	hostInfo, err := host.Info()
+	if err != nil {
+		return "", err
+	}
+	return hostInfo.Hostname, nil
 }

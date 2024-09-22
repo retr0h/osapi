@@ -34,7 +34,7 @@ import (
 func (s System) GetSystemStatus(
 	ctx echo.Context,
 ) error {
-	hostname, err := s.SystemProvider.GetHostname()
+	hostname, err := s.HostnameProvider.Get()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),
