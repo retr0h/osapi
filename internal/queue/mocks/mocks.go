@@ -37,6 +37,11 @@ const (
 	itemReceived  = 5
 )
 
+// NewPlainMockMessageProcessor creates a Mock without defaults.
+func NewPlainMockMessageProcessor(ctrl *gomock.Controller) *MockMessageProcessor {
+	return NewMockMessageProcessor(ctrl)
+}
+
 // NewPlainMockManager creates a Mock without defaults.
 func NewPlainMockManager(ctrl *gomock.Controller) *MockManager {
 	return NewMockManager(ctrl)

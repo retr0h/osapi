@@ -20,4 +20,5 @@
 
 package mocks
 
-//go:generate go run github.com/golang/mock/mockgen -source=../manager.go -destination=queue.gen.go -package=mocks
+//go:generate go run github.com/golang/mock/mockgen -source=../manager.go -destination=manager.gen.go -package=mocks
+//go:generate go run github.com/golang/mock/mockgen -source=../message_processor.go -destination=message_processor.gen.go -package=mocks

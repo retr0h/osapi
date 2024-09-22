@@ -25,20 +25,25 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/queue"
 	"github.com/retr0h/osapi/internal/queue/helpers"
+	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
 type GetIntegrationTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 
 	qm queue.Manager
 }
 
 func (suite *GetIntegrationTestSuite) SetupTest() {
+	suite.ctrl = gomock.NewController(suite.T())
+
 	qm, err := helpers.SetupDatabase()
 	suite.Require().NoError(err)
 	suite.qm = qm
@@ -63,7 +68,14 @@ func (suite *GetIntegrationTestSuite) TestPutOk() {
 }
 
 func (suite *GetIntegrationTestSuite) TestPutErrorsWhenQueueReceiveFails() {
-	suite.T().Skip("TODO")
+	mock := mocks.NewPlainMockMessageProcessor(suite.ctrl)
+	mock.EXPECT().Receive(context.Background()).
+		Return(nil, assert.AnError)
+
+	suite.qm.SetQueue(mock)
+
+	_, err := suite.qm.Get(context.Background())
+	assert.Error(suite.T(), err)
 }
 
 // In order for `go test` to run this suite, we need to create

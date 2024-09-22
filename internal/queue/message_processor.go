@@ -17,47 +17,23 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+// Provider implements the methods to interact with various system-level
+// components.
 
-package helpers
+package queue
 
 import (
 	"context"
-	"log/slog"
-	"os"
 
-	"github.com/retr0h/osapi/internal/config"
-	"github.com/retr0h/osapi/internal/queue"
+	"github.com/maragudk/goqite"
 )
 
-// SetupDatabase setup database for integration testing.
-func SetupDatabase() (queue.Manager, error) {
-	var qm queue.Manager
-
-	appConfig := config.Config{
-		Queue: config.Queue{
-			Database: config.Database{
-				DriverName:     "sqlite",
-				DataSourceName: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
-				MaxOpenConns:   1,
-				MaxIdleConns:   1,
-			},
-		},
-	}
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
-	db, err := queue.OpenDB(appConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	qm = queue.New(logger, appConfig, db)
-
-	err = qm.SetupSchema(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	qm.SetupQueue()
-
-	return qm, nil
+// MessageProcessor handles sending and deleting messages from the queue.
+type MessageProcessor interface {
+	// Delete a Message from the queue by id.
+	Delete(ctx context.Context, id goqite.ID) error
+	// Receive a Message from the queue, or nil if there is none.
+	Receive(ctx context.Context) (*goqite.Message, error)
+	// Send a Message to the queue with an optional delay.
+	Send(ctx context.Context, message goqite.Message) error
 }

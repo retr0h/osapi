@@ -51,20 +51,6 @@ func (mr *MockManagerMockRecorder) Count(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockManager)(nil).Count), ctx)
 }
 
-// Delete mocks base method.
-func (m *MockManager) Delete(ctx context.Context, msgID goqite.ID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, msgID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete.
-func (mr *MockManagerMockRecorder) Delete(ctx, msgID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockManager)(nil).Delete), ctx, msgID)
-}
-
 // DeleteByID mocks base method.
 func (m *MockManager) DeleteByID(ctx context.Context, messageID string) error {
 	m.ctrl.T.Helper()
@@ -138,12 +124,22 @@ func (mr *MockManagerMockRecorder) Put(ctx, data interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockManager)(nil).Put), ctx, data)
 }
 
-// SetupQueue mocks base method.
-func (m *MockManager) SetupQueue() error {
+// SetQueue mocks base method.
+func (m *MockManager) SetQueue(mp queue.MessageProcessor) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetupQueue")
-	ret0, _ := ret[0].(error)
-	return ret0
+	m.ctrl.Call(m, "SetQueue", mp)
+}
+
+// SetQueue indicates an expected call of SetQueue.
+func (mr *MockManagerMockRecorder) SetQueue(mp interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetQueue", reflect.TypeOf((*MockManager)(nil).SetQueue), mp)
+}
+
+// SetupQueue mocks base method.
+func (m *MockManager) SetupQueue() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetupQueue")
 }
 
 // SetupQueue indicates an expected call of SetupQueue.

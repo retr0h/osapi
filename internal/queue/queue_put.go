@@ -31,7 +31,7 @@ func (q *Queue) Put(
 	ctx context.Context,
 	data []byte,
 ) error {
-	err := q.Queue.Send(ctx, goqite.Message{
+	err := q.MessageProcessor.Send(ctx, goqite.Message{
 		Body: data,
 	})
 	if err != nil {

@@ -49,10 +49,7 @@ var serverStartCmd = &cobra.Command{
 			logFatal("failed to set up database schema", err)
 		}
 
-		err = qm.SetupQueue()
-		if err != nil {
-			logFatal("failed to initalize queue", err)
-		}
+		qm.SetupQueue()
 
 		server := api.New(appConfig, logger)
 		handlers := server.CreateHandlers(appFs, qm)

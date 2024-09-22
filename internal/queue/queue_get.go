@@ -31,7 +31,7 @@ import (
 func (q *Queue) Get(
 	ctx context.Context,
 ) (*goqite.Message, error) {
-	m, err := q.Queue.Receive(ctx)
+	m, err := q.MessageProcessor.Receive(ctx)
 	if err != nil {
 		return nil, err
 	}

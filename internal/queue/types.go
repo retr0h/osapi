@@ -25,7 +25,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/maragudk/goqite"
 	"github.com/retr0h/osapi/internal/config"
 )
 
@@ -34,8 +33,8 @@ type Queue struct {
 	logger    *slog.Logger
 	appConfig config.Config
 
-	DB    *sql.DB
-	Queue *goqite.Queue
+	DB               *sql.DB
+	MessageProcessor MessageProcessor
 }
 
 // Item represents an item in the goqite table.

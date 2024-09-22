@@ -44,10 +44,15 @@ func New(
 }
 
 // SetupQueue sets up the queue with the specified name.
-func (q *Queue) SetupQueue() error {
-	q.Queue = goqite.New(goqite.NewOpts{
+func (q *Queue) SetupQueue() {
+	mp := goqite.New(goqite.NewOpts{
 		DB:   q.DB,
 		Name: "osapi_jobs",
 	})
-	return nil
+	q.SetQueue(mp)
+}
+
+// SetQueue allows setting a custom Queue.
+func (q *Queue) SetQueue(mp MessageProcessor) {
+	q.MessageProcessor = mp
 }

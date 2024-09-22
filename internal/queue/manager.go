@@ -33,7 +33,10 @@ type Manager interface {
 	// SetupSchema setup the schema for use with the queue.
 	SetupSchema(ctx context.Context) error
 	// SetupQueue sets up the queue with the specified name.
-	SetupQueue() error
+	SetupQueue()
+	// SetQueue allows setting a custom Queue.
+	SetQueue(mp MessageProcessor)
+
 	// Get a message from the queue, during which time it's not available to
 	Get(
 		ctx context.Context,

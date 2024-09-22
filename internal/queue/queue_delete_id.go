@@ -33,5 +33,5 @@ func (q *Queue) DeleteByID(
 ) error {
 	iD := goqite.ID(messageID)
 
-	return q.Queue.Delete(ctx, iD)
+	return q.MessageProcessor.Delete(ctx, iD)
 }

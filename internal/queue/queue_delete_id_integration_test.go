@@ -24,20 +24,26 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+	"github.com/maragudk/goqite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/queue"
 	"github.com/retr0h/osapi/internal/queue/helpers"
+	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
 type DeleteByIDIntegrationTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 
 	qm queue.Manager
 }
 
 func (suite *DeleteByIDIntegrationTestSuite) SetupTest() {
+	suite.ctrl = gomock.NewController(suite.T())
+
 	qm, err := helpers.SetupDatabase()
 	suite.Require().NoError(err)
 	suite.qm = qm
@@ -59,14 +65,16 @@ func (suite *DeleteByIDIntegrationTestSuite) TestDeleteByIDOk() {
 	assert.NoError(suite.T(), err)
 }
 
+// NOTE(retr0h): "https://github.com/maragudk/goqite/issues/58"
 func (suite *DeleteByIDIntegrationTestSuite) TestDeleteByIDErrorsWhenQueueDeleteFails() {
-	suite.T().Skip("https://github.com/maragudk/goqite/issues/58")
-
-	err := suite.qm.Put(context.Background(), []byte("testMessage"))
-	assert.NoError(suite.T(), err)
-
 	messageID := "non-existent"
-	err = suite.qm.DeleteByID(context.Background(), messageID)
+	mock := mocks.NewPlainMockMessageProcessor(suite.ctrl)
+	mock.EXPECT().Delete(context.Background(), goqite.ID(messageID)).
+		Return(assert.AnError)
+
+	suite.qm.SetQueue(mock)
+
+	err := suite.qm.DeleteByID(context.Background(), messageID)
 	assert.Error(suite.T(), err)
 }
 
