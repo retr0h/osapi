@@ -38,26 +38,62 @@ type DBGetAllIntegrationTestSuite struct {
 	qm queue.Manager
 }
 
-func (suite *DBGetAllIntegrationTestSuite) SetupTest() {
+func (suite *DBGetAllIntegrationTestSuite) SetupTest() {}
+
+func (suite *DBGetAllIntegrationTestSuite) SetupSubTest() {
+	// NOTE(retr0h): Need to use SetupSubTest when using table driven tests
 	qm, err := helpers.SetupDatabase()
 	suite.Require().NoError(err)
 	suite.qm = qm
 }
 
-func (suite *DBGetAllIntegrationTestSuite) SetupSubTest() {}
-
 func (suite *DBGetAllIntegrationTestSuite) TearDownTest() {}
 
-func (suite *DBGetAllIntegrationTestSuite) TestGetAllOk() {
-	for i := 0; i < 3; i++ {
-		msg := fmt.Sprintf("test message from %s iteration %d", suite.T().Name(), i)
-		err := suite.qm.Put(context.Background(), []byte(msg))
-		assert.NoError(suite.T(), err)
+func (suite *DBGetAllIntegrationTestSuite) TestGetAll() {
+	tests := []struct {
+		name       string
+		totalItems int
+		limit      int
+		offset     int
+		want       int
+		wantErr    bool
+	}{
+		{
+			name:       "when GetAll Ok",
+			totalItems: 3,
+			limit:      10,
+			offset:     0,
+			want:       3,
+		},
+		{
+			name:       "when GetAll handles limit Ok",
+			totalItems: 3,
+			limit:      2,
+			offset:     0,
+			want:       2,
+		},
+		{
+			name:       "when GetAll handles offset Ok",
+			totalItems: 3,
+			limit:      2,
+			offset:     2,
+			want:       1,
+		},
 	}
 
-	got, err := suite.qm.GetAll(context.Background(), 10, 0)
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 3, len(got))
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			for i := 0; i < tc.totalItems; i++ {
+				msg := fmt.Sprintf("test message from %s iteration %d", suite.T().Name(), i)
+				err := suite.qm.Put(context.Background(), []byte(msg))
+				assert.NoError(suite.T(), err)
+			}
+
+			got, err := suite.qm.GetAll(context.Background(), tc.limit, tc.offset)
+			assert.NoError(suite.T(), err)
+			assert.Equal(suite.T(), tc.want, len(got))
+		})
+	}
 }
 
 // In order for `go test` to run this suite, we need to create
