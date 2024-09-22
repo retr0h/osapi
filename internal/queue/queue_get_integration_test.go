@@ -34,14 +34,14 @@ import (
 	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
-type GetIntegrationTestSuite struct {
+type QueueGetIntegrationTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
 	qm queue.Manager
 }
 
-func (suite *GetIntegrationTestSuite) SetupTest() {
+func (suite *QueueGetIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	qm, err := helpers.SetupDatabase()
@@ -49,11 +49,11 @@ func (suite *GetIntegrationTestSuite) SetupTest() {
 	suite.qm = qm
 }
 
-func (suite *GetIntegrationTestSuite) SetupSubTest() {}
+func (suite *QueueGetIntegrationTestSuite) SetupSubTest() {}
 
-func (suite *GetIntegrationTestSuite) TearDownTest() {}
+func (suite *QueueGetIntegrationTestSuite) TearDownTest() {}
 
-func (suite *GetIntegrationTestSuite) TestPutOk() {
+func (suite *QueueGetIntegrationTestSuite) TestGetOk() {
 	for i := 0; i < 3; i++ {
 		msg := fmt.Sprintf("test message from %s iteration %d", suite.T().Name(), i)
 		err := suite.qm.Put(context.Background(), []byte(msg))
@@ -67,7 +67,7 @@ func (suite *GetIntegrationTestSuite) TestPutOk() {
 	assert.Equal(suite.T(), want, string(got.Body))
 }
 
-func (suite *GetIntegrationTestSuite) TestPutErrorsWhenQueueReceiveFails() {
+func (suite *QueueGetIntegrationTestSuite) TestPutErrorsWhenQueueReceiveFails() {
 	mock := mocks.NewPlainMockMessageProcessor(suite.ctrl)
 	mock.EXPECT().Receive(context.Background()).
 		Return(nil, assert.AnError)
@@ -80,6 +80,6 @@ func (suite *GetIntegrationTestSuite) TestPutErrorsWhenQueueReceiveFails() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestGetIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(GetIntegrationTestSuite))
+func TestQueueGetIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(QueueGetIntegrationTestSuite))
 }

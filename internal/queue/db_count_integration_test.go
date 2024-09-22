@@ -25,36 +25,30 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"github.com/maragudk/goqite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/queue"
 	"github.com/retr0h/osapi/internal/queue/helpers"
-	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
-type QueueIntegrationTestSuite struct {
+type DBCountIntegrationTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
 
 	qm queue.Manager
 }
 
-func (suite *QueueIntegrationTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
-
+func (suite *DBCountIntegrationTestSuite) SetupTest() {
 	qm, err := helpers.SetupDatabase()
 	suite.Require().NoError(err)
 	suite.qm = qm
 }
 
-func (suite *QueueIntegrationTestSuite) SetupSubTest() {}
+func (suite *DBCountIntegrationTestSuite) SetupSubTest() {}
 
-func (suite *QueueIntegrationTestSuite) TearDownTest() {}
+func (suite *DBCountIntegrationTestSuite) TearDownTest() {}
 
-func (suite *QueueIntegrationTestSuite) TestPutOk() {
+func (suite *DBCountIntegrationTestSuite) TestCountOk() {
 	for i := 0; i < 3; i++ {
 		msg := fmt.Sprintf("test message from %s iteration %d", suite.T().Name(), i)
 		err := suite.qm.Put(context.Background(), []byte(msg))
@@ -66,21 +60,8 @@ func (suite *QueueIntegrationTestSuite) TestPutOk() {
 	assert.Equal(suite.T(), 3, got)
 }
 
-func (suite *QueueIntegrationTestSuite) TestPutErrorsWhenQueueSendFails() {
-	messageBody := "test"
-	mock := mocks.NewPlainMockMessageProcessor(suite.ctrl)
-	mock.EXPECT().Send(context.Background(), goqite.Message{
-		Body: []byte(messageBody),
-	}).Return(assert.AnError)
-
-	suite.qm.SetQueue(mock)
-
-	err := suite.qm.Put(context.Background(), []byte(messageBody))
-	assert.Error(suite.T(), err)
-}
-
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestQueueIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(QueueIntegrationTestSuite))
+func TestDBCountIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(DBCountIntegrationTestSuite))
 }

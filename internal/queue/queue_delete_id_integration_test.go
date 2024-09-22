@@ -34,14 +34,14 @@ import (
 	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
-type DeleteByIDIntegrationTestSuite struct {
+type QueueDeleteByIDIntegrationTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
 	qm queue.Manager
 }
 
-func (suite *DeleteByIDIntegrationTestSuite) SetupTest() {
+func (suite *QueueDeleteByIDIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	qm, err := helpers.SetupDatabase()
@@ -49,11 +49,11 @@ func (suite *DeleteByIDIntegrationTestSuite) SetupTest() {
 	suite.qm = qm
 }
 
-func (suite *DeleteByIDIntegrationTestSuite) SetupSubTest() {}
+func (suite *QueueDeleteByIDIntegrationTestSuite) SetupSubTest() {}
 
-func (suite *DeleteByIDIntegrationTestSuite) TearDownTest() {}
+func (suite *QueueDeleteByIDIntegrationTestSuite) TearDownTest() {}
 
-func (suite *DeleteByIDIntegrationTestSuite) TestDeleteByIDOk() {
+func (suite *QueueDeleteByIDIntegrationTestSuite) TestDeleteByIDOk() {
 	err := suite.qm.Put(context.Background(), []byte("testMessage"))
 	assert.NoError(suite.T(), err)
 
@@ -66,7 +66,7 @@ func (suite *DeleteByIDIntegrationTestSuite) TestDeleteByIDOk() {
 }
 
 // NOTE(retr0h): "https://github.com/maragudk/goqite/issues/58"
-func (suite *DeleteByIDIntegrationTestSuite) TestDeleteByIDErrorsWhenQueueDeleteFails() {
+func (suite *QueueDeleteByIDIntegrationTestSuite) TestDeleteByIDErrorsWhenQueueDeleteFails() {
 	messageID := "non-existent"
 	mock := mocks.NewPlainMockMessageProcessor(suite.ctrl)
 	mock.EXPECT().Delete(context.Background(), goqite.ID(messageID)).
@@ -80,6 +80,6 @@ func (suite *DeleteByIDIntegrationTestSuite) TestDeleteByIDErrorsWhenQueueDelete
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDeleteByIDIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(DeleteByIDIntegrationTestSuite))
+func TestQueueDeleteByIDIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(QueueDeleteByIDIntegrationTestSuite))
 }

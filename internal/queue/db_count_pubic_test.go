@@ -55,7 +55,7 @@ func (suite *DBCountPublicTestSuite) TearDownTest() {
 	suite.Require().NoError(suite.mock.ExpectationsWereMet())
 }
 
-func (suite *DBCountPublicTestSuite) TestCount() {
+func (suite *DBCountPublicTestSuite) TestCountOk() {
 	tests := []struct {
 		name        string
 		setupMock   func()

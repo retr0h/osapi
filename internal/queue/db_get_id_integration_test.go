@@ -25,62 +25,49 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"github.com/maragudk/goqite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/queue"
 	"github.com/retr0h/osapi/internal/queue/helpers"
-	"github.com/retr0h/osapi/internal/queue/mocks"
 )
 
-type QueueIntegrationTestSuite struct {
+type DBGetIDIntegrationTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
 
 	qm queue.Manager
 }
 
-func (suite *QueueIntegrationTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
-
+func (suite *DBGetIDIntegrationTestSuite) SetupTest() {
 	qm, err := helpers.SetupDatabase()
 	suite.Require().NoError(err)
 	suite.qm = qm
 }
 
-func (suite *QueueIntegrationTestSuite) SetupSubTest() {}
+func (suite *DBGetIDIntegrationTestSuite) SetupSubTest() {}
 
-func (suite *QueueIntegrationTestSuite) TearDownTest() {}
+func (suite *DBGetIDIntegrationTestSuite) TearDownTest() {}
 
-func (suite *QueueIntegrationTestSuite) TestPutOk() {
+func (suite *DBGetIDIntegrationTestSuite) TestGetByIDOk() {
 	for i := 0; i < 3; i++ {
 		msg := fmt.Sprintf("test message from %s iteration %d", suite.T().Name(), i)
 		err := suite.qm.Put(context.Background(), []byte(msg))
 		assert.NoError(suite.T(), err)
 	}
 
-	got, err := suite.qm.Count(context.Background())
+	items, err := suite.qm.GetAll(context.Background(), 10, 0)
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 3, got)
-}
 
-func (suite *QueueIntegrationTestSuite) TestPutErrorsWhenQueueSendFails() {
-	messageBody := "test"
-	mock := mocks.NewPlainMockMessageProcessor(suite.ctrl)
-	mock.EXPECT().Send(context.Background(), goqite.Message{
-		Body: []byte(messageBody),
-	}).Return(assert.AnError)
+	item := items[0]
+	got, err := suite.qm.GetByID(context.Background(), item.ID)
+	assert.NoError(suite.T(), err)
 
-	suite.qm.SetQueue(mock)
-
-	err := suite.qm.Put(context.Background(), []byte(messageBody))
-	assert.Error(suite.T(), err)
+	want := fmt.Sprintf("test message from %s iteration %d", suite.T().Name(), 0)
+	assert.Equal(suite.T(), want, string(got.Body))
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestQueueIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(QueueIntegrationTestSuite))
+func TestDBGetIDIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(DBGetIDIntegrationTestSuite))
 }
