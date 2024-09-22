@@ -18,32 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package ping
 
-import (
-	"time"
-)
+// PingLinux implements the Ping interface for Linux.
+type PingLinux struct{}
 
-// DNSConfig represents the DNS configuration with servers and search domains.
-type DNSConfig struct {
-	// List of DNS server IP addresses (IPv4 or IPv6)
-	DNSServers []string
-	// List of search domains for DNS resolution
-	SearchDomains []string
-}
-
-// PingResult represents custom ping result details.
-type PingResult struct {
-	// Number of packets sent
-	PacketsSent int
-	// Number of packets received
-	PacketsReceived int
-	// Percentage of packet loss
-	PacketLoss float64
-	// Minimum round-trip time
-	MinRTT time.Duration
-	// Average round-trip time
-	AvgRTT time.Duration
-	// Maximum round-trip time
-	MaxRTT time.Duration
+// NewDefaultLinuxProvider factory to create a new Linux instance.
+func NewDefaultLinuxProvider() *PingLinux {
+	return &PingLinux{}
 }

@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	network "github.com/retr0h/osapi/internal/provider/network"
+	ping "github.com/retr0h/osapi/internal/provider/network/ping"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -35,10 +35,10 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 }
 
 // PingHost mocks base method.
-func (m *MockProvider) PingHost(address string) (*network.PingResult, error) {
+func (m *MockProvider) PingHost(address string) (*ping.PingResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PingHost", address)
-	ret0, _ := ret[0].(*network.PingResult)
+	ret0, _ := ret[0].(*ping.PingResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

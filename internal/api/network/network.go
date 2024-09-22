@@ -22,8 +22,8 @@ package network
 
 import (
 	"github.com/retr0h/osapi/internal/api/network/gen"
-	"github.com/retr0h/osapi/internal/provider/network"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
+	"github.com/retr0h/osapi/internal/provider/network/ping"
 )
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
@@ -31,11 +31,11 @@ var _ gen.ServerInterface = (*Network)(nil)
 
 // New factory to create a new instance.
 func New(
-	np network.Provider,
+	pp ping.Provider,
 	dnsp dns.Provider,
 ) *Network {
 	return &Network{
-		NetworkProvider: np,
-		DNSProvider:     dnsp,
+		PingProvider: pp,
+		DNSProvider:  dnsp,
 	}
 }

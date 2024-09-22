@@ -29,30 +29,30 @@ import (
 
 	"github.com/retr0h/osapi/internal/api/network"
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
-	networkImpl "github.com/retr0h/osapi/internal/provider/network"
-	dnsImpl "github.com/retr0h/osapi/internal/provider/network/dns"
+	"github.com/retr0h/osapi/internal/provider/network/dns"
+	"github.com/retr0h/osapi/internal/provider/network/ping"
 )
 
 // GetNetworkHandler returns network handler for registration.
 func (s *Server) GetNetworkHandler(
 	appFs afero.Fs,
 ) []func(e *echo.Echo) {
-	var networkProvider networkImpl.Provider
-	var dnsProvider dnsImpl.Provider
+	var pingProvider ping.Provider
+	var dnsProvider dns.Provider
 
 	info, _ := host.Info()
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
-		networkProvider = networkImpl.NewUbuntuProvider(appFs)
-		dnsProvider = dnsImpl.NewUbuntuProvider(appFs)
+		pingProvider = ping.NewUbuntuProvider(appFs)
+		dnsProvider = dns.NewUbuntuProvider(appFs)
 	default:
-		networkProvider = networkImpl.NewDefaultLinuxProvider()
-		dnsProvider = dnsImpl.NewDefaultLinuxProvider()
+		pingProvider = ping.NewDefaultLinuxProvider()
+		dnsProvider = dns.NewDefaultLinuxProvider()
 	}
 
 	return []func(e *echo.Echo){
 		func(e *echo.Echo) {
-			networkHandler := network.New(networkProvider, dnsProvider)
+			networkHandler := network.New(pingProvider, dnsProvider)
 			networkGen.RegisterHandlers(e, networkHandler)
 		},
 	}

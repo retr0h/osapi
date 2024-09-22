@@ -32,11 +32,11 @@ import (
 // CreateHandlers initializes handlers and returns a slice of functions to register them.
 func (s *Server) CreateHandlers(
 	appFs afero.Fs,
-	qm queueImpl.Manager,
+	queueManager queueImpl.Manager,
 ) []func(e *echo.Echo) {
 	handlers := []func(e *echo.Echo){
 		func(e *echo.Echo) {
-			queueHandler := queue.New(qm)
+			queueHandler := queue.New(queueManager)
 			queueGen.RegisterHandlers(e, queueHandler)
 		},
 	}

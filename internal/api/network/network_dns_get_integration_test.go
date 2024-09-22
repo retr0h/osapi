@@ -35,8 +35,8 @@ import (
 	"github.com/retr0h/osapi/internal/api/network"
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/config"
-	dnsMocks "github.com/retr0h/osapi/internal/provider/network/dns/mocks"
-	networkMocks "github.com/retr0h/osapi/internal/provider/network/mocks"
+	"github.com/retr0h/osapi/internal/provider/network/dns/mocks"
+	pingMocks "github.com/retr0h/osapi/internal/provider/network/ping/mocks"
 )
 
 type NetworkDNSIntegrationTestSuite struct {
@@ -58,15 +58,15 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 	tests := []struct {
 		name      string
 		path      string
-		setupMock func() *dnsMocks.MockProvider
+		setupMock func() *mocks.MockProvider
 		wantCode  int
 		wantBody  string
 	}{
 		{
 			name: "when get ok",
 			path: "/network/dns",
-			setupMock: func() *dnsMocks.MockProvider {
-				mock := dnsMocks.NewDefaultMockProvider(suite.ctrl)
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -87,8 +87,8 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 		{
 			name: "when GetResolvConf errors",
 			path: "/network/dns",
-			setupMock: func() *dnsMocks.MockProvider {
-				mock := dnsMocks.NewPlainMockProvider(suite.ctrl)
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewPlainMockProvider(suite.ctrl)
 				mock.EXPECT().GetResolvConf().
 					Return(nil, assert.AnError).AnyTimes()
 
@@ -101,11 +101,11 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			networkMock := networkMocks.NewDefaultMockProvider(suite.ctrl)
+			pingMock := pingMocks.NewDefaultMockProvider(suite.ctrl)
 			dnsMock := tc.setupMock()
 
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(networkMock, dnsMock))
+			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock))
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()

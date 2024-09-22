@@ -18,13 +18,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package mocks
 
 import (
-	"fmt"
+	"time"
+
+	"github.com/golang/mock/gomock"
+
+	"github.com/retr0h/osapi/internal/provider/network/ping"
 )
 
-// PingHost pings the given host and returns the ping statistics or an error.
-func (dun *DefaultLinuxNetwork) PingHost(_ string) (*PingResult, error) {
-	return nil, fmt.Errorf("PingHost is not implemented for DefaultLinuxProvider")
+// NewPlainMockProvider creates a Mock without defaults.
+func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+	return NewMockProvider(ctrl)
+}
+
+// NewDefaultMockProvider creates a Mock with defaults.
+func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+	mock := NewMockProvider(ctrl)
+
+	mock.EXPECT().PingHost("example.com").Return(&ping.PingResult{
+		PacketsSent:     3,
+		PacketsReceived: 3,
+		PacketLoss:      0,
+		MinRTT:          10 * time.Millisecond,
+		AvgRTT:          15 * time.Millisecond,
+		MaxRTT:          20 * time.Millisecond,
+	}, nil).AnyTimes()
+
+	return mock
 }

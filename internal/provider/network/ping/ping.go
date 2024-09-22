@@ -18,22 +18,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package ping
 
 import (
-	"github.com/spf13/afero"
+	"time"
 )
 
-// UbuntuNetwork implements the Network interface for Ubuntu.
-type UbuntuNetwork struct {
-	appFs afero.Fs
-}
-
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	appFs afero.Fs,
-) *UbuntuNetwork {
-	return &UbuntuNetwork{
-		appFs: appFs,
-	}
+// PingResult represents custom ping result details.
+type PingResult struct {
+	// Number of packets sent
+	PacketsSent int
+	// Number of packets received
+	PacketsReceived int
+	// Percentage of packet loss
+	PacketLoss float64
+	// Minimum round-trip time
+	MinRTT time.Duration
+	// Average round-trip time
+	AvgRTT time.Duration
+	// Maximum round-trip time
+	MaxRTT time.Duration
 }

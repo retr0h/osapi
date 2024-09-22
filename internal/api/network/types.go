@@ -21,15 +21,14 @@
 package network
 
 import (
-	"github.com/retr0h/osapi/internal/provider/network"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
+	"github.com/retr0h/osapi/internal/provider/network/ping"
 )
 
 // Network implementation of the System APIs operations.
 type Network struct {
-	// NetworkProvider implements the methods to interact with various network-level
-	// components.
-	NetworkProvider network.Provider
+	// Provider implements the methods to interact with various ping components.
+	PingProvider ping.Provider
 	// Provider implements the methods to interact with various dns components.
 	DNSProvider dns.Provider
 }

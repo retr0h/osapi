@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network_test
+package ping_test
 
 import (
 	"testing"
@@ -29,8 +29,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/provider/network"
-	"github.com/retr0h/osapi/internal/provider/network/mocks"
+	"github.com/retr0h/osapi/internal/provider/network/ping"
+	"github.com/retr0h/osapi/internal/provider/network/ping/mocks"
 )
 
 type UbuntuPingPublicTestSuite struct {
@@ -59,7 +59,7 @@ func (suite *UbuntuPingPublicTestSuite) TestPingHost() {
 		name        string
 		setupMock   func() *mocks.MockProvider
 		address     string
-		want        *network.PingResult
+		want        *ping.PingResult
 		wantErr     bool
 		wantErrType error
 	}{
@@ -71,7 +71,7 @@ func (suite *UbuntuPingPublicTestSuite) TestPingHost() {
 
 				return mock
 			},
-			want: &network.PingResult{
+			want: &ping.PingResult{
 				PacketsSent:     3,
 				PacketsReceived: 3,
 				PacketLoss:      0,

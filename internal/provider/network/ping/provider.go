@@ -18,12 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package ping
 
-// DefaultLinuxNetwork implements the Network interface for Linux.
-type DefaultLinuxNetwork struct{}
-
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *DefaultLinuxNetwork {
-	return &DefaultLinuxNetwork{}
+// Provider implements the methods to interact with various ping components.
+type Provider interface {
+	// PingHost pings the given host and returns the ping statistics or an error.
+	PingHost(address string) (*PingResult, error)
 }

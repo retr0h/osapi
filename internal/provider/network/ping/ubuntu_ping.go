@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package ping
 
 import (
 	"context"
@@ -41,7 +41,7 @@ import (
 //  1. Run the binary as root, or
 //  2. Set capabilities on the binary to allow raw socket usage:
 //     sudo setcap cap_net_raw=+ep /path/to/your/compiled/binary
-func (un *UbuntuNetwork) PingHost(address string) (*PingResult, error) {
+func (u *UbuntuPing) PingHost(address string) (*PingResult, error) {
 	pinger, err := probing.NewPinger(address)
 	timeout := 5 * time.Second
 

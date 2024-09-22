@@ -18,11 +18,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package network
+package ping
 
-// Provider implements the methods to interact with various system-level
-// components.
-type Provider interface {
-	// PingHost pings the given host and returns the ping statistics or an error.
-	PingHost(address string) (*PingResult, error)
+import (
+	"github.com/spf13/afero"
+)
+
+// UbuntuPing implements the Ping interface for Ubuntu.
+type UbuntuPing struct {
+	appFs afero.Fs
+}
+
+// NewUbuntuProvider factory to create a new Ubuntu instance.
+func NewUbuntuProvider(
+	appFs afero.Fs,
+) *UbuntuPing {
+	return &UbuntuPing{
+		appFs: appFs,
+	}
 }
