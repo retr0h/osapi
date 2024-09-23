@@ -14,7 +14,7 @@ require (
 	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/prometheus-community/pro-bing v0.4.1
-	github.com/samber/slog-echo v1.14.6
+	github.com/samber/slog-echo v1.14.7
 	github.com/shirou/gopsutil/v4 v4.24.8
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
