@@ -18,30 +18,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mocks
 
 import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
+	"github.com/golang/mock/gomock"
+
 	"github.com/retr0h/osapi/internal/provider/system/disk"
-	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
 
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*System)(nil)
+// NewPlainMockProvider creates a Mock without defaults.
+func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+	return NewMockProvider(ctrl)
+}
 
-// New factory to create a new instance.
-func New(
-	mp mem.Provider,
-	lp load.Provider,
-	hp host.Provider,
-	dp disk.Provider,
-) *System {
-	return &System{
-		MemProvider:  mp,
-		LoadProvider: lp,
-		HostProvider: hp,
-		DiskProvider: dp,
-	}
+// NewDefaultMockProvider creates a Mock with defaults.
+func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+	mock := NewMockProvider(ctrl)
+
+	mock.EXPECT().GetLocalUsageStats().Return([]disk.UsageStats{
+		{
+			Name:  "/dev/disk1",
+			Total: 500000000000,
+			Used:  250000000000,
+			Free:  250000000000,
+		},
+	}, nil).AnyTimes()
+
+	return mock
 }

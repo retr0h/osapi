@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system_test
+package disk_test
 
 import (
 	"testing"
@@ -27,41 +27,37 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/mocks"
+	"github.com/retr0h/osapi/internal/provider/system/disk"
+	"github.com/retr0h/osapi/internal/provider/system/disk/mocks"
 )
 
-type UbuntuPublicTestSuite struct {
+type UbuntuLocalUsagePublicTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuPublicTestSuite) SetupTest() {
+func (suite *UbuntuLocalUsagePublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuLocalUsagePublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
+func (suite *UbuntuLocalUsagePublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {
 		name        string
 		setupMock   func() *mocks.MockProvider
-		fn          func(*mocks.MockProvider) (interface{}, error)
 		want        interface{}
 		wantErr     bool
 		wantErrType error
 	}{
 		{
-			name: "when GetLocalDiskStats Ok",
+			name: "when GetLocalUsageStats Ok",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			fn: func(m *mocks.MockProvider) (interface{}, error) {
-				return m.GetLocalDiskStats()
-			},
-			want: []system.DiskUsageStats{
+			want: []disk.UsageStats{
 				{
 					Name:  "/dev/disk1",
 					Total: 500000000000,
@@ -72,15 +68,12 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 			wantErr: false,
 		},
 		{
-			name: "when GetLocalDiskStats errors",
+			name: "when GetLocalUsageStats errors",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetLocalDiskStats().Return(nil, assert.AnError)
+				mock.EXPECT().GetLocalUsageStats().Return(nil, assert.AnError)
 
 				return mock
-			},
-			fn: func(m *mocks.MockProvider) (interface{}, error) {
-				return m.GetLocalDiskStats()
 			},
 			wantErr:     true,
 			wantErrType: assert.AnError,
@@ -90,7 +83,7 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := tc.fn(mock)
+			got, err := mock.GetLocalUsageStats()
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
@@ -105,6 +98,6 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuPublicTestSuite))
+func TestUbuntuLocalUsagePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuLocalUsagePublicTestSuite))
 }

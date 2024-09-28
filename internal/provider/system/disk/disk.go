@@ -18,30 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package disk
 
-import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system/disk"
-	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
-)
-
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*System)(nil)
-
-// New factory to create a new instance.
-func New(
-	mp mem.Provider,
-	lp load.Provider,
-	hp host.Provider,
-	dp disk.Provider,
-) *System {
-	return &System{
-		MemProvider:  mp,
-		LoadProvider: lp,
-		HostProvider: hp,
-		DiskProvider: dp,
-	}
+// UsageStats holds information about disk space usage.
+type UsageStats struct {
+	// Disk identifier, e.g., "/dev/sda1"
+	Name string
+	// Total disk space in bytes
+	Total uint64
+	// Used disk space in bytes
+	Used uint64
+	// Free disk space in bytes
+	Free uint64
 }

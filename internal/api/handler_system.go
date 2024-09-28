@@ -28,7 +28,7 @@ import (
 
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
-	systemImpl "github.com/retr0h/osapi/internal/provider/system"
+	"github.com/retr0h/osapi/internal/provider/system/disk"
 	"github.com/retr0h/osapi/internal/provider/system/host"
 	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
@@ -36,32 +36,32 @@ import (
 
 // GetSystemHandler returns system handler for registration.
 func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
-	var systemProvider systemImpl.Provider
 	var memProvider mem.Provider
 	var loadProvider load.Provider
 	var hostProvider host.Provider
+	var diskProvider disk.Provider
 
 	info, _ := sysHost.Info()
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
-		systemProvider = systemImpl.NewUbuntuProvider()
 		memProvider = mem.NewUbuntuProvider()
 		loadProvider = load.NewUbuntuProvider()
 		hostProvider = host.NewUbuntuProvider()
+		diskProvider = disk.NewUbuntuProvider()
 	default:
-		systemProvider = systemImpl.NewDefaultLinuxProvider()
 		memProvider = mem.NewDefaultLinuxProvider()
 		loadProvider = load.NewDefaultLinuxProvider()
 		hostProvider = host.NewDefaultLinuxProvider()
+		diskProvider = disk.NewDefaultLinuxProvider()
 	}
 
 	return []func(e *echo.Echo){
 		func(e *echo.Echo) {
 			systemHandler := system.New(
-				systemProvider,
 				memProvider,
 				loadProvider,
 				hostProvider,
+				diskProvider,
 			)
 			systemGen.RegisterHandlers(e, systemHandler)
 		},

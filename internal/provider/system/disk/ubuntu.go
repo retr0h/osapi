@@ -18,16 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package disk
 
-// DiskUsageStats holds information about disk space usage.
-type DiskUsageStats struct {
-	// Disk identifier, e.g., "/dev/sda1"
-	Name string
-	// Total disk space in bytes
-	Total uint64
-	// Used disk space in bytes
-	Used uint64
-	// Free disk space in bytes
-	Free uint64
+// Ubuntu implements the Mem interface for Ubuntu.
+type Ubuntu struct{}
+
+// NewUbuntuProvider factory to create a new Ubuntu instance.
+func NewUbuntuProvider() *Ubuntu {
+	return &Ubuntu{}
 }

@@ -18,24 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package disk
 
-import (
-	"fmt"
-)
-
-// DefaultLinuxSystem implements the System interface for Linux.
-type DefaultLinuxSystem struct{}
+// Linux implements the Disk interface for Linux.
+type Linux struct{}
 
 // NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *DefaultLinuxSystem {
-	return &DefaultLinuxSystem{}
-}
-
-// GetLocalDiskStats retrieves disk space statistics for local disks only.
-// It returns a slice of DiskUsageStats structs, each containing the total, used,
-// and free space in bytes for the corresponding local disk.
-// An error is returned if somethng goes wrong.
-func (dls *DefaultLinuxSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
-	return nil, fmt.Errorf("GetLocalDiskStats is not implemented for DefaultLinuxProvider")
+func NewDefaultLinuxProvider() *Linux {
+	return &Linux{}
 }

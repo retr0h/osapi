@@ -18,31 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package mocks
+package disk
 
 import (
-	"github.com/golang/mock/gomock"
-
-	"github.com/retr0h/osapi/internal/provider/system"
+	"fmt"
 )
 
-// NewPlainMockProvider creates a Mock without defaults.
-func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
-	return NewMockProvider(ctrl)
-}
-
-// NewDefaultMockProvider creates a Mock with defaults.
-func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
-	mock := NewMockProvider(ctrl)
-
-	mock.EXPECT().GetLocalDiskStats().Return([]system.DiskUsageStats{
-		{
-			Name:  "/dev/disk1",
-			Total: 500000000000,
-			Used:  250000000000,
-			Free:  250000000000,
-		},
-	}, nil).AnyTimes()
-
-	return mock
+// GetLocalUsageStats retrieves disk space statistics for local disks only.
+// It returns a slice of UsageStats structs, each containing the total, used,
+// and free space in bytes for the corresponding local disk.
+// An error is returned if somethng goes wrong.
+func (l *Linux) GetLocalUsageStats() ([]UsageStats, error) {
+	return nil, fmt.Errorf("GetLocalUsageStats is not implemented for DefaultLinuxProvider")
 }

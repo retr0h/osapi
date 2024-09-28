@@ -21,7 +21,7 @@
 package system
 
 import (
-	"github.com/retr0h/osapi/internal/provider/system"
+	"github.com/retr0h/osapi/internal/provider/system/disk"
 	"github.com/retr0h/osapi/internal/provider/system/host"
 	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
@@ -29,13 +29,12 @@ import (
 
 // System implementation of the System APIs operations.
 type System struct {
-	// SystemProvider implements the methods to interact with various system-level
-	// components.
-	SystemProvider system.Provider
 	// MemProvider implements the methods to interact with various mem components.
 	MemProvider mem.Provider
 	// LoadProvider implements the methods to interact with various load components.
 	LoadProvider load.Provider
 	// HostProvider implements the methods to interact with various host components.
 	HostProvider host.Provider
+	// DiskProvider implements the methods to interact with various host components.
+	DiskProvider disk.Provider
 }

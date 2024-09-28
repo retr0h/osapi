@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	system "github.com/retr0h/osapi/internal/provider/system"
+	disk "github.com/retr0h/osapi/internal/provider/system/disk"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -34,17 +34,17 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 	return m.recorder
 }
 
-// GetLocalDiskStats mocks base method.
-func (m *MockProvider) GetLocalDiskStats() ([]system.DiskUsageStats, error) {
+// GetLocalUsageStats mocks base method.
+func (m *MockProvider) GetLocalUsageStats() ([]disk.UsageStats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLocalDiskStats")
-	ret0, _ := ret[0].([]system.DiskUsageStats)
+	ret := m.ctrl.Call(m, "GetLocalUsageStats")
+	ret0, _ := ret[0].([]disk.UsageStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLocalDiskStats indicates an expected call of GetLocalDiskStats.
-func (mr *MockProviderMockRecorder) GetLocalDiskStats() *gomock.Call {
+// GetLocalUsageStats indicates an expected call of GetLocalUsageStats.
+func (mr *MockProviderMockRecorder) GetLocalUsageStats() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocalDiskStats", reflect.TypeOf((*MockProvider)(nil).GetLocalDiskStats))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocalUsageStats", reflect.TypeOf((*MockProvider)(nil).GetLocalUsageStats))
 }

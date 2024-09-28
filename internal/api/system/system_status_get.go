@@ -62,7 +62,7 @@ func (s System) GetSystemStatus(
 		})
 	}
 
-	diskStats, err := s.SystemProvider.GetLocalDiskStats()
+	diskStats, err := s.DiskProvider.GetLocalUsageStats()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),

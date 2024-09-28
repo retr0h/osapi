@@ -18,11 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package disk
 
-// Provider implements the methods to interact with various system-level
-// components.
+// Provider implements the methods to interact with various Disk components.
 type Provider interface {
-	// GetLocalDiskStats retrieves disk space statistics.
-	GetLocalDiskStats() ([]DiskUsageStats, error)
+	// GetLocalUsageStats retrieves disk space statistics.
+	GetLocalUsageStats() ([]UsageStats, error)
 }

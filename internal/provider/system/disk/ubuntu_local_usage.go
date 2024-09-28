@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package disk
 
 import (
 	"fmt"
@@ -29,28 +29,20 @@ import (
 	"github.com/shirou/gopsutil/v4/disk"
 )
 
-// UbuntuSystem implements the System interface for Ubuntu.
-type UbuntuSystem struct{}
-
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider() *UbuntuSystem {
-	return &UbuntuSystem{}
-}
-
-// GetLocalDiskStats retrieves disk space statistics for local disks only.
-// It returns a slice of DiskUsageStats structs, each containing the total, used,
+// GetLocalUsageStats retrieves disk space statistics for local disks only.
+// It returns a slice of UsageStats structs, each containing the total, used,
 // and free space in bytes for the corresponding local disk.
 // It gracefully skips partitions where a permission error occurs (e.g., for mounts
 // that the user cannot access without root privileges), and continues processing
 // the remaining partitions.
 // If a non-permission-related error occurs, the function returns an error.
-func (us *UbuntuSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
+func (u *Ubuntu) GetLocalUsageStats() ([]UsageStats, error) {
 	partitions, err := disk.Partitions(false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get disk partitions: %w", err)
 	}
 
-	diskSpaces := make([]DiskUsageStats, 0, len(partitions))
+	diskSpaces := make([]UsageStats, 0, len(partitions))
 	for _, partition := range partitions {
 		// Skip non-local devices, network-mounted partitions, Docker, and Kubernetes mounts
 		if partition.Device == "" || partition.Fstype == "" || !isLocalPartition(partition) {
@@ -59,10 +51,6 @@ func (us *UbuntuSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
 
 		usage, err := disk.Usage(partition.Mountpoint)
 		if err != nil {
-			fmt.Println(err)
-			fmt.Println(err)
-			fmt.Println(err)
-			fmt.Println(err)
 			if isPermissionError(err) {
 				fmt.Printf(
 					"Skipping partition %s due to permission error: %v\n",
@@ -74,7 +62,7 @@ func (us *UbuntuSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
 			return nil, fmt.Errorf("failed to get disk usage for %s: %w", partition.Mountpoint, err)
 		}
 
-		diskSpaces = append(diskSpaces, DiskUsageStats{
+		diskSpaces = append(diskSpaces, UsageStats{
 			Total: usage.Total,
 			Used:  usage.Used,
 			Free:  usage.Free,
@@ -119,28 +107,3 @@ func isLocalPartition(partition disk.PartitionStat) bool {
 
 	return localFileSystems[partition.Fstype]
 }
-
-// // isDockerOrKubernetesMount checks if the mount point is used by Docker, Kubernetes, or other virtual filesystems.
-// func isDockerOrKubernetesMount(partition disk.PartitionStat) bool {
-// 	// Filter by filesystem type
-// 	dockerK8sFsTypes := map[string]bool{
-// 		"tmpfs":    true, // Common in Kubernetes for ephemeral storage
-// 		"overlay":  true, // Used by Docker
-// 		"aufs":     true, // Used by Docker
-// 		"devtmpfs": true, // Device filesystems
-// 		"proc":     true, // Process filesystems
-// 		"sysfs":    true, // System filesystems
-// 	}
-
-// 	// If the filesystem type matches a known Docker/Kubernetes type, skip it
-// 	if dockerK8sFsTypes[partition.Fstype] {
-// 		return true
-// 	}
-
-// 	// Also filter by mount paths for Docker and Kubernetes
-// 	if strings.HasPrefix(partition.Mountpoint, "/var/lib/docker") || strings.HasPrefix(partition.Mountpoint, "/var/lib/kubelet") {
-// 		return true
-// 	}
-
-// 	return false
-// }
