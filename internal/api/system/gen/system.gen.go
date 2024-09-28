@@ -25,6 +25,12 @@ type Disk struct {
 // Disks List of local disk usage information.
 type Disks = []Disk
 
+// Hostname The hostname of the system.
+type Hostname struct {
+	// Hostname The system's hostname.
+	Hostname string `json:"hostname"`
+}
+
 // LoadAverage The system load averages for 1, 5, and 15 minutes.
 type LoadAverage struct {
 	// N15min Load average for the last 15 minutes.
@@ -81,6 +87,9 @@ type SystemErrorResponse struct {
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Retrieve system hostname
+	// (GET /system/hostname)
+	GetSystemHostname(ctx echo.Context) error
 	// Retrieve system status
 	// (GET /system/status)
 	GetSystemStatus(ctx echo.Context) error
@@ -89,6 +98,15 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// GetSystemHostname converts echo context to params.
+func (w *ServerInterfaceWrapper) GetSystemHostname(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetSystemHostname(ctx)
+	return err
 }
 
 // GetSystemStatus converts echo context to params.
@@ -128,6 +146,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/system/hostname", wrapper.GetSystemHostname)
 	router.GET(baseURL+"/system/status", wrapper.GetSystemStatus)
 
 }

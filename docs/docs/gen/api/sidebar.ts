@@ -86,6 +86,22 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "System",
+      link: {
+        type: "doc",
+        id: "gen/api/system-management-api-system-operations",
+      },
+      items: [
+        {
+          type: "doc",
+          id: "gen/api/retrieve-system-hostname",
+          label: "Retrieve system hostname",
+          className: "api-method get",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "System/Status",
       link: {
         type: "doc",

@@ -326,6 +326,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/system.ErrorResponse'
+  /system/hostname:
+    get:
+      summary: Retrieve system hostname
+      description: Get the current hostname of the system.
+      tags:
+        - System_Management_API_system_operations
+      responses:
+        '200':
+          description: A JSON object containing the system's hostname.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hostname'
+        '500':
+          description: Error retrieving hostname.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/system.ErrorResponse'
 components:
   schemas:
     PingResponse:
@@ -559,6 +578,16 @@ components:
         - load_average
         - memory
         - disks
+    Hostname:
+      type: object
+      description: The hostname of the system.
+      properties:
+        hostname:
+          type: string
+          description: The system's hostname.
+          example: my-linux-server
+      required:
+        - hostname
     system.ErrorResponse:
       type: object
       properties:

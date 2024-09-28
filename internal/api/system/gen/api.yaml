@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
+# #
 
 ---
 openapi: 3.0.0
@@ -50,6 +51,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/system.ErrorResponse'
+  /system/hostname:
+    get:
+      summary: Retrieve system hostname
+      description: Get the current hostname of the system.
+      tags:
+        - system_operations
+      responses:
+        '200':
+          description: A JSON object containing the system's hostname.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hostname'
+        '500':
+          description: Error retrieving hostname.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/system.ErrorResponse'
+
 components:
   schemas:
     LoadAverage:
@@ -145,6 +166,16 @@ components:
         - load_average
         - memory
         - disks
+    Hostname:
+      type: object
+      description: The hostname of the system.
+      properties:
+        hostname:
+          type: string
+          description: The system's hostname.
+          example: "my-linux-server"
+      required:
+        - hostname
 
     system.ErrorResponse:
       type: object

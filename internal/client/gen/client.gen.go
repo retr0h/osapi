@@ -53,6 +53,12 @@ type Disk struct {
 // Disks List of local disk usage information.
 type Disks = []Disk
 
+// Hostname The hostname of the system.
+type Hostname struct {
+	// Hostname The system's hostname.
+	Hostname string `json:"hostname"`
+}
+
 // LoadAverage The system load averages for 1, 5, and 15 minutes.
 type LoadAverage struct {
 	// N15min Load average for the last 15 minutes.
@@ -311,6 +317,9 @@ type ClientInterface interface {
 	// GetQueueID request
 	GetQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetSystemHostname request
+	GetSystemHostname(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSystemStatus request
 	GetSystemStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
@@ -437,6 +446,18 @@ func (c *Client) DeleteQueueID(ctx context.Context, id string, reqEditors ...Req
 
 func (c *Client) GetQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetQueueIDRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetSystemHostname(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSystemHostnameRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -773,6 +794,33 @@ func NewGetQueueIDRequest(server string, id string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetSystemHostnameRequest generates requests for GetSystemHostname
+func NewGetSystemHostnameRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/system/hostname")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetSystemStatusRequest generates requests for GetSystemStatus
 func NewGetSystemStatusRequest(server string) (*http.Request, error) {
 	var err error
@@ -872,6 +920,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetQueueIDWithResponse request
 	GetQueueIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIDResponse, error)
+
+	// GetSystemHostnameWithResponse request
+	GetSystemHostnameWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemHostnameResponse, error)
 
 	// GetSystemStatusWithResponse request
 	GetSystemStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemStatusResponse, error)
@@ -1064,6 +1115,29 @@ func (r GetQueueIDResponse) StatusCode() int {
 	return 0
 }
 
+type GetSystemHostnameResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Hostname
+	JSON500      *SystemErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetSystemHostnameResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetSystemHostnameResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetSystemStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1181,6 +1255,15 @@ func (c *ClientWithResponses) GetQueueIDWithResponse(ctx context.Context, id str
 		return nil, err
 	}
 	return ParseGetQueueIDResponse(rsp)
+}
+
+// GetSystemHostnameWithResponse request returning *GetSystemHostnameResponse
+func (c *ClientWithResponses) GetSystemHostnameWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemHostnameResponse, error) {
+	rsp, err := c.GetSystemHostname(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetSystemHostnameResponse(rsp)
 }
 
 // GetSystemStatusWithResponse request returning *GetSystemStatusResponse
@@ -1467,6 +1550,39 @@ func ParseGetQueueIDResponse(rsp *http.Response) (*GetQueueIDResponse, error) {
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest QueueErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetSystemHostnameResponse parses an HTTP response from a GetSystemHostnameWithResponse call
+func ParseGetSystemHostnameResponse(rsp *http.Response) (*GetSystemHostnameResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetSystemHostnameResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Hostname
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest SystemErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

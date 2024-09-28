@@ -65,4 +65,8 @@ type Manager interface {
 	GetSystemStatus(
 		ctx context.Context,
 	) (*gen.GetSystemStatusResponse, error)
+	// GetSystemHostname get the system hostname API endpoint.
+	GetSystemHostname(
+		ctx context.Context,
+	) (*gen.GetSystemHostnameResponse, error)
 }
