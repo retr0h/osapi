@@ -22,7 +22,6 @@ package host_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -31,18 +30,18 @@ import (
 	"github.com/retr0h/osapi/internal/provider/system/host/mocks"
 )
 
-type UbuntuHostPublicTestSuite struct {
+type UbuntuHostnamePublicTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuHostPublicTestSuite) SetupTest() {
+func (suite *UbuntuHostnamePublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuHostPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuHostnamePublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuHostPublicTestSuite) TestUbuntuProvider() {
+func (suite *UbuntuHostnamePublicTestSuite) TestGetHostname() {
 	tests := []struct {
 		name        string
 		setupMock   func() *mocks.MockProvider
@@ -51,20 +50,20 @@ func (suite *UbuntuHostPublicTestSuite) TestUbuntuProvider() {
 		wantErrType error
 	}{
 		{
-			name: "when GetUptime Ok",
+			name: "when GetHostname Ok",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			want:    time.Hour * 5,
+			want:    "default-hostname",
 			wantErr: false,
 		},
 		{
-			name: "when GetUptime errors",
+			name: "when GetHostname errors",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetUptime().Return(0*time.Second, assert.AnError)
+				mock.EXPECT().GetHostname().Return("", assert.AnError)
 
 				return mock
 			},
@@ -76,7 +75,7 @@ func (suite *UbuntuHostPublicTestSuite) TestUbuntuProvider() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.GetUptime()
+			got, err := mock.GetHostname()
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
@@ -91,6 +90,6 @@ func (suite *UbuntuHostPublicTestSuite) TestUbuntuProvider() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuHostPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuHostPublicTestSuite))
+func TestUbuntuHostnamePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuHostnamePublicTestSuite))
 }

@@ -18,22 +18,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package hostname
+package host
 
 import (
 	"fmt"
+	"time"
 )
 
-// Linux implements the Hostname interface for Linux.
-type Linux struct{}
-
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *Linux {
-	return &Linux{}
-}
-
-// Get retrieves the hostname of the system.
-// It returns the hostname as a string, and an error if something goes wrong.
-func (dls *Linux) Get() (string, error) {
-	return "", fmt.Errorf("Get is not implemented for DefaultLinuxProvider")
+// GetUptime retrieves the system uptime.
+// It returns the uptime as a time.Duration, and an error if something goes wrong.
+func (l *Linux) GetUptime() (time.Duration, error) {
+	return 0, fmt.Errorf("GetUptime is not implemented for DefaultLinuxProvider")
 }

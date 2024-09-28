@@ -37,7 +37,6 @@ import (
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
 	hostMocks "github.com/retr0h/osapi/internal/provider/system/host/mocks"
-	hostnameMocks "github.com/retr0h/osapi/internal/provider/system/hostname/mocks"
 	loadMocks "github.com/retr0h/osapi/internal/provider/system/load/mocks"
 	memMocks "github.com/retr0h/osapi/internal/provider/system/mem/mocks"
 	"github.com/retr0h/osapi/internal/provider/system/mocks"
@@ -60,26 +59,20 @@ func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
 
 func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	tests := []struct {
-		name              string
-		path              string
-		setupMock         func() *mocks.MockProvider
-		setupHostnameMock func() *hostnameMocks.MockProvider
-		setupMemMock      func() *memMocks.MockProvider
-		setupLoadMock     func() *loadMocks.MockProvider
-		setupHostMock     func() *hostMocks.MockProvider
-		wantCode          int
-		wantBody          string
+		name          string
+		path          string
+		setupMock     func() *mocks.MockProvider
+		setupMemMock  func() *memMocks.MockProvider
+		setupLoadMock func() *loadMocks.MockProvider
+		setupHostMock func() *hostMocks.MockProvider
+		wantCode      int
+		wantBody      string
 	}{
 		{
 			name: "when get ok",
 			path: "/system/status",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			setupHostnameMock: func() *hostnameMocks.MockProvider {
-				mock := hostnameMocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -121,47 +114,10 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 }`,
 		},
 		{
-			name: "when hostname.Get errors",
+			name: "when host.GetHostname errors",
 			path: "/system/status",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			setupHostnameMock: func() *hostnameMocks.MockProvider {
-				mock := hostnameMocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().Get().Return("", assert.AnError)
-
-				return mock
-			},
-			setupMemMock: func() *memMocks.MockProvider {
-				mock := memMocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			setupLoadMock: func() *loadMocks.MockProvider {
-				mock := loadMocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			setupHostMock: func() *hostMocks.MockProvider {
-				mock := hostMocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
-		},
-		{
-			name: "when host.GetUptime errors",
-			path: "/system/status",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			setupHostnameMock: func() *hostnameMocks.MockProvider {
-				mock := hostnameMocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -177,6 +133,35 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			},
 			setupHostMock: func() *hostMocks.MockProvider {
 				mock := hostMocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetHostname().Return("", assert.AnError)
+				mock.EXPECT().GetUptime().Return(time.Hour*5, nil).AnyTimes()
+
+				return mock
+			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+		},
+		{
+			name: "when host.GetUptime errors",
+			path: "/system/status",
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupMemMock: func() *memMocks.MockProvider {
+				mock := memMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupLoadMock: func() *loadMocks.MockProvider {
+				mock := loadMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupHostMock: func() *hostMocks.MockProvider {
+				mock := hostMocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetHostname().Return("default-hostname", nil).AnyTimes()
 				mock.EXPECT().GetUptime().Return(0*time.Second, assert.AnError)
 
 				return mock
@@ -189,11 +174,6 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			path: "/system/status",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			setupHostnameMock: func() *hostnameMocks.MockProvider {
-				mock := hostnameMocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -224,11 +204,6 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 
 				return mock
 			},
-			setupHostnameMock: func() *hostnameMocks.MockProvider {
-				mock := hostnameMocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
 			setupMemMock: func() *memMocks.MockProvider {
 				mock := memMocks.NewPlainMockProvider(suite.ctrl)
 				mock.EXPECT().GetStats().Return(nil, assert.AnError)
@@ -254,7 +229,6 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			hostnameMock := tc.setupHostnameMock()
 			memMock := tc.setupMemMock()
 			loadMock := tc.setupLoadMock()
 			hostMock := tc.setupHostMock()
@@ -262,7 +236,6 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			a := api.New(suite.appConfig, suite.logger)
 			systemGen.RegisterHandlers(a.Echo,
 				system.New(mock,
-					hostnameMock,
 					memMock,
 					loadMock,
 					hostMock,

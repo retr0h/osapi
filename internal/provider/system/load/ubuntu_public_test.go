@@ -42,7 +42,7 @@ func (suite *UbuntuLoadPublicTestSuite) SetupTest() {
 
 func (suite *UbuntuLoadPublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuLoadPublicTestSuite) TestUbuntuProvider() {
+func (suite *UbuntuLoadPublicTestSuite) TestGetAverageStats() {
 	tests := []struct {
 		name        string
 		setupMock   func() *mocks.MockProvider

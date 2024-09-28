@@ -18,6 +18,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package mocks
+package host
 
-//go:generate go run github.com/golang/mock/mockgen -source=../provider.go -destination=provider.gen.go -package=mocks
+import (
+	"github.com/shirou/gopsutil/v4/host"
+)
+
+// GetHostname retrieves the hostname of the system.
+// It returns the hostname as a string, and an error if something goes wrong.
+func (u *Ubuntu) GetHostname() (string, error) {
+	hostInfo, err := host.Info()
+	if err != nil {
+		return "", err
+	}
+	return hostInfo.Hostname, nil
+}

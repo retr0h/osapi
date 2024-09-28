@@ -18,30 +18,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package hostname_test
+package host_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/provider/system/hostname/mocks"
+	"github.com/retr0h/osapi/internal/provider/system/host/mocks"
 )
 
-type UbuntuHostnamePublicTestSuite struct {
+type UbuntuUptimePublicTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuHostnamePublicTestSuite) SetupTest() {
+func (suite *UbuntuUptimePublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuHostnamePublicTestSuite) TearDownTest() {}
+func (suite *UbuntuUptimePublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuHostnamePublicTestSuite) TestGet() {
+func (suite *UbuntuUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {
 		name        string
 		setupMock   func() *mocks.MockProvider
@@ -50,20 +51,20 @@ func (suite *UbuntuHostnamePublicTestSuite) TestGet() {
 		wantErrType error
 	}{
 		{
-			name: "when Get Ok",
+			name: "when GetUptime Ok",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			want:    "default-hostname",
+			want:    time.Hour * 5,
 			wantErr: false,
 		},
 		{
-			name: "when Get errors",
+			name: "when GetUptime errors",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().Get().Return("", assert.AnError)
+				mock.EXPECT().GetUptime().Return(0*time.Second, assert.AnError)
 
 				return mock
 			},
@@ -75,7 +76,7 @@ func (suite *UbuntuHostnamePublicTestSuite) TestGet() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.Get()
+			got, err := mock.GetUptime()
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
@@ -90,6 +91,6 @@ func (suite *UbuntuHostnamePublicTestSuite) TestGet() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuHostnamePublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuHostnamePublicTestSuite))
+func TestUbuntuUptimePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuUptimePublicTestSuite))
 }

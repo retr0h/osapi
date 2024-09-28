@@ -20,21 +20,10 @@
 
 package host
 
-import (
-	"fmt"
-	"time"
-)
-
 // Linux implements the Load interface for Linux.
 type Linux struct{}
 
 // NewDefaultLinuxProvider factory to create a new Linux instance.
 func NewDefaultLinuxProvider() *Linux {
 	return &Linux{}
-}
-
-// GetUptime retrieves the system uptime.
-// It returns the uptime as a time.Duration, and an error if something goes wrong.
-func (l *Linux) GetUptime() (time.Duration, error) {
-	return 0, fmt.Errorf("GetUptime is not implemented for DefaultLinuxProvider")
 }

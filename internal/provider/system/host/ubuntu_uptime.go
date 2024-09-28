@@ -18,26 +18,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package hostname
+package host
 
 import (
+	"time"
+
 	"github.com/shirou/gopsutil/v4/host"
 )
 
-// Ubuntu implements the Hostname interface for Ubuntu.
-type Ubuntu struct{}
-
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider() *Ubuntu {
-	return &Ubuntu{}
-}
-
-// Get retrieves the hostname of the system.
-// It returns the hostname as a string, and an error if something goes wrong.
-func (u *Ubuntu) Get() (string, error) {
+// GetUptime retrieves the system uptime.
+// It returns the uptime as a time.Duration, and an error if something goes wrong.
+func (u *Ubuntu) GetUptime() (time.Duration, error) {
 	hostInfo, err := host.Info()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	return hostInfo.Hostname, nil
+	return time.Duration(hostInfo.Uptime) * time.Second, nil
 }

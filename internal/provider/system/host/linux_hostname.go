@@ -18,22 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package mocks
+package host
 
 import (
-	"github.com/golang/mock/gomock"
+	"fmt"
 )
 
-// NewPlainMockProvider creates a Mock without defaults.
-func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
-	return NewMockProvider(ctrl)
-}
-
-// NewDefaultMockProvider creates a Mock with defaults.
-func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
-	mock := NewMockProvider(ctrl)
-
-	mock.EXPECT().Get().Return("default-hostname", nil).AnyTimes()
-
-	return mock
+// GetHostname retrieves the hostname of the system.
+// It returns the hostname as a string, and an error if something goes wrong.
+func (dls *Linux) GetHostname() (string, error) {
+	return "", fmt.Errorf("GetHostname is not implemented for DefaultLinuxProvider")
 }

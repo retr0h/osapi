@@ -30,7 +30,6 @@ import (
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	systemImpl "github.com/retr0h/osapi/internal/provider/system"
 	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
 	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
@@ -38,7 +37,6 @@ import (
 // GetSystemHandler returns system handler for registration.
 func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 	var systemProvider systemImpl.Provider
-	var hostnameProvider hostname.Provider
 	var memProvider mem.Provider
 	var loadProvider load.Provider
 	var hostProvider host.Provider
@@ -47,13 +45,11 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
 		systemProvider = systemImpl.NewUbuntuProvider()
-		hostnameProvider = hostname.NewUbuntuProvider()
 		memProvider = mem.NewUbuntuProvider()
 		loadProvider = load.NewUbuntuProvider()
 		hostProvider = host.NewUbuntuProvider()
 	default:
 		systemProvider = systemImpl.NewDefaultLinuxProvider()
-		hostnameProvider = hostname.NewDefaultLinuxProvider()
 		memProvider = mem.NewDefaultLinuxProvider()
 		loadProvider = load.NewDefaultLinuxProvider()
 		hostProvider = host.NewDefaultLinuxProvider()
@@ -63,7 +59,6 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 		func(e *echo.Echo) {
 			systemHandler := system.New(
 				systemProvider,
-				hostnameProvider,
 				memProvider,
 				loadProvider,
 				hostProvider,

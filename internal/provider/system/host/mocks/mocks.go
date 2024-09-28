@@ -36,6 +36,7 @@ func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
 	mock.EXPECT().GetUptime().Return(time.Hour*5, nil).AnyTimes()
+	mock.EXPECT().GetHostname().Return("default-hostname", nil).AnyTimes()
 
 	return mock
 }

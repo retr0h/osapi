@@ -24,7 +24,6 @@ import (
 	"github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/provider/system"
 	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
 	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
@@ -35,16 +34,14 @@ var _ gen.ServerInterface = (*System)(nil)
 // New factory to create a new instance.
 func New(
 	sp system.Provider,
-	hnp hostname.Provider,
 	mp mem.Provider,
 	lp load.Provider,
 	hp host.Provider,
 ) *System {
 	return &System{
-		SystemProvider:   sp,
-		HostnameProvider: hnp,
-		MemProvider:      mp,
-		LoadProvider:     lp,
-		HostProvider:     hp,
+		SystemProvider: sp,
+		MemProvider:    mp,
+		LoadProvider:   lp,
+		HostProvider:   hp,
 	}
 }

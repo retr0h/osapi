@@ -28,4 +28,6 @@ import (
 type Provider interface {
 	// GetUptime retrieves the system uptime.
 	GetUptime() (time.Duration, error)
+	// GetHostname retrieves the hostname of the system.
+	GetHostname() (string, error)
 }

@@ -23,7 +23,6 @@ package system
 import (
 	"github.com/retr0h/osapi/internal/provider/system"
 	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
 	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
@@ -33,8 +32,6 @@ type System struct {
 	// SystemProvider implements the methods to interact with various system-level
 	// components.
 	SystemProvider system.Provider
-	// HostnameProvider implements the methods to interact with various hostname components.
-	HostnameProvider hostname.Provider
 	// MemProvider implements the methods to interact with various mem components.
 	MemProvider mem.Provider
 	// LoadProvider implements the methods to interact with various load components.
