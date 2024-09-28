@@ -20,10 +20,10 @@
 
 package dns
 
-// LinuxDNS implements the DNS interface for Linux.
-type LinuxDNS struct{}
+// Linux implements the DNS interface for Linux.
+type Linux struct{}
 
 // NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *LinuxDNS {
-	return &LinuxDNS{}
+func NewDefaultLinuxProvider() *Linux {
+	return &Linux{}
 }

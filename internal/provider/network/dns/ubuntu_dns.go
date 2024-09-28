@@ -51,7 +51,7 @@ import (
 //     of file reads.
 //
 // See `systemd-resolved.service(8)` manual page for further information.
-func (u *UbuntuDNS) GetResolvConf() (*Config, error) {
+func (u *Ubuntu) GetResolvConf() (*Config, error) {
 	const resolvConfFile = "/run/systemd/resolve/resolv.conf"
 
 	file, err := u.appFs.Open(resolvConfFile)

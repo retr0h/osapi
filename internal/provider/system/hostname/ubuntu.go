@@ -24,17 +24,17 @@ import (
 	"github.com/shirou/gopsutil/v4/host"
 )
 
-// UbuntuHostname implements the System interface for Ubuntu.
-type UbuntuHostname struct{}
+// Ubuntu implements the System interface for Ubuntu.
+type Ubuntu struct{}
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider() *UbuntuHostname {
-	return &UbuntuHostname{}
+func NewUbuntuProvider() *Ubuntu {
+	return &Ubuntu{}
 }
 
 // Get retrieves the hostname of the system.
 // It returns the hostname as a string, and an error if something goes wrong.
-func (u *UbuntuHostname) Get() (string, error) {
+func (u *Ubuntu) Get() (string, error) {
 	hostInfo, err := host.Info()
 	if err != nil {
 		return "", err

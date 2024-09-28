@@ -24,16 +24,16 @@ import (
 	"fmt"
 )
 
-// LinuxHostname implements the Hostname interface for Linux.
-type LinuxHostname struct{}
+// Linux implements the Hostname interface for Linux.
+type Linux struct{}
 
 // NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *LinuxHostname {
-	return &LinuxHostname{}
+func NewDefaultLinuxProvider() *Linux {
+	return &Linux{}
 }
 
 // Get retrieves the hostname of the system.
 // It returns the hostname as a string, and an error if something goes wrong.
-func (dls *LinuxHostname) Get() (string, error) {
+func (dls *Linux) Get() (string, error) {
 	return "", fmt.Errorf("Get is not implemented for DefaultLinuxProvider")
 }

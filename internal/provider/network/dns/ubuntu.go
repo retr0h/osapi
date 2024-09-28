@@ -24,16 +24,16 @@ import (
 	"github.com/spf13/afero"
 )
 
-// UbuntuDNS implements the DNS interface for Ubuntu.
-type UbuntuDNS struct {
+// Ubuntu implements the DNS interface for Ubuntu.
+type Ubuntu struct {
 	appFs afero.Fs
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider(
 	appFs afero.Fs,
-) *UbuntuDNS {
-	return &UbuntuDNS{
+) *Ubuntu {
+	return &Ubuntu{
 		appFs: appFs,
 	}
 }
