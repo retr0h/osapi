@@ -18,27 +18,32 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mem
 
 import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
+	"github.com/shirou/gopsutil/v4/mem"
 )
 
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*System)(nil)
+// Ubuntu implements the Mem interface for Ubuntu.
+type Ubuntu struct{}
 
-// New factory to create a new instance.
-func New(
-	sp system.Provider,
-	hp hostname.Provider,
-	mp mem.Provider,
-) *System {
-	return &System{
-		SystemProvider:   sp,
-		HostnameProvider: hp,
-		MemProvider:      mp,
+// NewUbuntuProvider factory to create a new Ubuntu instance.
+func NewUbuntuProvider() *Ubuntu {
+	return &Ubuntu{}
+}
+
+// GetStats retrieves memory statistics of the system.
+// It returns a Stats struct with total, free, and cached memory in
+// bytes, and an error if something goes wrong.
+func (u *Ubuntu) GetStats() (*Stats, error) {
+	memInfo, err := mem.VirtualMemory()
+	if err != nil {
+		return &Stats{}, err
 	}
+
+	return &Stats{
+		Total:  memInfo.Total,
+		Free:   memInfo.Free,
+		Cached: memInfo.Cached,
+	}, nil
 }

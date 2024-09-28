@@ -36,6 +36,7 @@ import (
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
 	hostnameMocks "github.com/retr0h/osapi/internal/provider/system/hostname/mocks"
+	memMocks "github.com/retr0h/osapi/internal/provider/system/mem/mocks"
 	"github.com/retr0h/osapi/internal/provider/system/mocks"
 )
 
@@ -60,6 +61,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		path              string
 		setupMock         func() *mocks.MockProvider
 		setupHostnameMock func() *hostnameMocks.MockProvider
+		setupMemMock      func() *memMocks.MockProvider
 		wantCode          int
 		wantBody          string
 	}{
@@ -73,6 +75,11 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			},
 			setupHostnameMock: func() *hostnameMocks.MockProvider {
 				mock := hostnameMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupMemMock: func() *memMocks.MockProvider {
+				mock := memMocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -112,6 +119,11 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 
 				return mock
 			},
+			setupMemMock: func() *memMocks.MockProvider {
+				mock := memMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
 			wantCode: http.StatusInternalServerError,
 			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
@@ -121,8 +133,9 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
 			hostnameMock := tc.setupHostnameMock()
+			memMock := tc.setupMemMock()
 			a := api.New(suite.appConfig, suite.logger)
-			systemGen.RegisterHandlers(a.Echo, system.New(mock, hostnameMock))
+			systemGen.RegisterHandlers(a.Echo, system.New(mock, hostnameMock, memMock))
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()

@@ -56,7 +56,6 @@ tasks:
   test:
     desc: Test all
     cmds:
-      - task: deps
       - task: mod
       - task: fmt:check
       - task: vet

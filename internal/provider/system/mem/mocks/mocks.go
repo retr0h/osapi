@@ -18,27 +18,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mocks
 
 import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
+	"github.com/golang/mock/gomock"
+
 	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
 
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*System)(nil)
+// NewPlainMockProvider creates a Mock without defaults.
+func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+	return NewMockProvider(ctrl)
+}
 
-// New factory to create a new instance.
-func New(
-	sp system.Provider,
-	hp hostname.Provider,
-	mp mem.Provider,
-) *System {
-	return &System{
-		SystemProvider:   sp,
-		HostnameProvider: hp,
-		MemProvider:      mp,
-	}
+// NewDefaultMockProvider creates a Mock with defaults.
+func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+	mock := NewMockProvider(ctrl)
+
+	mock.EXPECT().GetStats().Return(&mem.Stats{
+		Total:  8388608,
+		Free:   4194304,
+		Cached: 2097152,
+	}, nil).AnyTimes()
+
+	return mock
 }

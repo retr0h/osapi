@@ -20,7 +20,7 @@
 
 package dns
 
-// Provider implements the methods to interact with various dns components.
+// Provider implements the methods to interact with various DNS components.
 type Provider interface {
 	// GetResolvConf retrieves the DNS configuration.
 	GetResolvConf() (*Config, error)

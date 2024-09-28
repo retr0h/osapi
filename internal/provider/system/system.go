@@ -20,16 +20,6 @@
 
 package system
 
-// MemoryStats holds memory information in bytes.
-type MemoryStats struct {
-	// Total memory in bytes
-	Total uint64
-	// Free memory in bytes
-	Free uint64
-	// Cached memory in bytes
-	Cached uint64
-}
-
 // LoadAverageStats represents the system load averages over 1, 5, and 15 minutes.
 type LoadAverageStats struct {
 	// Load average over the last 1 minute

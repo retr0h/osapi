@@ -30,7 +30,6 @@ import (
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/host"
 	"github.com/shirou/gopsutil/v4/load"
-	"github.com/shirou/gopsutil/v4/mem"
 )
 
 // UbuntuSystem implements the System interface for Ubuntu.
@@ -39,22 +38,6 @@ type UbuntuSystem struct{}
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider() *UbuntuSystem {
 	return &UbuntuSystem{}
-}
-
-// GetMemoryStats retrieves memory statistics of the system.
-// It returns a MemoryStats struct with total, free, and cached memory in
-// bytes, and an error if something goes wrong.
-func (us *UbuntuSystem) GetMemoryStats() (*MemoryStats, error) {
-	memInfo, err := mem.VirtualMemory()
-	if err != nil {
-		return &MemoryStats{}, err
-	}
-
-	return &MemoryStats{
-		Total:  memInfo.Total,
-		Free:   memInfo.Free,
-		Cached: memInfo.Cached,
-	}, nil
 }
 
 // GetLoadAverageStats returns the system's load averages over 1, 5, and 15 minutes.

@@ -18,27 +18,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mem
 
 import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
+	"fmt"
 )
 
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*System)(nil)
+// Linux implements the Mem interface for Linux.
+type Linux struct{}
 
-// New factory to create a new instance.
-func New(
-	sp system.Provider,
-	hp hostname.Provider,
-	mp mem.Provider,
-) *System {
-	return &System{
-		SystemProvider:   sp,
-		HostnameProvider: hp,
-		MemProvider:      mp,
-	}
+// NewDefaultLinuxProvider factory to create a new Linux instance.
+func NewDefaultLinuxProvider() *Linux {
+	return &Linux{}
+}
+
+// GetStats retrieves memory statistics of the system.
+// It returns a Stats struct with total, free, and cached memory in
+// bytes, and an error if something goes wrong.
+func (l *Linux) GetStats() (*Stats, error) {
+	return nil, fmt.Errorf("GetStats is not implemented for DefaultLinuxProvider")
 }

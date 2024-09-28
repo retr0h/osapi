@@ -24,7 +24,7 @@ import (
 	"github.com/shirou/gopsutil/v4/host"
 )
 
-// Ubuntu implements the System interface for Ubuntu.
+// Ubuntu implements the Hostname interface for Ubuntu.
 type Ubuntu struct{}
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.

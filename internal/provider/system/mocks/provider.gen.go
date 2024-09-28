@@ -65,21 +65,6 @@ func (mr *MockProviderMockRecorder) GetLocalDiskStats() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocalDiskStats", reflect.TypeOf((*MockProvider)(nil).GetLocalDiskStats))
 }
 
-// GetMemoryStats mocks base method.
-func (m *MockProvider) GetMemoryStats() (*system.MemoryStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMemoryStats")
-	ret0, _ := ret[0].(*system.MemoryStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMemoryStats indicates an expected call of GetMemoryStats.
-func (mr *MockProviderMockRecorder) GetMemoryStats() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemoryStats", reflect.TypeOf((*MockProvider)(nil).GetMemoryStats))
-}
-
 // GetUptime mocks base method.
 func (m *MockProvider) GetUptime() (time.Duration, error) {
 	m.ctrl.T.Helper()

@@ -55,7 +55,7 @@ func (s System) GetSystemStatus(
 		})
 	}
 
-	memStats, err := s.SystemProvider.GetMemoryStats()
+	memStats, err := s.MemProvider.GetStats()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),

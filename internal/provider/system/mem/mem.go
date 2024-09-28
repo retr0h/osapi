@@ -18,27 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mem
 
-import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
-)
-
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*System)(nil)
-
-// New factory to create a new instance.
-func New(
-	sp system.Provider,
-	hp hostname.Provider,
-	mp mem.Provider,
-) *System {
-	return &System{
-		SystemProvider:   sp,
-		HostnameProvider: hp,
-		MemProvider:      mp,
-	}
+// Stats holds memory information in bytes.
+type Stats struct {
+	// Total memory in bytes
+	Total uint64
+	// Free memory in bytes
+	Free uint64
+	// Cached memory in bytes
+	Cached uint64
 }

@@ -54,37 +54,6 @@ func (suite *UbuntuPublicTestSuite) TestUbuntuProvider() {
 		wantErrType error
 	}{
 		{
-			name: "when GetMemoryStats Ok",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
-			fn: func(m *mocks.MockProvider) (interface{}, error) {
-				return m.GetMemoryStats()
-			},
-			want: &system.MemoryStats{
-				Total:  8388608,
-				Free:   4194304,
-				Cached: 2097152,
-			},
-			wantErr: false,
-		},
-		{
-			name: "when GetMemoryStats errors",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetMemoryStats().Return(nil, assert.AnError)
-
-				return mock
-			},
-			fn: func(m *mocks.MockProvider) (interface{}, error) {
-				return m.GetMemoryStats()
-			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
-		},
-		{
 			name: "when GetLoadAverageStats Ok",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)

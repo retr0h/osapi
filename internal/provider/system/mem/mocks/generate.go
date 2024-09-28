@@ -18,27 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mocks
 
-import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
-)
-
-// ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*System)(nil)
-
-// New factory to create a new instance.
-func New(
-	sp system.Provider,
-	hp hostname.Provider,
-	mp mem.Provider,
-) *System {
-	return &System{
-		SystemProvider:   sp,
-		HostnameProvider: hp,
-		MemProvider:      mp,
-	}
-}
+//go:generate go run github.com/golang/mock/mockgen -source=../provider.go -destination=provider.gen.go -package=mocks

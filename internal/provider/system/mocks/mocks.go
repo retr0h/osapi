@@ -37,11 +37,6 @@ func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
 func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
-	mock.EXPECT().GetMemoryStats().Return(&system.MemoryStats{
-		Total:  8388608,
-		Free:   4194304,
-		Cached: 2097152,
-	}, nil).AnyTimes()
 	mock.EXPECT().
 		GetLoadAverageStats().
 		Return(&system.LoadAverageStats{

@@ -23,6 +23,7 @@ package system
 import (
 	"github.com/retr0h/osapi/internal/provider/system"
 	"github.com/retr0h/osapi/internal/provider/system/hostname"
+	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
 
 // System implementation of the System APIs operations.
@@ -32,4 +33,6 @@ type System struct {
 	SystemProvider system.Provider
 	// HostnameProvider implements the methods to interact with various hostname components.
 	HostnameProvider hostname.Provider
+	// MemProvider implements the methods to interact with various mem components.
+	MemProvider mem.Provider
 }

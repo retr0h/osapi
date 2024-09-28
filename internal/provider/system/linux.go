@@ -33,13 +33,6 @@ func NewDefaultLinuxProvider() *DefaultLinuxSystem {
 	return &DefaultLinuxSystem{}
 }
 
-// GetMemoryStats retrieves memory statistics of the system.
-// It returns a MemoryStats struct with total, free, and cached memory in
-// bytes, and an error if something goes wrong.
-func (dls *DefaultLinuxSystem) GetMemoryStats() (*MemoryStats, error) {
-	return nil, fmt.Errorf("GetMemoryStats is not implemented for DefaultLinuxProvider")
-}
-
 // GetLoadAverageStats returns the system's load averages over 1, 5, and 15 minutes.
 // It returns a LoadAverageStats struct with load over 1, 5, and 15 minutes,
 // and an error if something goes wrong.
