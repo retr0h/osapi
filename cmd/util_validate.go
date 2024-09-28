@@ -33,6 +33,7 @@ var supportedVersions = []struct {
 }{
 	{"ubuntu", "20.04"},
 	{"ubuntu", "22.04"},
+	{"ubuntu", "24.04"},
 }
 
 // IsLinuxVersionSupported checks if the given distribution and version are supported.
