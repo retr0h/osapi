@@ -82,7 +82,7 @@ func (suite *UbuntuPingPublicTestSuite) TestPingHost() {
 			wantErr: false,
 		},
 		{
-			name:    "when PingHost returns an error",
+			name:    "when PingHost errors",
 			address: "example.com",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
