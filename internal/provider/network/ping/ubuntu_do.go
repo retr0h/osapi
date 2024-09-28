@@ -29,7 +29,7 @@ import (
 )
 
 // Do pings the given host and returns the ping statistics or an error.
-// It returns a PingResult struct, and an error if something goes wrong.
+// It returns a Result struct, and an error if something goes wrong.
 //
 // On Linux, it attempts an "unprivileged" ping via UDP by default.
 // To enable unprivileged pings, run the following command:
@@ -41,7 +41,7 @@ import (
 //  1. Run the binary as root, or
 //  2. Set capabilities on the binary to allow raw socket usage:
 //     sudo setcap cap_net_raw=+ep /path/to/your/compiled/binary
-func (u *Ubuntu) Do(address string) (*PingResult, error) {
+func (u *Ubuntu) Do(address string) (*Result, error) {
 	pinger, err := probing.NewPinger(address)
 	timeout := 5 * time.Second
 
@@ -56,7 +56,7 @@ func (u *Ubuntu) Do(address string) (*PingResult, error) {
 	defer cancel()
 
 	// Run the ping in a separate goroutine to avoid blocking
-	resultChan := make(chan *PingResult)
+	resultChan := make(chan *Result)
 	errorChan := make(chan error)
 
 	go func() {
@@ -67,7 +67,7 @@ func (u *Ubuntu) Do(address string) (*PingResult, error) {
 		}
 
 		stats := pinger.Statistics()
-		result := &PingResult{
+		result := &Result{
 			PacketsSent:     stats.PacketsSent,
 			PacketsReceived: stats.PacketsRecv,
 			PacketLoss:      stats.PacketLoss,

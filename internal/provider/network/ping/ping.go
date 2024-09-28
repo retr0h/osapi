@@ -24,8 +24,8 @@ import (
 	"time"
 )
 
-// PingResult represents custom ping result details.
-type PingResult struct {
+// Result represents custom ping result details.
+type Result struct {
 	// Number of packets sent
 	PacketsSent int
 	// Number of packets received

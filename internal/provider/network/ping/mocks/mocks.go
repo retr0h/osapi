@@ -37,7 +37,7 @@ func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
 func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
-	mock.EXPECT().Do("example.com").Return(&ping.PingResult{
+	mock.EXPECT().Do("example.com").Return(&ping.Result{
 		PacketsSent:     3,
 		PacketsReceived: 3,
 		PacketLoss:      0,

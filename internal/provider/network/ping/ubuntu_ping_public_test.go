@@ -59,7 +59,7 @@ func (suite *UbuntuPingPublicTestSuite) TestDo() {
 		name        string
 		setupMock   func() *mocks.MockProvider
 		address     string
-		want        *ping.PingResult
+		want        *ping.Result
 		wantErr     bool
 		wantErrType error
 	}{
@@ -71,7 +71,7 @@ func (suite *UbuntuPingPublicTestSuite) TestDo() {
 
 				return mock
 			},
-			want: &ping.PingResult{
+			want: &ping.Result{
 				PacketsSent:     3,
 				PacketsReceived: 3,
 				PacketLoss:      0,

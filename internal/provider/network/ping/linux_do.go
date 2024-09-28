@@ -25,6 +25,6 @@ import (
 )
 
 // Do pings the given host and returns the ping statistics or an error.
-func (l *Linux) Do(_ string) (*PingResult, error) {
+func (l *Linux) Do(_ string) (*Result, error) {
 	return nil, fmt.Errorf("PingHost is not implemented for DefaultLinuxProvider")
 }

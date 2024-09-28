@@ -35,10 +35,10 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 }
 
 // Do mocks base method.
-func (m *MockProvider) Do(address string) (*ping.PingResult, error) {
+func (m *MockProvider) Do(address string) (*ping.Result, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Do", address)
-	ret0, _ := ret[0].(*ping.PingResult)
+	ret0, _ := ret[0].(*ping.Result)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
