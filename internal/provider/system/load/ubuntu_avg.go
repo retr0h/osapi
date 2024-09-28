@@ -18,12 +18,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package mem
+package load
 
-// Linux implements the Mem interface for Linux.
-type Linux struct{}
+import (
+	"github.com/shirou/gopsutil/v4/load"
+)
 
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *Linux {
-	return &Linux{}
+// GetAverageStats returns the system's load averages over 1, 5, and 15 minutes.
+// It returns a AverageStats struct with load over 1, 5, and 15 minutes,
+// and an error if something goes wrong.
+func (u *Ubuntu) GetAverageStats() (*AverageStats, error) {
+	avg, err := load.Avg()
+	if err != nil {
+		return nil, err
+	}
+	return &AverageStats{
+		Load1:  float32(avg.Load1),
+		Load5:  float32(avg.Load5),
+		Load15: float32(avg.Load15),
+	}, nil
 }

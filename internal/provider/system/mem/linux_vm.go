@@ -20,10 +20,13 @@
 
 package mem
 
-// Linux implements the Mem interface for Linux.
-type Linux struct{}
+import (
+	"fmt"
+)
 
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *Linux {
-	return &Linux{}
+// GetStats retrieves memory statistics of the system.
+// It returns a Stats struct with total, free, and cached memory in
+// bytes, and an error if something goes wrong.
+func (l *Linux) GetStats() (*Stats, error) {
+	return nil, fmt.Errorf("GetStats is not implemented for DefaultLinuxProvider")
 }

@@ -18,12 +18,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package mem
+package load
 
-// Linux implements the Mem interface for Linux.
-type Linux struct{}
+import (
+	"fmt"
+)
 
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *Linux {
-	return &Linux{}
+// GetAverageStats returns the system's load averages over 1, 5, and 15 minutes.
+// It returns a AverageStats struct with load over 1, 5, and 15 minutes,
+// and an error if something goes wrong.
+func (l *Linux) GetAverageStats() (*AverageStats, error) {
+	return nil, fmt.Errorf("GetAverage is not implemented for DefaultLinuxProvider")
 }

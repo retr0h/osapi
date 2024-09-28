@@ -33,7 +33,7 @@ import (
 	"github.com/retr0h/osapi/internal/provider/network/ping/mocks"
 )
 
-type UbuntuPingPublicTestSuite struct {
+type UbuntuDoPublicTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
@@ -41,20 +41,20 @@ type UbuntuPingPublicTestSuite struct {
 	resolvConfFile string
 }
 
-func (suite *UbuntuPingPublicTestSuite) SetupTest() {
+func (suite *UbuntuDoPublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	suite.appFs = afero.NewMemMapFs()
 	suite.resolvConfFile = "/run/systemd/resolve/resolv.conf"
 }
 
-func (suite *UbuntuPingPublicTestSuite) SetupSubTest() {
+func (suite *UbuntuDoPublicTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *UbuntuPingPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuDoPublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuPingPublicTestSuite) TestDo() {
+func (suite *UbuntuDoPublicTestSuite) TestDo() {
 	tests := []struct {
 		name        string
 		setupMock   func() *mocks.MockProvider
@@ -114,6 +114,6 @@ func (suite *UbuntuPingPublicTestSuite) TestDo() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuPingPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuPingPublicTestSuite))
+func TestUbuntuDoPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuDoPublicTestSuite))
 }

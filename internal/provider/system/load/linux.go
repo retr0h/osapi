@@ -20,21 +20,10 @@
 
 package load
 
-import (
-	"fmt"
-)
-
 // Linux implements the Load interface for Linux.
 type Linux struct{}
 
 // NewDefaultLinuxProvider factory to create a new Linux instance.
 func NewDefaultLinuxProvider() *Linux {
 	return &Linux{}
-}
-
-// GetAverageStats returns the system's load averages over 1, 5, and 15 minutes.
-// It returns a AverageStats struct with load over 1, 5, and 15 minutes,
-// and an error if something goes wrong.
-func (l *Linux) GetAverageStats() (*AverageStats, error) {
-	return nil, fmt.Errorf("GetAverage is not implemented for DefaultLinuxProvider")
 }

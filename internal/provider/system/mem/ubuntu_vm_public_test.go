@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package load_test
+package mem_test
 
 import (
 	"testing"
@@ -27,22 +27,22 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/load/mocks"
+	"github.com/retr0h/osapi/internal/provider/system/mem"
+	"github.com/retr0h/osapi/internal/provider/system/mem/mocks"
 )
 
-type UbuntuLoadPublicTestSuite struct {
+type UbuntuVMPublicTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuLoadPublicTestSuite) SetupTest() {
+func (suite *UbuntuVMPublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuLoadPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuVMPublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuLoadPublicTestSuite) TestGetAverageStats() {
+func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 	tests := []struct {
 		name        string
 		setupMock   func() *mocks.MockProvider
@@ -51,20 +51,24 @@ func (suite *UbuntuLoadPublicTestSuite) TestGetAverageStats() {
 		wantErrType error
 	}{
 		{
-			name: "when GetAverageStats Ok",
+			name: "when GetStats Ok",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			want:    &load.AverageStats{1.0, 0.5, 0.2},
+			want: &mem.Stats{
+				Total:  8388608,
+				Free:   4194304,
+				Cached: 2097152,
+			},
 			wantErr: false,
 		},
 		{
-			name: "when GetAverageStats errors",
+			name: "when GetStats errors",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetAverageStats().Return(nil, assert.AnError)
+				mock.EXPECT().GetStats().Return(nil, assert.AnError)
 
 				return mock
 			},
@@ -76,7 +80,7 @@ func (suite *UbuntuLoadPublicTestSuite) TestGetAverageStats() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.GetAverageStats()
+			got, err := mock.GetStats()
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
@@ -91,6 +95,6 @@ func (suite *UbuntuLoadPublicTestSuite) TestGetAverageStats() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuLoadPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuLoadPublicTestSuite))
+func TestUbuntuVMPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuVMPublicTestSuite))
 }

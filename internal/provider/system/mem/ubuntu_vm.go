@@ -20,10 +20,22 @@
 
 package mem
 
-// Linux implements the Mem interface for Linux.
-type Linux struct{}
+import (
+	"github.com/shirou/gopsutil/v4/mem"
+)
 
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *Linux {
-	return &Linux{}
+// GetStats retrieves memory statistics of the system.
+// It returns a Stats struct with total, free, and cached memory in
+// bytes, and an error if something goes wrong.
+func (u *Ubuntu) GetStats() (*Stats, error) {
+	memInfo, err := mem.VirtualMemory()
+	if err != nil {
+		return &Stats{}, err
+	}
+
+	return &Stats{
+		Total:  memInfo.Total,
+		Free:   memInfo.Free,
+		Cached: memInfo.Cached,
+	}, nil
 }
