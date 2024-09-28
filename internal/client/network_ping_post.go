@@ -32,7 +32,7 @@ func (c *Client) PostNetworkPing(
 	address string,
 ) (*gen.PostNetworkPingResponse, error) {
 	body := gen.PostNetworkPingJSONRequestBody{
-		Address: "8.8.8.8",
+		Address: address,
 	}
 
 	return c.Client.PostNetworkPingWithResponse(ctx, body)

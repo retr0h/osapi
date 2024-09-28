@@ -39,6 +39,10 @@ var clientNetworkPingCmd = &cobra.Command{
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		errorMsg := "unknown error"
+		fmt.Println(address)
+		fmt.Println(address)
+		fmt.Println(address)
+		fmt.Println(address)
 		resp, err := handler.PostNetworkPing(context.TODO(), address)
 		if err != nil {
 			logFatal("failed to post network ping endpoint", err)
@@ -113,6 +117,6 @@ func init() {
 	clientNetworkCmd.AddCommand(clientNetworkPingCmd)
 
 	clientNetworkPingCmd.PersistentFlags().
-		StringVarP(&messageBody, "address", "a", "", "The address to ping")
+		StringVarP(&address, "address", "a", "", "The address to ping")
 	_ = clientNetworkPingCmd.MarkPersistentFlagRequired("address")
 }
