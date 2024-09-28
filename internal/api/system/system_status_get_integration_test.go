@@ -26,6 +26,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -35,6 +36,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/config"
+	hostMocks "github.com/retr0h/osapi/internal/provider/system/host/mocks"
 	hostnameMocks "github.com/retr0h/osapi/internal/provider/system/hostname/mocks"
 	loadMocks "github.com/retr0h/osapi/internal/provider/system/load/mocks"
 	memMocks "github.com/retr0h/osapi/internal/provider/system/mem/mocks"
@@ -64,6 +66,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		setupHostnameMock func() *hostnameMocks.MockProvider
 		setupMemMock      func() *memMocks.MockProvider
 		setupLoadMock     func() *loadMocks.MockProvider
+		setupHostMock     func() *hostMocks.MockProvider
 		wantCode          int
 		wantBody          string
 	}{
@@ -87,6 +90,11 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			},
 			setupLoadMock: func() *loadMocks.MockProvider {
 				mock := loadMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupHostMock: func() *hostMocks.MockProvider {
+				mock := hostMocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -136,10 +144,46 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 
 				return mock
 			},
+			setupHostMock: func() *hostMocks.MockProvider {
+				mock := hostMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
 			wantCode: http.StatusInternalServerError,
 			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
-		// uptime, err := s.SystemProvider.GetUptime()
+		{
+			name: "when host.GetUptime errors",
+			path: "/system/status",
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupHostnameMock: func() *hostnameMocks.MockProvider {
+				mock := hostnameMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupMemMock: func() *memMocks.MockProvider {
+				mock := memMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupLoadMock: func() *loadMocks.MockProvider {
+				mock := loadMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupHostMock: func() *hostMocks.MockProvider {
+				mock := hostMocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetUptime().Return(0*time.Second, assert.AnError)
+
+				return mock
+			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+		},
 		{
 			name: "when load.GetAverageStats errors",
 			path: "/system/status",
@@ -161,6 +205,11 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			setupLoadMock: func() *loadMocks.MockProvider {
 				mock := loadMocks.NewPlainMockProvider(suite.ctrl)
 				mock.EXPECT().GetAverageStats().Return(nil, assert.AnError)
+
+				return mock
+			},
+			setupHostMock: func() *hostMocks.MockProvider {
+				mock := hostMocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
@@ -191,6 +240,11 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 
 				return mock
 			},
+			setupHostMock: func() *hostMocks.MockProvider {
+				mock := hostMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
 			wantCode: http.StatusInternalServerError,
 			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
@@ -203,6 +257,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 			hostnameMock := tc.setupHostnameMock()
 			memMock := tc.setupMemMock()
 			loadMock := tc.setupLoadMock()
+			hostMock := tc.setupHostMock()
 
 			a := api.New(suite.appConfig, suite.logger)
 			systemGen.RegisterHandlers(a.Echo,
@@ -210,6 +265,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 					hostnameMock,
 					memMock,
 					loadMock,
+					hostMock,
 				))
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)

@@ -6,9 +6,9 @@ package mocks
 
 import (
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	system "github.com/retr0h/osapi/internal/provider/system"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -34,17 +34,17 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 	return m.recorder
 }
 
-// GetLocalDiskStats mocks base method.
-func (m *MockProvider) GetLocalDiskStats() ([]system.DiskUsageStats, error) {
+// GetUptime mocks base method.
+func (m *MockProvider) GetUptime() (time.Duration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLocalDiskStats")
-	ret0, _ := ret[0].([]system.DiskUsageStats)
+	ret := m.ctrl.Call(m, "GetUptime")
+	ret0, _ := ret[0].(time.Duration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLocalDiskStats indicates an expected call of GetLocalDiskStats.
-func (mr *MockProviderMockRecorder) GetLocalDiskStats() *gomock.Call {
+// GetUptime indicates an expected call of GetUptime.
+func (mr *MockProviderMockRecorder) GetUptime() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocalDiskStats", reflect.TypeOf((*MockProvider)(nil).GetLocalDiskStats))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUptime", reflect.TypeOf((*MockProvider)(nil).GetUptime))
 }

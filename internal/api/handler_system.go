@@ -24,11 +24,12 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shirou/gopsutil/v4/host"
+	sysHost "github.com/shirou/gopsutil/v4/host"
 
 	"github.com/retr0h/osapi/internal/api/system"
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	systemImpl "github.com/retr0h/osapi/internal/provider/system"
+	"github.com/retr0h/osapi/internal/provider/system/host"
 	"github.com/retr0h/osapi/internal/provider/system/hostname"
 	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
@@ -40,19 +41,22 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 	var hostnameProvider hostname.Provider
 	var memProvider mem.Provider
 	var loadProvider load.Provider
+	var hostProvider host.Provider
 
-	info, _ := host.Info()
+	info, _ := sysHost.Info()
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
 		systemProvider = systemImpl.NewUbuntuProvider()
 		hostnameProvider = hostname.NewUbuntuProvider()
 		memProvider = mem.NewUbuntuProvider()
 		loadProvider = load.NewUbuntuProvider()
+		hostProvider = host.NewUbuntuProvider()
 	default:
 		systemProvider = systemImpl.NewDefaultLinuxProvider()
 		hostnameProvider = hostname.NewDefaultLinuxProvider()
 		memProvider = mem.NewDefaultLinuxProvider()
 		loadProvider = load.NewDefaultLinuxProvider()
+		hostProvider = host.NewDefaultLinuxProvider()
 	}
 
 	return []func(e *echo.Echo){
@@ -62,6 +66,7 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 				hostnameProvider,
 				memProvider,
 				loadProvider,
+				hostProvider,
 			)
 			systemGen.RegisterHandlers(e, systemHandler)
 		},

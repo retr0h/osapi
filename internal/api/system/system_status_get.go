@@ -41,7 +41,7 @@ func (s System) GetSystemStatus(
 		})
 	}
 
-	uptime, err := s.SystemProvider.GetUptime()
+	uptime, err := s.HostProvider.GetUptime()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),

@@ -25,10 +25,8 @@ import (
 	"os"
 	"strings"
 	"syscall"
-	"time"
 
 	"github.com/shirou/gopsutil/v4/disk"
-	"github.com/shirou/gopsutil/v4/host"
 )
 
 // UbuntuSystem implements the System interface for Ubuntu.
@@ -37,16 +35,6 @@ type UbuntuSystem struct{}
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider() *UbuntuSystem {
 	return &UbuntuSystem{}
-}
-
-// GetUptime retrieves the system uptime.
-// It returns the uptime as a time.Duration, and an error if something goes wrong.
-func (us *UbuntuSystem) GetUptime() (time.Duration, error) {
-	hostInfo, err := host.Info()
-	if err != nil {
-		return 0, err
-	}
-	return time.Duration(hostInfo.Uptime) * time.Second, nil
 }
 
 // GetLocalDiskStats retrieves disk space statistics for local disks only.

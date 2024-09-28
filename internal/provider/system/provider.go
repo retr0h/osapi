@@ -20,15 +20,9 @@
 
 package system
 
-import (
-	"time"
-)
-
 // Provider implements the methods to interact with various system-level
 // components.
 type Provider interface {
-	// GetUptime retrieves the system uptime.
-	GetUptime() (time.Duration, error)
 	// GetLocalDiskStats retrieves disk space statistics.
 	GetLocalDiskStats() ([]DiskUsageStats, error)
 }

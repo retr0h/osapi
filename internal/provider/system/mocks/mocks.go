@@ -21,8 +21,6 @@
 package mocks
 
 import (
-	"time"
-
 	"github.com/golang/mock/gomock"
 
 	"github.com/retr0h/osapi/internal/provider/system"
@@ -37,7 +35,6 @@ func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
 func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
-	mock.EXPECT().GetUptime().Return(time.Hour*5, nil).AnyTimes()
 	mock.EXPECT().GetLocalDiskStats().Return([]system.DiskUsageStats{
 		{
 			Name:  "/dev/disk1",

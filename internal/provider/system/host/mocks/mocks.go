@@ -18,24 +18,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mocks
 
 import (
-	"fmt"
+	"time"
+
+	"github.com/golang/mock/gomock"
 )
 
-// DefaultLinuxSystem implements the System interface for Linux.
-type DefaultLinuxSystem struct{}
-
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *DefaultLinuxSystem {
-	return &DefaultLinuxSystem{}
+// NewPlainMockProvider creates a Mock without defaults.
+func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+	return NewMockProvider(ctrl)
 }
 
-// GetLocalDiskStats retrieves disk space statistics for local disks only.
-// It returns a slice of DiskUsageStats structs, each containing the total, used,
-// and free space in bytes for the corresponding local disk.
-// An error is returned if somethng goes wrong.
-func (dls *DefaultLinuxSystem) GetLocalDiskStats() ([]DiskUsageStats, error) {
-	return nil, fmt.Errorf("GetLocalDiskStats is not implemented for DefaultLinuxProvider")
+// NewDefaultMockProvider creates a Mock with defaults.
+func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+	mock := NewMockProvider(ctrl)
+
+	mock.EXPECT().GetUptime().Return(time.Hour*5, nil).AnyTimes()
+
+	return mock
 }
