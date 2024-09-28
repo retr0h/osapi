@@ -28,7 +28,7 @@ import (
 	probing "github.com/prometheus-community/pro-bing"
 )
 
-// PingHost pings the given host and returns the ping statistics or an error.
+// Do pings the given host and returns the ping statistics or an error.
 // It returns a PingResult struct, and an error if something goes wrong.
 //
 // On Linux, it attempts an "unprivileged" ping via UDP by default.
@@ -41,7 +41,7 @@ import (
 //  1. Run the binary as root, or
 //  2. Set capabilities on the binary to allow raw socket usage:
 //     sudo setcap cap_net_raw=+ep /path/to/your/compiled/binary
-func (u *UbuntuPing) PingHost(address string) (*PingResult, error) {
+func (u *Ubuntu) Do(address string) (*PingResult, error) {
 	pinger, err := probing.NewPinger(address)
 	timeout := 5 * time.Second
 

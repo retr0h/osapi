@@ -24,7 +24,7 @@ import (
 	"fmt"
 )
 
-// PingHost pings the given host and returns the ping statistics or an error.
-func (l *PingLinux) PingHost(_ string) (*PingResult, error) {
+// Do pings the given host and returns the ping statistics or an error.
+func (l *Linux) Do(_ string) (*PingResult, error) {
 	return nil, fmt.Errorf("PingHost is not implemented for DefaultLinuxProvider")
 }

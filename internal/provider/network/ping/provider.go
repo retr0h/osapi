@@ -22,6 +22,6 @@ package ping
 
 // Provider implements the methods to interact with various ping components.
 type Provider interface {
-	// PingHost pings the given host and returns the ping statistics or an error.
-	PingHost(address string) (*PingResult, error)
+	// Do pings the given host and returns the ping statistics or an error.
+	Do(address string) (*PingResult, error)
 }

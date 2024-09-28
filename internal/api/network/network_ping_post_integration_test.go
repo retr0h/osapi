@@ -109,12 +109,12 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 			wantBody: `{"code":0,"error":"code=400, message=Syntax error: offset=10, error=invalid character '}' looking for beginning of value, internal=invalid character '}' looking for beginning of value"}`,
 		},
 		{
-			name: "when PingHost errors",
+			name: "when ping.Do errors",
 			path: "/network/ping",
 			body: `{"address": "example.com"}`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().PingHost("example.com").
+				mock.EXPECT().Do("example.com").
 					Return(nil, assert.AnError).AnyTimes()
 
 				return mock

@@ -34,17 +34,17 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 	return m.recorder
 }
 
-// PingHost mocks base method.
-func (m *MockProvider) PingHost(address string) (*ping.PingResult, error) {
+// Do mocks base method.
+func (m *MockProvider) Do(address string) (*ping.PingResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PingHost", address)
+	ret := m.ctrl.Call(m, "Do", address)
 	ret0, _ := ret[0].(*ping.PingResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// PingHost indicates an expected call of PingHost.
-func (mr *MockProviderMockRecorder) PingHost(address interface{}) *gomock.Call {
+// Do indicates an expected call of Do.
+func (mr *MockProviderMockRecorder) Do(address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingHost", reflect.TypeOf((*MockProvider)(nil).PingHost), address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Do", reflect.TypeOf((*MockProvider)(nil).Do), address)
 }

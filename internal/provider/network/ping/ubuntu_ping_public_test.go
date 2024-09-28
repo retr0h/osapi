@@ -54,7 +54,7 @@ func (suite *UbuntuPingPublicTestSuite) SetupSubTest() {
 
 func (suite *UbuntuPingPublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuPingPublicTestSuite) TestPingHost() {
+func (suite *UbuntuPingPublicTestSuite) TestDo() {
 	tests := []struct {
 		name        string
 		setupMock   func() *mocks.MockProvider
@@ -64,7 +64,7 @@ func (suite *UbuntuPingPublicTestSuite) TestPingHost() {
 		wantErrType error
 	}{
 		{
-			name:    "when PingHost Ok",
+			name:    "when Do Ok",
 			address: "example.com",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -82,11 +82,11 @@ func (suite *UbuntuPingPublicTestSuite) TestPingHost() {
 			wantErr: false,
 		},
 		{
-			name:    "when PingHost errors",
+			name:    "when Do errors",
 			address: "example.com",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().PingHost("example.com").Return(nil, assert.AnError)
+				mock.EXPECT().Do("example.com").Return(nil, assert.AnError)
 
 				return mock
 			},
@@ -99,7 +99,7 @@ func (suite *UbuntuPingPublicTestSuite) TestPingHost() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.PingHost(tc.address)
+			got, err := mock.Do(tc.address)
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)

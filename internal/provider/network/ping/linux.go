@@ -20,10 +20,10 @@
 
 package ping
 
-// PingLinux implements the Ping interface for Linux.
-type PingLinux struct{}
+// Linux implements the Ping interface for Linux.
+type Linux struct{}
 
 // NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *PingLinux {
-	return &PingLinux{}
+func NewDefaultLinuxProvider() *Linux {
+	return &Linux{}
 }

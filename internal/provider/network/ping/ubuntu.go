@@ -24,16 +24,16 @@ import (
 	"github.com/spf13/afero"
 )
 
-// UbuntuPing implements the Ping interface for Ubuntu.
-type UbuntuPing struct {
+// Ubuntu implements the Ping interface for Ubuntu.
+type Ubuntu struct {
 	appFs afero.Fs
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider(
 	appFs afero.Fs,
-) *UbuntuPing {
-	return &UbuntuPing{
+) *Ubuntu {
+	return &Ubuntu{
 		appFs: appFs,
 	}
 }

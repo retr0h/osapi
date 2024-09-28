@@ -48,7 +48,7 @@ func (n Network) PostNetworkPing(
 		})
 	}
 
-	pingResult, err := n.PingProvider.PingHost(newPingAddress.Address)
+	pingResult, err := n.PingProvider.Do(newPingAddress.Address)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
 			Error: err.Error(),
