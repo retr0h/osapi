@@ -24,6 +24,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/system/gen"
 	"github.com/retr0h/osapi/internal/provider/system"
 	"github.com/retr0h/osapi/internal/provider/system/hostname"
+	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
 
@@ -35,10 +36,12 @@ func New(
 	sp system.Provider,
 	hp hostname.Provider,
 	mp mem.Provider,
+	lp load.Provider,
 ) *System {
 	return &System{
 		SystemProvider:   sp,
 		HostnameProvider: hp,
 		MemProvider:      mp,
+		LoadProvider:     lp,
 	}
 }

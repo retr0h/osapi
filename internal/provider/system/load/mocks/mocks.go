@@ -18,24 +18,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package mocks
 
 import (
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
+	"github.com/golang/mock/gomock"
+
 	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
 
-// System implementation of the System APIs operations.
-type System struct {
-	// SystemProvider implements the methods to interact with various system-level
-	// components.
-	SystemProvider system.Provider
-	// HostnameProvider implements the methods to interact with various hostname components.
-	HostnameProvider hostname.Provider
-	// MemProvider implements the methods to interact with various mem components.
-	MemProvider mem.Provider
-	// LoadProvider implements the methods to interact with various load components.
-	LoadProvider load.Provider
+// NewPlainMockProvider creates a Mock without defaults.
+func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+	return NewMockProvider(ctrl)
+}
+
+// NewDefaultMockProvider creates a Mock with defaults.
+func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+	mock := NewMockProvider(ctrl)
+
+	mock.EXPECT().
+		GetAverageStats().
+		Return(&load.AverageStats{
+			Load1:  1.0,
+			Load5:  0.5,
+			Load15: 0.2,
+		}, nil).
+		AnyTimes()
+
+	return mock
 }

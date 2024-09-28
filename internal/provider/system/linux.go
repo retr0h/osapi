@@ -33,13 +33,6 @@ func NewDefaultLinuxProvider() *DefaultLinuxSystem {
 	return &DefaultLinuxSystem{}
 }
 
-// GetLoadAverageStats returns the system's load averages over 1, 5, and 15 minutes.
-// It returns a LoadAverageStats struct with load over 1, 5, and 15 minutes,
-// and an error if something goes wrong.
-func (dls *DefaultLinuxSystem) GetLoadAverageStats() (*LoadAverageStats, error) {
-	return nil, fmt.Errorf("GetLoadAverage is not implemented for DefaultLinuxProvider")
-}
-
 // GetUptime retrieves the system uptime.
 // It returns the uptime as a time.Duration, and an error if something goes wrong.
 func (dls *DefaultLinuxSystem) GetUptime() (time.Duration, error) {

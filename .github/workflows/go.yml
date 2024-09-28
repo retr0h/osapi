@@ -21,6 +21,8 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deps
+        run: task deps
       - name: Test
         run: task test
       - name: Upload coverage reports to Codecov

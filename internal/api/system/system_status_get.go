@@ -48,7 +48,7 @@ func (s System) GetSystemStatus(
 		})
 	}
 
-	loadAvgStats, err := s.SystemProvider.GetLoadAverageStats()
+	loadAvgStats, err := s.LoadProvider.GetAverageStats()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
 			Error: err.Error(),

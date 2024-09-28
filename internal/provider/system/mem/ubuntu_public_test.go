@@ -21,7 +21,6 @@
 package mem_test
 
 import (
-	// "fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"

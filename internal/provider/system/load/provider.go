@@ -18,24 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package load
 
-import (
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
-	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
-)
-
-// System implementation of the System APIs operations.
-type System struct {
-	// SystemProvider implements the methods to interact with various system-level
-	// components.
-	SystemProvider system.Provider
-	// HostnameProvider implements the methods to interact with various hostname components.
-	HostnameProvider hostname.Provider
-	// MemProvider implements the methods to interact with various mem components.
-	MemProvider mem.Provider
-	// LoadProvider implements the methods to interact with various load components.
-	LoadProvider load.Provider
+// Provider implements the methods to interact with various Load components.
+type Provider interface {
+	// GetAverageStats retrieves the system load averages.
+	GetAverageStats() (*AverageStats, error)
 }

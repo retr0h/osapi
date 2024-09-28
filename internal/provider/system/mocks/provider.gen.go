@@ -35,21 +35,6 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 	return m.recorder
 }
 
-// GetLoadAverageStats mocks base method.
-func (m *MockProvider) GetLoadAverageStats() (*system.LoadAverageStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLoadAverageStats")
-	ret0, _ := ret[0].(*system.LoadAverageStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetLoadAverageStats indicates an expected call of GetLoadAverageStats.
-func (mr *MockProviderMockRecorder) GetLoadAverageStats() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoadAverageStats", reflect.TypeOf((*MockProvider)(nil).GetLoadAverageStats))
-}
-
 // GetLocalDiskStats mocks base method.
 func (m *MockProvider) GetLocalDiskStats() ([]system.DiskUsageStats, error) {
 	m.ctrl.T.Helper()

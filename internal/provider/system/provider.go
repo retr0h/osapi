@@ -27,8 +27,6 @@ import (
 // Provider implements the methods to interact with various system-level
 // components.
 type Provider interface {
-	// GetLoadAverageStats retrieves the system load averages.
-	GetLoadAverageStats() (*LoadAverageStats, error)
 	// GetUptime retrieves the system uptime.
 	GetUptime() (time.Duration, error)
 	// GetLocalDiskStats retrieves disk space statistics.

@@ -30,6 +30,7 @@ import (
 	systemGen "github.com/retr0h/osapi/internal/api/system/gen"
 	systemImpl "github.com/retr0h/osapi/internal/provider/system"
 	"github.com/retr0h/osapi/internal/provider/system/hostname"
+	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
 
@@ -38,6 +39,7 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 	var systemProvider systemImpl.Provider
 	var hostnameProvider hostname.Provider
 	var memProvider mem.Provider
+	var loadProvider load.Provider
 
 	info, _ := host.Info()
 	switch strings.ToLower(info.Platform) {
@@ -45,10 +47,12 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 		systemProvider = systemImpl.NewUbuntuProvider()
 		hostnameProvider = hostname.NewUbuntuProvider()
 		memProvider = mem.NewUbuntuProvider()
+		loadProvider = load.NewUbuntuProvider()
 	default:
 		systemProvider = systemImpl.NewDefaultLinuxProvider()
 		hostnameProvider = hostname.NewDefaultLinuxProvider()
 		memProvider = mem.NewDefaultLinuxProvider()
+		loadProvider = load.NewDefaultLinuxProvider()
 	}
 
 	return []func(e *echo.Echo){
@@ -57,6 +61,7 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 				systemProvider,
 				hostnameProvider,
 				memProvider,
+				loadProvider,
 			)
 			systemGen.RegisterHandlers(e, systemHandler)
 		},

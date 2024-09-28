@@ -20,16 +20,6 @@
 
 package system
 
-// LoadAverageStats represents the system load averages over 1, 5, and 15 minutes.
-type LoadAverageStats struct {
-	// Load average over the last 1 minute
-	Load1 float32
-	// Load average over the last 5 minutes
-	Load5 float32
-	// Load average over the last 15 minutes
-	Load15 float32
-}
-
 // DiskUsageStats holds information about disk space usage.
 type DiskUsageStats struct {
 	// Disk identifier, e.g., "/dev/sda1"

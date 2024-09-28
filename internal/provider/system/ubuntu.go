@@ -29,7 +29,6 @@ import (
 
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/host"
-	"github.com/shirou/gopsutil/v4/load"
 )
 
 // UbuntuSystem implements the System interface for Ubuntu.
@@ -38,21 +37,6 @@ type UbuntuSystem struct{}
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider() *UbuntuSystem {
 	return &UbuntuSystem{}
-}
-
-// GetLoadAverageStats returns the system's load averages over 1, 5, and 15 minutes.
-// It returns a LoadAverageStats struct with load over 1, 5, and 15 minutes,
-// and an error if something goes wrong.
-func (us *UbuntuSystem) GetLoadAverageStats() (*LoadAverageStats, error) {
-	avg, err := load.Avg()
-	if err != nil {
-		return nil, err
-	}
-	return &LoadAverageStats{
-		Load1:  float32(avg.Load1),
-		Load5:  float32(avg.Load5),
-		Load15: float32(avg.Load15),
-	}, nil
 }
 
 // GetUptime retrieves the system uptime.

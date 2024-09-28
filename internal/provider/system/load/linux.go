@@ -18,24 +18,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package load
 
 import (
-	"github.com/retr0h/osapi/internal/provider/system"
-	"github.com/retr0h/osapi/internal/provider/system/hostname"
-	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
+	"fmt"
 )
 
-// System implementation of the System APIs operations.
-type System struct {
-	// SystemProvider implements the methods to interact with various system-level
-	// components.
-	SystemProvider system.Provider
-	// HostnameProvider implements the methods to interact with various hostname components.
-	HostnameProvider hostname.Provider
-	// MemProvider implements the methods to interact with various mem components.
-	MemProvider mem.Provider
-	// LoadProvider implements the methods to interact with various load components.
-	LoadProvider load.Provider
+// Linux implements the Load interface for Linux.
+type Linux struct{}
+
+// NewDefaultLinuxProvider factory to create a new Linux instance.
+func NewDefaultLinuxProvider() *Linux {
+	return &Linux{}
+}
+
+// GetAverageStats returns the system's load averages over 1, 5, and 15 minutes.
+// It returns a AverageStats struct with load over 1, 5, and 15 minutes,
+// and an error if something goes wrong.
+func (l *Linux) GetAverageStats() (*AverageStats, error) {
+	return nil, fmt.Errorf("GetAverage is not implemented for DefaultLinuxProvider")
 }

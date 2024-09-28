@@ -37,14 +37,6 @@ func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
 func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
-	mock.EXPECT().
-		GetLoadAverageStats().
-		Return(&system.LoadAverageStats{
-			Load1:  1.0,
-			Load5:  0.5,
-			Load15: 0.2,
-		}, nil).
-		AnyTimes()
 	mock.EXPECT().GetUptime().Return(time.Hour*5, nil).AnyTimes()
 	mock.EXPECT().GetLocalDiskStats().Return([]system.DiskUsageStats{
 		{
