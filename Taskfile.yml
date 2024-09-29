@@ -23,6 +23,7 @@ tasks:
       - go install mvdan.cc/gofumpt@latest
       - go install github.com/jstemmer/go-junit-report@latest
       - go install github.com/air-verse/air@latest
+      - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
       # - go install github.com/goreleaser/goreleaser@latest
 
   mod:

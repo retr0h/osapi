@@ -18,40 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package queue
+package proto
 
-import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-
-	"github.com/retr0h/osapi/internal/api/queue/gen"
-)
-
-// PostQueue puts a single item into the queue API endpoint.
-func (q Queue) PostQueue(
-	ctx echo.Context,
-) error {
-	var newItem gen.PostQueueJSONBody
-
-	if err := ctx.Bind(&newItem); err != nil {
-		return ctx.JSON(http.StatusBadRequest, gen.QueueErrorResponse{
-			Error: err.Error(),
-		})
-	}
-
-	if len(newItem.Body) == 0 {
-		return ctx.JSON(http.StatusBadRequest, gen.QueueErrorResponse{
-			Error: "Body field is required and cannot be empty",
-		})
-	}
-
-	err := q.Manager.Put(ctx.Request().Context(), newItem.Body)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
-			Error: err.Error(),
-		})
-	}
-
-	return ctx.NoContent(http.StatusCreated)
-}
+//go:generate protoc --proto_path=../../../../proto --go_out=../../../../internal/task/gen/proto/ --go_opt=paths=source_relative ../../../../proto/task/task.proto

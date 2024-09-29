@@ -14,8 +14,8 @@ import (
 
 // QueueItem defines model for QueueItem.
 type QueueItem struct {
-	// Body String representation of the body of the queue item.
-	Body *string `json:"body,omitempty"`
+	// Body Base64-encoded representation of the body of the queue item.
+	Body *[]byte `json:"body,omitempty"`
 
 	// Created Creation timestamp of the queue item.
 	Created *time.Time `json:"created,omitempty"`
@@ -61,8 +61,8 @@ type GetQueueParams struct {
 
 // PostQueueJSONBody defines parameters for PostQueue.
 type PostQueueJSONBody struct {
-	// Body String representation of the body of the queue item.
-	Body string `json:"body"`
+	// Body Base64-encoded representation of the body of the queue item.
+	Body []byte `json:"body"`
 }
 
 // PostQueueJSONRequestBody defines body for PostQueue for application/json ContentType.

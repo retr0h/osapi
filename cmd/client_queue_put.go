@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/base64"
 	"log/slog"
 	"net/http"
 
@@ -34,10 +35,16 @@ var messageBody string
 var clientQueuePutCmd = &cobra.Command{
 	Use:   "put",
 	Short: "Put a messge into the queue",
-	Long: `Puts a message into the queue for processing by the task runner.
+	Long: `Puts a base64 encoded message into the queue for processing by the task runner.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		errorMsg := "unknown error"
+
+		_, err := base64.StdEncoding.DecodeString(messageBody)
+		if err != nil {
+			logFatal("invalid Base64-encoded message body", err)
+		}
+
 		resp, err := handler.PostQueue(context.TODO(), messageBody)
 		if err != nil {
 			logFatal("failed to post queue endpoint", err)
@@ -81,6 +88,6 @@ func init() {
 	clientQueueCmd.AddCommand(clientQueuePutCmd)
 
 	clientQueuePutCmd.PersistentFlags().
-		StringVarP(&messageBody, "message-body", "b", "", "The message body of the queue item to add")
+		StringVarP(&messageBody, "message-body", "b", "", "The Base64-encoded message body of the queue item to add")
 	_ = clientQueuePutCmd.MarkPersistentFlagRequired("message-body")
 }

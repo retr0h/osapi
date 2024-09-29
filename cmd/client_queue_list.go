@@ -28,6 +28,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/task"
 )
 
 var (
@@ -82,17 +84,18 @@ var clientQueueListCmd = &cobra.Command{
 					createdTime = item.Created.Format(time.RFC3339)
 				}
 
+				protoString := task.SafeMarshalTaskToString(item.Body)
 				itemRows = append(itemRows, []string{
 					safeString(item.Id),
 					createdTime,
-					safeString(item.Body),
+					protoString,
 				})
 			}
 
 			sections := []section{
 				{
 					Title:   "Items",
-					Headers: []string{"ID", "CREATED", "BODY"},
+					Headers: []string{"ID", "CREATED", "TASK"},
 					Rows:    itemRows,
 				},
 			}

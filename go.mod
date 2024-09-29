@@ -21,6 +21,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/term v0.24.0
+	google.golang.org/protobuf v1.34.2
 	modernc.org/sqlite v1.33.1
 )
 

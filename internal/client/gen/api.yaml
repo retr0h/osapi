@@ -188,7 +188,8 @@ paths:
               properties:
                 body:
                   type: string
-                  description: String representation of the body of the queue item.
+                  format: byte
+                  description: Base64-encoded representation of the body of the queue item.
               required:
                 - body
               additionalProperties: false
@@ -444,8 +445,9 @@ components:
           description: Last updated timestamp of the queue item.
         body:
           type: string
-          description: String representation of the body of the queue item.
-          example: This is the body of the queue item
+          format: byte
+          description: Base64-encoded representation of the body of the queue item.
+          example: U29tZSBleGFtcGxlIGJ5dGVzIGRhdGE=
         timeout:
           type: string
           format: date-time

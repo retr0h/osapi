@@ -18,40 +18,23 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package queue
+syntax = "proto3";
 
-import (
-	"net/http"
+package task;
 
-	"github.com/labstack/echo/v4"
+option go_package = "github.com/retr0h/osapi/internal/task/gen/proto/task";
 
-	"github.com/retr0h/osapi/internal/api/queue/gen"
-)
+message RebootAction {
+    // Any fields needed for reboot (e.g., reboot type, etc.)
+}
 
-// PostQueue puts a single item into the queue API endpoint.
-func (q Queue) PostQueue(
-	ctx echo.Context,
-) error {
-	var newItem gen.PostQueueJSONBody
+message ChangeDNSAction {
+    repeated string dns_servers = 1;
+}
 
-	if err := ctx.Bind(&newItem); err != nil {
-		return ctx.JSON(http.StatusBadRequest, gen.QueueErrorResponse{
-			Error: err.Error(),
-		})
-	}
-
-	if len(newItem.Body) == 0 {
-		return ctx.JSON(http.StatusBadRequest, gen.QueueErrorResponse{
-			Error: "Body field is required and cannot be empty",
-		})
-	}
-
-	err := q.Manager.Put(ctx.Request().Context(), newItem.Body)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
-			Error: err.Error(),
-		})
-	}
-
-	return ctx.NoContent(http.StatusCreated)
+message Task {
+    oneof action {
+        RebootAction reboot_action = 1;
+        ChangeDNSAction change_dns_action = 2;
+    }
 }

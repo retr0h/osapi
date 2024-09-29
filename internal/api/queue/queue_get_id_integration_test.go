@@ -53,7 +53,7 @@ func (suite *QueueGetIDIntegrationTestSuite) SetupTest() {
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
+func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueID() {
 	tests := []struct {
 		name      string
 		path      string
@@ -71,7 +71,7 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 			},
 			wantCode: http.StatusOK,
 			wantBody: `{
-"body": "test body",
+"body": "EhIKBzguOC44LjgKBzguOC40LjQ=",
 "created": "2024-09-10T12:00:00Z",
 "id": "message-id",
 "received": 5,
@@ -105,6 +105,17 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueAll() {
 			},
 			wantCode: http.StatusInternalServerError,
 			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+		},
+		{
+			name: "when cannot decode body",
+			path: "/queue/message-id",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainMockManagerWithInvalidBody(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: `{"code":0,"error":"failed to decode body for queue item message-id: illegal base64 data at input byte 7"}`,
 		},
 	}
 

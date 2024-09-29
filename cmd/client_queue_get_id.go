@@ -22,10 +22,13 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/task"
 )
 
 var messageID string
@@ -54,6 +57,10 @@ var clientQueueGetIDCmd = &cobra.Command{
 				return
 			}
 
+			if resp.JSON200 == nil {
+				logFatal("failed response", fmt.Errorf("get queue response was nil"))
+			}
+
 			queueData := map[string]interface{}{
 				"ID":       safeString(resp.JSON200.Id),
 				"Created":  safeTime(resp.JSON200.Created),
@@ -63,14 +70,15 @@ var clientQueueGetIDCmd = &cobra.Command{
 			}
 			printStyledMap(queueData)
 
+			protoString := task.SafeMarshalTaskToString(resp.JSON200.Body)
 			itemRows := [][]string{}
 			itemRows = append(itemRows, []string{
-				safeString(resp.JSON200.Body),
+				protoString,
 			})
 
 			sections := []section{
 				{
-					Headers: []string{"BODY"},
+					Headers: []string{"TASK"},
 					Rows:    itemRows,
 				},
 			}

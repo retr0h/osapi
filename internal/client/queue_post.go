@@ -32,7 +32,7 @@ func (c *Client) PostQueue(
 	messageBody string,
 ) (*gen.PostQueueResponse, error) {
 	body := gen.PostQueueJSONRequestBody{
-		Body: messageBody,
+		Body: []byte(messageBody),
 	}
 
 	return c.Client.PostQueueWithResponse(ctx, body)

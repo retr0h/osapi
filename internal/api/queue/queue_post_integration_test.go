@@ -21,6 +21,7 @@ package queue_test
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -54,7 +55,7 @@ func (suite *QueuePostIntegrationTestSuite) SetupTest() {
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *QueuePostIntegrationTestSuite) TestGetQueueAll() {
+func (suite *QueuePostIntegrationTestSuite) TestPostQueue() {
 	tests := []struct {
 		name      string
 		path      string
@@ -66,7 +67,7 @@ func (suite *QueuePostIntegrationTestSuite) TestGetQueueAll() {
 		{
 			name: "when post Ok",
 			path: "/queue",
-			body: `{"body": "test message"}`,
+			body: `{"body": "EhIKBzguOC44LjgKBzguOC40LjQ="}`,
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewDefaultMockManager(suite.ctrl)
 
@@ -88,12 +89,27 @@ func (suite *QueuePostIntegrationTestSuite) TestGetQueueAll() {
 			wantBody: `{"code":0,"error":"code=400, message=Syntax error: offset=10, error=invalid character '}' looking for beginning of value, internal=invalid character '}' looking for beginning of value"}`,
 		},
 		{
+			name: "when body is empty",
+			path: "/queue",
+			body: `{"body": ""}`,
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewDefaultMockManager(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"code":0,"error":"Body field is required and cannot be empty"}`,
+		},
+		{
 			name: "when Put errors",
 			path: "/queue",
-			body: `{"body": "message-body"}`,
+			body: `{"body": "EhIKBzguOC44LjgKBzguOC40LjQ="}`,
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
-				mock.EXPECT().Put(context.Background(), []byte("message-body")).
+				expectedBody, err := base64.StdEncoding.DecodeString("EhIKBzguOC44LjgKBzguOC40LjQ=")
+				suite.Require().NoError(err)
+
+				mock.EXPECT().Put(context.Background(), expectedBody).
 					Return(assert.AnError).AnyTimes()
 
 				return mock
