@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/queue"
-	"github.com/retr0h/osapi/internal/queue/helpers"
+	qtesting "github.com/retr0h/osapi/internal/queue/testing"
 )
 
 type DBGetAllIntegrationTestSuite struct {
@@ -42,7 +42,7 @@ func (suite *DBGetAllIntegrationTestSuite) SetupTest() {}
 
 func (suite *DBGetAllIntegrationTestSuite) SetupSubTest() {
 	// NOTE(retr0h): Need to use SetupSubTest when using table driven tests
-	qm, err := helpers.SetupDatabase()
+	qm, err := qtesting.SetupDatabase()
 	suite.Require().NoError(err)
 	suite.qm = qm
 }

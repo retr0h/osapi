@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/queue"
-	"github.com/retr0h/osapi/internal/queue/helpers"
+	qtesting "github.com/retr0h/osapi/internal/queue/testing"
 )
 
 type DBCountIntegrationTestSuite struct {
@@ -39,7 +39,7 @@ type DBCountIntegrationTestSuite struct {
 }
 
 func (suite *DBCountIntegrationTestSuite) SetupTest() {
-	qm, err := helpers.SetupDatabase()
+	qm, err := qtesting.SetupDatabase()
 	suite.Require().NoError(err)
 	suite.qm = qm
 }

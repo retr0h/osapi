@@ -31,8 +31,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/queue"
-	"github.com/retr0h/osapi/internal/queue/helpers"
 	"github.com/retr0h/osapi/internal/queue/mocks"
+	qtesting "github.com/retr0h/osapi/internal/queue/testing"
 )
 
 type QueueIntegrationTestSuite struct {
@@ -45,7 +45,7 @@ type QueueIntegrationTestSuite struct {
 func (suite *QueueIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
-	qm, err := helpers.SetupDatabase()
+	qm, err := qtesting.SetupDatabase()
 	suite.Require().NoError(err)
 	suite.qm = qm
 }
