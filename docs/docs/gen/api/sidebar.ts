@@ -72,6 +72,12 @@ const sidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "gen/api/returns-the-total-number-of-items-in-the-queue",
+          label: "Returns the total number of items in the queue",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
           id: "gen/api/get-queue-id",
           label: "Get a queue item by ID",
           className: "api-method get",

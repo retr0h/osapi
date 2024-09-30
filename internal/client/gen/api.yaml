@@ -247,6 +247,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/queue.ErrorResponse'
+  /queue/status:
+    get:
+      summary: Returns the total number of items in the queue
+      tags:
+        - Queue_API_queue_operations
+      responses:
+        '200':
+          description: A JSON object containing the total number of items in the queue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueStatusResponse'
+        '500':
+          description: Error retrieving total number of items in the queue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queue.ErrorResponse'
   /queue/{id}:
     get:
       summary: Get a queue item by ID
@@ -467,6 +485,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/QueueItem'
+    QueueStatusResponse:
+      type: object
+      properties:
+        total_items:
+          type: integer
+          description: The total number of items in the queue.
+          example: 42
     queue.ErrorResponse:
       type: object
       properties:
