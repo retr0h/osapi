@@ -1,5 +1,7 @@
 # List
 
+List item from the queue by page and offset:
+
 ```bash
 $ osapi client queue list
 

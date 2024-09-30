@@ -60,6 +60,10 @@ type Manager interface {
 		ctx context.Context,
 		messageBody string,
 	) (*gen.PostQueueResponse, error)
+	// GetQueueStatus gets queue status through the queue API endpoint.
+	GetQueueStatus(
+		ctx context.Context,
+	) (*gen.GetQueueStatusResponse, error)
 
 	// GetSystemStatus get the system status API endpoint.
 	GetSystemStatus(

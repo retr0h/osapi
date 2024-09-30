@@ -41,6 +41,12 @@ type QueueResponse struct {
 	TotalItems *int `json:"total_items,omitempty"`
 }
 
+// QueueStatusResponse defines model for QueueStatusResponse.
+type QueueStatusResponse struct {
+	// TotalItems The total number of items in the queue.
+	TotalItems *int `json:"total_items,omitempty"`
+}
+
 // QueueErrorResponse defines model for queue.ErrorResponse.
 type QueueErrorResponse struct {
 	// Code The error code.
@@ -76,6 +82,9 @@ type ServerInterface interface {
 	// Add an item to the queue
 	// (POST /queue)
 	PostQueue(ctx echo.Context) error
+	// Returns the total number of items in the queue
+	// (GET /queue/status)
+	GetQueueStatus(ctx echo.Context) error
 	// Delete a queue item by ID
 	// (DELETE /queue/{id})
 	DeleteQueueID(ctx echo.Context, id string) error
@@ -120,6 +129,15 @@ func (w *ServerInterfaceWrapper) PostQueue(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostQueue(ctx)
+	return err
+}
+
+// GetQueueStatus converts echo context to params.
+func (w *ServerInterfaceWrapper) GetQueueStatus(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetQueueStatus(ctx)
 	return err
 }
 
@@ -185,6 +203,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/queue", wrapper.GetQueue)
 	router.POST(baseURL+"/queue", wrapper.PostQueue)
+	router.GET(baseURL+"/queue/status", wrapper.GetQueueStatus)
 	router.DELETE(baseURL+"/queue/:id", wrapper.DeleteQueueID)
 	router.GET(baseURL+"/queue/:id", wrapper.GetQueueID)
 

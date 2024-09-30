@@ -1,5 +1,7 @@
 # Get
 
+Get an item from the queue by `message-id`:
+
 ```bash
 $ osapi client queue get --message-id m_cdb5ca64cc494646eee5edc7f8bc3313
 
