@@ -83,15 +83,15 @@ tasks:
   fmt:
     desc: Reformat files whose formatting differs from `go_fmt_command`
     cmds:
-      - gofumpt -l -w .
-      - golines --base-formatter=gofumpt -w .
+      - find . -type f -name '*.go' ! -name '*.gen.go' ! -name '*.pb.go' | xargs gofumpt -l -w
+      - find . -type f -name '*.go' ! -name '*.gen.go' ! -name '*.pb.go' | xargs golines --base-formatter=gofumpt -w
 
   fmt:check:
     desc: Check files whose formatting differs from `go_fmt_command`
     cmds:
       # https://github.com/mvdan/gofumpt/issues/114
-      - test -z "$(gofumpt -d -e . | tee /dev/stderr)"
-      - test -z "$(golines -l --dry-run --base-formatter=gofumpt -w .)"
+      - test -z "$(find . -type f -name '*.go' ! -name '*.gen.go' ! -name '*.pb.go' | xargs gofumpt -d -e | tee /dev/stderr)"
+      - test -z "$(find . -type f -name '*.go' ! -name '*.gen.go' ! -name '*.pb.go' | xargs golines --dry-run --base-formatter=gofumpt -l | tee /dev/stderr)"
 
   dev:serve:
     desc: Serve the API on an Ubuntu Linux VM

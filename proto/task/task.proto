@@ -24,17 +24,35 @@ package task;
 
 option go_package = "github.com/retr0h/osapi/internal/task/gen/proto/task";
 
-message RebootAction {
-    // Any fields needed for reboot (e.g., reboot type, etc.)
+// ShutdownAction represents an action to reboot or shutdown the system.
+message ShutdownAction {
+    // The type of action: reboot or shutdown
+    enum ActionType {
+        REBOOT = 0;
+        SHUTDOWN = 1;
+    }
+
+    ActionType action_type = 1;
+
+    // Optional field to specify a delay in seconds before reboot/shutdown
+    int32 delay_seconds = 2;
+
+    // Optional message to log or display before reboot/shutdown
+    string message = 3;
 }
 
+// ChangeDNSAction represents an action to change DNS settings.
 message ChangeDNSAction {
+    // List of DNS server IP addresses (IPv4 or IPv6)
     repeated string dns_servers = 1;
+
+    // List of search domains for DNS resolution
+    repeated string search_domains = 2;
 }
 
 message Task {
     oneof action {
-        RebootAction reboot_action = 1;
+        ShutdownAction shutdown_action = 1;
         ChangeDNSAction change_dns_action = 2;
     }
 }
