@@ -1,3 +1,3 @@
 # Worker
 
-TODO
+CLI to manage the queue worker.
