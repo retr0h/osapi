@@ -12,7 +12,7 @@ require (
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/lmittmann/tint v1.0.5
 	github.com/maragudk/goqite v0.2.3
-	github.com/oapi-codegen/oapi-codegen/v2 v2.4.0
+	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/prometheus-community/pro-bing v0.4.1
 	github.com/samber/slog-echo v1.14.7
