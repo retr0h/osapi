@@ -30,6 +30,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var pollIntervalSeconds int
+
 type model struct {
 	queueStatus string
 	lastUpdate  time.Time
@@ -46,7 +48,9 @@ func initialModel() model {
 
 // Poll every 30 seconds
 func tickCmd() tea.Cmd {
-	return tea.Tick(30*time.Second, func(t time.Time) tea.Msg {
+	pollInterval := time.Duration(pollIntervalSeconds) * time.Second
+
+	return tea.Tick(pollInterval, func(t time.Time) tea.Msg {
 		return t
 	})
 }
@@ -138,4 +142,7 @@ var clientQueueStatusCmd = &cobra.Command{
 
 func init() {
 	clientQueueCmd.AddCommand(clientQueueStatusCmd)
+
+	clientQueueCmd.PersistentFlags().
+		IntVarP(&pollIntervalSeconds, "poll-interval-seconds", "p", 60, "The interval (in seconds) between polling operations")
 }

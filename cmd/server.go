@@ -42,12 +42,17 @@ var serverCmd = &cobra.Command{
 				"server.security.cors.allow_origins",
 				appConfig.Server.Security.CORS.AllowOrigins,
 			),
+			slog.String("database.driver_name", appConfig.Database.DriverName),
+			slog.String("database.data_source_name", appConfig.Database.DataSourceName),
+			slog.Int("database.max_open_conns", appConfig.Database.MaxOpenConns),
+			slog.Int("database.max_idle_conns", appConfig.Database.MaxIdleConns),
 		)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(serverCmd)
+	registerDatabaseFlags(serverCmd)
 
 	serverCmd.PersistentFlags().
 		IntP("port", "p", 8080, "Port the server will bind to")

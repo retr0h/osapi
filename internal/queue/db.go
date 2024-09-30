@@ -37,8 +37,8 @@ func OpenDB(
 	appConfig config.Config,
 ) (*sql.DB, error) {
 	db, err := sql.Open(
-		appConfig.Queue.Database.DriverName,
-		appConfig.Queue.Database.DataSourceName,
+		appConfig.Database.DriverName,
+		appConfig.Database.DataSourceName,
 	)
 	if err != nil {
 		return nil, err

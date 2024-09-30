@@ -21,39 +21,29 @@
 package cmd
 
 import (
-	"log/slog"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// queueWorkerCmd represents the queueWorker command.
-var queueWorkerCmd = &cobra.Command{
-	Use:   "worker",
-	Short: "The worker subcommand",
-	PersistentPreRun: func(_ *cobra.Command, _ []string) {
-		logger.Info(
-			"queue configuration",
-			slog.Bool("debug", appConfig.Debug),
-			slog.String("database.driver_name", appConfig.Database.DriverName),
-			slog.String("database.data_source_name", appConfig.Database.DataSourceName),
-			slog.Int("database.max_open_conns", appConfig.Database.MaxOpenConns),
-			slog.Int("database.max_idle_conns", appConfig.Database.MaxIdleConns),
-			slog.Int("queue.poll_interval.seconds", appConfig.Queue.PollInterval.Seconds),
-		)
-	},
-}
+// registerDatabaseFlags defines and binds the flags related to database configuration.
+func registerDatabaseFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().
+		StringP("driver-name", "t", "sqlite", "Name of the database driver to use")
+	cmd.PersistentFlags().
+		StringP("dsn", "s", ":memory:?_journal=WAL&_timeout=5000&_fk=true", "The data source name (DSN) for the database connection")
+	cmd.PersistentFlags().
+		IntP("max-open-conns", "o", 1, "The maximum number of open connections to the database")
+	cmd.PersistentFlags().
+		IntP("max-idle-conns", "i", 1, "The maximum number of idle connections in the pool")
 
-func init() {
-	queueCmd.AddCommand(queueWorkerCmd)
-	registerDatabaseFlags(queueWorkerCmd)
-
-	queueWorkerCmd.PersistentFlags().
-		IntP("poll-interval-seconds", "p", 60, "The interval (in seconds) between polling operations")
-
-	_ = viper.BindPFlag("server.port", queueWorkerCmd.PersistentFlags().Lookup("port"))
+	_ = viper.BindPFlag("database.driver_name", cmd.PersistentFlags().Lookup("driver-name"))
+	_ = viper.BindPFlag("database.data_source_name", cmd.PersistentFlags().Lookup("dsn"))
 	_ = viper.BindPFlag(
-		"queue.poll_interval.seconds",
-		queueWorkerCmd.PersistentFlags().Lookup("poll-interval-seconds"),
+		"database.max_open_conns",
+		cmd.PersistentFlags().Lookup("max-open-conns"),
+	)
+	_ = viper.BindPFlag(
+		"database.max_idle_conns",
+		cmd.PersistentFlags().Lookup("max-idle-conns"),
 	)
 }

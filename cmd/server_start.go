@@ -33,8 +33,8 @@ import (
 // serverStartCmd represents the serverStart command.
 var serverStartCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start the OSAPI service",
-	Long: `Start the  OSAPI service.
+	Short: "Start the server",
+	Long: `Start the API server.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		db, err := queue.OpenDB(appConfig)

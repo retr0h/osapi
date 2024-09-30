@@ -34,13 +34,11 @@ func SetupDatabase() (queue.Manager, error) {
 	var qm queue.Manager
 
 	appConfig := config.Config{
-		Queue: config.Queue{
-			Database: config.Database{
-				DriverName:     "sqlite",
-				DataSourceName: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
-				MaxOpenConns:   1,
-				MaxIdleConns:   1,
-			},
+		Database: config.Database{
+			DriverName:     "sqlite",
+			DataSourceName: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
+			MaxOpenConns:   1,
+			MaxIdleConns:   1,
 		},
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))

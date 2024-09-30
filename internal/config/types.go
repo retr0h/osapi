@@ -26,6 +26,7 @@ type Config struct {
 	Client
 	Server
 	Queue
+	Database
 	// Debug enable or disable debug option set from CLI.
 	Debug bool `mapstruture:"debug"`
 }
@@ -58,10 +59,16 @@ type CORS struct {
 
 // Queue configuration settings.
 type Queue struct {
-	Database Database `mapstructure:"database"`
+	PollInterval `mapstructure:"poll_interval,omitempty"`
 }
 
-// Database represents the "database" configuration under the "queue" section.
+// PollInterval interval settings.
+type PollInterval struct {
+	// The interval at which the worker will poll for new tasks in the queue (in seconds).
+	Seconds int `mapstructure:"seconds"`
+}
+
+// Database configuration settings.
 type Database struct {
 	// DriverName specifies the name of the database driver to use, such as "sqlite".
 	DriverName string `mapstructure:"driver_name"`
