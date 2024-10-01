@@ -4,7 +4,7 @@ To start the service:
 
 ```bash
 $ osapi server start
-4:43AM INF server configuration debug=false server.port=8080 server.security.cors.allow_origins="[http://localhost:3001 https://retr0h.github.io]"
+2:24AM INF server configuration debug=false server.port=8080 server.security.cors.allow_origins="[http://localhost:3001 https://retr0h.github.io]" database.driver_name=sqlite database.data_source_name="file:database.db?_journal=WAL&_timeout=5000&_fk=true" database.max_open_conns=1 database.max_idle_conns=1
 ⇨ http server started on [::]:8080
 ```
 
