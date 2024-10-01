@@ -144,5 +144,5 @@ func init() {
 	clientQueueCmd.AddCommand(clientQueueStatusCmd)
 
 	clientQueueCmd.PersistentFlags().
-		IntVarP(&pollIntervalSeconds, "poll-interval-seconds", "p", 60, "The interval (in seconds) between polling operations")
+		IntVarP(&pollIntervalSeconds, "poll-interval-seconds", "n", 60, "The interval (in seconds) between polling operations")
 }
