@@ -82,7 +82,7 @@ func printStyledTable(sections []section) {
 			EvenRowStyle = CellStyle.Foreground(lightGray)
 			BorderStyle  = re.NewStyle().Foreground(purple)
 			PaddingStyle = re.NewStyle().Padding(0, 2)
-			TitleStyle   = re.NewStyle().Bold(true).Foreground(purple).PaddingLeft(2)
+			TitleStyle   = re.NewStyle().Bold(true).Foreground(purple).PaddingLeft(2).PaddingTop(2)
 			ColonStyle   = re.NewStyle().Bold(false).MarginBottom(1)
 		)
 
