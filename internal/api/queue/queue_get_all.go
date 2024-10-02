@@ -21,8 +21,6 @@
 package queue
 
 import (
-	"encoding/base64"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -56,15 +54,8 @@ func (q Queue) GetQueue(
 
 	items := make([]gen.QueueItem, 0, len(queueItems))
 	for _, i := range queueItems {
-		decodedBody, err := base64.StdEncoding.DecodeString(i.Body)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
-				Error: fmt.Sprintf("failed to decode body for queue item %s: %v", i.ID, err),
-			})
-		}
-
 		item := gen.QueueItem{
-			Body:     &decodedBody,
+			Body:     &i.Body,
 			Id:       &i.ID,
 			Received: &i.Received,
 			Created:  &i.Created,

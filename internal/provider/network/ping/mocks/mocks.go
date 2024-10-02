@@ -37,14 +37,18 @@ func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
 func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
-	mock.EXPECT().Do("example.com").Return(&ping.Result{
+	result := &ping.Result{
 		PacketsSent:     3,
 		PacketsReceived: 3,
 		PacketLoss:      0,
 		MinRTT:          10 * time.Millisecond,
 		AvgRTT:          15 * time.Millisecond,
 		MaxRTT:          20 * time.Millisecond,
-	}, nil).AnyTimes()
+	}
+
+	mock.EXPECT().Do("1.1.1.1").Return(result, nil).AnyTimes()
+
+	mock.EXPECT().Do("2001:4860:4860::8888").Return(result, nil).AnyTimes()
 
 	return mock
 }

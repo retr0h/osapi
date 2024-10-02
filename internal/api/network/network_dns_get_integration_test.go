@@ -37,9 +37,10 @@ import (
 	"github.com/retr0h/osapi/internal/config"
 	"github.com/retr0h/osapi/internal/provider/network/dns/mocks"
 	pingMocks "github.com/retr0h/osapi/internal/provider/network/ping/mocks"
+	queueMocks "github.com/retr0h/osapi/internal/queue/mocks"
 )
 
-type NetworkDNSIntegrationTestSuite struct {
+type NetworkDNSGetIntegrationTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
@@ -47,14 +48,14 @@ type NetworkDNSIntegrationTestSuite struct {
 	logger    *slog.Logger
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) SetupTest() {
+func (suite *NetworkDNSGetIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
+func (suite *NetworkDNSGetIntegrationTestSuite) TestGetNetworkDNS() {
 	tests := []struct {
 		name      string
 		path      string
@@ -63,7 +64,7 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 		wantBody  string
 	}{
 		{
-			name: "when get ok",
+			name: "when get Ok",
 			path: "/network/dns",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -103,9 +104,10 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 		suite.Run(tc.name, func() {
 			pingMock := pingMocks.NewDefaultMockProvider(suite.ctrl)
 			dnsMock := tc.setupMock()
+			queueMock := queueMocks.NewDefaultMockManager(suite.ctrl)
 
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock))
+			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock, queueMock))
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()
@@ -120,6 +122,6 @@ func (suite *NetworkDNSIntegrationTestSuite) TestGetNetworkDNS() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestNetworkDNSIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkDNSIntegrationTestSuite))
+func TestNetworkDNSGetIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(NetworkDNSGetIntegrationTestSuite))
 }

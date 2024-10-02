@@ -50,6 +50,7 @@ func New(
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CORSWithConfig(corsConfig))
+	e.Use(middleware.Recover())
 
 	return &Server{
 		Echo: e,

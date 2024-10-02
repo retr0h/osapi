@@ -42,7 +42,7 @@ func (s *Server) CreateHandlers(
 	}
 
 	systemHandler := s.GetSystemHandler()
-	networkHandler := s.GetNetworkHandler(appFs)
+	networkHandler := s.GetNetworkHandler(appFs, queueManager)
 
 	handlers = append(handlers, systemHandler...)
 	handlers = append(handlers, networkHandler...)

@@ -23,6 +23,7 @@ package queue_test
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"regexp"
 	"testing"
 	"time"
@@ -44,6 +45,7 @@ type DBGetIDPublicTestSuite struct {
 	fixedCreated time.Time
 	updated      time.Time
 	timeout      time.Time
+	body         []byte
 }
 
 func (suite *DBGetIDPublicTestSuite) SetupTest() {
@@ -55,6 +57,8 @@ func (suite *DBGetIDPublicTestSuite) SetupTest() {
 	suite.fixedCreated, _ = mocks.GetFixedTime()
 	suite.timeout = suite.fixedCreated.Add(time.Hour)
 	suite.updated = suite.fixedCreated.Add(time.Minute)
+	suite.body, _ = base64.StdEncoding.DecodeString("EhIKBzguOC44LjgKBzguOC40LjQ=")
+	suite.Require().NoError(err)
 }
 
 func (suite *DBGetIDPublicTestSuite) SetupSubTest() {
@@ -82,7 +86,7 @@ func (suite *DBGetIDPublicTestSuite) TestGetByID() {
 					WHERE id = ?`)
 
 				row := sqlmock.NewRows([]string{"id", "created", "updated", "queue", "body", "timeout", "received"}).
-					AddRow("message-id", suite.fixedCreated, suite.updated, "test-queue", "test-body", suite.timeout, 1)
+					AddRow("message-id", suite.fixedCreated, suite.updated, "test-queue", suite.body, suite.timeout, 1)
 
 				suite.mock.ExpectQuery(query).WithArgs("message-id").WillReturnRows(row)
 			},
@@ -91,7 +95,7 @@ func (suite *DBGetIDPublicTestSuite) TestGetByID() {
 				Created:  suite.fixedCreated,
 				Updated:  suite.updated,
 				Queue:    "test-queue",
-				Body:     "test-body",
+				Body:     suite.body,
 				Timeout:  suite.timeout,
 				Received: 1,
 			},
@@ -120,7 +124,7 @@ func (suite *DBGetIDPublicTestSuite) TestGetByID() {
 					WHERE id = ?`)
 
 				rows := sqlmock.NewRows([]string{"id", "created", "updated", "queue", "body", "timeout", "received"}).
-					AddRow("message-id", suite.fixedCreated, suite.updated, "test-queue", "test-body", suite.timeout, 1)
+					AddRow("message-id", suite.fixedCreated, suite.updated, "test-queue", suite.body, suite.timeout, 1)
 
 				rows.RowError(0, assert.AnError)
 

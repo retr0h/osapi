@@ -23,6 +23,7 @@ package queue_test
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"regexp"
 	"testing"
 	"time"
@@ -43,6 +44,7 @@ type DBGetAllTestSuite struct {
 	fixedCreated time.Time
 	updated      time.Time
 	timeout      time.Time
+	body         []byte
 }
 
 func (suite *DBGetAllTestSuite) SetupTest() {
@@ -54,6 +56,8 @@ func (suite *DBGetAllTestSuite) SetupTest() {
 	suite.fixedCreated, _ = mocks.GetFixedTime()
 	suite.timeout = suite.fixedCreated.Add(time.Hour)
 	suite.updated = suite.fixedCreated.Add(time.Minute)
+	suite.body, _ = base64.StdEncoding.DecodeString("EhIKBzguOC44LjgKBzguOC40LjQ=")
+	suite.Require().NoError(err)
 }
 
 func (suite *DBGetAllTestSuite) TearDownTest() {
@@ -77,7 +81,7 @@ func (suite *DBGetAllTestSuite) TestGetAll() {
 					LIMIT ? OFFSET ?`)
 
 				rows := sqlmock.NewRows([]string{"id", "created", "updated", "queue", "body", "timeout", "received"}).
-					AddRow("1", suite.fixedCreated, suite.updated, "test-queue", "test-body", suite.timeout, 1)
+					AddRow("1", suite.fixedCreated, suite.updated, "test-queue", suite.body, suite.timeout, 1)
 
 				suite.mock.ExpectQuery(query).
 					WithArgs(10, 0).
@@ -89,7 +93,7 @@ func (suite *DBGetAllTestSuite) TestGetAll() {
 					Created:  suite.fixedCreated,
 					Updated:  suite.updated,
 					Queue:    "test-queue",
-					Body:     "test-body",
+					Body:     suite.body,
 					Timeout:  suite.timeout,
 					Received: 1,
 				},
@@ -122,7 +126,7 @@ func (suite *DBGetAllTestSuite) TestGetAll() {
 					LIMIT ? OFFSET ?`)
 
 				rows := sqlmock.NewRows([]string{"id", "created", "updated", "queue", "body", "timeout", "received"}).
-					AddRow("1", suite.fixedCreated, suite.updated, "test-queue", "test-body", suite.timeout, 1)
+					AddRow("1", suite.fixedCreated, suite.updated, "test-queue", suite.body, suite.timeout, 1)
 
 				rows.RowError(0, assert.AnError)
 

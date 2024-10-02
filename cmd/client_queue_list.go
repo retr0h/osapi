@@ -95,7 +95,7 @@ var clientQueueListCmd = &cobra.Command{
 			sections := []section{
 				{
 					Title:   "Items",
-					Headers: []string{"ID", "CREATED", "TASK"},
+					Headers: []string{"ID", "CREATED", "ACTION"},
 					Rows:    itemRows,
 				},
 			}

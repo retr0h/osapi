@@ -21,12 +21,68 @@
 package network
 
 import (
+	"net/http"
+
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+
+	"github.com/retr0h/osapi/internal/api/network/gen"
+	"github.com/retr0h/osapi/internal/task"
 )
 
-// PutNetworkDNS TODO ...
+// CreateAndMarshalChangeDNSActionFunc is a function variable that allows swapping the actual
+// task.CreateAndMarshalChangeDNSAction function for a mock function during testing.
+//
+// This is a temporary solution to facilitate testing by allowing the function to be
+// replaced with a mock implementation. In the future, this may be replaced by a
+// better solution using dependency injection or test mocks.
+var CreateAndMarshalChangeDNSActionFunc = task.CreateAndMarshalChangeDNSAction
+
+// PutNetworkDNS put the network dns API endpoint.
 func (n Network) PutNetworkDNS(
-	_ echo.Context,
+	ctx echo.Context,
 ) error {
-	return nil
+	var newDNSConfig gen.PutNetworkDNSJSONRequestBody
+
+	if err := ctx.Bind(&newDNSConfig); err != nil {
+		return ctx.JSON(http.StatusBadRequest, gen.NetworkErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
+	if err := validate.Struct(newDNSConfig); err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		return ctx.JSON(http.StatusBadRequest, gen.NetworkErrorResponse{
+			Error: validationErrors.Error(),
+		})
+	}
+
+	var servers []string
+	if newDNSConfig.Servers != nil {
+		servers = *newDNSConfig.Servers
+	}
+
+	var searchDomains []string
+	if newDNSConfig.SearchDomains != nil {
+		searchDomains = *newDNSConfig.SearchDomains
+	}
+
+	data, err := CreateAndMarshalChangeDNSActionFunc(servers, searchDomains)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
+	err = n.QueueManager.Put(ctx.Request().Context(), data)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
+	messageID := "12345"
+	return ctx.JSON(http.StatusAccepted, gen.DNSConfigUpdateResponse{
+		Id: &messageID,
+	})
 }

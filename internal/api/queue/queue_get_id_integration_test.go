@@ -106,17 +106,6 @@ func (suite *QueueGetIDIntegrationTestSuite) TestGetQueueID() {
 			wantCode: http.StatusInternalServerError,
 			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
-		{
-			name: "when cannot decode body",
-			path: "/queue/message-id",
-			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainMockManagerWithInvalidBody(suite.ctrl)
-
-				return mock
-			},
-			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0,"error":"failed to decode body for queue item message-id: illegal base64 data at input byte 7"}`,
-		},
 	}
 
 	for _, tc := range tests {

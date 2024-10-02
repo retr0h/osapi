@@ -31,11 +31,13 @@ import (
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 	"github.com/retr0h/osapi/internal/provider/network/ping"
+	"github.com/retr0h/osapi/internal/queue"
 )
 
 // GetNetworkHandler returns network handler for registration.
 func (s *Server) GetNetworkHandler(
 	appFs afero.Fs,
+	queueManager queue.Manager,
 ) []func(e *echo.Echo) {
 	var pingProvider ping.Provider
 	var dnsProvider dns.Provider
@@ -52,7 +54,7 @@ func (s *Server) GetNetworkHandler(
 
 	return []func(e *echo.Echo){
 		func(e *echo.Echo) {
-			networkHandler := network.New(pingProvider, dnsProvider)
+			networkHandler := network.New(pingProvider, dnsProvider, queueManager)
 			networkGen.RegisterHandlers(e, networkHandler)
 		},
 	}

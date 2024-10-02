@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 
 	"github.com/retr0h/osapi/internal/api/network/gen"
@@ -42,9 +43,10 @@ func (n Network) PostNetworkPing(
 		})
 	}
 
-	if newPingAddress.Address == "" {
+	if err := validate.Struct(newPingAddress); err != nil {
+		validationErrors := err.(validator.ValidationErrors)
 		return ctx.JSON(http.StatusBadRequest, gen.NetworkErrorResponse{
-			Error: "Address field is required and cannot be empty",
+			Error: validationErrors.Error(),
 		})
 	}
 

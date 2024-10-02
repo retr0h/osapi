@@ -78,7 +78,8 @@ var clientQueueGetIDCmd = &cobra.Command{
 
 			sections := []section{
 				{
-					Headers: []string{"TASK"},
+					Title:   "Task",
+					Headers: []string{"ACTION"},
 					Rows:    itemRows,
 				},
 			}

@@ -21,21 +21,29 @@
 package network
 
 import (
+	"github.com/go-playground/validator/v10"
+
 	"github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 	"github.com/retr0h/osapi/internal/provider/network/ping"
+	"github.com/retr0h/osapi/internal/queue"
 )
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
-var _ gen.ServerInterface = (*Network)(nil)
+var (
+	_        gen.ServerInterface = (*Network)(nil)
+	validate                     = validator.New()
+)
 
 // New factory to create a new instance.
 func New(
 	pp ping.Provider,
 	dnsp dns.Provider,
+	qm queue.Manager,
 ) *Network {
 	return &Network{
 		PingProvider: pp,
 		DNSProvider:  dnsp,
+		QueueManager: qm,
 	}
 }

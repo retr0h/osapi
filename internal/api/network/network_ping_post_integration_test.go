@@ -39,24 +39,37 @@ import (
 	"github.com/retr0h/osapi/internal/config"
 	dnsMocks "github.com/retr0h/osapi/internal/provider/network/dns/mocks"
 	"github.com/retr0h/osapi/internal/provider/network/ping/mocks"
+	queueMocks "github.com/retr0h/osapi/internal/queue/mocks"
 )
 
-type NetworkPingIntegrationTestSuite struct {
+type NetworkPingPostIntegrationTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
 	appConfig config.Config
 	logger    *slog.Logger
+
+	okBody string
 }
 
-func (suite *NetworkPingIntegrationTestSuite) SetupTest() {
+func (suite *NetworkPingPostIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	suite.okBody = `
+{
+  "avg_rtt":"15ms",
+  "max_rtt":"20ms",
+  "min_rtt":"10ms",
+  "packet_loss":0,
+  "packets_received":3,
+  "packets_sent":3
+}`
 }
 
-func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
+func (suite *NetworkPingPostIntegrationTestSuite) TestPostNetworkPing() {
 	tests := []struct {
 		name      string
 		path      string
@@ -66,26 +79,31 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 		wantBody  string
 	}{
 		{
-			name: "when get ok",
+			name: "when post Ok",
 			path: "/network/ping",
-			body: `{"address": "example.com"}`,
+			body: `{"address": "1.1.1.1"}`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
 			wantCode: http.StatusOK,
-			wantBody: `{
-"avg_rtt":"15ms",
-"max_rtt":"20ms",
-"min_rtt":"10ms",
-"packet_loss":0,
-"packets_received":3,
-"packets_sent":3
-      }`,
+			wantBody: suite.okBody,
 		},
 		{
-			name: "when body is missing Address",
+			name: "when post Ok with ipv6 body Address",
+			path: "/network/ping",
+			body: `{"address": "2001:4860:4860::8888"}`,
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusOK,
+			wantBody: suite.okBody,
+		},
+		{
+			name: "when body is empty",
 			path: "/network/ping",
 			body: `{}`,
 			setupMock: func() *mocks.MockProvider {
@@ -94,7 +112,31 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"code":0,"error":"Address field is required and cannot be empty"}`,
+			wantBody: `{"code":0,"error":"Key: 'PostNetworkPingJSONBody.Address' Error:Field validation for 'Address' failed on the 'required' tag"}`,
+		},
+		{
+			name: "when body's Address is not a proper ipv4 address",
+			path: "/network/ping",
+			body: `{"address": "1.1."}`, // Missing last octets
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"code":0,"error":"Key: 'PostNetworkPingJSONBody.Address' Error:Field validation for 'Address' failed on the 'ip' tag"}`,
+		},
+		{
+			name: "when body's Address is not a proper ipv6 address",
+			path: "/network/ping",
+			body: `{"address": "2001:4860:4860:8888"}`, // Missing segments, no "::" for compression
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"code":0,"error":"Key: 'PostNetworkPingJSONBody.Address' Error:Field validation for 'Address' failed on the 'ip' tag"}`,
 		},
 		{
 			name: "when body is malformed",
@@ -111,10 +153,10 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 		{
 			name: "when ping.Do errors",
 			path: "/network/ping",
-			body: `{"address": "example.com"}`,
+			body: `{"address": "1.1.1.1"}`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().Do("example.com").
+				mock.EXPECT().Do("1.1.1.1").
 					Return(nil, assert.AnError).AnyTimes()
 
 				return mock
@@ -126,11 +168,12 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			networkMock := tc.setupMock()
+			pingMock := tc.setupMock()
 			dnsMock := dnsMocks.NewDefaultMockProvider(suite.ctrl)
+			queueMock := queueMocks.NewDefaultMockManager(suite.ctrl)
 
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(networkMock, dnsMock))
+			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock, queueMock))
 
 			req := httptest.NewRequest(http.MethodPost, tc.path, bytes.NewBufferString(tc.body))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -146,6 +189,6 @@ func (suite *NetworkPingIntegrationTestSuite) TestGetNetworkDNS() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestNetworkPingIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkPingIntegrationTestSuite))
+func TestNetworkPingPostIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(NetworkPingPostIntegrationTestSuite))
 }

@@ -29,10 +29,16 @@ type DNSConfig struct {
 // DNSConfigUpdate defines model for DNSConfigUpdate.
 type DNSConfigUpdate struct {
 	// SearchDomains New list of search domains to configure.
-	SearchDomains *[]string `json:"search_domains,omitempty"`
+	SearchDomains *[]string `json:"search_domains,omitempty" validate:"required_without=Servers,omitempty,dive,hostname,min=1"`
 
 	// Servers New list of DNS servers to configure.
-	Servers *[]string `json:"servers,omitempty"`
+	Servers *[]string `json:"servers,omitempty" validate:"required_without=SearchDomains,omitempty,dive,ip,min=1"`
+}
+
+// DNSConfigUpdateResponse defines model for DNSConfigUpdateResponse.
+type DNSConfigUpdateResponse struct {
+	// Id The identifier of the queue object. Upon submitting the request, this ID represents the message within the queue, allowing for tracking and processing of the operation.
+	Id *string `json:"id,omitempty"`
 }
 
 // Disk Local disk usage information.
@@ -195,8 +201,8 @@ type SystemErrorResponse struct {
 
 // PostNetworkPingJSONBody defines parameters for PostNetworkPing.
 type PostNetworkPingJSONBody struct {
-	// Address The IP address or hostname of the server to ping.
-	Address string `json:"address"`
+	// Address The IP address of the server to ping. Supports both IPv4 and IPv6.
+	Address string `json:"address" validate:"required,ip"`
 }
 
 // GetQueueParams defines parameters for GetQueue.
@@ -1005,6 +1011,7 @@ func (r GetNetworkDNSResponse) StatusCode() int {
 type PutNetworkDNSResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON202      *DNSConfigUpdateResponse
 	JSON400      *NetworkErrorResponse
 	JSON500      *NetworkErrorResponse
 }
@@ -1405,6 +1412,13 @@ func ParsePutNetworkDNSResponse(rsp *http.Response) (*PutNetworkDNSResponse, err
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
+		var dest DNSConfigUpdateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON202 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest NetworkErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

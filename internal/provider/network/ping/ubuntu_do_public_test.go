@@ -65,7 +65,7 @@ func (suite *UbuntuDoPublicTestSuite) TestDo() {
 	}{
 		{
 			name:    "when Do Ok",
-			address: "example.com",
+			address: "1.1.1.1",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
@@ -83,10 +83,10 @@ func (suite *UbuntuDoPublicTestSuite) TestDo() {
 		},
 		{
 			name:    "when Do errors",
-			address: "example.com",
+			address: "1.1.1.1",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().Do("example.com").Return(nil, assert.AnError)
+				mock.EXPECT().Do("1.1.1.1").Return(nil, assert.AnError)
 
 				return mock
 			},

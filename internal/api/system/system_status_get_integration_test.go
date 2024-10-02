@@ -42,7 +42,7 @@ import (
 	memMocks "github.com/retr0h/osapi/internal/provider/system/mem/mocks"
 )
 
-type SystemStatusIntegrationTestSuite struct {
+type SystemStatusGetIntegrationTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
@@ -50,14 +50,14 @@ type SystemStatusIntegrationTestSuite struct {
 	logger    *slog.Logger
 }
 
-func (suite *SystemStatusIntegrationTestSuite) SetupTest() {
+func (suite *SystemStatusGetIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
+func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 	tests := []struct {
 		name          string
 		path          string
@@ -69,7 +69,7 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 		wantBody      string
 	}{
 		{
-			name: "when get ok",
+			name: "when get Ok",
 			path: "/system/status",
 			setupMemMock: func() *memMocks.MockProvider {
 				mock := memMocks.NewDefaultMockProvider(suite.ctrl)
@@ -101,14 +101,14 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 }],
 "hostname": "default-hostname",
 "load_average": {
-    "15min": 0.2,
-    "1min": 1,
-    "5min": 0.5
+  "15min": 0.2,
+  "1min": 1,
+  "5min": 0.5
 },
 "memory": {
-    "free": 4.194304e+06,
-    "total": 8.388608e+06,
-    "used": 2.097152e+06
+  "free": 4.194304e+06,
+  "total": 8.388608e+06,
+  "used": 2.097152e+06
 },
 "uptime": "0 days, 5 hours, 0 minutes"
 }`,
@@ -281,6 +281,6 @@ func (suite *SystemStatusIntegrationTestSuite) TestGetSystemStatus() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestSystemStatusIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(SystemStatusIntegrationTestSuite))
+func TestSystemStatusGetIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(SystemStatusGetIntegrationTestSuite))
 }

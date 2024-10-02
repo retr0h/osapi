@@ -29,14 +29,14 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type SystemStatusTestSuite struct {
+type SystemStatusGetTestSuite struct {
 	suite.Suite
 }
 
-func (suite *SystemStatusTestSuite) SetupTest() {
+func (suite *SystemStatusGetTestSuite) SetupTest() {
 }
 
-func (suite *SystemStatusTestSuite) TestFormatDurationOk() {
+func (suite *SystemStatusGetTestSuite) TestFormatDurationOk() {
 	tests := []struct {
 		name  string
 		input time.Duration
@@ -97,7 +97,7 @@ func (suite *SystemStatusTestSuite) TestFormatDurationOk() {
 	}
 }
 
-func (suite *SystemStatusTestSuite) TestUint64ToInt() {
+func (suite *SystemStatusGetTestSuite) TestUint64ToInt() {
 	tests := []struct {
 		name  string
 		input uint64
@@ -135,6 +135,6 @@ func (suite *SystemStatusTestSuite) TestUint64ToInt() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestSystemStatusTestSuite(t *testing.T) {
-	suite.Run(t, new(SystemStatusTestSuite))
+func TestSystemStatusGetTestSuite(t *testing.T) {
+	suite.Run(t, new(SystemStatusGetTestSuite))
 }

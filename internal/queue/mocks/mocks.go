@@ -21,6 +21,7 @@
 package mocks
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -31,11 +32,9 @@ import (
 
 const (
 	// fixedTime pinned time used by test suite.
-	fixedTime       = "2024-09-10T12:00:00Z"
-	itemBody        = `EhIKBzguOC44LjgKBzguOC40LjQ=`
-	invalidItemBody = "invalid-body"
-	itemMessageID   = "message-id"
-	itemReceived    = 5
+	fixedTime     = "2024-09-10T12:00:00Z"
+	itemMessageID = "message-id"
+	itemReceived  = 5
 )
 
 // NewPlainMockMessageProcessor creates a Mock without defaults.
@@ -55,6 +54,7 @@ func NewDefaultMockManager(ctrl *gomock.Controller) *MockManager {
 	fixedCreated, _ := GetFixedTime()
 	timeout := fixedCreated.Add(time.Hour)
 	updated := fixedCreated.Add(time.Minute)
+	itemBody, _ := base64.StdEncoding.DecodeString("EhIKBzguOC44LjgKBzguOC40LjQ=")
 
 	mock.EXPECT().GetAll(gomock.Any(), gomock.Any(), gomock.Any()).Return([]queue.Item{
 		{
@@ -81,37 +81,6 @@ func NewDefaultMockManager(ctrl *gomock.Controller) *MockManager {
 	mock.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	mock.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-
-	return mock
-}
-
-// NewPlainMockManagerWithInvalidBody creates a Mock with a bad body.
-func NewPlainMockManagerWithInvalidBody(ctrl *gomock.Controller) *MockManager {
-	mock := NewMockManager(ctrl)
-
-	fixedCreated, _ := GetFixedTime()
-	timeout := fixedCreated.Add(time.Hour)
-	updated := fixedCreated.Add(time.Minute)
-
-	mock.EXPECT().GetAll(gomock.Any(), gomock.Any(), gomock.Any()).Return([]queue.Item{
-		{
-			Body:     invalidItemBody,
-			ID:       itemMessageID,
-			Received: itemReceived,
-			Created:  fixedCreated,
-			Timeout:  timeout,
-			Updated:  updated,
-		},
-	}, nil).AnyTimes()
-
-	mock.EXPECT().GetByID(gomock.Any(), gomock.Any()).Return(&queue.Item{
-		Body:     invalidItemBody,
-		ID:       itemMessageID,
-		Received: itemReceived,
-		Created:  fixedCreated,
-		Timeout:  timeout,
-		Updated:  updated,
-	}, nil).AnyTimes()
 
 	return mock
 }

@@ -48,7 +48,7 @@ type Item struct {
 	// Name of the queue
 	Queue string `json:"queue"    db:"queue"`
 	// String representation of the body of the queue item
-	Body string `json:"body"     db:"body"`
+	Body []byte `json:"body"     db:"body"`
 	// Timeout timestamp for the queue item
 	Timeout time.Time `json:"timeout"  db:"timeout"`
 	// Number of times the queue item has been received

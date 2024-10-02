@@ -22,6 +22,7 @@ package client
 
 import (
 	"context"
+	"encoding/base64"
 
 	"github.com/retr0h/osapi/internal/client/gen"
 )
@@ -31,8 +32,13 @@ func (c *Client) PostQueue(
 	ctx context.Context,
 	messageBody string,
 ) (*gen.PostQueueResponse, error) {
+	decodedBytes, err := base64.StdEncoding.DecodeString(messageBody)
+	if err != nil {
+		return nil, err
+	}
+
 	body := gen.PostQueueJSONRequestBody{
-		Body: []byte(messageBody),
+		Body: decodedBytes,
 	}
 
 	return c.Client.PostQueueWithResponse(ctx, body)

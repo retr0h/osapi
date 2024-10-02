@@ -52,6 +52,7 @@ func (u *Ubuntu) GetLocalUsageStats() ([]UsageStats, error) {
 		usage, err := disk.Usage(partition.Mountpoint)
 		if err != nil {
 			if isPermissionError(err) {
+				// TODO(retr0h): Convert to logger
 				fmt.Printf(
 					"Skipping partition %s due to permission error: %v\n",
 					partition.Mountpoint,

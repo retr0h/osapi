@@ -18,41 +18,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package queue
+package task
 
 import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-
-	"github.com/retr0h/osapi/internal/api/queue/gen"
-	"github.com/retr0h/osapi/internal/errors"
+	taskpb "github.com/retr0h/osapi/internal/gen/proto/task"
 )
 
-// GetQueueID fetches a single item through the queue API endpoint.
-func (q Queue) GetQueueID(
-	ctx echo.Context,
-	messageID string,
-) error {
-	queueItem, err := q.Manager.GetByID(ctx.Request().Context(), messageID)
-	if err != nil {
-		if _, ok := err.(*errors.NotFoundError); ok {
-			return ctx.JSON(http.StatusNotFound, gen.QueueErrorResponse{
-				Error: err.Error(),
-			})
-		}
+// CreateAndMarshalChangeDNSAction creates a ChangeDNSAction message with the
+// given DNS servers and search domains, wraps it in a Task, and marshals it
+// to protobuf bytes.
+func CreateAndMarshalChangeDNSAction(servers []string, searchDomains []string) ([]byte, error) {
+	dnsAction := &taskpb.ChangeDNSAction{}
 
-		return ctx.JSON(http.StatusInternalServerError, gen.QueueErrorResponse{
-			Error: err.Error(),
-		})
+	if len(servers) > 0 {
+		dnsAction.DnsServers = servers
 	}
 
-	return ctx.JSON(http.StatusOK, gen.QueueItem{
-		Body:     &queueItem.Body,
-		Id:       &queueItem.ID,
-		Received: &queueItem.Received,
-		Created:  &queueItem.Created,
-		Timeout:  &queueItem.Timeout,
-		Updated:  &queueItem.Updated,
-	})
+	if len(searchDomains) > 0 {
+		dnsAction.SearchDomains = searchDomains
+	}
+
+	// Wrap ChangeDnsAction into a Task message
+	taskAction := &taskpb.Task{
+		Action: &taskpb.Task_ChangeDnsAction{
+			ChangeDnsAction: dnsAction,
+		},
+	}
+
+	data, err := MarshalProto(taskAction)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
