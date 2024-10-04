@@ -4,11 +4,7 @@
 package gen
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/labstack/echo/v4"
-	"github.com/oapi-codegen/runtime"
 )
 
 // DNSConfig defines model for DNSConfig.
@@ -88,9 +84,6 @@ type ServerInterface interface {
 	// Update DNS servers
 	// (PUT /network/dns)
 	PutNetworkDNS(ctx echo.Context) error
-	// Delete a DNS server
-	// (DELETE /network/dns/{serverId})
-	DeleteNetworkDNSServerID(ctx echo.Context, serverId string) error
 	// Ping a remote server
 	// (POST /network/ping)
 	PostNetworkPing(ctx echo.Context) error
@@ -116,22 +109,6 @@ func (w *ServerInterfaceWrapper) PutNetworkDNS(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PutNetworkDNS(ctx)
-	return err
-}
-
-// DeleteNetworkDNSServerID converts echo context to params.
-func (w *ServerInterfaceWrapper) DeleteNetworkDNSServerID(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "serverId" -------------
-	var serverId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "serverId", ctx.Param("serverId"), &serverId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter serverId: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.DeleteNetworkDNSServerID(ctx, serverId)
 	return err
 }
 
@@ -174,7 +151,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/network/dns", wrapper.GetNetworkDNS)
 	router.PUT(baseURL+"/network/dns", wrapper.PutNetworkDNS)
-	router.DELETE(baseURL+"/network/dns/:serverId", wrapper.DeleteNetworkDNSServerID)
 	router.POST(baseURL+"/network/ping", wrapper.PostNetworkPing)
 
 }

@@ -307,9 +307,6 @@ type ClientInterface interface {
 
 	PutNetworkDNS(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteNetworkDNSServerID request
-	DeleteNetworkDNSServerID(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// PostNetworkPingWithBody request with any body
 	PostNetworkPingWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -365,18 +362,6 @@ func (c *Client) PutNetworkDNSWithBody(ctx context.Context, contentType string, 
 
 func (c *Client) PutNetworkDNS(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPutNetworkDNSRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteNetworkDNSServerID(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteNetworkDNSServerIDRequest(c.Server, serverId)
 	if err != nil {
 		return nil, err
 	}
@@ -570,40 +555,6 @@ func NewPutNetworkDNSRequestWithBody(server string, contentType string, body io.
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteNetworkDNSServerIDRequest generates requests for DeleteNetworkDNSServerID
-func NewDeleteNetworkDNSServerIDRequest(server string, serverId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "serverId", runtime.ParamLocationPath, serverId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/network/dns/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -953,9 +904,6 @@ type ClientWithResponsesInterface interface {
 
 	PutNetworkDNSWithResponse(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*PutNetworkDNSResponse, error)
 
-	// DeleteNetworkDNSServerIDWithResponse request
-	DeleteNetworkDNSServerIDWithResponse(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*DeleteNetworkDNSServerIDResponse, error)
-
 	// PostNetworkPingWithBodyWithResponse request with any body
 	PostNetworkPingWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error)
 
@@ -1026,29 +974,6 @@ func (r PutNetworkDNSResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PutNetworkDNSResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteNetworkDNSServerIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON404      *NetworkErrorResponse
-	JSON500      *NetworkErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteNetworkDNSServerIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteNetworkDNSServerIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1268,15 +1193,6 @@ func (c *ClientWithResponses) PutNetworkDNSWithResponse(ctx context.Context, bod
 	return ParsePutNetworkDNSResponse(rsp)
 }
 
-// DeleteNetworkDNSServerIDWithResponse request returning *DeleteNetworkDNSServerIDResponse
-func (c *ClientWithResponses) DeleteNetworkDNSServerIDWithResponse(ctx context.Context, serverId string, reqEditors ...RequestEditorFn) (*DeleteNetworkDNSServerIDResponse, error) {
-	rsp, err := c.DeleteNetworkDNSServerID(ctx, serverId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteNetworkDNSServerIDResponse(rsp)
-}
-
 // PostNetworkPingWithBodyWithResponse request with arbitrary body returning *PostNetworkPingResponse
 func (c *ClientWithResponses) PostNetworkPingWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error) {
 	rsp, err := c.PostNetworkPingWithBody(ctx, contentType, body, reqEditors...)
@@ -1425,39 +1341,6 @@ func ParsePutNetworkDNSResponse(rsp *http.Response) (*PutNetworkDNSResponse, err
 			return nil, err
 		}
 		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest NetworkErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeleteNetworkDNSServerIDResponse parses an HTTP response from a DeleteNetworkDNSServerIDWithResponse call
-func ParseDeleteNetworkDNSServerIDResponse(rsp *http.Response) (*DeleteNetworkDNSServerIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteNetworkDNSServerIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest NetworkErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest NetworkErrorResponse

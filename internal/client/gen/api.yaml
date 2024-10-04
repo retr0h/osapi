@@ -151,35 +151,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/network.ErrorResponse'
-  /network/dns/{serverId}:
-    delete:
-      summary: Delete a DNS server
-      description: Remove a specific DNS server from the configuration.
-      tags:
-        - Network_Management_API_dns_operations
-      operationId: DeleteNetworkDNSServerID
-      parameters:
-        - name: serverId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Identifier of the DNS server to be deleted.
-      responses:
-        '204':
-          description: DNS server deleted successfully.
-        '404':
-          description: DNS server not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/network.ErrorResponse'
-        '500':
-          description: Error deleting DNS server.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/network.ErrorResponse'
   /queue:
     post:
       summary: Add an item to the queue

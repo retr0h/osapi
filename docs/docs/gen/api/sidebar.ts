@@ -42,12 +42,6 @@ const sidebar: SidebarsConfig = {
           label: "Update DNS servers",
           className: "api-method put",
         },
-        {
-          type: "doc",
-          id: "gen/api/delete-network-dns-server-id",
-          label: "Delete a DNS server",
-          className: "api-method delete",
-        },
       ],
     },
     {
