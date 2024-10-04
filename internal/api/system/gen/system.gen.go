@@ -55,6 +55,15 @@ type Memory struct {
 	Used int `json:"used"`
 }
 
+// OSInfo Operating system information.
+type OSInfo struct {
+	// Distribution The name of the Linux distribution.
+	Distribution string `json:"distribution"`
+
+	// Version The version of the Linux distribution.
+	Version string `json:"version"`
+}
+
 // SystemStatus defines model for SystemStatus.
 type SystemStatus struct {
 	// Disks List of local disk usage information.
@@ -68,6 +77,9 @@ type SystemStatus struct {
 
 	// Memory Memory usage information.
 	Memory Memory `json:"memory"`
+
+	// OsInfo Operating system information.
+	OsInfo OSInfo `json:"os_info"`
 
 	// Uptime The uptime of the system.
 	Uptime string `json:"uptime"`

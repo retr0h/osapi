@@ -8,6 +8,7 @@ $ osapi client system status
 
   Load Average (1m, 5m, 15m): 1.83, 1.96, 2.02
   Memory: 19 GB used / 31 GB total / 0 GB free
+  OS: Ubuntu 24.04
 
 
 

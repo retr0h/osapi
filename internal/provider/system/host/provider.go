@@ -30,4 +30,8 @@ type Provider interface {
 	GetUptime() (time.Duration, error)
 	// GetHostname retrieves the hostname of the system.
 	GetHostname() (string, error)
+	// GetOSInfo retrieves information about the operating system, including the
+	// distribution name and version. It returns an OSInfo struct containing this
+	// data and an error if something goes wrong during the process.
+	GetOSInfo() (*OSInfo, error)
 }

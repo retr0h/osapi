@@ -574,12 +574,15 @@ components:
           $ref: '#/components/schemas/Memory'
         disks:
           $ref: '#/components/schemas/Disks'
+        os_info:
+          $ref: '#/components/schemas/OSInfo'
       required:
         - hostname
         - uptime
         - load_average
         - memory
         - disks
+        - os_info
     Hostname:
       type: object
       description: The hostname of the system.
@@ -590,6 +593,21 @@ components:
           example: my-linux-server
       required:
         - hostname
+    OSInfo:
+      type: object
+      description: Operating system information.
+      properties:
+        distribution:
+          type: string
+          description: The name of the Linux distribution.
+          example: Ubuntu
+        version:
+          type: string
+          description: The version of the Linux distribution.
+          example: '20.04'
+      required:
+        - distribution
+        - version
     system.ErrorResponse:
       type: object
       properties:

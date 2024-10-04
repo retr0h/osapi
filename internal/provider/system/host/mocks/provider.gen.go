@@ -9,6 +9,7 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
+	host "github.com/retr0h/osapi/internal/provider/system/host"
 )
 
 // MockProvider is a mock of Provider interface.
@@ -47,6 +48,21 @@ func (m *MockProvider) GetHostname() (string, error) {
 func (mr *MockProviderMockRecorder) GetHostname() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHostname", reflect.TypeOf((*MockProvider)(nil).GetHostname))
+}
+
+// GetOSInfo mocks base method.
+func (m *MockProvider) GetOSInfo() (*host.OSInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOSInfo")
+	ret0, _ := ret[0].(*host.OSInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOSInfo indicates an expected call of GetOSInfo.
+func (mr *MockProviderMockRecorder) GetOSInfo() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOSInfo", reflect.TypeOf((*MockProvider)(nil).GetOSInfo))
 }
 
 // GetUptime mocks base method.

@@ -18,32 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package mocks
+package host
 
-import (
-	"time"
-
-	"github.com/golang/mock/gomock"
-
-	"github.com/retr0h/osapi/internal/provider/system/host"
-)
-
-// NewPlainMockProvider creates a Mock without defaults.
-func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
-	return NewMockProvider(ctrl)
-}
-
-// NewDefaultMockProvider creates a Mock with defaults.
-func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
-	mock := NewMockProvider(ctrl)
-
-	mock.EXPECT().GetUptime().Return(time.Hour*5, nil).AnyTimes()
-	mock.EXPECT().GetHostname().Return("default-hostname", nil).AnyTimes()
-
-	mock.EXPECT().GetOSInfo().Return(&host.OSInfo{
-		Distribution: "Ubuntu",
-		Version:      "24.04",
-	}, nil).AnyTimes()
-
-	return mock
+// OSInfo represents the operating system information.
+type OSInfo struct {
+	// The name of the Linux distribution (e.g., Ubuntu, CentOS).
+	Distribution string
+	// The version of the Linux distribution (e.g., 20.04, 8.3).
+	Version string
 }

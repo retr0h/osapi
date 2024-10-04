@@ -92,26 +92,34 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 				return mock
 			},
 			wantCode: http.StatusOK,
-			wantBody: `{
-"disks": [{
-  "free":250000000000,
-  "name":"/dev/disk1",
-  "total":500000000000,
-  "used":250000000000
-}],
-"hostname": "default-hostname",
-"load_average": {
-  "15min": 0.2,
-  "1min": 1,
-  "5min": 0.5
-},
-"memory": {
-  "free": 4.194304e+06,
-  "total": 8.388608e+06,
-  "used": 2.097152e+06
-},
-"uptime": "0 days, 5 hours, 0 minutes"
-}`,
+			wantBody: `
+{
+  "disks": [
+    {
+      "free": 250000000000,
+      "name": "/dev/disk1",
+      "total": 500000000000,
+      "used": 250000000000
+    }
+  ],
+  "hostname": "default-hostname",
+  "load_average": {
+    "1min": 1,
+    "5min": 0.5,
+    "15min": 0.2
+  },
+  "memory": {
+    "free": 4194304,
+    "total": 8388608,
+    "used": 2097152
+  },
+  "os_info": {
+    "distribution": "Ubuntu",
+    "version": "24.04"
+  },
+  "uptime": "0 days, 5 hours, 0 minutes"
+}
+`,
 		},
 		{
 			name: "when host.GetHostname errors",
@@ -212,6 +220,35 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 			},
 			setupHostMock: func() *hostMocks.MockProvider {
 				mock := hostMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupDiskMock: func() *diskMocks.MockProvider {
+				mock := diskMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+		},
+		{
+			name: "when host.GetOSInfo errors",
+			path: "/system/status",
+			setupMemMock: func() *memMocks.MockProvider {
+				mock := memMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupLoadMock: func() *loadMocks.MockProvider {
+				mock := loadMocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setupHostMock: func() *hostMocks.MockProvider {
+				mock := hostMocks.NewPlainMockProvider(suite.ctrl)
+				mock.EXPECT().GetHostname().Return("default-hostname", nil).AnyTimes()
+				mock.EXPECT().GetUptime().Return(time.Hour*5, nil).AnyTimes()
+				mock.EXPECT().GetOSInfo().Return(nil, assert.AnError)
 
 				return mock
 			},

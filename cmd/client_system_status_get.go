@@ -68,6 +68,11 @@ var clientSystemStatusGetCmd = &cobra.Command{
 					resp.JSON200.Memory.Total/1024/1024/1024,
 					resp.JSON200.Memory.Free/1024/1024/1024,
 				),
+				"OS": fmt.Sprintf(
+					"%s %s",
+					resp.JSON200.OsInfo.Distribution,
+					resp.JSON200.OsInfo.Version,
+				),
 			}
 			printStyledMap(systemData)
 

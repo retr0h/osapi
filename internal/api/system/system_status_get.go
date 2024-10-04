@@ -62,6 +62,13 @@ func (s System) GetSystemStatus(
 		})
 	}
 
+	osInfo, err := s.HostProvider.GetOSInfo()
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
+			Error: err.Error(),
+		})
+	}
+
 	diskStats, err := s.DiskProvider.GetLocalUsageStats()
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
@@ -88,6 +95,10 @@ func (s System) GetSystemStatus(
 			N1min:  loadAvgStats.Load1,
 			N5min:  loadAvgStats.Load5,
 			N15min: loadAvgStats.Load15,
+		},
+		OsInfo: gen.OSInfo{
+			Distribution: osInfo.Distribution,
+			Version:      osInfo.Version,
 		},
 		// Memory: When float64 values are encoded into JSON, large numbers can
 		// automatically be formatted in scientific notation, which is typical
