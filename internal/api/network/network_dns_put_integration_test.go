@@ -86,7 +86,6 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{}`,
 		},
 		{
 			name: "when put Ok with missing body Servers",
@@ -105,7 +104,6 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{}`,
 		},
 		{
 			name: "when put Ok with missing body Search Domains",
@@ -124,7 +122,6 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{}`,
 		},
 		{
 			name: "when body is empty",
@@ -264,8 +261,11 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			assert.Equal(suite.T(), tc.wantCode, rec.Code)
-			assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
+			if tc.wantCode == http.StatusAccepted {
+				assert.Empty(suite.T(), rec.Body.String())
+			} else {
+				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
+			}
 		})
 	}
 }

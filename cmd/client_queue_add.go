@@ -31,11 +31,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// clientQueuePutCmd represents the clientQueuePut command.
-var clientQueuePutCmd = &cobra.Command{
-	Use:   "put",
-	Short: "Put a messge into the queue",
-	Long: `Puts a base64 encoded message into the queue for processing by the task runner.
+// clientQueueAddCmd represents the clientQueueAdd command.
+var clientQueueAddCmd = &cobra.Command{
+	Use:   "add",
+	Short: "Add a messge into the queue",
+	Long: `Adds a message into the queue for processing by the task runner.
 `,
 	Run: func(cmd *cobra.Command, _ []string) {
 		filePath, _ := cmd.Flags().GetString("proto-file")
@@ -54,14 +54,14 @@ var clientQueuePutCmd = &cobra.Command{
 		encodedBody := base64.StdEncoding.EncodeToString([]byte(fileContents))
 		resp, err := handler.PostQueue(context.TODO(), encodedBody)
 		if err != nil {
-			logFatal("failed to post queue endpoint", err)
+			logFatal("failed to add queue endpoint", err)
 		}
 
 		errorMsg := "unknown error"
 		switch resp.StatusCode() {
 		case http.StatusCreated:
 			logger.Info(
-				"queue put",
+				"queue add",
 				slog.String("proto_file", filePath),
 				slog.String("response", string(resp.Body)),
 				slog.String("status", "ok"),
@@ -93,8 +93,8 @@ var clientQueuePutCmd = &cobra.Command{
 }
 
 func init() {
-	clientQueueCmd.AddCommand(clientQueuePutCmd)
+	clientQueueCmd.AddCommand(clientQueueAddCmd)
 
-	clientQueuePutCmd.PersistentFlags().
+	clientQueueAddCmd.PersistentFlags().
 		StringP("proto-file", "p", "", "Path to the file containing the binary protobuf data")
 }

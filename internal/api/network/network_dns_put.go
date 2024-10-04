@@ -81,5 +81,5 @@ func (n Network) PutNetworkDNS(
 		})
 	}
 
-	return ctx.JSON(http.StatusAccepted, gen.DNSConfigUpdate{})
+	return ctx.NoContent(http.StatusAccepted)
 }

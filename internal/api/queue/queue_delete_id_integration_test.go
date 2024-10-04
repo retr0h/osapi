@@ -70,7 +70,6 @@ func (suite *QueueDeleteIDIntegrationTestSuite) TestDeleteQueueID() {
 				return mock
 			},
 			wantCode: http.StatusNoContent,
-			wantBody: `{}`,
 		},
 		{
 			name: "when DeleteByID finds no item (no rows affected)",

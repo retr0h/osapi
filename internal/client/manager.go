@@ -30,9 +30,13 @@ import (
 // services and operations.
 type Manager interface {
 	// GetNetworkDNS get the network dns get API endpoint.
-	GetNetworkDNS(
+	GetNetworkDNS(ctx context.Context) (*gen.GetNetworkDNSResponse, error)
+	// PutNetworkDNS put the network dns put API endpoint.
+	PutNetworkDNS(
 		ctx context.Context,
-	) (*gen.GetNetworkDNSResponse, error)
+		servers []string,
+		searchDomains []string,
+	) (*gen.PutNetworkDNSResponse, error)
 	// PostNetworkPing post the network ping API endpoint.
 	PostNetworkPing(
 		ctx context.Context,
@@ -61,16 +65,10 @@ type Manager interface {
 		messageBody string,
 	) (*gen.PostQueueResponse, error)
 	// GetQueueStatus gets queue status through the queue API endpoint.
-	GetQueueStatus(
-		ctx context.Context,
-	) (*gen.GetQueueStatusResponse, error)
+	GetQueueStatus(ctx context.Context) (*gen.GetQueueStatusResponse, error)
 
 	// GetSystemStatus get the system status API endpoint.
-	GetSystemStatus(
-		ctx context.Context,
-	) (*gen.GetSystemStatusResponse, error)
+	GetSystemStatus(ctx context.Context) (*gen.GetSystemStatusResponse, error)
 	// GetSystemHostname get the system hostname API endpoint.
-	GetSystemHostname(
-		ctx context.Context,
-	) (*gen.GetSystemHostnameResponse, error)
+	GetSystemHostname(ctx context.Context) (*gen.GetSystemHostnameResponse, error)
 }

@@ -74,7 +74,6 @@ func (suite *QueuePostIntegrationTestSuite) TestPostQueue() {
 				return mock
 			},
 			wantCode: http.StatusCreated,
-			wantBody: `{}`,
 		},
 		{
 			name: "when body is malformed",

@@ -31,8 +31,8 @@ import (
 // clientNetworkDNSGetCmd represents the clientNetworkDNSGet command.
 var clientNetworkDNSGetCmd = &cobra.Command{
 	Use:   "get",
-	Short: "DNS of the server",
-	Long: `Obtain the current DNS configuration.
+	Short: "Get the DNS configuration",
+	Long: `Get the servers current DNS configuration.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
 		resp, err := handler.GetNetworkDNS(context.TODO())
@@ -44,7 +44,7 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 		case http.StatusOK:
 			if jsonOutput {
 				logger.Info(
-					"network dns",
+					"network dns get",
 					slog.String("response", string(resp.Body)),
 				)
 				return
