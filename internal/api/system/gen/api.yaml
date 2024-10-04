@@ -43,7 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SystemStatus'
+                $ref: '#/components/schemas/SystemStatusResponse'
         '500':
           description: Error retrieving system status.
           content:
@@ -62,7 +62,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Hostname'
+                $ref: '#/components/schemas/HostnameResponse'
         '500':
           description: Error retrieving hostname.
           content:
@@ -72,7 +72,7 @@ paths:
 
 components:
   schemas:
-    LoadAverage:
+    LoadAverageResponse:
       type: object
       description: The system load averages for 1, 5, and 15 minutes.
       properties:
@@ -92,7 +92,8 @@ components:
         - 1min
         - 5min
         - 15min
-    Memory:
+
+    MemoryResponse:
       type: object
       description: Memory usage information.
       properties:
@@ -112,7 +113,8 @@ components:
         - total
         - free
         - used
-    Disk:
+
+    DiskResponse:
       type: object
       description: Local disk usage information.
       properties:
@@ -137,12 +139,14 @@ components:
         - total
         - used
         - free
-    Disks:
+
+    DisksResponse:
       type: array
       description: List of local disk usage information.
       items:
-        $ref: '#/components/schemas/Disk'
-    SystemStatus:
+        $ref: '#/components/schemas/DiskResponse'
+
+    SystemStatusResponse:
       type: object
       properties:
         hostname:
@@ -154,13 +158,13 @@ components:
           description: The uptime of the system.
           example: "0 days, 4 hours, 1 minute"
         load_average:
-          $ref: '#/components/schemas/LoadAverage'
+          $ref: '#/components/schemas/LoadAverageResponse'
         memory:
-          $ref: '#/components/schemas/Memory'
+          $ref: '#/components/schemas/MemoryResponse'
         disks:
-          $ref: '#/components/schemas/Disks'
+          $ref: '#/components/schemas/DisksResponse'
         os_info:
-          $ref: '#/components/schemas/OSInfo'
+          $ref: '#/components/schemas/OSInfoResponse'
       required:
         - hostname
         - uptime
@@ -168,7 +172,8 @@ components:
         - memory
         - disks
         - os_info
-    Hostname:
+
+    HostnameResponse:
       type: object
       description: The hostname of the system.
       properties:
@@ -178,7 +183,8 @@ components:
           example: "my-linux-server"
       required:
         - hostname
-    OSInfo:
+
+    OSInfoResponse:
       type: object
       description: Operating system information.
       properties:

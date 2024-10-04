@@ -87,7 +87,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DNSConfig'
+                $ref: '#/components/schemas/DNSConfigResponse'
         '500':
           description: Error retrieving DNS servers.
           content:
@@ -106,7 +106,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DNSConfigUpdate'
+              $ref: '#/components/schemas/DNSConfigUpdateResponse'
       responses:
         '202':
           description: DNS servers update successfully accepted.
@@ -184,7 +184,7 @@ components:
           description: Maximum round-trip time as a string in Go's time.Duration format.
           example: "24.309240ms"
 
-    DNSConfig:
+    DNSConfigResponse:
       type: object
       properties:
         servers:
@@ -199,7 +199,7 @@ components:
           items:
             type: string
 
-    DNSConfigUpdate:
+    DNSConfigUpdateResponse:
       type: object
       properties:
         servers:

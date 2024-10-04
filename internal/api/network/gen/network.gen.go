@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// DNSConfig defines model for DNSConfig.
-type DNSConfig struct {
+// DNSConfigResponse defines model for DNSConfigResponse.
+type DNSConfigResponse struct {
 	// SearchDomains List of search domains.
 	SearchDomains *[]string `json:"search_domains,omitempty"`
 
@@ -16,8 +16,8 @@ type DNSConfig struct {
 	Servers *[]string `json:"servers,omitempty"`
 }
 
-// DNSConfigUpdate defines model for DNSConfigUpdate.
-type DNSConfigUpdate struct {
+// DNSConfigUpdateResponse defines model for DNSConfigUpdateResponse.
+type DNSConfigUpdateResponse struct {
 	// SearchDomains New list of search domains to configure.
 	SearchDomains *[]string `json:"search_domains,omitempty" validate:"required_without=Servers,omitempty,dive,hostname,min=1"`
 
@@ -65,7 +65,7 @@ type PostNetworkPingJSONBody struct {
 }
 
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
-type PutNetworkDNSJSONRequestBody = DNSConfigUpdate
+type PutNetworkDNSJSONRequestBody = DNSConfigUpdateResponse
 
 // PostNetworkPingJSONRequestBody defines body for PostNetworkPing for application/json ContentType.
 type PostNetworkPingJSONRequestBody PostNetworkPingJSONBody

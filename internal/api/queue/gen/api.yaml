@@ -56,7 +56,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QueueItem'
+                $ref: '#/components/schemas/QueueItemResponse'
         '400':
           description: Invalid request payload.
           content:
@@ -142,7 +142,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QueueItem'
+                $ref: '#/components/schemas/QueueItemResponse'
         '404':
           description: Queue item not found.
           content:
@@ -186,7 +186,7 @@ paths:
 
 components:
   schemas:
-    QueueItem:
+    QueueItemResponse:
       type: object
       properties:
         id:
@@ -225,7 +225,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/QueueItem'
+            $ref: '#/components/schemas/QueueItemResponse'
 
     QueueStatusResponse:
       type: object

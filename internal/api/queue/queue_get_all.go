@@ -52,9 +52,9 @@ func (q Queue) GetQueue(
 		})
 	}
 
-	items := make([]gen.QueueItem, 0, len(queueItems))
+	items := make([]gen.QueueItemResponse, 0, len(queueItems))
 	for _, i := range queueItems {
-		item := gen.QueueItem{
+		item := gen.QueueItemResponse{
 			Body:     &i.Body,
 			Id:       &i.ID,
 			Received: &i.Received,

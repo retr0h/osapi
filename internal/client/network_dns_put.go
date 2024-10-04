@@ -32,7 +32,7 @@ func (c *Client) PutNetworkDNS(
 	servers []string,
 	searchDomains []string,
 ) (*gen.PutNetworkDNSResponse, error) {
-	body := gen.DNSConfigUpdate{}
+	body := gen.DNSConfigUpdateResponse{}
 
 	if len(servers) > 0 {
 		body.Servers = &servers

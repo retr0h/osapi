@@ -17,8 +17,8 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// DNSConfig defines model for DNSConfig.
-type DNSConfig struct {
+// DNSConfigResponse defines model for DNSConfigResponse.
+type DNSConfigResponse struct {
 	// SearchDomains List of search domains.
 	SearchDomains *[]string `json:"search_domains,omitempty"`
 
@@ -26,8 +26,8 @@ type DNSConfig struct {
 	Servers *[]string `json:"servers,omitempty"`
 }
 
-// DNSConfigUpdate defines model for DNSConfigUpdate.
-type DNSConfigUpdate struct {
+// DNSConfigUpdateResponse defines model for DNSConfigUpdateResponse.
+type DNSConfigUpdateResponse struct {
 	// SearchDomains New list of search domains to configure.
 	SearchDomains *[]string `json:"search_domains,omitempty" validate:"required_without=Servers,omitempty,dive,hostname,min=1"`
 
@@ -35,8 +35,8 @@ type DNSConfigUpdate struct {
 	Servers *[]string `json:"servers,omitempty" validate:"required_without=SearchDomains,omitempty,dive,ip,min=1"`
 }
 
-// Disk Local disk usage information.
-type Disk struct {
+// DiskResponse Local disk usage information.
+type DiskResponse struct {
 	// Free Free disk space in bytes.
 	Free int `json:"free"`
 
@@ -50,17 +50,17 @@ type Disk struct {
 	Used int `json:"used"`
 }
 
-// Disks List of local disk usage information.
-type Disks = []Disk
+// DisksResponse List of local disk usage information.
+type DisksResponse = []DiskResponse
 
-// Hostname The hostname of the system.
-type Hostname struct {
+// HostnameResponse The hostname of the system.
+type HostnameResponse struct {
 	// Hostname The system's hostname.
 	Hostname string `json:"hostname"`
 }
 
-// LoadAverage The system load averages for 1, 5, and 15 minutes.
-type LoadAverage struct {
+// LoadAverageResponse The system load averages for 1, 5, and 15 minutes.
+type LoadAverageResponse struct {
 	// N15min Load average for the last 15 minutes.
 	N15min float32 `json:"15min"`
 
@@ -71,8 +71,8 @@ type LoadAverage struct {
 	N5min float32 `json:"5min"`
 }
 
-// Memory Memory usage information.
-type Memory struct {
+// MemoryResponse Memory usage information.
+type MemoryResponse struct {
 	// Free Free memory in bytes.
 	Free int `json:"free"`
 
@@ -83,8 +83,8 @@ type Memory struct {
 	Used int `json:"used"`
 }
 
-// OSInfo Operating system information.
-type OSInfo struct {
+// OSInfoResponse Operating system information.
+type OSInfoResponse struct {
 	// Distribution The name of the Linux distribution.
 	Distribution string `json:"distribution"`
 
@@ -113,8 +113,8 @@ type PingResponse struct {
 	PacketsSent *int `json:"packets_sent,omitempty"`
 }
 
-// QueueItem defines model for QueueItem.
-type QueueItem struct {
+// QueueItemResponse defines model for QueueItemResponse.
+type QueueItemResponse struct {
 	// Body Base64-encoded representation of the body of the queue item.
 	Body *[]byte `json:"body,omitempty"`
 
@@ -136,7 +136,7 @@ type QueueItem struct {
 
 // QueueResponse defines model for QueueResponse.
 type QueueResponse struct {
-	Items *[]QueueItem `json:"items,omitempty"`
+	Items *[]QueueItemResponse `json:"items,omitempty"`
 
 	// TotalItems The total number of queue items.
 	TotalItems *int `json:"total_items,omitempty"`
@@ -148,22 +148,22 @@ type QueueStatusResponse struct {
 	TotalItems *int `json:"total_items,omitempty"`
 }
 
-// SystemStatus defines model for SystemStatus.
-type SystemStatus struct {
+// SystemStatusResponse defines model for SystemStatusResponse.
+type SystemStatusResponse struct {
 	// Disks List of local disk usage information.
-	Disks Disks `json:"disks"`
+	Disks DisksResponse `json:"disks"`
 
 	// Hostname The hostname of the system.
 	Hostname string `json:"hostname"`
 
 	// LoadAverage The system load averages for 1, 5, and 15 minutes.
-	LoadAverage LoadAverage `json:"load_average"`
+	LoadAverage LoadAverageResponse `json:"load_average"`
 
 	// Memory Memory usage information.
-	Memory Memory `json:"memory"`
+	Memory MemoryResponse `json:"memory"`
 
 	// OsInfo Operating system information.
-	OsInfo OSInfo `json:"os_info"`
+	OsInfo OSInfoResponse `json:"os_info"`
 
 	// Uptime The uptime of the system.
 	Uptime string `json:"uptime"`
@@ -224,7 +224,7 @@ type PostQueueJSONBody struct {
 }
 
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
-type PutNetworkDNSJSONRequestBody = DNSConfigUpdate
+type PutNetworkDNSJSONRequestBody = DNSConfigUpdateResponse
 
 // PostNetworkPingJSONRequestBody defines body for PostNetworkPing for application/json ContentType.
 type PostNetworkPingJSONRequestBody PostNetworkPingJSONBody
@@ -942,7 +942,7 @@ type ClientWithResponsesInterface interface {
 type GetNetworkDNSResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *DNSConfig
+	JSON200      *DNSConfigResponse
 	JSON500      *NetworkErrorResponse
 }
 
@@ -1035,7 +1035,7 @@ func (r GetQueueResponse) StatusCode() int {
 type PostQueueResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *QueueItem
+	JSON201      *QueueItemResponse
 	JSON400      *QueueErrorResponse
 	JSON500      *QueueErrorResponse
 }
@@ -1105,7 +1105,7 @@ func (r DeleteQueueIDResponse) StatusCode() int {
 type GetQueueIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *QueueItem
+	JSON200      *QueueItemResponse
 	JSON404      *QueueErrorResponse
 	JSON500      *QueueErrorResponse
 }
@@ -1129,7 +1129,7 @@ func (r GetQueueIDResponse) StatusCode() int {
 type GetSystemHostnameResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Hostname
+	JSON200      *HostnameResponse
 	JSON500      *SystemErrorResponse
 }
 
@@ -1152,7 +1152,7 @@ func (r GetSystemHostnameResponse) StatusCode() int {
 type GetSystemStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *SystemStatus
+	JSON200      *SystemStatusResponse
 	JSON500      *SystemErrorResponse
 }
 
@@ -1301,7 +1301,7 @@ func ParseGetNetworkDNSResponse(rsp *http.Response) (*GetNetworkDNSResponse, err
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest DNSConfig
+		var dest DNSConfigResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1440,7 +1440,7 @@ func ParsePostQueueResponse(rsp *http.Response) (*PostQueueResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest QueueItem
+		var dest QueueItemResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1546,7 +1546,7 @@ func ParseGetQueueIDResponse(rsp *http.Response) (*GetQueueIDResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest QueueItem
+		var dest QueueItemResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1586,7 +1586,7 @@ func ParseGetSystemHostnameResponse(rsp *http.Response) (*GetSystemHostnameRespo
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Hostname
+		var dest HostnameResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1619,7 +1619,7 @@ func ParseGetSystemStatusResponse(rsp *http.Response) (*GetSystemStatusResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest SystemStatus
+		var dest SystemStatusResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

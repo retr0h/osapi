@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Disk Local disk usage information.
-type Disk struct {
+// DiskResponse Local disk usage information.
+type DiskResponse struct {
 	// Free Free disk space in bytes.
 	Free int `json:"free"`
 
@@ -22,17 +22,17 @@ type Disk struct {
 	Used int `json:"used"`
 }
 
-// Disks List of local disk usage information.
-type Disks = []Disk
+// DisksResponse List of local disk usage information.
+type DisksResponse = []DiskResponse
 
-// Hostname The hostname of the system.
-type Hostname struct {
+// HostnameResponse The hostname of the system.
+type HostnameResponse struct {
 	// Hostname The system's hostname.
 	Hostname string `json:"hostname"`
 }
 
-// LoadAverage The system load averages for 1, 5, and 15 minutes.
-type LoadAverage struct {
+// LoadAverageResponse The system load averages for 1, 5, and 15 minutes.
+type LoadAverageResponse struct {
 	// N15min Load average for the last 15 minutes.
 	N15min float32 `json:"15min"`
 
@@ -43,8 +43,8 @@ type LoadAverage struct {
 	N5min float32 `json:"5min"`
 }
 
-// Memory Memory usage information.
-type Memory struct {
+// MemoryResponse Memory usage information.
+type MemoryResponse struct {
 	// Free Free memory in bytes.
 	Free int `json:"free"`
 
@@ -55,8 +55,8 @@ type Memory struct {
 	Used int `json:"used"`
 }
 
-// OSInfo Operating system information.
-type OSInfo struct {
+// OSInfoResponse Operating system information.
+type OSInfoResponse struct {
 	// Distribution The name of the Linux distribution.
 	Distribution string `json:"distribution"`
 
@@ -64,22 +64,22 @@ type OSInfo struct {
 	Version string `json:"version"`
 }
 
-// SystemStatus defines model for SystemStatus.
-type SystemStatus struct {
+// SystemStatusResponse defines model for SystemStatusResponse.
+type SystemStatusResponse struct {
 	// Disks List of local disk usage information.
-	Disks Disks `json:"disks"`
+	Disks DisksResponse `json:"disks"`
 
 	// Hostname The hostname of the system.
 	Hostname string `json:"hostname"`
 
 	// LoadAverage The system load averages for 1, 5, and 15 minutes.
-	LoadAverage LoadAverage `json:"load_average"`
+	LoadAverage LoadAverageResponse `json:"load_average"`
 
 	// Memory Memory usage information.
-	Memory Memory `json:"memory"`
+	Memory MemoryResponse `json:"memory"`
 
 	// OsInfo Operating system information.
-	OsInfo OSInfo `json:"os_info"`
+	OsInfo OSInfoResponse `json:"os_info"`
 
 	// Uptime The uptime of the system.
 	Uptime string `json:"uptime"`

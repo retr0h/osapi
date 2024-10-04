@@ -138,7 +138,7 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdate.SearchDomains' Error:Field validation for 'SearchDomains' failed on the 'required_without' tag\nKey: 'DNSConfigUpdate.Servers' Error:Field validation for 'Servers' failed on the 'required_without' tag"}`,
+			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateResponse.SearchDomains' Error:Field validation for 'SearchDomains' failed on the 'required_without' tag\nKey: 'DNSConfigUpdateResponse.Servers' Error:Field validation for 'Servers' failed on the 'required_without' tag"}`,
 		},
 		{
 			name: "when body's Servers are not a proper ipv4 and ipv6 addresses",
@@ -157,7 +157,7 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdate.Servers[0]' Error:Field validation for 'Servers[0]' failed on the 'ip' tag\nKey: 'DNSConfigUpdate.Servers[1]' Error:Field validation for 'Servers[1]' failed on the 'ip' tag"}`,
+			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateResponse.Servers[0]' Error:Field validation for 'Servers[0]' failed on the 'ip' tag\nKey: 'DNSConfigUpdateResponse.Servers[1]' Error:Field validation for 'Servers[1]' failed on the 'ip' tag"}`,
 		},
 		{
 			name: "when body's Search Domains are invalid",
@@ -176,7 +176,7 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdate.SearchDomains[0]' Error:Field validation for 'SearchDomains[0]' failed on the 'hostname' tag\nKey: 'DNSConfigUpdate.SearchDomains[1]' Error:Field validation for 'SearchDomains[1]' failed on the 'hostname' tag\nKey: 'DNSConfigUpdate.SearchDomains[3]' Error:Field validation for 'SearchDomains[3]' failed on the 'hostname' tag"}`,
+			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateResponse.SearchDomains[0]' Error:Field validation for 'SearchDomains[0]' failed on the 'hostname' tag\nKey: 'DNSConfigUpdateResponse.SearchDomains[1]' Error:Field validation for 'SearchDomains[1]' failed on the 'hostname' tag\nKey: 'DNSConfigUpdateResponse.SearchDomains[3]' Error:Field validation for 'SearchDomains[3]' failed on the 'hostname' tag"}`,
 		},
 		{
 			name: "when body is malformed",

@@ -42,7 +42,7 @@ func (n Network) GetNetworkDNS(
 	searchDomains := dnsConfig.SearchDomains
 	servers := dnsConfig.DNSServers
 
-	return ctx.JSON(http.StatusOK, gen.DNSConfig{
+	return ctx.JSON(http.StatusOK, gen.DNSConfigResponse{
 		SearchDomains: &searchDomains,
 		Servers:       &servers,
 	})

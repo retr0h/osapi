@@ -12,8 +12,8 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// QueueItem defines model for QueueItem.
-type QueueItem struct {
+// QueueItemResponse defines model for QueueItemResponse.
+type QueueItemResponse struct {
 	// Body Base64-encoded representation of the body of the queue item.
 	Body *[]byte `json:"body,omitempty"`
 
@@ -35,7 +35,7 @@ type QueueItem struct {
 
 // QueueResponse defines model for QueueResponse.
 type QueueResponse struct {
-	Items *[]QueueItem `json:"items,omitempty"`
+	Items *[]QueueItemResponse `json:"items,omitempty"`
 
 	// TotalItems The total number of queue items.
 	TotalItems *int `json:"total_items,omitempty"`

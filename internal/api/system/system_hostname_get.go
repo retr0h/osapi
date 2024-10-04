@@ -39,7 +39,7 @@ func (s System) GetSystemHostname(
 		})
 	}
 
-	return ctx.JSON(http.StatusOK, gen.Hostname{
+	return ctx.JSON(http.StatusOK, gen.HostnameResponse{
 		Hostname: hostname,
 	})
 }

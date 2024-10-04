@@ -77,9 +77,9 @@ func (s System) GetSystemStatus(
 	}
 
 	// Convert []systemDiskUsageStats to []gen.Disks
-	disks := make([]gen.Disk, 0, len(diskStats))
+	disks := make([]gen.DiskResponse, 0, len(diskStats))
 	for _, d := range diskStats {
-		disk := gen.Disk{
+		disk := gen.DiskResponse{
 			Name:  d.Name,
 			Total: uint64ToInt(d.Total),
 			Used:  uint64ToInt(d.Used),
@@ -88,22 +88,22 @@ func (s System) GetSystemStatus(
 		disks = append(disks, disk)
 	}
 
-	return ctx.JSON(http.StatusOK, gen.SystemStatus{
+	return ctx.JSON(http.StatusOK, gen.SystemStatusResponse{
 		Hostname: hostname,
 		Uptime:   formatDuration(uptime),
-		LoadAverage: gen.LoadAverage{
+		LoadAverage: gen.LoadAverageResponse{
 			N1min:  loadAvgStats.Load1,
 			N5min:  loadAvgStats.Load5,
 			N15min: loadAvgStats.Load15,
 		},
-		OsInfo: gen.OSInfo{
+		OsInfo: gen.OSInfoResponse{
 			Distribution: osInfo.Distribution,
 			Version:      osInfo.Version,
 		},
 		// Memory: When float64 values are encoded into JSON, large numbers can
 		// automatically be formatted in scientific notation, which is typical
 		// behavior for JSON encoders to save space and maintain precision.
-		Memory: gen.Memory{
+		Memory: gen.MemoryResponse{
 			Total: uint64ToInt(memStats.Total),
 			Free:  uint64ToInt(memStats.Free),
 			Used:  uint64ToInt(memStats.Cached),

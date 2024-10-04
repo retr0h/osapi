@@ -47,7 +47,7 @@ func (q Queue) GetQueueID(
 		})
 	}
 
-	return ctx.JSON(http.StatusOK, gen.QueueItem{
+	return ctx.JSON(http.StatusOK, gen.QueueItemResponse{
 		Body:     &queueItem.Body,
 		Id:       &queueItem.ID,
 		Received: &queueItem.Received,
