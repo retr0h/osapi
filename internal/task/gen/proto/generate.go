@@ -20,4 +20,4 @@
 
 package proto
 
-//go:generate protoc --proto_path=../../../proto --go_out=../../../internal/gen/proto/ --go_opt=paths=source_relative ../../../proto/task/task.proto
+//go:generate protoc --proto_path=../../../../proto --go_out=../../../../internal/task/gen/proto/ --go_opt=paths=source_relative ../../../../proto/task/task.proto

@@ -26,7 +26,7 @@ import (
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 
-	taskpb "github.com/retr0h/osapi/internal/gen/proto/task"
+	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
 )
 
 // MarshalProto is a generic function to marshal any proto.Message.

@@ -21,7 +21,7 @@
 package task
 
 import (
-	taskpb "github.com/retr0h/osapi/internal/gen/proto/task"
+	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
 )
 
 // CreateAndMarshalChangeDNSAction creates a ChangeDNSAction message with the
