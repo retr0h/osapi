@@ -31,6 +31,7 @@ import (
 	"golang.org/x/term"
 )
 
+// TODO(retr0h): consider moving out of global scope
 var (
 	purple    = lipgloss.Color("99")
 	gray      = lipgloss.Color("245")

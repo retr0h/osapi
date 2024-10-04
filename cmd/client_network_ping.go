@@ -29,21 +29,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var address string
-
 // clientNetworkPingCmd represents the clientNetworkPing command.
 var clientNetworkPingCmd = &cobra.Command{
 	Use:   "ping",
 	Short: "Ping the specified server",
 	Long: `Ping the specified server and return results.
 `,
-	Run: func(_ *cobra.Command, _ []string) {
-		errorMsg := "unknown error"
+	Run: func(cmd *cobra.Command, _ []string) {
+		address, _ := cmd.Flags().GetString("address")
+
 		resp, err := handler.PostNetworkPing(context.TODO(), address)
 		if err != nil {
 			logFatal("failed to post network ping endpoint", err)
 		}
 
+		errorMsg := "unknown error"
 		switch resp.StatusCode() {
 		case http.StatusOK:
 			if jsonOutput {
@@ -113,6 +113,7 @@ func init() {
 	clientNetworkCmd.AddCommand(clientNetworkPingCmd)
 
 	clientNetworkPingCmd.PersistentFlags().
-		StringVarP(&address, "address", "a", "", "The address to ping")
+		StringP("address", "a", "", "The address to ping")
+
 	_ = clientNetworkPingCmd.MarkPersistentFlagRequired("address")
 }

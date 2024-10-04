@@ -34,7 +34,9 @@ var clientQueueDeleteIDCmd = &cobra.Command{
 	Short: "Delete a messge from the queue",
 	Long: `Deletes a message item from the queue.
 `,
-	Run: func(_ *cobra.Command, _ []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
+		messageID, _ := cmd.Flags().GetString("message-id")
+
 		resp, err := handler.DeleteQueueByID(context.TODO(), messageID)
 		if err != nil {
 			logFatal("failed to delete queue endpoint", err)
@@ -74,7 +76,8 @@ var clientQueueDeleteIDCmd = &cobra.Command{
 func init() {
 	clientQueueCmd.AddCommand(clientQueueDeleteIDCmd)
 
-	clientQueueDeleteIDCmd.PersistentFlags().
-		StringVarP(&messageID, "message-id", "m", "", "The message ID of the queue item to delete")
+	clientQueueGetIDCmd.PersistentFlags().
+		StringP("message-id", "m", "", "The message ID of the queue item to fetch")
+
 	_ = clientQueueDeleteIDCmd.MarkPersistentFlagRequired("message-id")
 }

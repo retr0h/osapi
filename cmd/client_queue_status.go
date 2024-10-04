@@ -30,6 +30,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO(retr0h): move to cmd.Flags.GetInt() once simplified
 var pollIntervalSeconds int
 
 type model struct {

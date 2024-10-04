@@ -32,19 +32,17 @@ import (
 	"github.com/retr0h/osapi/internal/task"
 )
 
-var (
-	pageNumber int
-	pageSize   int
-)
-
 // clientQueueListCmd represents the clientQueueList command.
 var clientQueueListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List messges in the queue",
 	Long: `List all messages in the queue for viewing.
 `,
-	Run: func(_ *cobra.Command, _ []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
+		pageSize, _ := cmd.Flags().GetInt("limit")
+		pageNumber, _ := cmd.Flags().GetInt("page")
 		offset := (pageNumber - 1) * pageSize
+
 		resp, err := handler.GetQueueAll(context.TODO(), pageSize, offset)
 		if err != nil {
 			logFatal("failed to get queue endpoint", err)
@@ -119,9 +117,9 @@ func init() {
 	clientQueueCmd.AddCommand(clientQueueListCmd)
 
 	clientQueueListCmd.PersistentFlags().
-		IntVarP(&pageSize, "limit", "l", 10, "Number of items to fetch per page")
+		IntP("limit", "l", 10, "Number of items to fetch per page")
 	clientQueueListCmd.PersistentFlags().
-		IntVarP(&pageNumber, "page", "p", 1, "Page number to fetch")
+		IntP("page", "p", 1, "Page number to fetch")
 }
 
 func calculateTotalPages(totalItems, pageSize int) int {

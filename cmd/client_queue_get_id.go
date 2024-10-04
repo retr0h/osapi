@@ -31,21 +31,21 @@ import (
 	"github.com/retr0h/osapi/internal/task"
 )
 
-var messageID string
-
 // clientQueueGetIDCmd represents the clientQueueGetID command.
 var clientQueueGetIDCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get a messge from the queue",
 	Long: `Gets a message item from the queue for viewing.
 `,
-	Run: func(_ *cobra.Command, _ []string) {
-		errorMsg := "unknown error"
+	Run: func(cmd *cobra.Command, _ []string) {
+		messageID, _ := cmd.Flags().GetString("message-id")
+
 		resp, err := handler.GetQueueByID(context.TODO(), messageID)
 		if err != nil {
 			logFatal("failed to get queue endpoint", err)
 		}
 
+		errorMsg := "unknown error"
 		switch resp.StatusCode() {
 		case http.StatusOK:
 			if jsonOutput {
@@ -108,7 +108,8 @@ var clientQueueGetIDCmd = &cobra.Command{
 func init() {
 	clientQueueCmd.AddCommand(clientQueueGetIDCmd)
 
-	clientQueueGetIDCmd.PersistentFlags().
-		StringVarP(&messageID, "message-id", "m", "", "The message ID of the queue item to fetch")
+	clientQueueDeleteIDCmd.PersistentFlags().
+		StringP("message-id", "m", "", "The message ID of the queue item to delete")
+
 	_ = clientQueueGetIDCmd.MarkPersistentFlagRequired("message-id")
 }
