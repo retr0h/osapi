@@ -53,6 +53,7 @@ func New(
 	e.Use(middleware.Recover())
 
 	return &Server{
-		Echo: e,
+		Echo:   e,
+		logger: logger,
 	}
 }

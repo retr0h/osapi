@@ -20,10 +20,20 @@
 
 package disk
 
+import (
+	"log/slog"
+)
+
 // Ubuntu implements the Mem interface for Ubuntu.
-type Ubuntu struct{}
+type Ubuntu struct {
+	logger *slog.Logger
+}
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider() *Ubuntu {
-	return &Ubuntu{}
+func NewUbuntuProvider(
+	logger *slog.Logger,
+) *Ubuntu {
+	return &Ubuntu{
+		logger: logger,
+	}
 }

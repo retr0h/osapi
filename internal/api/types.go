@@ -21,10 +21,13 @@
 package api
 
 import (
+	"log/slog"
+
 	"github.com/labstack/echo/v4"
 )
 
 // Server implementation of the Server's API operations.
 type Server struct {
-	Echo *echo.Echo
+	Echo   *echo.Echo
+	logger *slog.Logger
 }
