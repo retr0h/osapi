@@ -86,7 +86,7 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{"id":"12345"}`,
+			wantBody: `{}`,
 		},
 		{
 			name: "when put Ok with missing body Servers",
@@ -105,7 +105,7 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{"id":"12345"}`,
+			wantBody: `{}`,
 		},
 		{
 			name: "when put Ok with missing body Search Domains",
@@ -124,7 +124,7 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{"id":"12345"}`,
+			wantBody: `{}`,
 		},
 		{
 			name: "when body is empty",

@@ -135,10 +135,6 @@ paths:
       responses:
         '202':
           description: DNS servers update successfully accepted.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DNSConfigUpdateResponse'
         '400':
           description: Invalid input.
           content:
@@ -405,16 +401,6 @@ components:
           description: New list of search domains to configure.
           items:
             type: string
-    DNSConfigUpdateResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          description: >-
-            The identifier of the queue object. Upon submitting the request,
-            this ID represents the message within the queue, allowing for
-            tracking and processing of the operation.
-          example: m_b0b67ac52d4fafd962215e134602b8c3
     network.ErrorResponse:
       type: object
       properties:

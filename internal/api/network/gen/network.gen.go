@@ -25,12 +25,6 @@ type DNSConfigUpdate struct {
 	Servers *[]string `json:"servers,omitempty" validate:"required_without=SearchDomains,omitempty,dive,ip,min=1"`
 }
 
-// DNSConfigUpdateResponse defines model for DNSConfigUpdateResponse.
-type DNSConfigUpdateResponse struct {
-	// Id The identifier of the queue object. Upon submitting the request, this ID represents the message within the queue, allowing for tracking and processing of the operation.
-	Id *string `json:"id,omitempty"`
-}
-
 // PingResponse defines model for PingResponse.
 type PingResponse struct {
 	// AvgRtt Average round-trip time as a string in Go's time.Duration format.

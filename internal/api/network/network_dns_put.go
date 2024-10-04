@@ -81,8 +81,5 @@ func (n Network) PutNetworkDNS(
 		})
 	}
 
-	messageID := "12345"
-	return ctx.JSON(http.StatusAccepted, gen.DNSConfigUpdateResponse{
-		Id: &messageID,
-	})
+	return ctx.JSON(http.StatusAccepted, gen.DNSConfigUpdate{})
 }
