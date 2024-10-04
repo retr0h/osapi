@@ -2,13 +2,13 @@
 
 Add an item to the queue by `message-body`:
 
-:::note
+:::danger
 
-The `message-body` must be a Base64 encoded binary Protobuf message.
+This sub-command will likely be removed.
 
 :::
 
 ```bash
-$ osapi client queue put --message-body 'EhIKBzguOC44LjgKBzguOC40LjQ='
-5:34PM INF queue put message_body='EhIKBzguOC44LjgKBzguOC40LjQ=' response="" status=ok
+$ osapi client queue put --proto-file examples/dns.bin
+7:38PM INF queue put proto_file=examples/dns.bin response="" status=ok
 ```

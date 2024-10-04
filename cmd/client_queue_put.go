@@ -23,13 +23,13 @@ package cmd
 import (
 	"context"
 	"encoding/base64"
+	"io"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
 )
-
-var messageBody string
 
 // clientQueuePutCmd represents the clientQueuePut command.
 var clientQueuePutCmd = &cobra.Command{
@@ -37,24 +37,32 @@ var clientQueuePutCmd = &cobra.Command{
 	Short: "Put a messge into the queue",
 	Long: `Puts a base64 encoded message into the queue for processing by the task runner.
 `,
-	Run: func(_ *cobra.Command, _ []string) {
-		errorMsg := "unknown error"
+	Run: func(cmd *cobra.Command, _ []string) {
+		filePath, _ := cmd.Flags().GetString("proto-file")
 
-		_, err := base64.StdEncoding.DecodeString(messageBody)
+		file, err := os.Open(filePath)
 		if err != nil {
-			logFatal("invalid Base64-encoded message body", err)
+			logFatal("failed to open file", err)
+		}
+		defer func() { _ = file.Close() }()
+
+		fileContents, err := io.ReadAll(file)
+		if err != nil {
+			logFatal("failed to read file", err)
 		}
 
-		resp, err := handler.PostQueue(context.TODO(), messageBody)
+		encodedBody := base64.StdEncoding.EncodeToString([]byte(fileContents))
+		resp, err := handler.PostQueue(context.TODO(), encodedBody)
 		if err != nil {
 			logFatal("failed to post queue endpoint", err)
 		}
 
+		errorMsg := "unknown error"
 		switch resp.StatusCode() {
 		case http.StatusCreated:
 			logger.Info(
 				"queue put",
-				slog.String("message_body", messageBody),
+				slog.String("proto_file", filePath),
 				slog.String("response", string(resp.Body)),
 				slog.String("status", "ok"),
 			)
@@ -88,6 +96,5 @@ func init() {
 	clientQueueCmd.AddCommand(clientQueuePutCmd)
 
 	clientQueuePutCmd.PersistentFlags().
-		StringVarP(&messageBody, "message-body", "b", "", "The Base64-encoded message body of the queue item to add")
-	_ = clientQueuePutCmd.MarkPersistentFlagRequired("message-body")
+		StringP("proto-file", "p", "", "Path to the file containing the binary protobuf data")
 }
