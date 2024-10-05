@@ -44,7 +44,7 @@ teardown() {
 
 @test "invoke client network ping subcommand" {
 	run go run ${PROGRAM} client network ping \
-		--address "1.1.1.1"
+		--address "127.0.0.1"
 
 	[ "$status" -eq 0 ]
 }

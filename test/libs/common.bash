@@ -23,9 +23,7 @@ BATS_TEST_TIMEOUT=5
 
 # Function to start the server
 start_server() {
-  echo "START SERVER"
   run go run ${PROGRAM} server start &
-  SERVER_PID=$!
   sleep 2
 }
 

@@ -28,6 +28,7 @@ tasks:
       - go install github.com/air-verse/air@latest
       - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
       # - go install github.com/goreleaser/goreleaser@latest
+      - task bats:deps
 
   mod:
     desc: Module maintenance
@@ -62,8 +63,7 @@ tasks:
       - task: fmt:check
       - task: vet
       - task: cov
-      # TODO(retr0h): enable
-      # - task: unit:int
+      - task: unit:int
 
   cov:
     desc: Generate coverage

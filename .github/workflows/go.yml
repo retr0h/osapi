@@ -21,6 +21,8 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install shfmt
+        uses: mfinelli/setup-shfmt@v3
       - name: Deps
         run: task deps
       - name: Test
