@@ -27,6 +27,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/client"
 )
 
 // clientNetworkDNSUpdateCmd represents the clientNetworkDNSUpdate command.
@@ -39,7 +41,8 @@ var clientNetworkDNSUpdateCmd = &cobra.Command{
 		servers, _ := cmd.Flags().GetStringSlice("servers")
 		searchDomains, _ := cmd.Flags().GetStringSlice("search-domains")
 
-		resp, err := handler.PutNetworkDNS(context.TODO(), servers, searchDomains)
+		networkHandler := handler.(client.NetworkHandler)
+		resp, err := networkHandler.PutNetworkDNS(context.TODO(), servers, searchDomains)
 		if err != nil {
 			logFatal("failed to update network dns endpoint", err)
 		}

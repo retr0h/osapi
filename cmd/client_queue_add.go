@@ -29,6 +29,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/client"
 )
 
 // clientQueueAddCmd represents the clientQueueAdd command.
@@ -52,7 +54,8 @@ var clientQueueAddCmd = &cobra.Command{
 		}
 
 		encodedBody := base64.StdEncoding.EncodeToString([]byte(fileContents))
-		resp, err := handler.PostQueue(context.TODO(), encodedBody)
+		queueHandler := handler.(client.QueueHandler)
+		resp, err := queueHandler.PostQueue(context.TODO(), encodedBody)
 		if err != nil {
 			logFatal("failed to add queue endpoint", err)
 		}

@@ -27,6 +27,8 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/client"
 )
 
 // clientSystemStatusGetCmd represents the clientSystemStatusGet command.
@@ -36,7 +38,8 @@ var clientSystemStatusGetCmd = &cobra.Command{
 	Long: `Obtain the current system status.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.GetSystemStatus(context.TODO())
+		systemHandler := handler.(client.SystemHandler)
+		resp, err := systemHandler.GetSystemStatus(context.TODO())
 		if err != nil {
 			logFatal("failed to get system status endpoint", err)
 		}

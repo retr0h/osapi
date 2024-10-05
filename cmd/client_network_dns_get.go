@@ -26,6 +26,8 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/client"
 )
 
 // clientNetworkDNSGetCmd represents the clientNetworkDNSGet command.
@@ -35,7 +37,8 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 	Long: `Get the servers current DNS configuration.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		resp, err := handler.GetNetworkDNS(context.TODO())
+		networkHandler := handler.(client.NetworkHandler)
+		resp, err := networkHandler.GetNetworkDNS(context.TODO())
 		if err != nil {
 			logFatal("failed to get network dns endpoint", err)
 		}

@@ -29,6 +29,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/retr0h/osapi/internal/client"
 	"github.com/retr0h/osapi/internal/task"
 )
 
@@ -43,7 +44,8 @@ var clientQueueListCmd = &cobra.Command{
 		pageNumber, _ := cmd.Flags().GetInt("page")
 		offset := (pageNumber - 1) * pageSize
 
-		resp, err := handler.GetQueueAll(context.TODO(), pageSize, offset)
+		queueHandler := handler.(client.QueueHandler)
+		resp, err := queueHandler.GetQueueAll(context.TODO(), pageSize, offset)
 		if err != nil {
 			logFatal("failed to get queue endpoint", err)
 		}

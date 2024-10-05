@@ -28,6 +28,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/client"
 )
 
 // TODO(retr0h): move to cmd.Flags.GetInt() once simplified
@@ -109,7 +111,8 @@ func (m model) View() string {
 }
 
 func fetchQueueStatus() string {
-	resp, err := handler.GetQueueStatus(context.TODO())
+	queueHandler := handler.(client.QueueHandler)
+	resp, err := queueHandler.GetQueueStatus(context.TODO())
 	if err != nil {
 		logFatal("failed to get queue status endpoint", err)
 	}

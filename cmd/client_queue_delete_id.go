@@ -26,6 +26,8 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/osapi/internal/client"
 )
 
 // clientQueueDeleteIDCmd represents the clientQueueDeleteID command.
@@ -37,7 +39,8 @@ var clientQueueDeleteIDCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, _ []string) {
 		messageID, _ := cmd.Flags().GetString("message-id")
 
-		resp, err := handler.DeleteQueueByID(context.TODO(), messageID)
+		queueHandler := handler.(client.QueueHandler)
+		resp, err := queueHandler.DeleteQueueByID(context.TODO(), messageID)
 		if err != nil {
 			logFatal("failed to delete queue endpoint", err)
 		}

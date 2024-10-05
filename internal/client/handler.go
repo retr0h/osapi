@@ -26,9 +26,15 @@ import (
 	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// Manager defines an interface for interacting with various client
-// services and operations.
-type Manager interface {
+// CombinedManager is a superset of all smaller handler interfaces.
+type CombinedHandler interface {
+	NetworkHandler
+	QueueHandler
+	SystemHandler
+}
+
+// NetworkHandler defines an interface for interacting with Network client operations.
+type NetworkHandler interface {
 	// GetNetworkDNS get the network dns get API endpoint.
 	GetNetworkDNS(ctx context.Context) (*gen.GetNetworkDNSResponse, error)
 	// PutNetworkDNS put the network dns put API endpoint.
@@ -42,7 +48,10 @@ type Manager interface {
 		ctx context.Context,
 		address string,
 	) (*gen.PostNetworkPingResponse, error)
+}
 
+// QueueHandler defines an interface for interacting with Queue client operations.
+type QueueHandler interface {
 	// DeleteQueueByID deletes a single item through the queue API endpoint.
 	DeleteQueueByID(
 		ctx context.Context,
@@ -66,7 +75,10 @@ type Manager interface {
 	) (*gen.PostQueueResponse, error)
 	// GetQueueStatus gets queue status through the queue API endpoint.
 	GetQueueStatus(ctx context.Context) (*gen.GetQueueStatusResponse, error)
+}
 
+// SystemHandler defines an interface for interacting with System client operations.
+type SystemHandler interface {
 	// GetSystemStatus get the system status API endpoint.
 	GetSystemStatus(ctx context.Context) (*gen.GetSystemStatusResponse, error)
 	// GetSystemHostname get the system hostname API endpoint.

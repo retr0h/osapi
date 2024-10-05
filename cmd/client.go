@@ -29,7 +29,7 @@ import (
 	"github.com/retr0h/osapi/internal/client"
 )
 
-var handler client.Manager
+var handler client.CombinedHandler
 
 // clientCmd represents the client command.
 var clientCmd = &cobra.Command{
