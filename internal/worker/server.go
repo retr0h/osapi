@@ -76,7 +76,11 @@ func (w *Worker) start(ctx context.Context) {
 
 			err = w.qm.DeleteByID(ctx, string(m.ID))
 			if err != nil {
-				w.logger.Error("error deleting item", slog.Any("id", m.ID), slog.String("error", err.Error()))
+				w.logger.Error(
+					"error deleting item",
+					slog.Any("id", m.ID),
+					slog.String("error", err.Error()),
+				)
 				continue
 			}
 

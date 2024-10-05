@@ -24,10 +24,12 @@ import (
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
+	"github.com/retr0h/osapi/internal/config"
 )
 
 // Server implementation of the Server's API operations.
 type Server struct {
-	Echo   *echo.Echo
-	logger *slog.Logger
+	Echo      *echo.Echo
+	logger    *slog.Logger
+	appConfig config.Config
 }

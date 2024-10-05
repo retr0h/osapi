@@ -22,7 +22,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/spf13/cobra"
 
@@ -51,13 +50,14 @@ var serverStartCmd = &cobra.Command{
 
 		qm.SetupQueue()
 
-		server := api.New(appConfig, logger)
+		var server api.ServerManager = api.New(appConfig, logger)
 		handlers := server.CreateHandlers(appFs, qm)
 		server.RegisterHandlers(handlers)
 
-		server.Echo.Logger.Fatal(
-			server.Echo.Start(fmt.Sprintf(":%d", appConfig.Server.Port)),
-		)
+		err = server.Run()
+		if err != nil {
+			logFatal("failed to start server", err)
+		}
 	},
 }
 

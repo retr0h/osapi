@@ -18,10 +18,24 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package worker
+package api
+
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/spf13/afero"
+
+	"github.com/retr0h/osapi/internal/queue"
+)
 
 // ServerManager responsible for Server operations.
 type ServerManager interface {
-	// Run starts the worker and listens for signals to shut down gracefully.
-	Run()
+	// Run starts the Echo server with the configured port.
+	Run() error
+	// CreateHandlers initializes handlers and returns a slice of functions to register them.
+	CreateHandlers(
+		appFs afero.Fs,
+		queueManager queue.Manager,
+	) []func(e *echo.Echo)
+	// RegisterHandlers registers a list of handlers with the Echo instance.
+	RegisterHandlers(handlers []func(e *echo.Echo))
 }

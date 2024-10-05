@@ -21,6 +21,7 @@
 package api
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/labstack/echo/v4"
@@ -53,7 +54,14 @@ func New(
 	e.Use(middleware.Recover())
 
 	return &Server{
-		Echo:   e,
-		logger: logger,
+		Echo:      e,
+		logger:    logger,
+		appConfig: appConfig,
 	}
+}
+
+// Run starts the Echo server with the configured port.
+func (s *Server) Run() error {
+	s.logger.Info("Starting server...")
+	return s.Echo.Start(fmt.Sprintf(":%d", s.appConfig.Server.Port))
 }
