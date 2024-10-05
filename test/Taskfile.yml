@@ -1,0 +1,26 @@
+version: "3"
+
+tasks:
+  deps:
+    desc: Install dependencies
+    cmds:
+      - go get github.com/bats-core/bats-core@latest
+      - bash $(go env GOMODCACHE)/$(go list -m github.com/bats-core/bats-core | tr ' ' @)/install.sh ./vendor/bats
+      - go install mvdan.cc/sh/v3/cmd/shfmt@latest
+
+  fmt:
+    desc: Reformat files whose formatting differs from `shfmt`
+    cmds:
+      - find . -name '*.bats' -not -path './test/vendor/*' -exec shfmt -w {} +
+
+  fmt:check:
+    desc: Check files whose formatting differs from `shfmt`
+    cmds:
+      - find . -name '*.bats' -not -path './test/vendor/*' -exec shfmt -l -d {} +
+
+  test:
+    desc: Integration bats test packages
+    cmds:
+      - task: fmt:check
+      - rm -f database.db
+      - ./vendor/bats/bin/bats .

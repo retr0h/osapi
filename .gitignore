@@ -4,4 +4,5 @@ database.db*
 dist/
 result.xml
 .task/
+test/vendor/
 tmp/

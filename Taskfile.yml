@@ -10,6 +10,9 @@ includes:
   docs:
     taskfile: ./docs
     dir: ./docs
+  bats:
+    taskfile: ./test
+    dir: ./test
 
 tasks:
   deps:
@@ -50,9 +53,7 @@ tasks:
   unit:int:
     desc: Integration test packages
     cmds:
-      # TODO(retr0h): fix lame tests
-      - go run main.go client ping 2>&1 | grep pong
-      - go run main.go client system status
+      - task: bats:test
 
   test:
     desc: Test all
