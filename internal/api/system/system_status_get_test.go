@@ -33,8 +33,7 @@ type SystemStatusGetTestSuite struct {
 	suite.Suite
 }
 
-func (suite *SystemStatusGetTestSuite) SetupTest() {
-}
+func (suite *SystemStatusGetTestSuite) SetupTest() {}
 
 func (suite *SystemStatusGetTestSuite) TestFormatDurationOk() {
 	tests := []struct {

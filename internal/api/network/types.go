@@ -23,7 +23,7 @@ package network
 import (
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 	"github.com/retr0h/osapi/internal/provider/network/ping"
-	"github.com/retr0h/osapi/internal/queue"
+	"github.com/retr0h/osapi/internal/task/client"
 )
 
 // Network implementation of the System APIs operations.
@@ -32,6 +32,6 @@ type Network struct {
 	PingProvider ping.Provider
 	// Provider implements the methods to interact with various dns components.
 	DNSProvider dns.Provider
-	// QueueManager responsible for Queue operations.
-	QueueManager queue.Manager
+	// TaskClientManager responsible for managing task operations.
+	TaskClientManager client.Manager
 }

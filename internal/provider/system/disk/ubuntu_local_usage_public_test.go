@@ -40,7 +40,9 @@ func (suite *UbuntuLocalUsagePublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuLocalUsagePublicTestSuite) TearDownTest() {}
+func (suite *UbuntuLocalUsagePublicTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
 
 func (suite *UbuntuLocalUsagePublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {

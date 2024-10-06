@@ -1,21 +1,21 @@
 ---
 debug: false
 
-client:
-  url: http://0.0.0.0:8080
+api:
+  client:
+    url: http://0.0.0.0:8080
+  server:
+    port: 8080
+    security:
+      cors:
+        allow_origins:
+          - http://localhost:3001
+          - https://retr0h.github.io
 
-server:
-  port: 8080
-  security:
-    cors:
-      allow_origins:
-        - http://localhost:3001
-        - https://retr0h.github.io
-
-database:
-  driver_name: sqlite
-  data_source_name: file:database.db?_journal=WAL&_timeout=5000&_fk=true
-
-queue:
-  poll_interval:
-    seconds: 30
+task:
+  server:
+    host: localhost
+    port: 4222
+    trace: true
+    no_log: true
+    file_store_dir: .nats/jetstream/

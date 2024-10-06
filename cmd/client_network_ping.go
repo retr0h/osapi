@@ -66,9 +66,9 @@ var clientNetworkPingCmd = &cobra.Command{
 				safeString(resp.JSON200.AvgRtt),
 				safeString(resp.JSON200.MaxRtt),
 				safeString(resp.JSON200.MinRtt),
-				float64ToString(resp.JSON200.PacketLoss),
-				intToString(resp.JSON200.PacketsReceived),
-				intToString(resp.JSON200.PacketsSent),
+				float64ToSafeString(resp.JSON200.PacketLoss),
+				intToSafeString(resp.JSON200.PacketsReceived),
+				intToSafeString(resp.JSON200.PacketsSent),
 			})
 
 			sections := []section{
@@ -106,7 +106,7 @@ var clientNetworkPingCmd = &cobra.Command{
 			logger.Error(
 				"error in response",
 				slog.Int("code", resp.StatusCode()),
-				slog.String("error", errorMsg),
+				slog.String("response", errorMsg),
 			)
 		}
 	},
@@ -116,7 +116,7 @@ func init() {
 	clientNetworkCmd.AddCommand(clientNetworkPingCmd)
 
 	clientNetworkPingCmd.PersistentFlags().
-		StringP("address", "a", "", "The address to ping")
+		StringP("address", "", "", "The address to ping")
 
 	_ = clientNetworkPingCmd.MarkPersistentFlagRequired("address")
 }

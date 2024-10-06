@@ -40,7 +40,7 @@ import (
 	"github.com/retr0h/osapi/internal/config"
 	"github.com/retr0h/osapi/internal/provider/network/dns/mocks"
 	pingMocks "github.com/retr0h/osapi/internal/provider/network/ping/mocks"
-	queueMocks "github.com/retr0h/osapi/internal/queue/mocks"
+	taskClientMocks "github.com/retr0h/osapi/internal/task/client/mocks"
 )
 
 type NetworkDNSPutIntegrationTestSuite struct {
@@ -58,30 +58,35 @@ func (suite *NetworkDNSPutIntegrationTestSuite) SetupTest() {
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
+func (suite *NetworkDNSPutIntegrationTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
+
 func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 	tests := []struct {
-		name           string
-		path           string
-		body           string
-		setupMock      func() *mocks.MockProvider
-		setupQueueMock func() *queueMocks.MockManager
-		wantCode       int
-		wantBody       string
+		name                string
+		path                string
+		body                string
+		setupMock           func() *mocks.MockProvider
+		setuptaskClientMock func() *taskClientMocks.MockManager
+		wantCode            int
+		wantBody            string
 	}{
 		{
 			name: "when put Ok",
 			path: "/network/dns",
-			body: `{
-"servers": [ "1.1.1.1", "2001:4860:4860::8888"],
-"search_domains": [ "foo.bar"]
+			body: `
+{
+  "servers": [ "1.1.1.1", "2001:4860:4860::8888"],
+  "search_domains": [ "foo.bar"]
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
-				mock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -90,16 +95,17 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 		{
 			name: "when put Ok with missing body Servers",
 			path: "/network/dns",
-			body: `{
-"search_domains": [ "foo.bar"]
+			body: `
+{
+  "search_domains": [ "foo.bar"]
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
-				mock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -108,16 +114,17 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 		{
 			name: "when put Ok with missing body Search Domains",
 			path: "/network/dns",
-			body: `{
-"servers": [ "1.1.1.1", "2001:4860:4860::8888"]
+			body: `
+{
+  "servers": [ "1.1.1.1", "2001:4860:4860::8888"]
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
-				mock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -132,8 +139,8 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
-				mock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -143,16 +150,17 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 		{
 			name: "when body's Servers are not a proper ipv4 and ipv6 addresses",
 			path: "/network/dns",
-			body: `{
-"servers": [ "1.1", "2001:4860:4860:8888"]
+			body: `
+{
+  "servers": [ "1.1", "2001:4860:4860:8888"]
 }`, // Invalid ipv4 and ipv6 addresses
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
-				mock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -162,16 +170,17 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 		{
 			name: "when body's Search Domains are invalid",
 			path: "/network/dns",
-			body: `{
-"search_domains": [ "example..com", "-example.com", "example-.com", "excample_123.com"]
+			body: `
+{
+  "search_domains": [ "example..com", "-example.com", "example-.com", "excample_123.com"]
 }`, // Invalid RFC 1123 hostnames
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
-				mock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -187,8 +196,8 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
-				mock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -198,20 +207,21 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 		{
 			name: "when task.CreateAndMarshalChangeDNSAction errors",
 			path: "/network/dns",
-			body: `{
-"servers": [ "1.1.1.1", "2001:4860:4860::8888"],
-"search_domains": [ "foo.bar"]
+			body: `
+{
+  "servers": [ "1.1.1.1", "2001:4860:4860::8888"],
+  "search_domains": [ "foo.bar"]
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
 				network.CreateAndMarshalChangeDNSActionFunc = func(servers []string, searchDomains []string) ([]byte, error) {
 					return nil, assert.AnError
 				}
-				mock := queueMocks.NewDefaultMockManager(suite.ctrl)
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -219,25 +229,28 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
 		},
 		{
-			name: "when queue.Put errors",
+			name: "when task.PublishToStream errors",
 			path: "/network/dns",
-			body: `{
-"servers": [ "1.1.1.1", "2001:4860:4860::8888"],
-"search_domains": [ "foo.bar"]
+			body: `
+{
+  "servers": [ "1.1.1.1", "2001:4860:4860::8888"],
+  "search_domains": [ "foo.bar"]
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
 				return mock
 			},
-			setupQueueMock: func() *queueMocks.MockManager {
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
 				network.CreateAndMarshalChangeDNSActionFunc = func(servers []string, searchDomains []string) ([]byte, error) {
 					return []byte("mocked-dns-action"), nil
 				}
 
-				mock := queueMocks.NewPlainMockManager(suite.ctrl)
-				mock.EXPECT().Put(context.Background(), []byte("mocked-dns-action")).
-					Return(assert.AnError).AnyTimes()
+				mock := taskClientMocks.NewPlainMockManager(suite.ctrl)
+				mock.EXPECT().
+					PublishToStream(context.Background(), []byte("mocked-dns-action")).
+					Return(uint64(1), assert.AnError).
+					AnyTimes()
 
 				return mock
 			},
@@ -250,10 +263,10 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 		suite.Run(tc.name, func() {
 			pingMock := pingMocks.NewDefaultMockProvider(suite.ctrl)
 			dnsMock := tc.setupMock()
-			queueMock := tc.setupQueueMock()
+			taskClientMock := tc.setuptaskClientMock()
 
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock, queueMock))
+			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock, taskClientMock))
 
 			req := httptest.NewRequest(http.MethodPut, tc.path, bytes.NewBufferString(tc.body))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

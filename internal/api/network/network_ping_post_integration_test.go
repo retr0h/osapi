@@ -39,7 +39,7 @@ import (
 	"github.com/retr0h/osapi/internal/config"
 	dnsMocks "github.com/retr0h/osapi/internal/provider/network/dns/mocks"
 	"github.com/retr0h/osapi/internal/provider/network/ping/mocks"
-	queueMocks "github.com/retr0h/osapi/internal/queue/mocks"
+	taskClientMocks "github.com/retr0h/osapi/internal/task/client/mocks"
 )
 
 type NetworkPingPostIntegrationTestSuite struct {
@@ -67,6 +67,10 @@ func (suite *NetworkPingPostIntegrationTestSuite) SetupTest() {
   "packets_received":3,
   "packets_sent":3
 }`
+}
+
+func (suite *NetworkPingPostIntegrationTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
 }
 
 func (suite *NetworkPingPostIntegrationTestSuite) TestPostNetworkPing() {
@@ -170,10 +174,10 @@ func (suite *NetworkPingPostIntegrationTestSuite) TestPostNetworkPing() {
 		suite.Run(tc.name, func() {
 			pingMock := tc.setupMock()
 			dnsMock := dnsMocks.NewDefaultMockProvider(suite.ctrl)
-			queueMock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			taskClientMock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock, queueMock))
+			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock, taskClientMock))
 
 			req := httptest.NewRequest(http.MethodPost, tc.path, bytes.NewBufferString(tc.body))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

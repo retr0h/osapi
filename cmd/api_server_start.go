@@ -21,12 +21,10 @@
 package cmd
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 
 	"github.com/retr0h/osapi/internal/api"
-	"github.com/retr0h/osapi/internal/queue"
+	"github.com/retr0h/osapi/internal/task/client"
 )
 
 // apiServerStartCmd represents the apiServerStart command.
@@ -36,25 +34,18 @@ var apiServerStartCmd = &cobra.Command{
 	Long: `Start the API server.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		db, err := queue.OpenDB(appConfig)
+		var clientManager client.Manager = client.New(appConfig, logger)
+
+		err := clientManager.Connect()
 		if err != nil {
-			logFatal("failed to open database", err)
+			logFatal("failed to set up client", err)
 		}
 
-		var qm queue.Manager = queue.New(logger, appConfig, db)
+		var sm api.ServerManager = api.New(appConfig, logger)
+		handlers := sm.CreateHandlers(appFs, clientManager)
+		sm.RegisterHandlers(handlers)
 
-		err = qm.SetupSchema(context.Background())
-		if err != nil {
-			logFatal("failed to set up database schema", err)
-		}
-
-		qm.SetupQueue()
-
-		var server api.ServerManager = api.New(appConfig, logger)
-		handlers := server.CreateHandlers(appFs, qm)
-		server.RegisterHandlers(handlers)
-
-		err = server.Run()
+		err = sm.Start()
 		if err != nil {
 			logFatal("failed to start server", err)
 		}

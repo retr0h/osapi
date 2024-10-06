@@ -46,46 +46,6 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Queue",
-      link: {
-        type: "doc",
-        id: "gen/api/queue-api-queue-operations",
-      },
-      items: [
-        {
-          type: "doc",
-          id: "gen/api/add-an-item-to-the-queue",
-          label: "Add an item to the queue",
-          className: "api-method post",
-        },
-        {
-          type: "doc",
-          id: "gen/api/list-all-queue-items",
-          label: "List all queue items",
-          className: "api-method get",
-        },
-        {
-          type: "doc",
-          id: "gen/api/returns-the-total-number-of-items-in-the-queue",
-          label: "Returns the total number of items in the queue",
-          className: "api-method get",
-        },
-        {
-          type: "doc",
-          id: "gen/api/get-queue-id",
-          label: "Get a queue item by ID",
-          className: "api-method get",
-        },
-        {
-          type: "doc",
-          id: "gen/api/delete-queue-id",
-          label: "Delete a queue item by ID",
-          className: "api-method delete",
-        },
-      ],
-    },
-    {
-      type: "category",
       label: "System",
       link: {
         type: "doc",
@@ -113,6 +73,46 @@ const sidebar: SidebarsConfig = {
           id: "gen/api/retrieve-system-status",
           label: "Retrieve system status",
           className: "api-method get",
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Task",
+      link: {
+        type: "doc",
+        id: "gen/api/task-api-task-operations",
+      },
+      items: [
+        {
+          type: "doc",
+          id: "gen/api/add-an-task-item",
+          label: "Add an task item",
+          className: "api-method post",
+        },
+        {
+          type: "doc",
+          id: "gen/api/list-all-task-items",
+          label: "List all task items",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "gen/api/returns-the-total-number-of-task-items",
+          label: "Returns the total number of task items",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "gen/api/get-task-id",
+          label: "Get a task item by ID",
+          className: "api-method get",
+        },
+        {
+          type: "doc",
+          id: "gen/api/delete-task-id",
+          label: "Delete a task item by ID",
+          className: "api-method delete",
         },
       ],
     },

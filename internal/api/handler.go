@@ -24,25 +24,25 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/afero"
 
-	"github.com/retr0h/osapi/internal/api/queue"
-	queueGen "github.com/retr0h/osapi/internal/api/queue/gen"
-	queueImpl "github.com/retr0h/osapi/internal/queue"
+	"github.com/retr0h/osapi/internal/api/task"
+	taskGen "github.com/retr0h/osapi/internal/api/task/gen"
+	"github.com/retr0h/osapi/internal/task/client"
 )
 
 // CreateHandlers initializes handlers and returns a slice of functions to register them.
 func (s *Server) CreateHandlers(
 	appFs afero.Fs,
-	queueManager queueImpl.Manager,
+	clientManager client.Manager,
 ) []func(e *echo.Echo) {
 	handlers := []func(e *echo.Echo){
 		func(e *echo.Echo) {
-			queueHandler := queue.New(queueManager)
-			queueGen.RegisterHandlers(e, queueHandler)
+			taskHandler := task.New(clientManager)
+			taskGen.RegisterHandlers(e, taskHandler)
 		},
 	}
 
 	systemHandler := s.GetSystemHandler()
-	networkHandler := s.GetNetworkHandler(appFs, queueManager)
+	networkHandler := s.GetNetworkHandler(appFs, clientManager)
 
 	handlers = append(handlers, systemHandler...)
 	handlers = append(handlers, networkHandler...)

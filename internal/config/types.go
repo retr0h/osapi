@@ -23,12 +23,16 @@ package config
 // Config represents the root structure of the YAML configuration file.
 // This struct is used to unmarshal configuration data from Viper.
 type Config struct {
-	Client
-	Server
-	Queue
-	Database
+	API
+	Task
 	// Debug enable or disable debug option set from CLI.
 	Debug bool `mapstruture:"debug"`
+}
+
+// API configuration settings.
+type API struct {
+	Client
+	Server
 }
 
 // Client configuration settings.
@@ -57,27 +61,23 @@ type CORS struct {
 	AllowOrigins []string `mapstructure:"allow_origins,omitempty"`
 }
 
-// Queue configuration settings.
-type Queue struct {
-	PollInterval `mapstructure:"poll_interval,omitempty"`
+// Task configuration settings.
+type Task struct {
+	Server TaskServer `mapstructure:"server,omitempty"`
 }
 
-// PollInterval interval settings.
-type PollInterval struct {
-	// The interval at which the worker will poll for new tasks in the queue (in seconds).
-	Seconds int `mapstructure:"seconds"`
-}
-
-// Database configuration settings.
-type Database struct {
-	// DriverName specifies the name of the database driver to use, such as "sqlite".
-	DriverName string `mapstructure:"driver_name"`
-	// DataSourceName defines the data source name (DSN) for the database connection.
-	// The DSN format depends on the database driver used. For SQLite, this often
-	// includes the file path and query parameters like journal mode and timeout settings.
-	DataSourceName string `mapstructure:"data_source_name"`
-	// Maximum number of open connections to the database
-	MaxOpenConns int `mapstructure:"max_open_conns"`
-	// Maximum number of idle connections in the pool
-	MaxIdleConns int `mapstructure:"max_idle_conns"`
+// TaskServer configuration settings.
+type TaskServer struct {
+	// Host bind the server to localhost.
+	Host string `mapstructure:"host"`
+	// Port the server will bind to.
+	Port int `mapstructure:"port"`
+	// Trace enable detailed tracing for debugging.
+	Trace bool `mapstructure:"trace"`
+	// Debug enable debug-level logging.
+	Debug bool `mapstructure:"debug"`
+	// NoLog enable logging for server events.
+	NoLog bool `mapstructure:"no_log"`
+	// FileStoreDir JetStream data will be persisted here.
+	FileStoreDir string `mapstructure:"file_store_dir"`
 }
