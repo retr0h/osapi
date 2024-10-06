@@ -1,5 +1,5 @@
 ---
-debug: false
+debug: true
 
 client:
   url: http://0.0.0.0:8080
@@ -16,6 +16,13 @@ database:
   driver_name: sqlite
   data_source_name: file:database.db?_journal=WAL&_timeout=5000&_fk=true
 
-queue:
+task:
+  server:
+    host: localhost
+    port: 4222
+    trace: true
+    no_log: true
+    file_store_dir: ./nats/jetstream/
+
   poll_interval:
     seconds: 30

@@ -1,3 +1,7 @@
 # Worker
 
-CLI to manage the queue worker.
+CLI to manage the task worker.
+
+import DocCardList from '@theme/DocCardList';
+
+<DocCardList />

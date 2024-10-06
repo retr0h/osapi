@@ -33,23 +33,18 @@ var queueWorkerCmd = &cobra.Command{
 	Short: "The worker subcommand",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		logger.Info(
-			"queue configuration",
+			"queue worker configuration",
 			slog.Bool("debug", appConfig.Debug),
-			slog.String("database.driver_name", appConfig.Database.DriverName),
-			slog.String("database.data_source_name", appConfig.Database.DataSourceName),
-			slog.Int("database.max_open_conns", appConfig.Database.MaxOpenConns),
-			slog.Int("database.max_idle_conns", appConfig.Database.MaxIdleConns),
-			slog.Int("queue.poll_interval.seconds", appConfig.Queue.PollInterval.Seconds),
+			slog.Int("queue.poll_interval.seconds", appConfig.Task.PollInterval.Seconds),
 		)
 	},
 }
 
 func init() {
 	queueCmd.AddCommand(queueWorkerCmd)
-	registerDatabaseFlags(queueWorkerCmd)
 
 	queueWorkerCmd.PersistentFlags().
-		IntP("poll-interval-seconds", "p", 60, "The interval (in seconds) between polling operations")
+		IntP("poll-interval-seconds", "", 60, "The interval (in seconds) between polling operations")
 
 	_ = viper.BindPFlag("server.port", queueWorkerCmd.PersistentFlags().Lookup("port"))
 	_ = viper.BindPFlag(

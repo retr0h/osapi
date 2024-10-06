@@ -54,6 +54,7 @@ var clientNetworkDNSUpdateCmd = &cobra.Command{
 				"network dns put",
 				slog.String("search_domains", strings.Join(searchDomains, ",")),
 				slog.String("servers", strings.Join(servers, ",")),
+				slog.Int("code", resp.StatusCode()),
 				slog.String("response", string(resp.Body)),
 				slog.String("status", "ok"),
 			)
@@ -77,7 +78,7 @@ var clientNetworkDNSUpdateCmd = &cobra.Command{
 			logger.Error(
 				"error in response",
 				slog.Int("code", resp.StatusCode()),
-				slog.String("error", errorMsg),
+				slog.String("response", errorMsg),
 			)
 		}
 	},

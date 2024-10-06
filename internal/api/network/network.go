@@ -26,7 +26,7 @@ import (
 	"github.com/retr0h/osapi/internal/api/network/gen"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 	"github.com/retr0h/osapi/internal/provider/network/ping"
-	"github.com/retr0h/osapi/internal/queue"
+	"github.com/retr0h/osapi/internal/task/client"
 )
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
@@ -39,11 +39,11 @@ var (
 func New(
 	pp ping.Provider,
 	dnsp dns.Provider,
-	qm queue.Manager,
+	cm client.Manager,
 ) *Network {
 	return &Network{
-		PingProvider: pp,
-		DNSProvider:  dnsp,
-		QueueManager: qm,
+		PingProvider:      pp,
+		DNSProvider:       dnsp,
+		TaskClientManager: cm,
 	}
 }

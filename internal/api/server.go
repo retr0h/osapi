@@ -62,6 +62,6 @@ func New(
 
 // Run starts the Echo server with the configured port.
 func (s *Server) Run() error {
-	s.logger.Info("Starting server...")
+	s.logger.Info("starting server")
 	return s.Echo.Start(fmt.Sprintf(":%d", s.appConfig.Server.Port))
 }

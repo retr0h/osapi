@@ -21,12 +21,11 @@
 package cmd
 
 import (
-	"context"
+	// "context"
 
 	"github.com/spf13/cobra"
-
-	"github.com/retr0h/osapi/internal/queue"
-	"github.com/retr0h/osapi/internal/worker"
+	// "github.com/retr0h/osapi/internal/queue"
+	// "github.com/retr0h/osapi/internal/worker"
 )
 
 // queueWorkerStartCmd represents the queueWorkerStart command.
@@ -37,22 +36,10 @@ var queueWorkerStartCmd = &cobra.Command{
 It continuously checks the queue every N seconds and processes any tasks.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		db, err := queue.OpenDB(appConfig)
-		if err != nil {
-			logFatal("failed to open database", err)
-		}
+		// qm.SetupQueue()
 
-		var qm queue.Manager = queue.New(logger, appConfig, db)
-
-		err = qm.SetupSchema(context.Background())
-		if err != nil {
-			logFatal("failed to set up database schema", err)
-		}
-
-		qm.SetupQueue()
-
-		var workerServer worker.ServerManager = worker.New(appFs, appConfig, logger, qm)
-		workerServer.Run()
+		// var server worker.ServerManager = worker.New(appFs, appConfig, logger, qm)
+		// server.Run()
 	},
 }
 

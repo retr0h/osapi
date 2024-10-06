@@ -1,6 +1,6 @@
 # Start
 
-To start the service:
+To start the server:
 
 ```bash
 $ osapi server start

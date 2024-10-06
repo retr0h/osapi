@@ -20,115 +20,115 @@
 
 package worker
 
-import (
-	"context"
-	"log/slog"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
-	"time"
+// import (
+// 	"context"
+// 	"log/slog"
+// 	"os"
+// 	"os/signal"
+// 	"sync"
+// 	"syscall"
+// 	"time"
 
-	"github.com/spf13/afero"
+// 	"github.com/spf13/afero"
 
-	"github.com/retr0h/osapi/internal/config"
-	"github.com/retr0h/osapi/internal/queue"
-)
+// 	"github.com/retr0h/osapi/internal/config"
+// 	"github.com/retr0h/osapi/internal/queue"
+// )
 
-// New initialize and configure a new queue Worker service.
-func New(
-	appFs afero.Fs,
-	appConfig config.Config,
-	logger *slog.Logger,
-	qm queue.Manager,
-) *Worker {
-	return &Worker{
-		appFs:     appFs,
-		logger:    logger,
-		appConfig: appConfig,
-		qm:        qm,
-	}
-}
+// // New initialize and configure a new queue Worker service.
+// func New(
+// 	appFs afero.Fs,
+// 	appConfig config.Config,
+// 	logger *slog.Logger,
+// 	qm queue.Manager,
+// ) *Worker {
+// 	return &Worker{
+// 		appFs:     appFs,
+// 		logger:    logger,
+// 		appConfig: appConfig,
+// 		qm:        qm,
+// 	}
+// }
 
-// start runs the worker that checks the queue and processes tasks.
-func (w *Worker) start(ctx context.Context) {
-	checkInterval := time.Duration(w.appConfig.Queue.PollInterval.Seconds) * time.Second
+// // start runs the worker that checks the queue and processes tasks.
+// func (w *Worker) start(ctx context.Context) {
+// 	checkInterval := time.Duration(w.appConfig.Task.PollInterval.Seconds) * time.Second
 
-	for {
-		select {
-		case <-ctx.Done():
-			w.logger.Info("worker shutting down")
-			return
-		case <-time.After(checkInterval):
-			w.logger.Info("checking items in the queue")
+// 	for {
+// 		select {
+// 		case <-ctx.Done():
+// 			w.logger.Info("worker shutting down")
+// 			return
+// 		case <-time.After(checkInterval):
+// 			w.logger.Info("checking items in the queue")
 
-			m, err := w.qm.Get(ctx)
-			if err != nil {
-				w.logger.Error(
-					"error getting queue item",
-					slog.String("error", err.Error()),
-				)
-				continue
-			}
+// 			m, err := w.qm.Get(ctx)
+// 			if err != nil {
+// 				w.logger.Error(
+// 					"error getting queue item",
+// 					slog.String("error", err.Error()),
+// 				)
+// 				continue
+// 			}
 
-			if m == nil {
-				w.logger.Info("no queue items found")
-				continue
-			}
+// 			if m == nil {
+// 				w.logger.Info("no queue items found")
+// 				continue
+// 			}
 
-			w.logger.Info(
-				"processing item",
-				slog.Any("id", m.ID),
-			)
+// 			w.logger.Info(
+// 				"processing item",
+// 				slog.Any("id", m.ID),
+// 			)
 
-			err = w.reconcile(ctx, m.Body)
-			if err != nil {
-				w.logger.Error(
-					"error reconciling item",
-					slog.Any("id", m.ID),
-					slog.String("error", err.Error()),
-				)
-				continue
-			}
+// 			err = w.reconcile(ctx, m.Body)
+// 			if err != nil {
+// 				w.logger.Error(
+// 					"error reconciling item",
+// 					slog.Any("id", m.ID),
+// 					slog.String("error", err.Error()),
+// 				)
+// 				continue
+// 			}
 
-			err = w.qm.DeleteByID(ctx, string(m.ID))
-			if err != nil {
-				w.logger.Error(
-					"error deleting item",
-					slog.Any("id", m.ID),
-					slog.String("error", err.Error()),
-				)
-				continue
-			}
+// 			err = w.qm.DeleteByID(ctx, string(m.ID))
+// 			if err != nil {
+// 				w.logger.Error(
+// 					"error deleting item",
+// 					slog.Any("id", m.ID),
+// 					slog.String("error", err.Error()),
+// 				)
+// 				continue
+// 			}
 
-			w.logger.Info(
-				"item processed successfully",
-				slog.Any("id", m.ID),
-			)
-		}
-	}
-}
+// 			w.logger.Info(
+// 				"item processed successfully",
+// 				slog.Any("id", m.ID),
+// 			)
+// 		}
+// 	}
+// }
 
-// Run starts the worker and listens for signals to shut down gracefully.
-func (w *Worker) Run() {
-	ctx, cancel := context.WithCancel(context.Background())
-	var wg sync.WaitGroup
+// // Run starts the worker and listens for signals to shut down gracefully.
+// func (w *Worker) Run() {
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	var wg sync.WaitGroup
 
-	// Handle OS signals
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+// 	// Handle OS signals
+// 	signalChan := make(chan os.Signal, 1)
+// 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		w.start(ctx)
-	}()
+// 	wg.Add(1)
+// 	go func() {
+// 		defer wg.Done()
+// 		w.start(ctx)
+// 	}()
 
-	go func() {
-		<-signalChan
-		w.logger.Info("received interrupt signal, shutting down gracefully")
-		cancel()
-	}()
+// 	go func() {
+// 		<-signalChan
+// 		w.logger.Info("received interrupt signal, shutting down gracefully")
+// 		cancel()
+// 	}()
 
-	wg.Wait()
-}
+// 	wg.Wait()
+// }

@@ -24,7 +24,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/afero"
 
-	"github.com/retr0h/osapi/internal/queue"
+	"github.com/retr0h/osapi/internal/task/client"
 )
 
 // ServerManager responsible for Server operations.
@@ -34,7 +34,7 @@ type ServerManager interface {
 	// CreateHandlers initializes handlers and returns a slice of functions to register them.
 	CreateHandlers(
 		appFs afero.Fs,
-		queueManager queue.Manager,
+		clientManager client.Manager,
 	) []func(e *echo.Echo)
 	// RegisterHandlers registers a list of handlers with the Echo instance.
 	RegisterHandlers(handlers []func(e *echo.Echo))

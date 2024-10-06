@@ -25,7 +25,7 @@ package config
 type Config struct {
 	Client
 	Server
-	Queue
+	Task
 	Database
 	// Debug enable or disable debug option set from CLI.
 	Debug bool `mapstruture:"debug"`
@@ -57,14 +57,31 @@ type CORS struct {
 	AllowOrigins []string `mapstructure:"allow_origins,omitempty"`
 }
 
-// Queue configuration settings.
-type Queue struct {
+// Task configuration settings.
+type Task struct {
+	Server       TaskServer `mapstructure:"server,omitempty"`
 	PollInterval `mapstructure:"poll_interval,omitempty"`
+}
+
+// TaskServer configuration settings.
+type TaskServer struct {
+	// Host bind the server to localhost.
+	Host string `mapstructure:"host"`
+	// Port the server will bind to.
+	Port int `mapstructure:"port"`
+	// Trace enable detailed tracing for debugging.
+	Trace bool `mapstructure:"trace"`
+	// Debug enable debug-level logging.
+	Debug bool `mapstructure:"debug"`
+	// NoLog enable logging for server events.
+	NoLog bool `mapstructure:"no_log"`
+	// FileStoreDir JetStream data will be persisted here.
+	FileStoreDir string `mapstructure:"file_store_dir"`
 }
 
 // PollInterval interval settings.
 type PollInterval struct {
-	// The interval at which the worker will poll for new tasks in the queue (in seconds).
+	// The interval at which the worker will poll for new tasks (in seconds).
 	Seconds int `mapstructure:"seconds"`
 }
 

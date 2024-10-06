@@ -61,7 +61,7 @@ func init() {
 	rootCmd.AddCommand(clientCmd)
 
 	clientCmd.PersistentFlags().
-		StringP("url", "u", "http://0.0.0.0:8080", "URL the client will connect to")
+		StringP("url", "", "http://0.0.0.0:8080", "URL the client will connect to")
 
 	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
 }
