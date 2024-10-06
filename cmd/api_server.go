@@ -21,46 +21,41 @@
 package cmd
 
 import (
-	"context"
+	"log/slog"
 
 	"github.com/spf13/cobra"
-
-	"github.com/retr0h/osapi/internal/api"
-	"github.com/retr0h/osapi/internal/queue"
+	"github.com/spf13/viper"
 )
 
-// serverStartCmd represents the serverStart command.
-var serverStartCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Start the server",
-	Long: `Start the API server.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		db, err := queue.OpenDB(appConfig)
-		if err != nil {
-			logFatal("failed to open database", err)
-		}
+// apiServerCmd represents the apiServer command.
+var apiServerCmd = &cobra.Command{
+	Use:   "server",
+	Short: "The server subcommand",
+	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		validateDistribution()
 
-		var qm queue.Manager = queue.New(logger, appConfig, db)
-
-		err = qm.SetupSchema(context.Background())
-		if err != nil {
-			logFatal("failed to set up database schema", err)
-		}
-
-		qm.SetupQueue()
-
-		var server api.ServerManager = api.New(appConfig, logger)
-		handlers := server.CreateHandlers(appFs, qm)
-		server.RegisterHandlers(handlers)
-
-		err = server.Run()
-		if err != nil {
-			logFatal("failed to start server", err)
-		}
+		logger.Info(
+			"server configuration",
+			slog.Bool("debug", appConfig.Debug),
+			slog.Int("server.port", appConfig.Server.Port),
+			slog.Any(
+				"server.security.cors.allow_origins",
+				appConfig.Server.Security.CORS.AllowOrigins,
+			),
+			slog.String("database.driver_name", appConfig.Database.DriverName),
+			slog.String("database.data_source_name", appConfig.Database.DataSourceName),
+			slog.Int("database.max_open_conns", appConfig.Database.MaxOpenConns),
+			slog.Int("database.max_idle_conns", appConfig.Database.MaxIdleConns),
+		)
 	},
 }
 
 func init() {
-	serverCmd.AddCommand(serverStartCmd)
+	apiCmd.AddCommand(apiServerCmd)
+	registerDatabaseFlags(apiServerCmd)
+
+	apiServerCmd.PersistentFlags().
+		IntP("port", "p", 8080, "Port the server will bind to")
+
+	_ = viper.BindPFlag("server.port", apiServerCmd.PersistentFlags().Lookup("port"))
 }

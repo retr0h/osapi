@@ -23,7 +23,7 @@ BATS_TEST_TIMEOUT=5
 
 # Function to start the server
 start_server() {
-  run go run ${PROGRAM} server start &
+  run go run ${PROGRAM} api server start &
   sleep 2
 }
 
