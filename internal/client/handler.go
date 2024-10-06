@@ -26,10 +26,10 @@ import (
 	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// CombinedManager is a superset of all smaller handler interfaces.
+// CombinedHandler is a superset of all smaller handler interfaces.
 type CombinedHandler interface {
 	NetworkHandler
-	QueueHandler
+	TaskHandler
 	SystemHandler
 }
 
@@ -50,31 +50,29 @@ type NetworkHandler interface {
 	) (*gen.PostNetworkPingResponse, error)
 }
 
-// QueueHandler defines an interface for interacting with Queue client operations.
-type QueueHandler interface {
-	// DeleteQueueByID deletes a single item through the queue API endpoint.
-	DeleteQueueByID(
+// TaskHandler defines an interface for interacting with Task client operations.
+type TaskHandler interface {
+	// DeleteTaskByID deletes a single item through the task API endpoint.
+	DeleteTaskByID(
 		ctx context.Context,
-		messageID string,
-	) (*gen.DeleteQueueIDResponse, error)
-	// GetQueueID fetches a single item through the queue API endpoint.
-	GetQueueByID(
+		messageID uint64,
+	) (*gen.DeleteTaskIDResponse, error)
+	// GetTaskID fetches a single item through the task API endpoint.
+	GetTaskByID(
 		ctx context.Context,
-		messageID string,
-	) (*gen.GetQueueIDResponse, error)
-	// GetQueueAll gets all items through the queue API endpoint.
-	GetQueueAll(
+		messageID uint64,
+	) (*gen.GetTaskIDResponse, error)
+	// GetTaskList get all items through the task API endpoint.
+	GetTaskList(
 		ctx context.Context,
-		limit int,
-		offset int,
-	) (*gen.GetQueueResponse, error)
-	// PostQueue inserts a single item into the queue API endpoint.
-	PostQueue(
+	) (*gen.GetTaskResponse, error)
+	// PostTask inserts a single item into the task API endpoint.
+	PostTask(
 		ctx context.Context,
 		messageBody string,
-	) (*gen.PostQueueResponse, error)
-	// GetQueueStatus gets queue status through the queue API endpoint.
-	GetQueueStatus(ctx context.Context) (*gen.GetQueueStatusResponse, error)
+	) (*gen.PostTaskResponse, error)
+	// GetTaskStatus gets status through the task API endpoint.
+	GetTaskStatus(ctx context.Context) (*gen.GetTaskStatusResponse, error)
 }
 
 // SystemHandler defines an interface for interacting with System client operations.

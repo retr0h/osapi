@@ -35,27 +35,22 @@ var apiServerCmd = &cobra.Command{
 		validateDistribution()
 
 		logger.Info(
-			"server configuration",
+			"api server configuration",
 			slog.Bool("debug", appConfig.Debug),
-			slog.Int("server.port", appConfig.Server.Port),
+			slog.Int("api.server.port", appConfig.API.Server.Port),
 			slog.Any(
-				"server.security.cors.allow_origins",
-				appConfig.Server.Security.CORS.AllowOrigins,
+				"api.server.security.cors.allow_origins",
+				appConfig.API.Server.Security.CORS.AllowOrigins,
 			),
-			slog.String("database.driver_name", appConfig.Database.DriverName),
-			slog.String("database.data_source_name", appConfig.Database.DataSourceName),
-			slog.Int("database.max_open_conns", appConfig.Database.MaxOpenConns),
-			slog.Int("database.max_idle_conns", appConfig.Database.MaxIdleConns),
 		)
 	},
 }
 
 func init() {
 	apiCmd.AddCommand(apiServerCmd)
-	registerDatabaseFlags(apiServerCmd)
 
 	apiServerCmd.PersistentFlags().
 		IntP("port", "p", 8080, "Port the server will bind to")
 
-	_ = viper.BindPFlag("server.port", apiServerCmd.PersistentFlags().Lookup("port"))
+	_ = viper.BindPFlag("api.server.port", apiServerCmd.PersistentFlags().Lookup("port"))
 }

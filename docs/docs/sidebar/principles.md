@@ -19,9 +19,9 @@ sidebar_position: 5
    Design the system with pluggability in mind, allowing for easy extension and
    customization through well-defined interfaces and modules.
 
-4. **Task Queue for Privileged Operations**
+4. **Task Worker for Privileged Operations**
 
-   Implement privileged system changes asynchronously through a task queue.
+   Implement privileged system changes asynchronously through a task worker.
 
 5. **RESTful API Design**
 

@@ -40,7 +40,9 @@ func (suite *UbuntuAvgPublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuAvgPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuAvgPublicTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
 
 func (suite *UbuntuAvgPublicTestSuite) TestGetAverageStats() {
 	tests := []struct {

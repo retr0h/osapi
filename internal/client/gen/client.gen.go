@@ -113,41 +113,6 @@ type PingResponse struct {
 	PacketsSent *int `json:"packets_sent,omitempty"`
 }
 
-// QueueItemResponse defines model for QueueItemResponse.
-type QueueItemResponse struct {
-	// Body Base64-encoded representation of the body of the queue item.
-	Body *[]byte `json:"body,omitempty"`
-
-	// Created Creation timestamp of the queue item.
-	Created *time.Time `json:"created,omitempty"`
-
-	// Id Unique identifier of the queue item.
-	Id *string `json:"id,omitempty"`
-
-	// Received Number of times the queue item has been received.
-	Received *int `json:"received,omitempty"`
-
-	// Timeout Timeout timestamp for the queue item.
-	Timeout *time.Time `json:"timeout,omitempty"`
-
-	// Updated Last updated timestamp of the queue item.
-	Updated *time.Time `json:"updated,omitempty"`
-}
-
-// QueueResponse defines model for QueueResponse.
-type QueueResponse struct {
-	Items *[]QueueItemResponse `json:"items,omitempty"`
-
-	// TotalItems The total number of queue items.
-	TotalItems *int `json:"total_items,omitempty"`
-}
-
-// QueueStatusResponse defines model for QueueStatusResponse.
-type QueueStatusResponse struct {
-	// TotalItems The total number of items in the queue.
-	TotalItems *int `json:"total_items,omitempty"`
-}
-
 // SystemStatusResponse defines model for SystemStatusResponse.
 type SystemStatusResponse struct {
 	// Disks List of local disk usage information.
@@ -169,20 +134,40 @@ type SystemStatusResponse struct {
 	Uptime string `json:"uptime"`
 }
 
-// NetworkErrorResponse defines model for network.ErrorResponse.
-type NetworkErrorResponse struct {
-	// Code The error code.
-	Code int `json:"code"`
-
-	// Details Additional details about the error, specifying which component failed.
-	Details *string `json:"details,omitempty"`
-
-	// Error A description of the error that occurred.
-	Error string `json:"error"`
+// TaskItemIdResponse defines model for TaskItemIdResponse.
+type TaskItemIdResponse struct {
+	// Id Unique identifier of the task item.
+	Id *uint64 `json:"id,omitempty"`
 }
 
-// QueueErrorResponse defines model for queue.ErrorResponse.
-type QueueErrorResponse struct {
+// TaskItemResponse defines model for TaskItemResponse.
+type TaskItemResponse struct {
+	// Body Base64-encoded representation of the body of the task item.
+	Body *[]byte `json:"body,omitempty"`
+
+	// Created Creation timestamp of the task item.
+	Created *time.Time `json:"created,omitempty"`
+
+	// Id Unique identifier of the task item.
+	Id *uint64 `json:"id,omitempty"`
+}
+
+// TaskResponse defines model for TaskResponse.
+type TaskResponse struct {
+	Items *[]TaskItemResponse `json:"items,omitempty"`
+
+	// TotalItems The total number of task items.
+	TotalItems *int `json:"total_items,omitempty"`
+}
+
+// TaskStatusResponse defines model for TaskStatusResponse.
+type TaskStatusResponse struct {
+	// TotalItems The total number of task items.
+	TotalItems *int `json:"total_items,omitempty"`
+}
+
+// NetworkErrorResponse defines model for network.ErrorResponse.
+type NetworkErrorResponse struct {
 	// Code The error code.
 	Code int `json:"code"`
 
@@ -205,21 +190,27 @@ type SystemErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// TaskErrorResponse defines model for task.ErrorResponse.
+type TaskErrorResponse struct {
+	// Code The error code.
+	Code int `json:"code"`
+
+	// Details Additional details about the error, specifying which component failed.
+	Details *string `json:"details,omitempty"`
+
+	// Error A description of the error that occurred.
+	Error string `json:"error"`
+}
+
 // PostNetworkPingJSONBody defines parameters for PostNetworkPing.
 type PostNetworkPingJSONBody struct {
 	// Address The IP address of the server to ping. Supports both IPv4 and IPv6.
 	Address string `json:"address" validate:"required,ip"`
 }
 
-// GetQueueParams defines parameters for GetQueue.
-type GetQueueParams struct {
-	Limit  *int `form:"limit,omitempty" json:"limit,omitempty"`
-	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
-}
-
-// PostQueueJSONBody defines parameters for PostQueue.
-type PostQueueJSONBody struct {
-	// Body Base64-encoded representation of the body of the queue item.
+// PostTaskJSONBody defines parameters for PostTask.
+type PostTaskJSONBody struct {
+	// Body Base64-encoded representation of the body of the task item.
 	Body []byte `json:"body"`
 }
 
@@ -229,8 +220,8 @@ type PutNetworkDNSJSONRequestBody = DNSConfigUpdateResponse
 // PostNetworkPingJSONRequestBody defines body for PostNetworkPing for application/json ContentType.
 type PostNetworkPingJSONRequestBody PostNetworkPingJSONBody
 
-// PostQueueJSONRequestBody defines body for PostQueue for application/json ContentType.
-type PostQueueJSONRequestBody PostQueueJSONBody
+// PostTaskJSONRequestBody defines body for PostTask for application/json ContentType.
+type PostTaskJSONRequestBody PostTaskJSONBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -318,28 +309,28 @@ type ClientInterface interface {
 
 	PostNetworkPing(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetQueue request
-	GetQueue(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PostQueueWithBody request with any body
-	PostQueueWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PostQueue(ctx context.Context, body PostQueueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetQueueStatus request
-	GetQueueStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteQueueID request
-	DeleteQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetQueueID request
-	GetQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetSystemHostname request
 	GetSystemHostname(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSystemStatus request
 	GetSystemStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTask request
+	GetTask(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostTaskWithBody request with any body
+	PostTaskWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostTask(ctx context.Context, body PostTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTaskStatus request
+	GetTaskStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteTaskID request
+	DeleteTaskID(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTaskID request
+	GetTaskID(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetNetworkDNS(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -402,78 +393,6 @@ func (c *Client) PostNetworkPing(ctx context.Context, body PostNetworkPingJSONRe
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetQueue(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetQueueRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostQueueWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostQueueRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostQueue(ctx context.Context, body PostQueueJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostQueueRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetQueueStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetQueueStatusRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteQueueIDRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetQueueID(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetQueueIDRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) GetSystemHostname(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSystemHostnameRequest(c.Server)
 	if err != nil {
@@ -488,6 +407,78 @@ func (c *Client) GetSystemHostname(ctx context.Context, reqEditors ...RequestEdi
 
 func (c *Client) GetSystemStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSystemStatusRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTask(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTaskRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostTaskWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTaskRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostTask(ctx context.Context, body PostTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTaskRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTaskStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTaskStatusRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteTaskID(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteTaskIDRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTaskID(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTaskIDRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -605,206 +596,6 @@ func NewPostNetworkPingRequestWithBody(server string, contentType string, body i
 	return req, nil
 }
 
-// NewGetQueueRequest generates requests for GetQueue
-func NewGetQueueRequest(server string, params *GetQueueParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/queue")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Limit != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Offset != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "offset", runtime.ParamLocationQuery, *params.Offset); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostQueueRequest calls the generic PostQueue builder with application/json body
-func NewPostQueueRequest(server string, body PostQueueJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostQueueRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewPostQueueRequestWithBody generates requests for PostQueue with any type of body
-func NewPostQueueRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/queue")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetQueueStatusRequest generates requests for GetQueueStatus
-func NewGetQueueStatusRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/queue/status")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewDeleteQueueIDRequest generates requests for DeleteQueueID
-func NewDeleteQueueIDRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/queue/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetQueueIDRequest generates requests for GetQueueID
-func NewGetQueueIDRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/queue/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetSystemHostnameRequest generates requests for GetSystemHostname
 func NewGetSystemHostnameRequest(server string) (*http.Request, error) {
 	var err error
@@ -842,6 +633,168 @@ func NewGetSystemStatusRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/system/status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetTaskRequest generates requests for GetTask
+func NewGetTaskRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/task")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostTaskRequest calls the generic PostTask builder with application/json body
+func NewPostTaskRequest(server string, body PostTaskJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostTaskRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostTaskRequestWithBody generates requests for PostTask with any type of body
+func NewPostTaskRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/task")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetTaskStatusRequest generates requests for GetTaskStatus
+func NewGetTaskStatusRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/task/status")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteTaskIDRequest generates requests for DeleteTaskID
+func NewDeleteTaskIDRequest(server string, id uint64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/task/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetTaskIDRequest generates requests for GetTaskID
+func NewGetTaskIDRequest(server string, id uint64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/task/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -915,28 +868,28 @@ type ClientWithResponsesInterface interface {
 
 	PostNetworkPingWithResponse(ctx context.Context, body PostNetworkPingJSONRequestBody, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error)
 
-	// GetQueueWithResponse request
-	GetQueueWithResponse(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*GetQueueResponse, error)
-
-	// PostQueueWithBodyWithResponse request with any body
-	PostQueueWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostQueueResponse, error)
-
-	PostQueueWithResponse(ctx context.Context, body PostQueueJSONRequestBody, reqEditors ...RequestEditorFn) (*PostQueueResponse, error)
-
-	// GetQueueStatusWithResponse request
-	GetQueueStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueStatusResponse, error)
-
-	// DeleteQueueIDWithResponse request
-	DeleteQueueIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteQueueIDResponse, error)
-
-	// GetQueueIDWithResponse request
-	GetQueueIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIDResponse, error)
-
 	// GetSystemHostnameWithResponse request
 	GetSystemHostnameWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemHostnameResponse, error)
 
 	// GetSystemStatusWithResponse request
 	GetSystemStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemStatusResponse, error)
+
+	// GetTaskWithResponse request
+	GetTaskWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTaskResponse, error)
+
+	// PostTaskWithBodyWithResponse request with any body
+	PostTaskWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTaskResponse, error)
+
+	PostTaskWithResponse(ctx context.Context, body PostTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTaskResponse, error)
+
+	// GetTaskStatusWithResponse request
+	GetTaskStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTaskStatusResponse, error)
+
+	// DeleteTaskIDWithResponse request
+	DeleteTaskIDWithResponse(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*DeleteTaskIDResponse, error)
+
+	// GetTaskIDWithResponse request
+	GetTaskIDWithResponse(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*GetTaskIDResponse, error)
 }
 
 type GetNetworkDNSResponse struct {
@@ -1009,123 +962,6 @@ func (r PostNetworkPingResponse) StatusCode() int {
 	return 0
 }
 
-type GetQueueResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *QueueResponse
-	JSON500      *QueueErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetQueueResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetQueueResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostQueueResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *QueueItemResponse
-	JSON400      *QueueErrorResponse
-	JSON500      *QueueErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PostQueueResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostQueueResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetQueueStatusResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *QueueStatusResponse
-	JSON500      *QueueErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetQueueStatusResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetQueueStatusResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteQueueIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON404      *QueueErrorResponse
-	JSON500      *QueueErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteQueueIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteQueueIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetQueueIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *QueueItemResponse
-	JSON404      *QueueErrorResponse
-	JSON500      *QueueErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetQueueIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetQueueIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetSystemHostnameResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1166,6 +1002,123 @@ func (r GetSystemStatusResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetSystemStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTaskResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TaskResponse
+	JSON500      *TaskErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTaskResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTaskResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostTaskResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *TaskItemIdResponse
+	JSON400      *TaskErrorResponse
+	JSON500      *TaskErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostTaskResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostTaskResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTaskStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TaskStatusResponse
+	JSON500      *TaskErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTaskStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTaskStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteTaskIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON404      *TaskErrorResponse
+	JSON500      *TaskErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteTaskIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteTaskIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTaskIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TaskItemResponse
+	JSON404      *TaskErrorResponse
+	JSON500      *TaskErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTaskIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTaskIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1215,59 +1168,6 @@ func (c *ClientWithResponses) PostNetworkPingWithResponse(ctx context.Context, b
 	return ParsePostNetworkPingResponse(rsp)
 }
 
-// GetQueueWithResponse request returning *GetQueueResponse
-func (c *ClientWithResponses) GetQueueWithResponse(ctx context.Context, params *GetQueueParams, reqEditors ...RequestEditorFn) (*GetQueueResponse, error) {
-	rsp, err := c.GetQueue(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetQueueResponse(rsp)
-}
-
-// PostQueueWithBodyWithResponse request with arbitrary body returning *PostQueueResponse
-func (c *ClientWithResponses) PostQueueWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostQueueResponse, error) {
-	rsp, err := c.PostQueueWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostQueueResponse(rsp)
-}
-
-func (c *ClientWithResponses) PostQueueWithResponse(ctx context.Context, body PostQueueJSONRequestBody, reqEditors ...RequestEditorFn) (*PostQueueResponse, error) {
-	rsp, err := c.PostQueue(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostQueueResponse(rsp)
-}
-
-// GetQueueStatusWithResponse request returning *GetQueueStatusResponse
-func (c *ClientWithResponses) GetQueueStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetQueueStatusResponse, error) {
-	rsp, err := c.GetQueueStatus(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetQueueStatusResponse(rsp)
-}
-
-// DeleteQueueIDWithResponse request returning *DeleteQueueIDResponse
-func (c *ClientWithResponses) DeleteQueueIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*DeleteQueueIDResponse, error) {
-	rsp, err := c.DeleteQueueID(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteQueueIDResponse(rsp)
-}
-
-// GetQueueIDWithResponse request returning *GetQueueIDResponse
-func (c *ClientWithResponses) GetQueueIDWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetQueueIDResponse, error) {
-	rsp, err := c.GetQueueID(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetQueueIDResponse(rsp)
-}
-
 // GetSystemHostnameWithResponse request returning *GetSystemHostnameResponse
 func (c *ClientWithResponses) GetSystemHostnameWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSystemHostnameResponse, error) {
 	rsp, err := c.GetSystemHostname(ctx, reqEditors...)
@@ -1284,6 +1184,59 @@ func (c *ClientWithResponses) GetSystemStatusWithResponse(ctx context.Context, r
 		return nil, err
 	}
 	return ParseGetSystemStatusResponse(rsp)
+}
+
+// GetTaskWithResponse request returning *GetTaskResponse
+func (c *ClientWithResponses) GetTaskWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTaskResponse, error) {
+	rsp, err := c.GetTask(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTaskResponse(rsp)
+}
+
+// PostTaskWithBodyWithResponse request with arbitrary body returning *PostTaskResponse
+func (c *ClientWithResponses) PostTaskWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTaskResponse, error) {
+	rsp, err := c.PostTaskWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostTaskResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostTaskWithResponse(ctx context.Context, body PostTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTaskResponse, error) {
+	rsp, err := c.PostTask(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostTaskResponse(rsp)
+}
+
+// GetTaskStatusWithResponse request returning *GetTaskStatusResponse
+func (c *ClientWithResponses) GetTaskStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetTaskStatusResponse, error) {
+	rsp, err := c.GetTaskStatus(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTaskStatusResponse(rsp)
+}
+
+// DeleteTaskIDWithResponse request returning *DeleteTaskIDResponse
+func (c *ClientWithResponses) DeleteTaskIDWithResponse(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*DeleteTaskIDResponse, error) {
+	rsp, err := c.DeleteTaskID(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteTaskIDResponse(rsp)
+}
+
+// GetTaskIDWithResponse request returning *GetTaskIDResponse
+func (c *ClientWithResponses) GetTaskIDWithResponse(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*GetTaskIDResponse, error) {
+	rsp, err := c.GetTaskID(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTaskIDResponse(rsp)
 }
 
 // ParseGetNetworkDNSResponse parses an HTTP response from a GetNetworkDNSWithResponse call
@@ -1392,185 +1345,6 @@ func ParsePostNetworkPingResponse(rsp *http.Response) (*PostNetworkPingResponse,
 	return response, nil
 }
 
-// ParseGetQueueResponse parses an HTTP response from a GetQueueWithResponse call
-func ParseGetQueueResponse(rsp *http.Response) (*GetQueueResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetQueueResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest QueueResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest QueueErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostQueueResponse parses an HTTP response from a PostQueueWithResponse call
-func ParsePostQueueResponse(rsp *http.Response) (*PostQueueResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostQueueResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest QueueItemResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest QueueErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest QueueErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetQueueStatusResponse parses an HTTP response from a GetQueueStatusWithResponse call
-func ParseGetQueueStatusResponse(rsp *http.Response) (*GetQueueStatusResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetQueueStatusResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest QueueStatusResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest QueueErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeleteQueueIDResponse parses an HTTP response from a DeleteQueueIDWithResponse call
-func ParseDeleteQueueIDResponse(rsp *http.Response) (*DeleteQueueIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteQueueIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest QueueErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest QueueErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetQueueIDResponse parses an HTTP response from a GetQueueIDWithResponse call
-func ParseGetQueueIDResponse(rsp *http.Response) (*GetQueueIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetQueueIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest QueueItemResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest QueueErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest QueueErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetSystemHostnameResponse parses an HTTP response from a GetSystemHostnameWithResponse call
 func ParseGetSystemHostnameResponse(rsp *http.Response) (*GetSystemHostnameResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -1627,6 +1401,185 @@ func ParseGetSystemStatusResponse(rsp *http.Response) (*GetSystemStatusResponse,
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest SystemErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTaskResponse parses an HTTP response from a GetTaskWithResponse call
+func ParseGetTaskResponse(rsp *http.Response) (*GetTaskResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTaskResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TaskResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest TaskErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostTaskResponse parses an HTTP response from a PostTaskWithResponse call
+func ParsePostTaskResponse(rsp *http.Response) (*PostTaskResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostTaskResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest TaskItemIdResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest TaskErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest TaskErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTaskStatusResponse parses an HTTP response from a GetTaskStatusWithResponse call
+func ParseGetTaskStatusResponse(rsp *http.Response) (*GetTaskStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTaskStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TaskStatusResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest TaskErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteTaskIDResponse parses an HTTP response from a DeleteTaskIDWithResponse call
+func ParseDeleteTaskIDResponse(rsp *http.Response) (*DeleteTaskIDResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteTaskIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest TaskErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest TaskErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTaskIDResponse parses an HTTP response from a GetTaskIDWithResponse call
+func ParseGetTaskIDResponse(rsp *http.Response) (*GetTaskIDResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTaskIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TaskItemResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest TaskErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest TaskErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

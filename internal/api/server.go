@@ -42,7 +42,7 @@ func New(
 	// Initialize CORS configuration
 	corsConfig := middleware.CORSConfig{}
 
-	allowOrigins := appConfig.Server.Security.CORS.AllowOrigins
+	allowOrigins := appConfig.API.Server.Security.CORS.AllowOrigins
 	if len(allowOrigins) > 0 {
 		corsConfig.AllowOrigins = allowOrigins
 	}
@@ -60,8 +60,8 @@ func New(
 	}
 }
 
-// Run starts the Echo server with the configured port.
-func (s *Server) Run() error {
-	s.logger.Info("Starting server...")
-	return s.Echo.Start(fmt.Sprintf(":%d", s.appConfig.Server.Port))
+// Start starts the Echo server with the configured port.
+func (s *Server) Start() error {
+	s.logger.Info("starting server")
+	return s.Echo.Start(fmt.Sprintf(":%d", s.appConfig.API.Server.Port))
 }

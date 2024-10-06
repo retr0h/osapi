@@ -180,16 +180,24 @@ func safeTime(t *time.Time) string {
 	return ""
 }
 
-// float64ToString converts a *float64 to a string. Returns "N/A" if nil.
-func float64ToString(f *float64) string {
+// float64ToSafeString converts a *float64 to a string. Returns "N/A" if nil.
+func float64ToSafeString(f *float64) string {
 	if f != nil {
 		return fmt.Sprintf("%f", *f)
 	}
 	return "N/A"
 }
 
-// intToString converts a *int to a string. Returns "N/A" if nil.
-func intToString(i *int) string {
+// intToSafeString converts a *int to a string. Returns "N/A" if nil.
+func intToSafeString(i *int) string {
+	if i != nil {
+		return fmt.Sprintf("%d", *i)
+	}
+	return "N/A"
+}
+
+// uint64ToSafeString converts a *uint64 to a string, returning "N/A" if nil.
+func uint64ToSafeString(i *uint64) string {
 	if i != nil {
 		return fmt.Sprintf("%d", *i)
 	}

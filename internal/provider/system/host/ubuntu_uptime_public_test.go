@@ -40,7 +40,9 @@ func (suite *UbuntuUptimePublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuUptimePublicTestSuite) TearDownTest() {}
+func (suite *UbuntuUptimePublicTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
 
 func (suite *UbuntuUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {

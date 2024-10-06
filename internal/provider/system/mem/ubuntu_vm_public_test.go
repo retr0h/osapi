@@ -40,7 +40,9 @@ func (suite *UbuntuVMPublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuVMPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuVMPublicTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
 
 func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 	tests := []struct {

@@ -52,7 +52,9 @@ func (suite *UbuntuDoPublicTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *UbuntuDoPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuDoPublicTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
 
 func (suite *UbuntuDoPublicTestSuite) TestDo() {
 	tests := []struct {

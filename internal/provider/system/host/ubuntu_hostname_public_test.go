@@ -39,7 +39,9 @@ func (suite *UbuntuHostnamePublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 }
 
-func (suite *UbuntuHostnamePublicTestSuite) TearDownTest() {}
+func (suite *UbuntuHostnamePublicTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
 
 func (suite *UbuntuHostnamePublicTestSuite) TestGetHostname() {
 	tests := []struct {

@@ -19,7 +19,7 @@ info:
     - **Pluggable Architecture:** Easily extend or replace components to suit
       different Linux environments. This flexibility allows users to customize
       behavior based on specific distribution requirements or operational needs.
-    - **Task Queue for Privileged Actions:** Asynchronous task execution to
+    - **Task Worker for Privileged Actions:** Asynchronous task execution to
       perform system modifications securely, ensuring that changes are managed
       in a controlled and orderly manner.
     - **System Information Gathering:** Provides detailed system insights, such
@@ -47,15 +47,15 @@ tags:
   - name: Network_Management_API_dns_operations
     x-displayName: Network/DNS
     description: Operations related to DNS configuration.
-  - name: Queue_API_queue_operations
-    x-displayName: Queue
-    description: Operations related to the queue endpoint.
   - name: System_Management_API_system_operations
     x-displayName: System
     description: Operations related to the system endpoint.
   - name: System_Management_API_system_status
     x-displayName: System/Status
     description: Operations related to system status endpoint.
+  - name: Task_API_task_operations
+    x-displayName: Task
+    description: Operations related to the task endpoint.
 paths:
   /network/ping:
     post:
@@ -147,158 +147,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/network.ErrorResponse'
-  /queue:
-    post:
-      summary: Add an item to the queue
-      description: Add a new item to the queue.
-      tags:
-        - Queue_API_queue_operations
-      requestBody:
-        description: The queue item to add.
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                body:
-                  type: string
-                  format: byte
-                  description: Base64-encoded representation of the body of the queue item.
-              required:
-                - body
-              additionalProperties: false
-      responses:
-        '201':
-          description: The queue item was added successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/QueueItemResponse'
-        '400':
-          description: Invalid request payload.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/queue.ErrorResponse'
-        '500':
-          description: Error adding queue item.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/queue.ErrorResponse'
-    get:
-      summary: List all queue items
-      description: Retrieve all items from the queue, including the total count.
-      tags:
-        - Queue_API_queue_operations
-      parameters:
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 10
-            minimum: 1
-            description: The maximum number of items to return.
-        - in: query
-          name: offset
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-            description: >-
-              The number of items to skip before starting to collect the result
-              set.
-      responses:
-        '200':
-          description: A list of queue items with total count.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/QueueResponse'
-        '500':
-          description: Error retrieving queue items.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/queue.ErrorResponse'
-  /queue/status:
-    get:
-      summary: Returns the total number of items in the queue
-      tags:
-        - Queue_API_queue_operations
-      responses:
-        '200':
-          description: A JSON object containing the total number of items in the queue.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/QueueStatusResponse'
-        '500':
-          description: Error retrieving total number of items in the queue.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/queue.ErrorResponse'
-  /queue/{id}:
-    get:
-      summary: Get a queue item by ID
-      description: Retrieve a specific queue item by its ID.
-      tags:
-        - Queue_API_queue_operations
-      operationId: GetQueueID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: The queue item.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/QueueItemResponse'
-        '404':
-          description: Queue item not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/queue.ErrorResponse'
-        '500':
-          description: Error retrieving queue item.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/queue.ErrorResponse'
-    delete:
-      summary: Delete a queue item by ID
-      description: Deletes a specific queue item by its ID.
-      tags:
-        - Queue_API_queue_operations
-      operationId: DeleteQueueID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '204':
-          description: Queue item deleted successfully. No content returned.
-        '404':
-          description: Queue item not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/queue.ErrorResponse'
-        '500':
-          description: Error deleting queue item.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/queue.ErrorResponse'
   /system/status:
     get:
       summary: Retrieve system status
@@ -339,6 +187,143 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/system.ErrorResponse'
+  /task:
+    post:
+      summary: Add an task item
+      description: Add a new task item.
+      tags:
+        - Task_API_task_operations
+      requestBody:
+        description: The task item to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  type: string
+                  format: byte
+                  description: Base64-encoded representation of the body of the task item.
+              required:
+                - body
+              additionalProperties: false
+      responses:
+        '201':
+          description: The task item was added successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskItemIdResponse'
+        '400':
+          description: Invalid request payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task.ErrorResponse'
+        '500':
+          description: Error adding task item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task.ErrorResponse'
+    get:
+      summary: List all task items
+      description: Retrieve all task items, including the total count.
+      tags:
+        - Task_API_task_operations
+      responses:
+        '200':
+          description: A list of task items with total count.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '500':
+          description: Error retrieving task items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task.ErrorResponse'
+  /task/status:
+    get:
+      summary: Returns the total number of task items
+      tags:
+        - Task_API_task_operations
+      responses:
+        '200':
+          description: A JSON object containing the total number of task items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskStatusResponse'
+        '500':
+          description: Error retrieving total number of task items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task.ErrorResponse'
+  /task/{id}:
+    get:
+      summary: Get a task item by ID
+      description: Retrieve a specific task item by its ID.
+      tags:
+        - Task_API_task_operations
+      operationId: GetTaskID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        '200':
+          description: The task item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskItemResponse'
+        '404':
+          description: Task item not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task.ErrorResponse'
+        '500':
+          description: Error retrieving task item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task.ErrorResponse'
+    delete:
+      summary: Delete a task item by ID
+      description: Deletes a specific task item by its ID.
+      tags:
+        - Task_API_task_operations
+      operationId: DeleteTaskID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        '204':
+          description: Task item deleted successfully. No content returned.
+        '404':
+          description: Task item not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task.ErrorResponse'
+        '500':
+          description: Error deleting task item.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task.ErrorResponse'
 components:
   schemas:
     PingResponse:
@@ -414,72 +399,6 @@ components:
             Additional details about the error, specifying which component
             failed.
           example: Failed to get DNS servers due to network timeout.
-        code:
-          type: integer
-          description: The error code.
-          example: 500
-      required:
-        - error
-        - code
-    QueueItemResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier of the queue item.
-          example: m_6293e012e88beeedcaa32a66a183bc41
-        created:
-          type: string
-          format: date-time
-          description: Creation timestamp of the queue item.
-        updated:
-          type: string
-          format: date-time
-          description: Last updated timestamp of the queue item.
-        body:
-          type: string
-          format: byte
-          description: Base64-encoded representation of the body of the queue item.
-          example: U29tZSBleGFtcGxlIGJ5dGVzIGRhdGE=
-        timeout:
-          type: string
-          format: date-time
-          description: Timeout timestamp for the queue item.
-        received:
-          type: integer
-          description: Number of times the queue item has been received.
-          example: 3
-    QueueResponse:
-      type: object
-      properties:
-        total_items:
-          type: integer
-          description: The total number of queue items.
-          example: 42
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/QueueItemResponse'
-    QueueStatusResponse:
-      type: object
-      properties:
-        total_items:
-          type: integer
-          description: The total number of items in the queue.
-          example: 42
-    queue.ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-          description: A description of the error that occurred.
-          example: Failed to retrieve system status.
-        details:
-          type: string
-          description: >-
-            Additional details about the error, specifying which component
-            failed.
-          example: Failed to get hostname due to network timeout.
         code:
           type: integer
           description: The error code.
@@ -628,15 +547,78 @@ components:
       required:
         - error
         - code
+    TaskItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+          description: Unique identifier of the task item.
+          example: 1
+        created:
+          type: string
+          format: date-time
+          description: Creation timestamp of the task item.
+        body:
+          type: string
+          format: byte
+          description: Base64-encoded representation of the body of the task item.
+          example: U29tZSBleGFtcGxlIGJ5dGVzIGRhdGE=
+    TaskItemIdResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+          description: Unique identifier of the task item.
+          example: 1
+    TaskResponse:
+      type: object
+      properties:
+        total_items:
+          type: integer
+          description: The total number of task items.
+          example: 42
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskItemResponse'
+    TaskStatusResponse:
+      type: object
+      properties:
+        total_items:
+          type: integer
+          description: The total number of task items.
+          example: 42
+    task.ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: A description of the error that occurred.
+          example: Failed to retrieve system status.
+        details:
+          type: string
+          description: >-
+            Additional details about the error, specifying which component
+            failed.
+          example: Failed to get hostname due to network timeout.
+        code:
+          type: integer
+          description: The error code.
+          example: 500
+      required:
+        - error
+        - code
 x-tagGroups:
   - name: Network Management API
     tags:
       - Network_Management_API_network_operations
       - Network_Management_API_dns_operations
-  - name: Queue API
-    tags:
-      - Queue_API_queue_operations
   - name: System Management API
     tags:
       - System_Management_API_system_operations
       - System_Management_API_system_status
+  - name: Task API
+    tags:
+      - Task_API_task_operations

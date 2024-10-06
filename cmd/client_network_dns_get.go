@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -51,6 +52,10 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 					slog.String("response", string(resp.Body)),
 				)
 				return
+			}
+
+			if resp.JSON200 == nil {
+				logFatal("failed response", fmt.Errorf("get dns response was nil"))
 			}
 
 			var searchDomainsList, serversList []string

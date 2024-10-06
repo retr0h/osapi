@@ -37,7 +37,7 @@ import (
 	"github.com/retr0h/osapi/internal/config"
 	"github.com/retr0h/osapi/internal/provider/network/dns/mocks"
 	pingMocks "github.com/retr0h/osapi/internal/provider/network/ping/mocks"
-	queueMocks "github.com/retr0h/osapi/internal/queue/mocks"
+	taskClientMocks "github.com/retr0h/osapi/internal/task/client/mocks"
 )
 
 type NetworkDNSGetIntegrationTestSuite struct {
@@ -53,6 +53,10 @@ func (suite *NetworkDNSGetIntegrationTestSuite) SetupTest() {
 
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+}
+
+func (suite *NetworkDNSGetIntegrationTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
 }
 
 func (suite *NetworkDNSGetIntegrationTestSuite) TestGetNetworkDNS() {
@@ -72,18 +76,20 @@ func (suite *NetworkDNSGetIntegrationTestSuite) TestGetNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusOK,
-			wantBody: `{
-"search_domains": [
-  "example.com",
-  "local.lan"
-],
-"servers": [
-  "192.168.1.1",
-  "8.8.8.8",
-  "8.8.4.4",
-  "2001:4860:4860::8888",
-  "2001:4860:4860::8844"
-]}`,
+			wantBody: `
+{
+  "search_domains": [
+    "example.com",
+    "local.lan"
+  ],
+  "servers": [
+    "192.168.1.1",
+    "8.8.8.8",
+    "8.8.4.4",
+    "2001:4860:4860::8888",
+    "2001:4860:4860::8844"
+  ]
+}`,
 		},
 		{
 			name: "when GetResolvConf errors",
@@ -104,10 +110,10 @@ func (suite *NetworkDNSGetIntegrationTestSuite) TestGetNetworkDNS() {
 		suite.Run(tc.name, func() {
 			pingMock := pingMocks.NewDefaultMockProvider(suite.ctrl)
 			dnsMock := tc.setupMock()
-			queueMock := queueMocks.NewDefaultMockManager(suite.ctrl)
+			taskClientMock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
 
 			a := api.New(suite.appConfig, suite.logger)
-			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock, queueMock))
+			networkGen.RegisterHandlers(a.Echo, network.New(pingMock, dnsMock, taskClientMock))
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()
