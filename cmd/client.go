@@ -41,7 +41,7 @@ var clientCmd = &cobra.Command{
 		logger.Debug(
 			"client configuration",
 			slog.Bool("debug", appConfig.Debug),
-			slog.String("client.url", appConfig.Client.URL),
+			slog.String("api.client.url", appConfig.Client.URL),
 		)
 
 		cwr, err := client.NewClientWithResponses(appConfig)
@@ -61,7 +61,7 @@ func init() {
 	rootCmd.AddCommand(clientCmd)
 
 	clientCmd.PersistentFlags().
-		StringP("url", "u", "http://0.0.0.0:8080", "URL the client will connect to")
+		StringP("url", "", "http://0.0.0.0:8080", "URL the client will connect to")
 
-	_ = viper.BindPFlag("client.url", clientCmd.PersistentFlags().Lookup("url"))
+	_ = viper.BindPFlag("api.client.url", clientCmd.PersistentFlags().Lookup("url"))
 }

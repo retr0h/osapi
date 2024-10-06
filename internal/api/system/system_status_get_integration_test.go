@@ -57,6 +57,10 @@ func (suite *SystemStatusGetIntegrationTestSuite) SetupTest() {
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
+func (suite *SystemStatusGetIntegrationTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
+
 func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 	tests := []struct {
 		name          string

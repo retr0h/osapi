@@ -74,7 +74,7 @@ func (n Network) PutNetworkDNS(
 		})
 	}
 
-	err = n.QueueManager.Put(ctx.Request().Context(), data)
+	_, err = n.TaskClientManager.PublishToStream(ctx.Request().Context(), data)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
 			Error: err.Error(),

@@ -19,15 +19,18 @@
 # DEALINGS IN THE SOFTWARE.
 
 PROGRAM="../main.go"
-BATS_TEST_TIMEOUT=5
+BATS_TEST_TIMEOUT=10
 
 # Function to start the server
 start_server() {
+  run go run ${PROGRAM} task server start &
+  sleep 2
   run go run ${PROGRAM} api server start &
   sleep 2
 }
 
 # Function to stop the server
 stop_server() {
-  pkill -f "server start"
+  pkill -f "api server start"
+  pkill -f "task server start"
 }

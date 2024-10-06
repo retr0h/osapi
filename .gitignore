@@ -2,6 +2,7 @@ cobertura.xml
 cover.out
 database.db*
 dist/
+.nats/jetstream/
 result.xml
 .task/
 test/vendor/
