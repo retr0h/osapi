@@ -29,17 +29,21 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/spf13/afero"
+
 	"github.com/retr0h/osapi/internal/config"
 	"github.com/retr0h/osapi/internal/queue"
 )
 
 // New initialize and configure a new queue Worker service.
 func New(
+	appFs afero.Fs,
 	appConfig config.Config,
 	logger *slog.Logger,
 	qm queue.Manager,
 ) *Worker {
 	return &Worker{
+		appFs:     appFs,
 		logger:    logger,
 		appConfig: appConfig,
 		qm:        qm,
@@ -60,7 +64,10 @@ func (w *Worker) start(ctx context.Context) {
 
 			m, err := w.qm.Get(ctx)
 			if err != nil {
-				w.logger.Error("error getting queue item", slog.String("error", err.Error()))
+				w.logger.Error(
+					"error getting queue item",
+					slog.String("error", err.Error()),
+				)
 				continue
 			}
 
@@ -69,10 +76,20 @@ func (w *Worker) start(ctx context.Context) {
 				continue
 			}
 
-			w.logger.Info("processing item", slog.Any("id", m.ID))
+			w.logger.Info(
+				"processing item",
+				slog.Any("id", m.ID),
+			)
 
-			// Simulate processing
-			time.Sleep(5 * time.Second)
+			err = w.reconcile(ctx, m.Body)
+			if err != nil {
+				w.logger.Error(
+					"error reconciling item",
+					slog.Any("id", m.ID),
+					slog.String("error", err.Error()),
+				)
+				continue
+			}
 
 			err = w.qm.DeleteByID(ctx, string(m.ID))
 			if err != nil {
@@ -84,7 +101,10 @@ func (w *Worker) start(ctx context.Context) {
 				continue
 			}
 
-			w.logger.Info("item processed successfully", slog.Any("id", m.ID))
+			w.logger.Info(
+				"item processed successfully",
+				slog.Any("id", m.ID),
+			)
 		}
 	}
 }

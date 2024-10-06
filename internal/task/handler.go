@@ -18,44 +18,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package task
 
 import (
-	"context"
+	"fmt"
 
-	"github.com/spf13/cobra"
-
-	"github.com/retr0h/osapi/internal/queue"
-	"github.com/retr0h/osapi/internal/worker"
+	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
 )
 
-// queueWorkerStartCmd represents the queueWorkerStart command.
-var queueWorkerStartCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Start the server",
-	Long: `Start the queue worker.
-It continuously checks the queue every N seconds and processes any tasks.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		db, err := queue.OpenDB(appConfig)
-		if err != nil {
-			logFatal("failed to open database", err)
-		}
+const (
+	// UnknownTaskType is a fallback for unrecognized task types.
+	UnknownTaskType Type = iota
+	// ShutdownTaskType represents a Shutdown task.
+	ShutdownTaskType
+	// ChangeDNSTaskType represents a Change DNS task.
+	ChangeDNSTaskType
+)
 
-		var qm queue.Manager = queue.New(logger, appConfig, db)
-
-		err = qm.SetupSchema(context.Background())
-		if err != nil {
-			logFatal("failed to set up database schema", err)
-		}
-
-		qm.SetupQueue()
-
-		var workerServer worker.ServerManager = worker.New(appFs, appConfig, logger, qm)
-		workerServer.Run()
-	},
+// String provides a string representation of the task type.
+func (t Type) String() string {
+	switch t {
+	case ShutdownTaskType:
+		return "Shutdown"
+	case ChangeDNSTaskType:
+		return "ChangeDNS"
+	default:
+		return "Unknown"
+	}
 }
 
-func init() {
-	queueWorkerCmd.AddCommand(queueWorkerStartCmd)
+// GetTaskType abstracts the logic for determining the task type.
+func GetTaskType(t *taskpb.Task) (Type, error) {
+	switch t.GetAction().(type) {
+	case *taskpb.Task_ShutdownAction:
+		return ShutdownTaskType, nil
+	case *taskpb.Task_ChangeDnsAction:
+		return ChangeDNSTaskType, nil
+	default:
+		return UnknownTaskType, fmt.Errorf("unknown task action type")
+	}
 }

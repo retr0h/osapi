@@ -18,44 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package task
 
 import (
-	"context"
-
-	"github.com/spf13/cobra"
-
-	"github.com/retr0h/osapi/internal/queue"
-	"github.com/retr0h/osapi/internal/worker"
+	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
 )
 
-// queueWorkerStartCmd represents the queueWorkerStart command.
-var queueWorkerStartCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Start the server",
-	Long: `Start the queue worker.
-It continuously checks the queue every N seconds and processes any tasks.
-`,
-	Run: func(_ *cobra.Command, _ []string) {
-		db, err := queue.OpenDB(appConfig)
-		if err != nil {
-			logFatal("failed to open database", err)
-		}
-
-		var qm queue.Manager = queue.New(logger, appConfig, db)
-
-		err = qm.SetupSchema(context.Background())
-		if err != nil {
-			logFatal("failed to set up database schema", err)
-		}
-
-		qm.SetupQueue()
-
-		var workerServer worker.ServerManager = worker.New(appFs, appConfig, logger, qm)
-		workerServer.Run()
-	},
+// Handler is an interface for handling different task types.
+type Handler interface {
+	Handle(task *taskpb.Task) error
 }
 
-func init() {
-	queueWorkerCmd.AddCommand(queueWorkerStartCmd)
-}
+// Type represents the task type as an enum.
+type Type int
