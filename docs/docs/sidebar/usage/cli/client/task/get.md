@@ -3,7 +3,7 @@
 Get a task action by `message-id`:
 
 ```bash
-$ osapi client task get --message-id m_cdb5ca64cc494646eee5edc7f8bc3313
+$ osapi client task get --message-id 5
 
 
   ID: 5
@@ -18,4 +18,13 @@ $ osapi client task get --message-id m_cdb5ca64cc494646eee5edc7f8bc3313
   ┃ }                                                                                                  ┃
   ┃                                                                                                    ┃
   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
+
+## Errors
+
+### Not Found
+
+```bash
+$ osapi client task get get --message-id 10000
+7:03PM ERR not found code=404 response="not found: no item found with ID 10000"
 ```
