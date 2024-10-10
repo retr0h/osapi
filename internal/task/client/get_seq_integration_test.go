@@ -87,13 +87,13 @@ func (suite *GetMessageBySeqIntegrationTestSuite) TestGetMessageBySeq() {
 			var err error
 
 			if len(tc.data) > 0 {
-				seq, err = suite.client.PublishToStream(ctx, "tasks", tc.data)
+				seq, err = suite.client.PublishToStream(ctx, tc.data)
 				suite.Require().NoError(err)
 			} else {
 				seq = tc.seq
 			}
 
-			got, err := suite.client.GetMessageBySeq(ctx, "TASKS", seq)
+			got, err := suite.client.GetMessageBySeq(ctx, seq)
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)

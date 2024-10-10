@@ -109,7 +109,7 @@ func (suite *PostTaskIntegrationTestSuite) TestPostTask() {
 				suite.Require().NoError(err)
 
 				mock.EXPECT().
-					PublishToStream(context.Background(), "tasks", expectedBody).
+					PublishToStream(context.Background(), expectedBody).
 					Return(uint64(1), assert.AnError).
 					AnyTimes()
 

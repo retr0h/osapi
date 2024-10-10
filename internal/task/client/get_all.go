@@ -39,12 +39,11 @@ import (
 // messages and then fetching the desired number.
 func (c *Client) GetAllPaginatedMessages(
 	ctx context.Context,
-	streamName string,
 	limit int,
 	offset int,
 ) ([]MessageItem, error) {
 	// Get the total number of messages using the existing CountStreamMessages function
-	totalMessages, err := c.CountStreamMessages(ctx, streamName)
+	totalMessages, err := c.CountStreamMessages(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error counting stream messages: %w", err)
 	}
@@ -59,7 +58,7 @@ func (c *Client) GetAllPaginatedMessages(
 		limit = totalMessages - offset
 	}
 
-	stream, err := c.js.Stream(ctx, streamName)
+	stream, err := c.js.Stream(ctx, StreamName)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving stream: %w", err)
 	}

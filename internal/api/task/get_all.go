@@ -47,7 +47,6 @@ func (t Task) GetTask(
 
 	taskItems, err := t.ClientManager.GetAllPaginatedMessages(
 		ctx.Request().Context(),
-		"TASKS",
 		limit,
 		offset,
 	)
@@ -67,7 +66,7 @@ func (t Task) GetTask(
 		items = append(items, item)
 	}
 
-	totalItems, err := t.ClientManager.CountStreamMessages(ctx.Request().Context(), "TASKS")
+	totalItems, err := t.ClientManager.CountStreamMessages(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.TaskErrorResponse{
 			Error: err.Error(),

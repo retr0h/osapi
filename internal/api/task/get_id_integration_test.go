@@ -83,7 +83,7 @@ func (suite *GetTaskIDIntegrationTestSuite) TestGetTaskID() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					GetMessageBySeq(context.Background(), "TASKS", uint64(666)).
+					GetMessageBySeq(context.Background(), uint64(666)).
 					Return(nil, assert.AnError).
 					AnyTimes()
 
@@ -98,7 +98,7 @@ func (suite *GetTaskIDIntegrationTestSuite) TestGetTaskID() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					GetMessageBySeq(context.Background(), "TASKS", uint64(666)).
+					GetMessageBySeq(context.Background(), uint64(666)).
 					Return(nil, errors.NewNotFoundError("no item found with ID 666")).
 					AnyTimes()
 

@@ -34,7 +34,7 @@ func (t Task) DeleteTaskID(
 	ctx echo.Context,
 	messageID uint64,
 ) error {
-	err := t.ClientManager.DeleteMessageBySeq(ctx.Request().Context(), "TASKS", messageID)
+	err := t.ClientManager.DeleteMessageBySeq(ctx.Request().Context(), messageID)
 	if err != nil {
 		if _, ok := err.(*errors.NotFoundError); ok {
 			return ctx.JSON(http.StatusNotFound, gen.TaskErrorResponse{

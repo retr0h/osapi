@@ -28,10 +28,9 @@ import (
 // PublishToStream publishes a message to the specified JetStream stream using the existing JetStream context.
 func (c *Client) PublishToStream(
 	ctx context.Context,
-	streamName string,
 	data []byte,
 ) (uint64, error) {
-	msg, err := c.js.Publish(ctx, streamName, data)
+	msg, err := c.js.Publish(ctx, SubjectName, data)
 	if err != nil {
 		return 0, fmt.Errorf("error publishing message: %w", err)
 	}

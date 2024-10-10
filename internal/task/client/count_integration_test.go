@@ -76,11 +76,11 @@ func (suite *CountStreamMessagesIntegrationTestSuite) TestCountStreamMessages() 
 
 			for i := 0; i < tc.totalMessages; i++ {
 				data := []byte("test message")
-				_, err := suite.client.PublishToStream(ctx, "tasks", data)
+				_, err := suite.client.PublishToStream(ctx, data)
 				suite.Require().NoError(err)
 			}
 
-			got, err := suite.client.CountStreamMessages(ctx, "TASKS")
+			got, err := suite.client.CountStreamMessages(ctx)
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)

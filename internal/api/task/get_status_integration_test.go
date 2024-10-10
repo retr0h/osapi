@@ -77,11 +77,11 @@ func (suite *GetTaskStatusIntegrationTestSuite) TestGetTaskStatus() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					GetAllPaginatedMessages(context.Background(), "TASKS", 10, 0).
+					GetAllPaginatedMessages(context.Background(), 10, 0).
 					Return([]client.MessageItem{}, nil).
 					AnyTimes()
 				mock.EXPECT().
-					CountStreamMessages(context.Background(), "TASKS").
+					CountStreamMessages(context.Background()).
 					Return(0, assert.AnError).
 					AnyTimes()
 

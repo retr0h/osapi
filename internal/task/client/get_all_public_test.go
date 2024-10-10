@@ -84,7 +84,7 @@ func (suite *GetAllPaginatedMessagesPublicTestSuite) TestGetAllPaginatedMessages
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					GetAllPaginatedMessages(context.Background(), "TASKS", 2, 0).
+					GetAllPaginatedMessages(context.Background(), 2, 0).
 					Return(nil, assert.AnError).
 					AnyTimes()
 
@@ -97,7 +97,7 @@ func (suite *GetAllPaginatedMessagesPublicTestSuite) TestGetAllPaginatedMessages
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.GetAllPaginatedMessages(context.Background(), "TASKS", 2, 0)
+			got, err := mock.GetAllPaginatedMessages(context.Background(), 2, 0)
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
 				assert.Equal(suite.T(), tc.want, got)

@@ -77,7 +77,7 @@ func (suite *GetMessageBySeqPublicTestSuite) TestGetMessageBySeq() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					GetMessageBySeq(context.Background(), "TASKS", uint64(123)).
+					GetMessageBySeq(context.Background(), uint64(123)).
 					Return(nil, assert.AnError).
 					AnyTimes()
 
@@ -90,7 +90,7 @@ func (suite *GetMessageBySeqPublicTestSuite) TestGetMessageBySeq() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.GetMessageBySeq(context.Background(), "TASKS", 123)
+			got, err := mock.GetMessageBySeq(context.Background(), 123)
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
 				assert.Equal(suite.T(), tc.want, got)

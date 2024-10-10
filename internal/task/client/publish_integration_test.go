@@ -73,7 +73,7 @@ func (suite *PublishToStreamIntegrationTestSuite) TestPublishToStream() {
 			ctx := context.Background()
 			msg := []byte("test message")
 
-			got, err := suite.client.PublishToStream(ctx, "tasks", msg)
+			got, err := suite.client.PublishToStream(ctx, msg)
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)

@@ -34,7 +34,7 @@ func (t Task) GetTaskID(
 	ctx echo.Context,
 	messageID uint64,
 ) error {
-	taskItem, err := t.ClientManager.GetMessageBySeq(ctx.Request().Context(), "TASKS", messageID)
+	taskItem, err := t.ClientManager.GetMessageBySeq(ctx.Request().Context(), messageID)
 	if err != nil {
 		if _, ok := err.(*errors.NotFoundError); ok {
 			return ctx.JSON(http.StatusNotFound, gen.TaskErrorResponse{

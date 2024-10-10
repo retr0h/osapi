@@ -46,7 +46,7 @@ func (t Task) PostTask(
 		})
 	}
 
-	_, err := t.ClientManager.PublishToStream(ctx.Request().Context(), "tasks", newItem.Body)
+	_, err := t.ClientManager.PublishToStream(ctx.Request().Context(), newItem.Body)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.TaskErrorResponse{
 			Error: err.Error(),

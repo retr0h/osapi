@@ -41,6 +41,15 @@ func New(
 	}
 }
 
+const (
+	// ConsumerName is the durable name of the NATS JetStream consumer.
+	ConsumerName = "osapi"
+	// StreamName represents the NATS JetStream stream to consume from.
+	StreamName = "TASKS"
+	// SubjectName represents the NATS JetStream subject within the "TASKS" stream.
+	SubjectName = "tasks"
+)
+
 // Connect establishes the connection to the NATS server and JetStream context.
 // This method returns an error if there are any issues during connection.
 func (c *Client) Connect() error {
@@ -55,6 +64,20 @@ func (c *Client) Connect() error {
 		return fmt.Errorf("error creating JetStream context: %w", err)
 	}
 	c.js = js
+
+	// stream, err := c.js.Stream(ctx, streamName)
+	// if err != nil {
+	// 	return 0, fmt.Errorf("error retrieving stream: %w", err)
+	// }
+	// // c.stream = stream
+
+	// _, err := stream.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
+	// 	AckPolicy: jetstream.AckExplicitPolicy,
+	// 	Durable:   ConsumerName,
+	// })
+	// if err != nil {
+	// 	return fmt.Errorf("error creating JetStream consumer: %w", err)
+	// }
 
 	return nil
 }

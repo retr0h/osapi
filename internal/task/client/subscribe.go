@@ -30,11 +30,8 @@ import (
 // SubscribeToStream returns a JetStream subscription to the specified stream.
 func (c *Client) SubscribeToStream(
 	ctx context.Context,
-	streamName string,
 ) (jetstream.Consumer, error) {
-	fmt.Println("DDDD")
-
-	stream, err := c.js.Stream(ctx, streamName)
+	stream, err := c.js.Stream(ctx, StreamName)
 	if err != nil {
 		fmt.Println(err)
 		return nil, fmt.Errorf("error retrieving stream: %w", err)
@@ -46,7 +43,7 @@ func (c *Client) SubscribeToStream(
 
 	cons, _ := stream.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
 		AckPolicy: jetstream.AckExplicitPolicy,
-		Durable:   "foo",
+		Durable:   ConsumerName,
 	})
 
 	fmt.Println(cons)

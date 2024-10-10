@@ -28,17 +28,16 @@ import (
 // CountStreamMessages returns the total number of messages in the specified JetStream stream (queue).
 func (c *Client) CountStreamMessages(
 	ctx context.Context,
-	streamName string,
 ) (int, error) {
-	stream, err := c.js.Stream(ctx, streamName)
+	stream, err := c.js.Stream(ctx, StreamName)
 	if err != nil {
 		return 0, fmt.Errorf("error retrieving stream: %w", err)
 	}
 
-	cons, _ := stream.Consumer(ctx, "foo")
+	// cons, _ := stream.Consumer(ctx, "foo")
 
-	info, _ := cons.Info(ctx)
-	fmt.Println(info)
+	// info, _ := cons.Info(ctx)
+	// fmt.Println(info)
 
 	streamInfo, err := stream.Info(ctx)
 	if err != nil {

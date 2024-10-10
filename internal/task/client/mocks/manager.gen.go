@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	jetstream "github.com/nats-io/nats.go/jetstream"
 	client "github.com/retr0h/osapi/internal/task/client"
 )
 
@@ -50,75 +51,90 @@ func (mr *MockManagerMockRecorder) Connect() *gomock.Call {
 }
 
 // CountStreamMessages mocks base method.
-func (m *MockManager) CountStreamMessages(ctx context.Context, streamName string) (int, error) {
+func (m *MockManager) CountStreamMessages(ctx context.Context) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountStreamMessages", ctx, streamName)
+	ret := m.ctrl.Call(m, "CountStreamMessages", ctx)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountStreamMessages indicates an expected call of CountStreamMessages.
-func (mr *MockManagerMockRecorder) CountStreamMessages(ctx, streamName interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) CountStreamMessages(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountStreamMessages", reflect.TypeOf((*MockManager)(nil).CountStreamMessages), ctx, streamName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountStreamMessages", reflect.TypeOf((*MockManager)(nil).CountStreamMessages), ctx)
 }
 
 // DeleteMessageBySeq mocks base method.
-func (m *MockManager) DeleteMessageBySeq(ctx context.Context, streamName string, seq uint64) error {
+func (m *MockManager) DeleteMessageBySeq(ctx context.Context, seq uint64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteMessageBySeq", ctx, streamName, seq)
+	ret := m.ctrl.Call(m, "DeleteMessageBySeq", ctx, seq)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteMessageBySeq indicates an expected call of DeleteMessageBySeq.
-func (mr *MockManagerMockRecorder) DeleteMessageBySeq(ctx, streamName, seq interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) DeleteMessageBySeq(ctx, seq interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMessageBySeq", reflect.TypeOf((*MockManager)(nil).DeleteMessageBySeq), ctx, streamName, seq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMessageBySeq", reflect.TypeOf((*MockManager)(nil).DeleteMessageBySeq), ctx, seq)
 }
 
 // GetAllPaginatedMessages mocks base method.
-func (m *MockManager) GetAllPaginatedMessages(ctx context.Context, streamName string, limit, offset int) ([]client.MessageItem, error) {
+func (m *MockManager) GetAllPaginatedMessages(ctx context.Context, limit, offset int) ([]client.MessageItem, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllPaginatedMessages", ctx, streamName, limit, offset)
+	ret := m.ctrl.Call(m, "GetAllPaginatedMessages", ctx, limit, offset)
 	ret0, _ := ret[0].([]client.MessageItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAllPaginatedMessages indicates an expected call of GetAllPaginatedMessages.
-func (mr *MockManagerMockRecorder) GetAllPaginatedMessages(ctx, streamName, limit, offset interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) GetAllPaginatedMessages(ctx, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPaginatedMessages", reflect.TypeOf((*MockManager)(nil).GetAllPaginatedMessages), ctx, streamName, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPaginatedMessages", reflect.TypeOf((*MockManager)(nil).GetAllPaginatedMessages), ctx, limit, offset)
 }
 
 // GetMessageBySeq mocks base method.
-func (m *MockManager) GetMessageBySeq(ctx context.Context, streamName string, seq uint64) (*client.MessageItem, error) {
+func (m *MockManager) GetMessageBySeq(ctx context.Context, seq uint64) (*client.MessageItem, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMessageBySeq", ctx, streamName, seq)
+	ret := m.ctrl.Call(m, "GetMessageBySeq", ctx, seq)
 	ret0, _ := ret[0].(*client.MessageItem)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMessageBySeq indicates an expected call of GetMessageBySeq.
-func (mr *MockManagerMockRecorder) GetMessageBySeq(ctx, streamName, seq interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) GetMessageBySeq(ctx, seq interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageBySeq", reflect.TypeOf((*MockManager)(nil).GetMessageBySeq), ctx, streamName, seq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageBySeq", reflect.TypeOf((*MockManager)(nil).GetMessageBySeq), ctx, seq)
 }
 
 // PublishToStream mocks base method.
-func (m *MockManager) PublishToStream(ctx context.Context, streamName string, data []byte) (uint64, error) {
+func (m *MockManager) PublishToStream(ctx context.Context, data []byte) (uint64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PublishToStream", ctx, streamName, data)
+	ret := m.ctrl.Call(m, "PublishToStream", ctx, data)
 	ret0, _ := ret[0].(uint64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PublishToStream indicates an expected call of PublishToStream.
-func (mr *MockManagerMockRecorder) PublishToStream(ctx, streamName, data interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) PublishToStream(ctx, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishToStream", reflect.TypeOf((*MockManager)(nil).PublishToStream), ctx, streamName, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishToStream", reflect.TypeOf((*MockManager)(nil).PublishToStream), ctx, data)
+}
+
+// SubscribeToStream mocks base method.
+func (m *MockManager) SubscribeToStream(ctx context.Context) (jetstream.Consumer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeToStream", ctx)
+	ret0, _ := ret[0].(jetstream.Consumer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeToStream indicates an expected call of SubscribeToStream.
+func (mr *MockManagerMockRecorder) SubscribeToStream(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeToStream", reflect.TypeOf((*MockManager)(nil).SubscribeToStream), ctx)
 }

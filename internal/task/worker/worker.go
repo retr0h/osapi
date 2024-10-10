@@ -54,7 +54,7 @@ func New(
 func (w *Worker) start(ctx context.Context) {
 	// checkInterval := time.Duration(w.appConfig.Task.PollInterval.Seconds) * time.Second
 
-	cons, _ := w.ClientManager.SubscribeToStream(ctx, "TASKS")
+	cons, _ := w.ClientManager.SubscribeToStream(ctx)
 
 	iter, err := cons.Messages()
 	if err != nil {

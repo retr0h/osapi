@@ -34,40 +34,34 @@ type Manager interface {
 	// CountStreamMessages returns the total number of messages in the specified JetStream stream (queue).
 	CountStreamMessages(
 		ctx context.Context,
-		streamName string,
 	) (int, error)
 	// DeleteMessageBySeq deletes a single message from the specified JetStream
 	// stream by its sequence number.
 	DeleteMessageBySeq(
 		ctx context.Context,
-		streamName string,
 		seq uint64,
 	) error
 	// GetMessageBySeq retrieves a single message from the specified JetStream
 	// stream by its sequence number.
 	GetMessageBySeq(
 		ctx context.Context,
-		streamName string,
 		seq uint64,
 	) (*MessageItem, error)
 	// GetAllPaginatedMessages retrieves messages from the specified JetStream
 	// stream in a paginated manner.
 	GetAllPaginatedMessages(
 		ctx context.Context,
-		streamName string,
 		limit int,
 		offset int,
 	) ([]MessageItem, error)
 	// PublishToStream publishes a message to the specified JetStream stream using the existing JetStream context.
 	PublishToStream(
 		ctx context.Context,
-		streamName string,
 		data []byte,
 	) (uint64, error)
 
 	/// REMOVE
 	SubscribeToStream(
 		ctx context.Context,
-		streamName string,
 	) (jetstream.Consumer, error)
 }

@@ -32,7 +32,7 @@ import (
 func (t Task) GetTaskStatus(
 	ctx echo.Context,
 ) error {
-	totalItems, err := t.ClientManager.CountStreamMessages(ctx.Request().Context(), "TASKS")
+	totalItems, err := t.ClientManager.CountStreamMessages(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.TaskErrorResponse{
 			Error: err.Error(),

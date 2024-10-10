@@ -93,7 +93,7 @@ func (suite *GetTaskIntegrationTestSuite) TestGetTask() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					GetAllPaginatedMessages(context.Background(), "TASKS", 2, 0).
+					GetAllPaginatedMessages(context.Background(), 2, 0).
 					Return(nil, assert.AnError).
 					AnyTimes()
 
@@ -108,12 +108,12 @@ func (suite *GetTaskIntegrationTestSuite) TestGetTask() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					GetAllPaginatedMessages(context.Background(), "TASKS", 2, 0).
+					GetAllPaginatedMessages(context.Background(), 2, 0).
 					Return([]client.MessageItem{}, nil).
 					AnyTimes()
 
 				mock.EXPECT().
-					CountStreamMessages(context.Background(), "TASKS").
+					CountStreamMessages(context.Background()).
 					Return(0, assert.AnError).
 					AnyTimes()
 

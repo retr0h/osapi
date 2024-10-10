@@ -34,10 +34,9 @@ import (
 // stream by its sequence number.
 func (c *Client) GetMessageBySeq(
 	ctx context.Context,
-	streamName string,
 	seq uint64,
 ) (*MessageItem, error) {
-	stream, err := c.js.Stream(ctx, streamName)
+	stream, err := c.js.Stream(ctx, StreamName)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving stream: %w", err)
 	}

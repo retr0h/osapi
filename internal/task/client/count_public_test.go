@@ -68,7 +68,7 @@ func (suite *CountStreamMessagesPublicTestSuite) TestCountStreamMessages() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					CountStreamMessages(context.Background(), "TASKS").
+					CountStreamMessages(context.Background()).
 					Return(0, assert.AnError).
 					AnyTimes()
 
@@ -81,7 +81,7 @@ func (suite *CountStreamMessagesPublicTestSuite) TestCountStreamMessages() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.CountStreamMessages(context.Background(), "TASKS")
+			got, err := mock.CountStreamMessages(context.Background())
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
 				assert.Equal(suite.T(), tc.want, got)

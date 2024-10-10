@@ -77,7 +77,7 @@ func (suite *DeleteTaskIDIntegrationTestSuite) TestDeleteTaskID() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					DeleteMessageBySeq(context.Background(), "TASKS", uint64(666)).
+					DeleteMessageBySeq(context.Background(), uint64(666)).
 					Return(assert.AnError).
 					AnyTimes()
 
@@ -92,7 +92,7 @@ func (suite *DeleteTaskIDIntegrationTestSuite) TestDeleteTaskID() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					DeleteMessageBySeq(context.Background(), "TASKS", uint64(666)).
+					DeleteMessageBySeq(context.Background(), uint64(666)).
 					Return(errors.NewNotFoundError("no item found with ID 666")).
 					AnyTimes()
 

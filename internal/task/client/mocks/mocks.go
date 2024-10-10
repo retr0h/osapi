@@ -47,12 +47,12 @@ func NewDefaultMockManager(ctrl *gomock.Controller) *MockManager {
 	fixedStoredAt, _ := GetFixedTime()
 
 	mock.EXPECT().
-		CountStreamMessages(context.Background(), "TASKS").
+		CountStreamMessages(context.Background()).
 		Return(2, nil).
 		AnyTimes()
 
 	mock.EXPECT().
-		DeleteMessageBySeq(context.Background(), "TASKS", uint64(123)).
+		DeleteMessageBySeq(context.Background(), uint64(123)).
 		Return(nil).
 		AnyTimes()
 
@@ -63,7 +63,7 @@ func NewDefaultMockManager(ctrl *gomock.Controller) *MockManager {
 	}
 
 	mock.EXPECT().
-		GetMessageBySeq(context.Background(), "TASKS", uint64(123)).
+		GetMessageBySeq(context.Background(), uint64(123)).
 		Return(mockMessageItem, nil).
 		AnyTimes()
 
@@ -81,18 +81,18 @@ func NewDefaultMockManager(ctrl *gomock.Controller) *MockManager {
 	}
 
 	mock.EXPECT().
-		GetAllPaginatedMessages(context.Background(), "TASKS", 2, 0).
+		GetAllPaginatedMessages(context.Background(), 2, 0).
 		Return(mockMessageItems, nil).
 		AnyTimes()
 
 		// NOTE(retr0h): May remove this expectation in favor of one below
 	mock.EXPECT().
-		PublishToStream(context.Background(), "tasks", []byte("test message")).
+		PublishToStream(context.Background(), []byte("test message")).
 		Return(uint64(1), nil).
 		AnyTimes()
 
 	mock.EXPECT().
-		PublishToStream(context.Background(), "tasks", gomock.Any()).
+		PublishToStream(context.Background(), gomock.Any()).
 		Return(uint64(1), nil).
 		AnyTimes()
 

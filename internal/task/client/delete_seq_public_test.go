@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	// "github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -67,7 +66,7 @@ func (suite *DeleteMessageBySeqPublicTestSuite) TestDeleteMessageBySeq() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					DeleteMessageBySeq(context.Background(), "TASKS", uint64(123)).
+					DeleteMessageBySeq(context.Background(), uint64(123)).
 					Return(assert.AnError).
 					AnyTimes()
 
@@ -80,7 +79,7 @@ func (suite *DeleteMessageBySeqPublicTestSuite) TestDeleteMessageBySeq() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			err := mock.DeleteMessageBySeq(context.Background(), "TASKS", 123)
+			err := mock.DeleteMessageBySeq(context.Background(), 123)
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
 			} else {

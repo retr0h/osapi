@@ -93,11 +93,11 @@ func (suite *GetAllPaginatedMessagesIntegrationTestSuite) TestGetAllPaginatedMes
 
 			for i := 0; i < tc.totalMessages; i++ {
 				data := []byte("test message")
-				_, err := suite.client.PublishToStream(ctx, "tasks", data)
+				_, err := suite.client.PublishToStream(ctx, data)
 				suite.Require().NoError(err)
 			}
 
-			got, err := suite.client.GetAllPaginatedMessages(ctx, "TASKS", tc.limit, tc.offset)
+			got, err := suite.client.GetAllPaginatedMessages(ctx, tc.limit, tc.offset)
 
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)

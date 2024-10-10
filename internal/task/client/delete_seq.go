@@ -34,10 +34,9 @@ import (
 // stream by its sequence number.
 func (c *Client) DeleteMessageBySeq(
 	ctx context.Context,
-	streamName string,
 	seq uint64,
 ) error {
-	_, err := c.GetMessageBySeq(ctx, streamName, seq)
+	_, err := c.GetMessageBySeq(ctx, seq)
 	if err != nil {
 		if errors.Is(err, jetstream.ErrMsgNotFound) {
 			// Return custom MessageNotFoundError if message does not exist
@@ -46,7 +45,7 @@ func (c *Client) DeleteMessageBySeq(
 		return fmt.Errorf("failed to retrieve message: %w", err)
 	}
 
-	stream, err := c.js.Stream(ctx, streamName)
+	stream, err := c.js.Stream(ctx, StreamName)
 	if err != nil {
 		return fmt.Errorf("error retrieving stream: %w", err)
 	}

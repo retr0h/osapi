@@ -72,7 +72,7 @@ func (suite *PublishToStreamPublicTestSuite) TestPublishToStream() {
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					PublishToStream(context.Background(), "tasks", []byte("test message")).
+					PublishToStream(context.Background(), []byte("test message")).
 					Return(uint64(0), assert.AnError).
 					AnyTimes()
 
@@ -85,7 +85,7 @@ func (suite *PublishToStreamPublicTestSuite) TestPublishToStream() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.PublishToStream(context.Background(), "tasks", []byte("test message"))
+			got, err := mock.PublishToStream(context.Background(), []byte("test message"))
 			if !tc.wantErr {
 				assert.NoError(suite.T(), err)
 				assert.Equal(suite.T(), tc.want, got)

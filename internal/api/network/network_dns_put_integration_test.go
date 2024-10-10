@@ -244,7 +244,7 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 
 				mock := taskClientMocks.NewPlainMockManager(suite.ctrl)
 				mock.EXPECT().
-					PublishToStream(context.Background(), "tasks", []byte("mocked-dns-action")).
+					PublishToStream(context.Background(), []byte("mocked-dns-action")).
 					Return(uint64(1), assert.AnError).
 					AnyTimes()
 
