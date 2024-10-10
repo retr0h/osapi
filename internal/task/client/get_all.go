@@ -65,8 +65,13 @@ func (c *Client) GetAllPaginatedMessages(
 	}
 
 	cons, _ := stream.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
-		InactiveThreshold: 10 * time.Millisecond,
+		AckPolicy: jetstream.AckExplicitPolicy,
+		Durable:   "foo",
 	})
+
+	// cons, _ := stream.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
+	// 	InactiveThreshold: 10 * time.Millisecond,
+	// })
 
 	var messageItems []MessageItem
 

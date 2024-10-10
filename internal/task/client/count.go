@@ -35,6 +35,11 @@ func (c *Client) CountStreamMessages(
 		return 0, fmt.Errorf("error retrieving stream: %w", err)
 	}
 
+	cons, _ := stream.Consumer(ctx, "foo")
+
+	info, _ := cons.Info(ctx)
+	fmt.Println(info)
+
 	streamInfo, err := stream.Info(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("error retrieving stream info: %w", err)

@@ -18,18 +18,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package cmd
+package client
 
 import (
-	"github.com/spf13/cobra"
+	"context"
+	"fmt"
+
+	"github.com/nats-io/nats.go/jetstream"
 )
 
-// queueCmd represents the queue command.
-var queueCmd = &cobra.Command{
-	Use:   "queue",
-	Short: "The queue subcommand",
-}
+// SubscribeToStream returns a JetStream subscription to the specified stream.
+func (c *Client) SubscribeToStream(
+	ctx context.Context,
+	streamName string,
+) (jetstream.Consumer, error) {
+	fmt.Println("DDDD")
 
-func init() {
-	rootCmd.AddCommand(queueCmd)
+	stream, err := c.js.Stream(ctx, streamName)
+	if err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("error retrieving stream: %w", err)
+	}
+
+	fmt.Println(stream)
+	fmt.Println(stream)
+	fmt.Println(stream)
+
+	cons, _ := stream.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
+		AckPolicy: jetstream.AckExplicitPolicy,
+		Durable:   "foo",
+	})
+
+	fmt.Println(cons)
+
+	return cons, nil
 }

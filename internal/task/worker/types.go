@@ -20,19 +20,19 @@
 
 package worker
 
-// import (
-// 	"log/slog"
+import (
+	"log/slog"
 
-// 	"github.com/spf13/afero"
+	"github.com/spf13/afero"
 
-// 	"github.com/retr0h/osapi/internal/config"
-// 	"github.com/retr0h/osapi/internal/queue"
-// )
+	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/task/client"
+)
 
-// // Worker implementation of the queue worker operations.
-// type Worker struct {
-// 	appFs     afero.Fs
-// 	logger    *slog.Logger
-// 	appConfig config.Config
-// 	qm        queue.Manager
-// }
+// Worker implementation of the task worker operations.
+type Worker struct {
+	appFs         afero.Fs
+	logger        *slog.Logger
+	appConfig     config.Config
+	ClientManager client.Manager
+}

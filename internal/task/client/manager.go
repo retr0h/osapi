@@ -22,6 +22,8 @@ package client
 
 import (
 	"context"
+
+	"github.com/nats-io/nats.go/jetstream"
 )
 
 // Manager responsible for Client operations.
@@ -62,4 +64,10 @@ type Manager interface {
 		streamName string,
 		data []byte,
 	) (uint64, error)
+
+	/// REMOVE
+	SubscribeToStream(
+		ctx context.Context,
+		streamName string,
+	) (jetstream.Consumer, error)
 }

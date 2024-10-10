@@ -24,31 +24,20 @@ import (
 	"log/slog"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// queueWorkerCmd represents the queueWorker command.
-var queueWorkerCmd = &cobra.Command{
+// taskWorkerCmd represents the taskWorker command.
+var taskWorkerCmd = &cobra.Command{
 	Use:   "worker",
 	Short: "The worker subcommand",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		logger.Info(
-			"queue worker configuration",
+			"task worker configuration",
 			slog.Bool("debug", appConfig.Debug),
-			slog.Int("queue.poll_interval.seconds", appConfig.Task.PollInterval.Seconds),
 		)
 	},
 }
 
 func init() {
-	queueCmd.AddCommand(queueWorkerCmd)
-
-	queueWorkerCmd.PersistentFlags().
-		IntP("poll-interval-seconds", "", 60, "The interval (in seconds) between polling operations")
-
-	_ = viper.BindPFlag("server.port", queueWorkerCmd.PersistentFlags().Lookup("port"))
-	_ = viper.BindPFlag(
-		"queue.poll_interval.seconds",
-		queueWorkerCmd.PersistentFlags().Lookup("poll-interval-seconds"),
-	)
+	taskCmd.AddCommand(taskWorkerCmd)
 }

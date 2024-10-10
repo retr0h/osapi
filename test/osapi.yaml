@@ -12,10 +12,10 @@ server:
         - http://localhost:3001
         - https://retr0h.github.io
 
-database:
-  driver_name: sqlite
-  data_source_name: file:database.db?_journal=WAL&_timeout=5000&_fk=true
-
 task:
-  poll_interval:
-    seconds: 30
+  server:
+    host: localhost
+    port: 4222
+    trace: true
+    no_log: true
+    file_store_dir: ./nats/jetstream/

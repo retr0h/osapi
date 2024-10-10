@@ -24,25 +24,31 @@ import (
 	// "context"
 
 	"github.com/spf13/cobra"
-	// "github.com/retr0h/osapi/internal/queue"
-	// "github.com/retr0h/osapi/internal/worker"
+
+	"github.com/retr0h/osapi/internal/task/client"
+	"github.com/retr0h/osapi/internal/task/worker"
 )
 
-// queueWorkerStartCmd represents the queueWorkerStart command.
-var queueWorkerStartCmd = &cobra.Command{
+// taskWorkerStartCmd represents the taskWorkerStart command.
+var taskWorkerStartCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start the server",
-	Long: `Start the queue worker.
-It continuously checks the queue every N seconds and processes any tasks.
+	Long: `Start the task worker.
+It processes tasks as they become available.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		// qm.SetupQueue()
+		var clientManager client.Manager = client.New(appConfig, logger)
 
-		// var server worker.ServerManager = worker.New(appFs, appConfig, logger, qm)
-		// server.Run()
+		err := clientManager.Connect()
+		if err != nil {
+			logFatal("failed to set up client", err)
+		}
+
+		var server worker.ServerManager = worker.New(appFs, appConfig, logger, clientManager)
+		server.Run()
 	},
 }
 
 func init() {
-	queueWorkerCmd.AddCommand(queueWorkerStartCmd)
+	taskWorkerCmd.AddCommand(taskWorkerStartCmd)
 }
