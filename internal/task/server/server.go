@@ -31,6 +31,15 @@ import (
 	"github.com/retr0h/osapi/internal/config"
 )
 
+const (
+	// ConsumerName is the durable name of the NATS JetStream consumer.
+	ConsumerName = "osapi"
+	// StreamName represents the NATS JetStream stream to consume from.
+	StreamName = "TASKS"
+	// SubjectName represents the NATS JetStream subject within the "TASKS" stream.
+	SubjectName = "tasks"
+)
+
 // New initialize and configure a new Server instance.
 func New(
 	appConfig config.Config,
@@ -108,12 +117,20 @@ func (s *Server) setupJetStream() error {
 	}
 
 	_, err = js.AddStream(&nats.StreamConfig{
-		Name:     "TASKS",
-		Subjects: []string{"tasks"},
+		Name:     StreamName,
+		Subjects: []string{SubjectName},
 		Storage:  storage,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating stream: %w", err)
+	}
+
+	_, err = js.AddConsumer(StreamName, &nats.ConsumerConfig{
+		Durable:   ConsumerName,
+		AckPolicy: nats.AckExplicitPolicy,
+	})
+	if err != nil {
+		return fmt.Errorf("error creating consumer: %w", err)
 	}
 
 	return nil
