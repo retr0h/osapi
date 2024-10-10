@@ -45,7 +45,12 @@ func (t Task) GetTask(
 		offset = *params.Offset
 	}
 
-	taskItems, err := t.ClientManager.GetAllPaginatedMessages(ctx.Request().Context(), "TASKS", limit, offset)
+	taskItems, err := t.ClientManager.GetAllPaginatedMessages(
+		ctx.Request().Context(),
+		"TASKS",
+		limit,
+		offset,
+	)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.TaskErrorResponse{
 			Error: err.Error(),
