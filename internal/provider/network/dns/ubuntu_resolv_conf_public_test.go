@@ -86,6 +86,13 @@ options edns0`),
 			want:    &dns.Config{},
 			wantErr: true,
 		},
+		{
+			name: "when scanner.Err errors",
+			// Write a large amount of data to trigger scanner's buffer size limit.
+			content: make([]byte, 10*1024*1024),
+			want:    &dns.Config{},
+			wantErr: true,
+		},
 	}
 
 	for _, tc := range tests {
