@@ -782,6 +782,18 @@ func (m *MockPublisher) EXPECT() *MockPublisherMockRecorder {
 	return m.recorder
 }
 
+// CleanupPublisher mocks base method.
+func (m *MockPublisher) CleanupPublisher() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "CleanupPublisher")
+}
+
+// CleanupPublisher indicates an expected call of CleanupPublisher.
+func (mr *MockPublisherMockRecorder) CleanupPublisher() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanupPublisher", reflect.TypeOf((*MockPublisher)(nil).CleanupPublisher))
+}
+
 // Publish mocks base method.
 func (m *MockPublisher) Publish(arg0 context.Context, arg1 string, arg2 []byte, arg3 ...jetstream.PublishOpt) (*jetstream.PubAck, error) {
 	m.ctrl.T.Helper()
@@ -926,6 +938,18 @@ func (m *MockJetStream) AccountInfo(arg0 context.Context) (*jetstream.AccountInf
 func (mr *MockJetStreamMockRecorder) AccountInfo(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountInfo", reflect.TypeOf((*MockJetStream)(nil).AccountInfo), arg0)
+}
+
+// CleanupPublisher mocks base method.
+func (m *MockJetStream) CleanupPublisher() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "CleanupPublisher")
+}
+
+// CleanupPublisher indicates an expected call of CleanupPublisher.
+func (mr *MockJetStreamMockRecorder) CleanupPublisher() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanupPublisher", reflect.TypeOf((*MockJetStream)(nil).CleanupPublisher))
 }
 
 // Consumer mocks base method.
