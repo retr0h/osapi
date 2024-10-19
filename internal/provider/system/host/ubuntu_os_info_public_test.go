@@ -23,41 +23,38 @@ package host_test
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	sysHost "github.com/shirou/gopsutil/v4/host"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/host/mocks"
 )
 
 type UbuntuOSInfoPublicTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuOSInfoPublicTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
-}
+func (suite *UbuntuOSInfoPublicTestSuite) SetupTest() {}
 
-func (suite *UbuntuOSInfoPublicTestSuite) TearDownTest() {
-	suite.ctrl.Finish()
-}
+func (suite *UbuntuOSInfoPublicTestSuite) TearDownTest() {}
 
 func (suite *UbuntuOSInfoPublicTestSuite) TestGetHostname() {
 	tests := []struct {
 		name        string
-		setupMock   func() *mocks.MockProvider
+		setupMock   func() func() (*sysHost.InfoStat, error)
 		want        interface{}
 		wantErr     bool
 		wantErrType error
 	}{
 		{
 			name: "when GetOSInfo Ok",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
+			setupMock: func() func() (*sysHost.InfoStat, error) {
+				return func() (*sysHost.InfoStat, error) {
+					return &sysHost.InfoStat{
+						Platform:        "Ubuntu",
+						PlatformVersion: "24.04",
+					}, nil
+				}
 			},
 			want: &host.OSInfo{
 				Distribution: "Ubuntu",
@@ -66,12 +63,11 @@ func (suite *UbuntuOSInfoPublicTestSuite) TestGetHostname() {
 			wantErr: false,
 		},
 		{
-			name: "when GetOSInfo errors",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetOSInfo().Return(nil, assert.AnError)
-
-				return mock
+			name: "when host.Info errors",
+			setupMock: func() func() (*sysHost.InfoStat, error) {
+				return func() (*sysHost.InfoStat, error) {
+					return nil, assert.AnError
+				}
 			},
 			wantErr:     true,
 			wantErrType: assert.AnError,
@@ -80,15 +76,22 @@ func (suite *UbuntuOSInfoPublicTestSuite) TestGetHostname() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
-			got, err := mock.GetOSInfo()
+			ubuntu := host.NewUbuntuProvider()
 
-			if !tc.wantErr {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			} else {
+			if tc.setupMock != nil {
+				ubuntu.Info = tc.setupMock()
+			}
+
+			got, err := ubuntu.GetOSInfo()
+
+			if tc.wantErr {
 				suite.Error(err)
-				suite.Contains(err.Error(), tc.wantErrType.Error())
+				suite.ErrorContains(err, tc.wantErrType.Error())
+				suite.Nil(got)
+			} else {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(tc.want, got)
 			}
 		})
 	}

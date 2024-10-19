@@ -22,14 +22,12 @@ package host
 
 import (
 	"time"
-
-	"github.com/shirou/gopsutil/v4/host"
 )
 
 // GetUptime retrieves the system uptime.
 // It returns the uptime as a time.Duration, and an error if something goes wrong.
 func (u *Ubuntu) GetUptime() (time.Duration, error) {
-	hostInfo, err := host.Info()
+	hostInfo, err := u.Info()
 	if err != nil {
 		return 0, err
 	}

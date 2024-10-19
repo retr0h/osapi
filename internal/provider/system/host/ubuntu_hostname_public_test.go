@@ -79,12 +79,13 @@ func (suite *UbuntuHostnamePublicTestSuite) TestGetHostname() {
 			got, err := ubuntu.GetHostname()
 
 			if tc.wantErr {
-				suite.Require().Error(err)
-				suite.Require().ErrorContains(err, tc.wantErrType.Error())
-				suite.Require().Empty(got)
+				suite.Error(err)
+				suite.ErrorContains(err, tc.wantErrType.Error())
+				suite.Empty(got)
 			} else {
-				suite.Require().NoError(err)
-				suite.Require().Equal(tc.want, got)
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(tc.want, got)
 			}
 		})
 	}

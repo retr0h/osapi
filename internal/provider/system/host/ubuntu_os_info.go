@@ -22,15 +22,13 @@ package host
 
 import (
 	"fmt"
-
-	"github.com/shirou/gopsutil/v4/host"
 )
 
 // GetOSInfo retrieves information about the operating system, including the
 // distribution name and version. It returns an OSInfo struct containing this
 // data and an error if something goes wrong during the process.
 func (u *Ubuntu) GetOSInfo() (*OSInfo, error) {
-	info, err := host.Info()
+	info, err := u.Info()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get host info: %w", err)
 	}

@@ -1,6 +1,3 @@
-//go:build ubuntu
-// +build ubuntu
-
 // Copyright (c) 2024 John Dewey
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -51,10 +48,19 @@ func (suite *UbuntuAvgPublicTestSuite) TestGetAverageStats() {
 	}{
 		{
 			name: "when GetAverageStats Ok",
+			setupMock: func() func() (*sysLoad.AvgStat, error) {
+				return func() (*sysLoad.AvgStat, error) {
+					return &sysLoad.AvgStat{
+						Load1:  1.0,
+						Load5:  0.5,
+						Load15: 0.2,
+					}, nil
+				}
+			},
 			want: &load.AverageStats{
-				Load1:  0.0, // Expect at least 0.0 or more for 1-minute load.
-				Load5:  0.0, // Expect at least 0.0 or more for 5-minute load.
-				Load15: 0.0, // Expect at least 0.0 or more for 15-minute load.
+				Load1:  1.0,
+				Load5:  0.5,
+				Load15: 0.2,
 			},
 			wantErr: false,
 		},
@@ -82,16 +88,13 @@ func (suite *UbuntuAvgPublicTestSuite) TestGetAverageStats() {
 			got, err := ubuntu.GetAverageStats()
 
 			if tc.wantErr {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.wantErrType)
-				suite.Require().Nil(got)
+				suite.Error(err)
+				suite.ErrorContains(err, tc.wantErrType.Error())
+				suite.Nil(got)
 			} else {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(got)
-
-				suite.GreaterOrEqual(got.Load1, tc.want.Load1)
-				suite.GreaterOrEqual(got.Load5, tc.want.Load5)
-				suite.GreaterOrEqual(got.Load15, tc.want.Load15)
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(tc.want, got)
 			}
 		})
 	}

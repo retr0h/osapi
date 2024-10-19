@@ -24,51 +24,45 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
+	sysHost "github.com/shirou/gopsutil/v4/host"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/provider/system/host/mocks"
+	"github.com/retr0h/osapi/internal/provider/system/host"
 )
 
 type UbuntuUptimePublicTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuUptimePublicTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
-}
+func (suite *UbuntuUptimePublicTestSuite) SetupTest() {}
 
-func (suite *UbuntuUptimePublicTestSuite) TearDownTest() {
-	suite.ctrl.Finish()
-}
+func (suite *UbuntuUptimePublicTestSuite) TearDownTest() {}
 
 func (suite *UbuntuUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {
 		name        string
-		setupMock   func() *mocks.MockProvider
+		setupMock   func() func() (*sysHost.InfoStat, error)
 		want        interface{}
 		wantErr     bool
 		wantErrType error
 	}{
 		{
 			name: "when GetUptime Ok",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
+			setupMock: func() func() (*sysHost.InfoStat, error) {
+				return func() (*sysHost.InfoStat, error) {
+					return &sysHost.InfoStat{Uptime: 5 * 3600}, nil
+				}
 			},
 			want:    time.Hour * 5,
 			wantErr: false,
 		},
 		{
-			name: "when GetUptime errors",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetUptime().Return(0*time.Second, assert.AnError)
-
-				return mock
+			name: "when host.Info errors",
+			setupMock: func() func() (*sysHost.InfoStat, error) {
+				return func() (*sysHost.InfoStat, error) {
+					return nil, assert.AnError
+				}
 			},
 			wantErr:     true,
 			wantErrType: assert.AnError,
@@ -77,15 +71,22 @@ func (suite *UbuntuUptimePublicTestSuite) TestGetUptime() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
-			got, err := mock.GetUptime()
+			ubuntu := host.NewUbuntuProvider()
 
-			if !tc.wantErr {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			} else {
+			if tc.setupMock != nil {
+				ubuntu.Info = tc.setupMock()
+			}
+
+			got, err := ubuntu.GetUptime()
+
+			if tc.wantErr {
 				suite.Error(err)
-				suite.Contains(err.Error(), tc.wantErrType.Error())
+				suite.ErrorContains(err, tc.wantErrType.Error())
+				suite.Equal(time.Duration(0), got)
+			} else {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(tc.want, got)
 			}
 		})
 	}

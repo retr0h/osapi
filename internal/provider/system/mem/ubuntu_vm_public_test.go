@@ -1,6 +1,3 @@
-//go:build ubuntu
-// +build ubuntu
-
 // Copyright (c) 2024 John Dewey
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -50,12 +47,20 @@ func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 		wantErrType error
 	}{
 		{
-			name:      "when GetStats Ok",
-			setupMock: nil,
+			name: "when GetStats Ok",
+			setupMock: func() func() (*sysMem.VirtualMemoryStat, error) {
+				return func() (*sysMem.VirtualMemoryStat, error) {
+					return &sysMem.VirtualMemoryStat{
+						Total:  1024,
+						Free:   512,
+						Cached: 256,
+					}, nil
+				}
+			},
 			want: &mem.Stats{
-				Total:  1, // Expect at least 1 byte of total memory
-				Free:   0, // Free memory can be zero or more
-				Cached: 0, // Cached memory can be zero or more
+				Total:  1024,
+				Free:   512,
+				Cached: 256,
 			},
 			wantErr: false,
 		},
@@ -83,16 +88,13 @@ func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 			got, err := ubuntu.GetStats()
 
 			if tc.wantErr {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.wantErrType)
-				suite.Require().Nil(got)
+				suite.Error(err)
+				suite.ErrorContains(err, tc.wantErrType.Error())
+				suite.Nil(got)
 			} else {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(got)
-
-				suite.Greater(got.Total, tc.want.Total)
-				suite.GreaterOrEqual(got.Free, tc.want.Free)
-				suite.GreaterOrEqual(got.Cached, tc.want.Cached)
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(tc.want, got)
 			}
 		})
 	}
