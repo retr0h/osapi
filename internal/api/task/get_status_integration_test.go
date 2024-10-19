@@ -34,7 +34,6 @@ import (
 	"github.com/retr0h/osapi/internal/api/task"
 	taskGen "github.com/retr0h/osapi/internal/api/task/gen"
 	"github.com/retr0h/osapi/internal/config"
-	"github.com/retr0h/osapi/internal/task/client"
 	"github.com/retr0h/osapi/internal/task/client/mocks"
 )
 
@@ -77,13 +76,10 @@ func (suite *GetTaskStatusIntegrationTestSuite) TestGetTaskStatus() {
 		},
 		{
 			name: "when CountStreamMessages errors",
-			path: "/task",
+			path: "/task/status",
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
-				mock.EXPECT().
-					ListUndeliveredMessages(context.Background()).
-					Return([]client.MessageItem{}, nil).
-					AnyTimes()
+
 				mock.EXPECT().
 					CountStreamMessages(context.Background()).
 					Return(0, assert.AnError).
