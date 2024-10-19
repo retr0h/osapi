@@ -28,5 +28,5 @@ import (
 // It returns a Stats struct with total, free, and cached memory in
 // bytes, and an error if something goes wrong.
 func (l *Linux) GetStats() (*Stats, error) {
-	return nil, fmt.Errorf("GetStats is not implemented for DefaultLinuxProvider")
+	return nil, fmt.Errorf("GetStats is not implemented for LinuxProvider")
 }

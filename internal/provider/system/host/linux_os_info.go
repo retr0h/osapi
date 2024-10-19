@@ -28,5 +28,5 @@ import (
 // distribution name and version. It returns an OSInfo struct containing this
 // data and an error if something goes wrong during the process.
 func (l *Linux) GetOSInfo() (*OSInfo, error) {
-	return nil, fmt.Errorf("GetOSInfo is not implemented for DefaultLinuxProvider")
+	return nil, fmt.Errorf("GetOSInfo is not implemented for LinuxProvider")
 }

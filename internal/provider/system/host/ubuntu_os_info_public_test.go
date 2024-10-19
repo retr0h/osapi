@@ -30,15 +30,15 @@ import (
 	"github.com/retr0h/osapi/internal/provider/system/host"
 )
 
-type UbuntuOSInfoPublicTestSuite struct {
+type UbuntuGetOSInfoPublicTestSuite struct {
 	suite.Suite
 }
 
-func (suite *UbuntuOSInfoPublicTestSuite) SetupTest() {}
+func (suite *UbuntuGetOSInfoPublicTestSuite) SetupTest() {}
 
-func (suite *UbuntuOSInfoPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuGetOSInfoPublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuOSInfoPublicTestSuite) TestGetHostname() {
+func (suite *UbuntuGetOSInfoPublicTestSuite) TestGetHostname() {
 	tests := []struct {
 		name        string
 		setupMock   func() func() (*sysHost.InfoStat, error)
@@ -79,7 +79,7 @@ func (suite *UbuntuOSInfoPublicTestSuite) TestGetHostname() {
 			ubuntu := host.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				ubuntu.Info = tc.setupMock()
+				ubuntu.InfoFunc = tc.setupMock()
 			}
 
 			got, err := ubuntu.GetOSInfo()
@@ -99,6 +99,6 @@ func (suite *UbuntuOSInfoPublicTestSuite) TestGetHostname() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuOSInfoPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuOSInfoPublicTestSuite))
+func TestUbuntuGetOSInfoPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuGetOSInfoPublicTestSuite))
 }

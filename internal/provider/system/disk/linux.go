@@ -29,8 +29,8 @@ type Linux struct {
 	logger *slog.Logger
 }
 
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider(
+// NewLinuxProvider factory to create a new Linux instance.
+func NewLinuxProvider(
 	logger *slog.Logger,
 ) *Linux {
 	return &Linux{

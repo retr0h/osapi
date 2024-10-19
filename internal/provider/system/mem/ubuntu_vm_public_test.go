@@ -30,15 +30,15 @@ import (
 	"github.com/retr0h/osapi/internal/provider/system/mem"
 )
 
-type UbuntuVMPublicTestSuite struct {
+type UbuntuGetStatsPublicTestSuite struct {
 	suite.Suite
 }
 
-func (suite *UbuntuVMPublicTestSuite) SetupTest() {}
+func (suite *UbuntuGetStatsPublicTestSuite) SetupTest() {}
 
-func (suite *UbuntuVMPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuGetStatsPublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
+func (suite *UbuntuGetStatsPublicTestSuite) TestGetStats() {
 	tests := []struct {
 		name        string
 		setupMock   func() func() (*sysMem.VirtualMemoryStat, error)
@@ -82,7 +82,7 @@ func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 			ubuntu := mem.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				ubuntu.VirtualMemory = tc.setupMock()
+				ubuntu.VirtualMemoryFunc = tc.setupMock()
 			}
 
 			got, err := ubuntu.GetStats()
@@ -102,6 +102,6 @@ func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuVMPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuVMPublicTestSuite))
+func TestUbuntuGetStatsPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuGetStatsPublicTestSuite))
 }

@@ -18,18 +18,36 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package host
+package host_test
 
 import (
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/retr0h/osapi/internal/provider/system/host"
 )
 
-// GetUptime retrieves the system uptime.
-// It returns the uptime as a time.Duration, and an error if something goes wrong.
-func (u *Ubuntu) GetUptime() (time.Duration, error) {
-	hostInfo, err := u.InfoFunc()
-	if err != nil {
-		return 0, err
-	}
-	return time.Duration(hostInfo.Uptime) * time.Second, nil
+type LinuxGetUptimePublicTestSuite struct {
+	suite.Suite
+}
+
+func (suite *LinuxGetUptimePublicTestSuite) SetupTest() {}
+
+func (suite *LinuxGetUptimePublicTestSuite) TearDownTest() {}
+
+func (suite *LinuxGetUptimePublicTestSuite) TestGetUptime() {
+	linux := host.NewLinuxProvider()
+
+	got, err := linux.GetUptime()
+
+	suite.Equal(time.Duration(0), got)
+	suite.EqualError(err, "GetUptime is not implemented for LinuxProvider")
+}
+
+// In order for `go test` to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run.
+func TestLinuxGetUptimePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(LinuxGetUptimePublicTestSuite))
 }

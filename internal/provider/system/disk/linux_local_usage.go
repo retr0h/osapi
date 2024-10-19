@@ -29,5 +29,5 @@ import (
 // and free space in bytes for the corresponding local disk.
 // An error is returned if somethng goes wrong.
 func (l *Linux) GetLocalUsageStats() ([]UsageStats, error) {
-	return nil, fmt.Errorf("GetLocalUsageStats is not implemented for DefaultLinuxProvider")
+	return nil, fmt.Errorf("GetLocalUsageStats is not implemented for LinuxProvider")
 }

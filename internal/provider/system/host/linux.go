@@ -23,7 +23,7 @@ package host
 // Linux implements the Load interface for Linux.
 type Linux struct{}
 
-// NewDefaultLinuxProvider factory to create a new Linux instance.
-func NewDefaultLinuxProvider() *Linux {
+// NewLinuxProvider factory to create a new Linux instance.
+func NewLinuxProvider() *Linux {
 	return &Linux{}
 }

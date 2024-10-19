@@ -26,12 +26,12 @@ import (
 
 // Ubuntu implements the Mem interface for Ubuntu.
 type Ubuntu struct {
-	Info func() (*host.InfoStat, error)
+	InfoFunc func() (*host.InfoStat, error)
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider() *Ubuntu {
 	return &Ubuntu{
-		Info: host.Info,
+		InfoFunc: host.Info,
 	}
 }

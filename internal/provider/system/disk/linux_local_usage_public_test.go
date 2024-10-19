@@ -18,18 +18,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package host
+package disk_test
 
 import (
-	"time"
+	"log/slog"
+	"os"
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/retr0h/osapi/internal/provider/system/disk"
 )
 
-// GetUptime retrieves the system uptime.
-// It returns the uptime as a time.Duration, and an error if something goes wrong.
-func (u *Ubuntu) GetUptime() (time.Duration, error) {
-	hostInfo, err := u.InfoFunc()
-	if err != nil {
-		return 0, err
-	}
-	return time.Duration(hostInfo.Uptime) * time.Second, nil
+type LinuxGetLocalUsageStatsPublicTestSuite struct {
+	suite.Suite
+
+	logger *slog.Logger
+}
+
+func (suite *LinuxGetLocalUsageStatsPublicTestSuite) SetupTest() {
+	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+}
+
+func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TearDownTest() {}
+
+func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
+	linux := disk.NewLinuxProvider(suite.logger)
+
+	got, err := linux.GetLocalUsageStats()
+
+	suite.Empty(got)
+	suite.EqualError(err, "GetLocalUsageStats is not implemented for LinuxProvider")
+}
+
+// In order for `go test` to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run.
+func TestLinuxGetLocalUsageStatsPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(LinuxGetLocalUsageStatsPublicTestSuite))
 }

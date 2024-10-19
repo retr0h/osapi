@@ -28,5 +28,5 @@ import (
 // It returns a AverageStats struct with load over 1, 5, and 15 minutes,
 // and an error if something goes wrong.
 func (l *Linux) GetAverageStats() (*AverageStats, error) {
-	return nil, fmt.Errorf("GetAverage is not implemented for DefaultLinuxProvider")
+	return nil, fmt.Errorf("GetAverageStats is not implemented for LinuxProvider")
 }

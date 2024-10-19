@@ -31,15 +31,15 @@ import (
 	"github.com/retr0h/osapi/internal/provider/system/host"
 )
 
-type UbuntuUptimePublicTestSuite struct {
+type UbuntuGetUptimePublicTestSuite struct {
 	suite.Suite
 }
 
-func (suite *UbuntuUptimePublicTestSuite) SetupTest() {}
+func (suite *UbuntuGetUptimePublicTestSuite) SetupTest() {}
 
-func (suite *UbuntuUptimePublicTestSuite) TearDownTest() {}
+func (suite *UbuntuGetUptimePublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuUptimePublicTestSuite) TestGetUptime() {
+func (suite *UbuntuGetUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {
 		name        string
 		setupMock   func() func() (*sysHost.InfoStat, error)
@@ -74,7 +74,7 @@ func (suite *UbuntuUptimePublicTestSuite) TestGetUptime() {
 			ubuntu := host.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				ubuntu.Info = tc.setupMock()
+				ubuntu.InfoFunc = tc.setupMock()
 			}
 
 			got, err := ubuntu.GetUptime()
@@ -94,6 +94,6 @@ func (suite *UbuntuUptimePublicTestSuite) TestGetUptime() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuUptimePublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuUptimePublicTestSuite))
+func TestUbuntuGetUptimePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuGetUptimePublicTestSuite))
 }

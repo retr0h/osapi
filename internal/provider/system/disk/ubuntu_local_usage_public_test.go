@@ -21,43 +21,99 @@
 package disk_test
 
 import (
+	"fmt"
+	"log/slog"
+	"os"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	sysDisk "github.com/shirou/gopsutil/v4/disk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/provider/system/disk"
-	"github.com/retr0h/osapi/internal/provider/system/disk/mocks"
 )
 
-type UbuntuLocalUsagePublicTestSuite struct {
+type UbuntuGetLocalUsageStatsPublicTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
+
+	logger *slog.Logger
 }
 
-func (suite *UbuntuLocalUsagePublicTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
+func (suite *UbuntuGetLocalUsageStatsPublicTestSuite) SetupTest() {
+	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *UbuntuLocalUsagePublicTestSuite) TearDownTest() {
-	suite.ctrl.Finish()
+func (suite *UbuntuGetLocalUsageStatsPublicTestSuite) TearDownTest() {
+	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *UbuntuLocalUsagePublicTestSuite) TestGetLocalUsageStats() {
+func (suite *UbuntuGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {
 		name        string
-		setupMock   func() *mocks.MockProvider
+		setupMock   func(*disk.Ubuntu)
 		want        interface{}
 		wantErr     bool
 		wantErrType error
 	}{
 		{
 			name: "when GetLocalUsageStats Ok",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
+			setupMock: func(u *disk.Ubuntu) {
+				u.PartitionsFunc = func(all bool) ([]sysDisk.PartitionStat, error) {
+					return []sysDisk.PartitionStat{
+						{
+							Mountpoint: "/dev/disk1",
+							Device:     "/dev/disk1",
+							Fstype:     "ext4",
+						},
+						{
+							Mountpoint: "/dev/disk2",
+							Device:     "/dev/disk2",
+							Fstype:     "xfs",
+						},
+						{
+							Mountpoint: "/network",
+							Device:     "network",
+							Fstype:     "nfs",
+						},
+						{
+							Mountpoint: "/docker",
+							Device:     "docker",
+							Fstype:     "overlay",
+						},
+						{
+							Mountpoint: "/empty",
+							Device:     "",
+							Fstype:     "",
+						},
+						{
+							Mountpoint: "/restricted",
+							Device:     "/restricted",
+							Fstype:     "ext4",
+						}, // Permission denied.
+					}, nil
+				}
+				u.UsageFunc = func(path string) (*sysDisk.UsageStat, error) {
+					switch path {
+					case "/dev/disk1":
+						return &sysDisk.UsageStat{
+							Path:  "/dev/disk1",
+							Total: 500000000000,
+							Used:  250000000000,
+							Free:  250000000000,
+						}, nil
+					case "/dev/disk2":
+						return &sysDisk.UsageStat{
+							Path:  "/dev/disk2",
+							Total: 1000000000000,
+							Used:  750000000000,
+							Free:  250000000000,
+						}, nil
+					case "/restricted":
+						return nil, fmt.Errorf("permission denied")
+					default:
+						return nil, fmt.Errorf("partition not found")
+					}
+				}
 			},
 			want: []disk.UsageStats{
 				{
@@ -66,16 +122,41 @@ func (suite *UbuntuLocalUsagePublicTestSuite) TestGetLocalUsageStats() {
 					Used:  250000000000,
 					Free:  250000000000,
 				},
+				{
+					Name:  "/dev/disk2",
+					Total: 1000000000000,
+					Used:  750000000000,
+					Free:  250000000000,
+				},
 			},
+
 			wantErr: false,
 		},
 		{
-			name: "when GetLocalUsageStats errors",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetLocalUsageStats().Return(nil, assert.AnError)
-
-				return mock
+			name: "when disk.Partitions errors",
+			setupMock: func(u *disk.Ubuntu) {
+				u.PartitionsFunc = func(all bool) ([]sysDisk.PartitionStat, error) {
+					return nil, assert.AnError
+				}
+			},
+			wantErr:     true,
+			wantErrType: assert.AnError,
+		},
+		{
+			name: "when disk.Usage errors",
+			setupMock: func(u *disk.Ubuntu) {
+				u.PartitionsFunc = func(all bool) ([]sysDisk.PartitionStat, error) {
+					return []sysDisk.PartitionStat{
+						{
+							Mountpoint: "/dev/disk1",
+							Device:     "/dev/disk1",
+							Fstype:     "ext4",
+						},
+					}, nil
+				}
+				u.UsageFunc = func(path string) (*sysDisk.UsageStat, error) {
+					return nil, assert.AnError
+				}
 			},
 			wantErr:     true,
 			wantErrType: assert.AnError,
@@ -84,15 +165,22 @@ func (suite *UbuntuLocalUsagePublicTestSuite) TestGetLocalUsageStats() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
-			got, err := mock.GetLocalUsageStats()
+			ubuntu := disk.NewUbuntuProvider(suite.logger)
 
-			if !tc.wantErr {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			} else {
+			if tc.setupMock != nil {
+				tc.setupMock(ubuntu)
+			}
+
+			got, err := ubuntu.GetLocalUsageStats()
+
+			if tc.wantErr {
 				suite.Error(err)
-				suite.Contains(err.Error(), tc.wantErrType.Error())
+				suite.ErrorContains(err, tc.wantErrType.Error())
+				suite.Nil(got)
+			} else {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(tc.want, got)
 			}
 		})
 	}
@@ -100,6 +188,6 @@ func (suite *UbuntuLocalUsagePublicTestSuite) TestGetLocalUsageStats() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuLocalUsagePublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuLocalUsagePublicTestSuite))
+func TestUbuntuGetLocalUsageStatsPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuGetLocalUsageStatsPublicTestSuite))
 }

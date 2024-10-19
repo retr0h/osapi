@@ -22,11 +22,15 @@ package disk
 
 import (
 	"log/slog"
+
+	"github.com/shirou/gopsutil/v4/disk"
 )
 
 // Ubuntu implements the Mem interface for Ubuntu.
 type Ubuntu struct {
-	logger *slog.Logger
+	logger         *slog.Logger
+	PartitionsFunc func(all bool) ([]disk.PartitionStat, error)
+	UsageFunc      func(path string) (*disk.UsageStat, error)
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
@@ -34,6 +38,8 @@ func NewUbuntuProvider(
 	logger *slog.Logger,
 ) *Ubuntu {
 	return &Ubuntu{
-		logger: logger,
+		logger:         logger,
+		PartitionsFunc: disk.Partitions,
+		UsageFunc:      disk.Usage,
 	}
 }

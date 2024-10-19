@@ -27,5 +27,5 @@ import (
 // GetHostname retrieves the hostname of the system.
 // It returns the hostname as a string, and an error if something goes wrong.
 func (dls *Linux) GetHostname() (string, error) {
-	return "", fmt.Errorf("GetHostname is not implemented for DefaultLinuxProvider")
+	return "", fmt.Errorf("GetHostname is not implemented for LinuxProvider")
 }

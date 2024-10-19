@@ -49,10 +49,10 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 		hostProvider = host.NewUbuntuProvider()
 		diskProvider = disk.NewUbuntuProvider(s.logger)
 	default:
-		memProvider = mem.NewDefaultLinuxProvider()
-		loadProvider = load.NewDefaultLinuxProvider()
-		hostProvider = host.NewDefaultLinuxProvider()
-		diskProvider = disk.NewDefaultLinuxProvider(s.logger)
+		memProvider = mem.NewLinuxProvider()
+		loadProvider = load.NewLinuxProvider()
+		hostProvider = host.NewLinuxProvider()
+		diskProvider = disk.NewLinuxProvider(s.logger)
 	}
 
 	return []func(e *echo.Echo){

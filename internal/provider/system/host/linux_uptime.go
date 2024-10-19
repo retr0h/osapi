@@ -28,5 +28,5 @@ import (
 // GetUptime retrieves the system uptime.
 // It returns the uptime as a time.Duration, and an error if something goes wrong.
 func (l *Linux) GetUptime() (time.Duration, error) {
-	return 0, fmt.Errorf("GetUptime is not implemented for DefaultLinuxProvider")
+	return 0, fmt.Errorf("GetUptime is not implemented for LinuxProvider")
 }

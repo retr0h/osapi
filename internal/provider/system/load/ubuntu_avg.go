@@ -24,7 +24,7 @@ package load
 // It returns a AverageStats struct with load over 1, 5, and 15 minutes,
 // and an error if something goes wrong.
 func (u *Ubuntu) GetAverageStats() (*AverageStats, error) {
-	avg, err := u.Avg()
+	avg, err := u.AvgFunc()
 	if err != nil {
 		return nil, err
 	}
