@@ -20,10 +20,18 @@
 
 package load
 
+import (
+	"github.com/shirou/gopsutil/v4/load"
+)
+
 // Ubuntu implements the Mem interface for Ubuntu.
-type Ubuntu struct{}
+type Ubuntu struct {
+	Avg func() (*load.AvgStat, error)
+}
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider() *Ubuntu {
-	return &Ubuntu{}
+	return &Ubuntu{
+		Avg: load.Avg,
+	}
 }

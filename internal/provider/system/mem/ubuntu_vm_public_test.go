@@ -44,7 +44,7 @@ func (suite *UbuntuVMPublicTestSuite) TearDownTest() {}
 func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 	tests := []struct {
 		name        string
-		setupMock   func() func() (*sysMem.VirtualMemoryStat, error) // Return the mock function
+		setupMock   func() func() (*sysMem.VirtualMemoryStat, error)
 		want        *mem.Stats
 		wantErr     bool
 		wantErrType error
@@ -74,13 +74,13 @@ func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			up := mem.NewUbuntuProvider()
+			ubuntu := mem.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				up.VirtualMemory = tc.setupMock()
+				ubuntu.VirtualMemory = tc.setupMock()
 			}
 
-			got, err := up.GetStats()
+			got, err := ubuntu.GetStats()
 
 			if tc.wantErr {
 				suite.Require().Error(err)

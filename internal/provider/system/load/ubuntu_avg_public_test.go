@@ -1,3 +1,6 @@
+//go:build ubuntu
+// +build ubuntu
+
 // Copyright (c) 2024 John Dewey
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,53 +26,46 @@ package load_test
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	sysLoad "github.com/shirou/gopsutil/v4/load"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/load/mocks"
 )
 
 type UbuntuAvgPublicTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuAvgPublicTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
-}
+func (suite *UbuntuAvgPublicTestSuite) SetupTest() {}
 
-func (suite *UbuntuAvgPublicTestSuite) TearDownTest() {
-	suite.ctrl.Finish()
-}
+func (suite *UbuntuAvgPublicTestSuite) TearDownTest() {}
 
 func (suite *UbuntuAvgPublicTestSuite) TestGetAverageStats() {
 	tests := []struct {
 		name        string
-		setupMock   func() *mocks.MockProvider
-		want        interface{}
+		setupMock   func() func() (*sysLoad.AvgStat, error)
+		want        *load.AverageStats
 		wantErr     bool
 		wantErrType error
 	}{
 		{
 			name: "when GetAverageStats Ok",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
+			want: &load.AverageStats{
+				Load1:  0.0, // Expect at least 0.0 or more for 1-minute load.
+				Load5:  0.0, // Expect at least 0.0 or more for 5-minute load.
+				Load15: 0.0, // Expect at least 0.0 or more for 15-minute load.
 			},
-			want:    &load.AverageStats{1.0, 0.5, 0.2},
 			wantErr: false,
 		},
 		{
-			name: "when GetAverageStats errors",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetAverageStats().Return(nil, assert.AnError)
-
-				return mock
+			name: "when load.Avg errors",
+			setupMock: func() func() (*sysLoad.AvgStat, error) {
+				return func() (*sysLoad.AvgStat, error) {
+					return nil, assert.AnError // Simulate an error
+				}
 			},
+			want:        nil,
 			wantErr:     true,
 			wantErrType: assert.AnError,
 		},
@@ -77,15 +73,25 @@ func (suite *UbuntuAvgPublicTestSuite) TestGetAverageStats() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
-			got, err := mock.GetAverageStats()
+			ubuntu := load.NewUbuntuProvider()
 
-			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
-				assert.Equal(suite.T(), tc.want, got)
+			if tc.setupMock != nil {
+				ubuntu.Avg = tc.setupMock()
+			}
+
+			got, err := ubuntu.GetAverageStats()
+
+			if tc.wantErr {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.wantErrType)
+				suite.Require().Nil(got)
 			} else {
-				assert.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+				suite.Require().NoError(err)
+				suite.Require().NotNil(got)
+
+				suite.GreaterOrEqual(got.Load1, tc.want.Load1)
+				suite.GreaterOrEqual(got.Load5, tc.want.Load5)
+				suite.GreaterOrEqual(got.Load15, tc.want.Load15)
 			}
 		})
 	}
