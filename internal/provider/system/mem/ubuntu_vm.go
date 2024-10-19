@@ -20,17 +20,13 @@
 
 package mem
 
-import (
-	"github.com/shirou/gopsutil/v4/mem"
-)
-
 // GetStats retrieves memory statistics of the system.
 // It returns a Stats struct with total, free, and cached memory in
 // bytes, and an error if something goes wrong.
 func (u *Ubuntu) GetStats() (*Stats, error) {
-	memInfo, err := mem.VirtualMemory()
+	memInfo, err := u.VirtualMemory()
 	if err != nil {
-		return &Stats{}, err
+		return nil, err
 	}
 
 	return &Stats{

@@ -5,6 +5,13 @@ vars:
   GIT_ROOT:
     sh: git rev-parse --show-toplevel
   MAIN_PACKAGE: main.go
+  OS_TAGS:
+    sh: |
+      if grep -iq "ubuntu" /etc/os-release; then
+        echo "-tags=ubuntu"
+      else
+        echo ""
+      fi
 
 includes:
   docs:
@@ -44,12 +51,12 @@ tasks:
   run:
     desc: Compile and run Go program
     cmds:
-      - go run {{ .MAIN_PACKAGE }} {{.CLI_ARGS}}
+      - go run {{ .MAIN_PACKAGE }} {{ .CLI_ARGS }}
 
   unit:
     desc: Test packages
     cmds:
-      - go test -parallel 5 -race -v ./...
+      - go test {{ .OS_TAGS }} -parallel 5 -race -v ./...
 
   unit:int:
     desc: Integration test packages
@@ -71,7 +78,7 @@ tasks:
       # https://github.com/golang/go/issues/65570
       GOEXPERIMENT: nocoverageredesign
     cmds:
-      - go test -race -coverprofile=cover.out -v $(go list ./...)
+      - go test {{ .OS_TAGS }} -race -coverprofile=cover.out -v $(go list ./...)
       - gocover-cobertura --ignore-files mock.go < cover.out > cobertura.xml
       - go tool cover -func=cover.out
 

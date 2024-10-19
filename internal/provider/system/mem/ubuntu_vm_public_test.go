@@ -1,3 +1,6 @@
+//go:build ubuntu
+// +build ubuntu
+
 // Copyright (c) 2024 John Dewey
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,57 +26,47 @@ package mem_test
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	sysMem "github.com/shirou/gopsutil/v4/mem"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/provider/system/mem"
-	"github.com/retr0h/osapi/internal/provider/system/mem/mocks"
 )
 
 type UbuntuVMPublicTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuVMPublicTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
-}
+func (suite *UbuntuVMPublicTestSuite) SetupTest() {}
 
-func (suite *UbuntuVMPublicTestSuite) TearDownTest() {
-	suite.ctrl.Finish()
-}
+func (suite *UbuntuVMPublicTestSuite) TearDownTest() {}
 
 func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 	tests := []struct {
 		name        string
-		setupMock   func() *mocks.MockProvider
-		want        interface{}
+		setupMock   func() func() (*sysMem.VirtualMemoryStat, error) // Return the mock function
+		want        *mem.Stats
 		wantErr     bool
 		wantErrType error
 	}{
 		{
-			name: "when GetStats Ok",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
-			},
+			name:      "when GetStats Ok",
+			setupMock: nil,
 			want: &mem.Stats{
-				Total:  8388608,
-				Free:   4194304,
-				Cached: 2097152,
+				Total:  1, // Expect at least 1 byte of total memory
+				Free:   0, // Free memory can be zero or more
+				Cached: 0, // Cached memory can be zero or more
 			},
 			wantErr: false,
 		},
 		{
-			name: "when GetStats errors",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetStats().Return(nil, assert.AnError)
-
-				return mock
+			name: "when mem.VirtualMemory errors",
+			setupMock: func() func() (*sysMem.VirtualMemoryStat, error) {
+				return func() (*sysMem.VirtualMemoryStat, error) {
+					return nil, assert.AnError
+				}
 			},
+			want:        nil,
 			wantErr:     true,
 			wantErrType: assert.AnError,
 		},
@@ -81,15 +74,25 @@ func (suite *UbuntuVMPublicTestSuite) TestGetStats() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
-			got, err := mock.GetStats()
+			up := mem.NewUbuntuProvider()
 
-			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
-				assert.Equal(suite.T(), tc.want, got)
+			if tc.setupMock != nil {
+				up.VirtualMemory = tc.setupMock()
+			}
+
+			got, err := up.GetStats()
+
+			if tc.wantErr {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.wantErrType)
+				suite.Require().Nil(got)
 			} else {
-				assert.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+				suite.Require().NoError(err)
+				suite.Require().NotNil(got)
+
+				suite.Greater(got.Total, tc.want.Total)
+				suite.GreaterOrEqual(got.Free, tc.want.Free)
+				suite.GreaterOrEqual(got.Cached, tc.want.Cached)
 			}
 		})
 	}
