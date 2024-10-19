@@ -23,51 +23,45 @@ package host_test
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	sysHost "github.com/shirou/gopsutil/v4/host"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/osapi/internal/provider/system/host/mocks"
+	"github.com/retr0h/osapi/internal/provider/system/host"
 )
 
 type UbuntuHostnamePublicTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
 }
 
-func (suite *UbuntuHostnamePublicTestSuite) SetupTest() {
-	suite.ctrl = gomock.NewController(suite.T())
-}
+func (suite *UbuntuHostnamePublicTestSuite) SetupTest() {}
 
-func (suite *UbuntuHostnamePublicTestSuite) TearDownTest() {
-	suite.ctrl.Finish()
-}
+func (suite *UbuntuHostnamePublicTestSuite) TearDownTest() {}
 
 func (suite *UbuntuHostnamePublicTestSuite) TestGetHostname() {
 	tests := []struct {
 		name        string
-		setupMock   func() *mocks.MockProvider
+		setupMock   func() func() (*sysHost.InfoStat, error)
 		want        interface{}
 		wantErr     bool
 		wantErrType error
 	}{
 		{
 			name: "when GetHostname Ok",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
-
-				return mock
+			setupMock: func() func() (*sysHost.InfoStat, error) {
+				return func() (*sysHost.InfoStat, error) {
+					return &sysHost.InfoStat{Hostname: "default-hostname"}, nil
+				}
 			},
 			want:    "default-hostname",
 			wantErr: false,
 		},
 		{
-			name: "when GetHostname errors",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetHostname().Return("", assert.AnError)
-
-				return mock
+			name: "when host.Info errors",
+			setupMock: func() func() (*sysHost.InfoStat, error) {
+				return func() (*sysHost.InfoStat, error) {
+					return nil, assert.AnError
+				}
 			},
 			wantErr:     true,
 			wantErrType: assert.AnError,
@@ -76,15 +70,21 @@ func (suite *UbuntuHostnamePublicTestSuite) TestGetHostname() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			mock := tc.setupMock()
-			got, err := mock.GetHostname()
+			ubuntu := host.NewUbuntuProvider()
 
-			if !tc.wantErr {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
+			if tc.setupMock != nil {
+				ubuntu.Info = tc.setupMock()
+			}
+
+			got, err := ubuntu.GetHostname()
+
+			if tc.wantErr {
+				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.wantErrType.Error())
+				suite.Require().Empty(got)
 			} else {
-				suite.Error(err)
-				suite.Contains(err.Error(), tc.wantErrType.Error())
+				suite.Require().NoError(err)
+				suite.Require().Equal(tc.want, got)
 			}
 		})
 	}

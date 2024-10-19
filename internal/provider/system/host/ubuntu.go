@@ -20,10 +20,18 @@
 
 package host
 
+import (
+	"github.com/shirou/gopsutil/v4/host"
+)
+
 // Ubuntu implements the Mem interface for Ubuntu.
-type Ubuntu struct{}
+type Ubuntu struct {
+	Info func() (*host.InfoStat, error)
+}
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider() *Ubuntu {
-	return &Ubuntu{}
+	return &Ubuntu{
+		Info: host.Info,
+	}
 }
