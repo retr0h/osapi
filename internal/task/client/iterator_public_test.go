@@ -110,11 +110,11 @@ func (suite *GetMessageIteratorPublicTestSuite) TestGetMessageIterator() {
 			got, err := suite.client.GetMessageIterator(context.Background())
 
 			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
-				assert.Equal(suite.T(), tc.want, got)
+				suite.NoError(err)
+				suite.Equal(tc.want, got)
 			} else {
-				assert.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+				suite.Error(err)
+				suite.Contains(err.Error(), tc.wantErrType.Error())
 			}
 		})
 	}

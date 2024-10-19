@@ -25,7 +25,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -91,7 +90,7 @@ func (suite *SystemStatusGetTestSuite) TestFormatDurationOk() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			got := formatDuration(tc.input)
-			assert.Equal(suite.T(), tc.want, got)
+			suite.Equal(tc.want, got)
 		})
 	}
 }
@@ -127,7 +126,7 @@ func (suite *SystemStatusGetTestSuite) TestUint64ToInt() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			result := uint64ToInt(tc.input)
-			assert.Equal(suite.T(), tc.want, result)
+			suite.Equal(tc.want, result)
 		})
 	}
 }

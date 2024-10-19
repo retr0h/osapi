@@ -275,9 +275,9 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 			a.Echo.ServeHTTP(rec, req)
 
 			if tc.wantCode == http.StatusAccepted {
-				assert.Empty(suite.T(), rec.Body.String())
+				suite.Empty(rec.Body.String())
 			} else {
-				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
+				suite.JSONEq(tc.wantBody, rec.Body.String())
 			}
 		})
 	}

@@ -62,7 +62,7 @@ func (suite *UbuntuAvgPublicTestSuite) TestGetAverageStats() {
 			name: "when load.Avg errors",
 			setupMock: func() func() (*sysLoad.AvgStat, error) {
 				return func() (*sysLoad.AvgStat, error) {
-					return nil, assert.AnError // Simulate an error
+					return nil, assert.AnError
 				}
 			},
 			want:        nil,

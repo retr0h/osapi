@@ -314,8 +314,8 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			assert.Equal(suite.T(), tc.wantCode, rec.Code)
-			assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
+			suite.Equal(tc.wantCode, rec.Code)
+			suite.JSONEq(tc.wantBody, rec.Body.String())
 		})
 	}
 }

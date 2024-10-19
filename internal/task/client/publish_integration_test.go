@@ -24,7 +24,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/task/client"
@@ -76,13 +75,13 @@ func (suite *PublishToStreamIntegrationTestSuite) TestPublishToStream() {
 			got, err := suite.client.PublishToStream(ctx, msg)
 
 			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
+				suite.NoError(err)
 			} else {
-				assert.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+				suite.Error(err)
+				suite.Contains(err.Error(), tc.wantErrType.Error())
 
 				if tc.wantValid {
-					assert.Greater(suite.T(), got, uint64(0))
+					suite.Greater(got, uint64(0))
 				}
 			}
 		})

@@ -24,7 +24,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	customerrors "github.com/retr0h/osapi/internal/errors"
@@ -96,11 +95,11 @@ func (suite *GetMessageBySeqIntegrationTestSuite) TestGetMessageBySeq() {
 			got, err := suite.client.GetMessageBySeq(ctx, seq)
 
 			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
-				assert.Equal(suite.T(), tc.want, string(got.Data))
+				suite.NoError(err)
+				suite.Equal(tc.want, string(got.Data))
 			} else {
-				assert.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+				suite.Error(err)
+				suite.Contains(err.Error(), tc.wantErrType.Error())
 			}
 		})
 	}

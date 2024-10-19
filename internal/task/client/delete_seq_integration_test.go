@@ -24,7 +24,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	customerrors "github.com/retr0h/osapi/internal/errors"
@@ -96,10 +95,10 @@ func (suite *DeleteMessageBySeqIntegrationTestSuite) TestDeleteMessageBySeq() {
 			err = suite.client.DeleteMessageBySeq(ctx, seq)
 
 			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
+				suite.NoError(err)
 			} else {
-				assert.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+				suite.Error(err)
+				suite.Contains(err.Error(), tc.wantErrType.Error())
 			}
 		})
 	}

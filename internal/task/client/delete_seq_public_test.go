@@ -123,10 +123,10 @@ func (suite *DeleteMessageBySeqPublicTestSuite) TestDeleteMessageBySeq() {
 			err := suite.client.DeleteMessageBySeq(context.Background(), tc.seq)
 
 			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
+				suite.NoError(err)
 			} else {
-				assert.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+				suite.Error(err)
+				suite.Contains(err.Error(), tc.wantErrType.Error())
 			}
 		})
 	}

@@ -118,12 +118,12 @@ func (suite *DeleteTaskIDIntegrationTestSuite) TestDeleteTaskID() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			assert.Equal(suite.T(), tc.wantCode, rec.Code)
+			suite.Equal(tc.wantCode, rec.Code)
 
 			if tc.wantCode == http.StatusNoContent {
-				assert.Empty(suite.T(), rec.Body.String())
+				suite.Empty(rec.Body.String())
 			} else {
-				assert.JSONEq(suite.T(), tc.wantBody, rec.Body.String())
+				suite.JSONEq(tc.wantBody, rec.Body.String())
 			}
 		})
 	}

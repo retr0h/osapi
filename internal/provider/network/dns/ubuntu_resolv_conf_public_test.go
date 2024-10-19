@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/provider/network/dns"
@@ -105,10 +104,10 @@ options edns0`),
 			got, err := net.GetResolvConf()
 
 			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
-				assert.Equal(suite.T(), tc.want, got)
+				suite.NoError(err)
+				suite.Equal(tc.want, got)
 			} else {
-				assert.Error(suite.T(), err)
+				suite.Error(err)
 			}
 		})
 	}

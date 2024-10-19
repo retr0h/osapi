@@ -24,7 +24,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/task/client"
@@ -83,11 +82,11 @@ func (suite *CountStreamMessagesIntegrationTestSuite) TestCountStreamMessages() 
 			got, err := suite.client.CountStreamMessages(ctx)
 
 			if !tc.wantErr {
-				assert.NoError(suite.T(), err)
-				assert.Equal(suite.T(), tc.want, got)
+				suite.NoError(err)
+				suite.Equal(tc.want, got)
 			} else {
-				assert.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantErrType.Error())
+				suite.Error(err)
+				suite.Contains(err.Error(), tc.wantErrType.Error())
 			}
 		})
 	}
