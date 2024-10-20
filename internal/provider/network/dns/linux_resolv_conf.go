@@ -27,5 +27,5 @@ import (
 // GetResolvConf reads the DNS configuration from /run/systemd/resolve/resolv.conf.
 // It returns a Config struct, and an error if something goes wrong.
 func (l *Linux) GetResolvConf() (*Config, error) {
-	return nil, fmt.Errorf("GetResolveConf is not implemented for DefaultLinuxProvider")
+	return nil, fmt.Errorf("GetResolvConf is not implemented for LinuxProvider")
 }

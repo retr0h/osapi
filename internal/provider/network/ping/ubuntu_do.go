@@ -43,8 +43,6 @@ import (
 //     sudo setcap cap_net_raw=+ep /path/to/your/compiled/binary
 func (u *Ubuntu) Do(address string) (*Result, error) {
 	pinger, err := probing.NewPinger(address)
-	timeout := 5 * time.Second
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pinger: %w", err)
 	}
@@ -52,6 +50,7 @@ func (u *Ubuntu) Do(address string) (*Result, error) {
 	pinger.Count = 3
 
 	// Create a context with a timeout for the entire ping operation
+	timeout := 5 * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 

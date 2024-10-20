@@ -48,8 +48,8 @@ func (s *Server) GetNetworkHandler(
 		pingProvider = ping.NewUbuntuProvider(appFs)
 		dnsProvider = dns.NewUbuntuProvider(appFs)
 	default:
-		pingProvider = ping.NewDefaultLinuxProvider()
-		dnsProvider = dns.NewDefaultLinuxProvider()
+		pingProvider = ping.NewLinuxProvider()
+		dnsProvider = dns.NewLinuxProvider()
 	}
 
 	return []func(e *echo.Echo){

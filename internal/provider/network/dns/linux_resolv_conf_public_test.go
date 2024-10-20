@@ -18,13 +18,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package ping
+package dns_test
 
 import (
-	"fmt"
+	"log/slog"
+	"os"
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
-// Do pings the given host and returns the ping statistics or an error.
-func (l *Linux) Do(_ string) (*Result, error) {
-	return nil, fmt.Errorf("Do is not implemented for LinuxProvider")
+type LinuxGetResolvConfPublicTestSuite struct {
+	suite.Suite
+
+	logger *slog.Logger
+}
+
+func (suite *LinuxGetResolvConfPublicTestSuite) SetupTest() {
+	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+}
+
+func (suite *LinuxGetResolvConfPublicTestSuite) TearDownTest() {}
+
+func (suite *LinuxGetResolvConfPublicTestSuite) TestGetResolvConf() {
+	linux := dns.NewLinuxProvider()
+
+	got, err := linux.GetResolvConf()
+
+	suite.Empty(got)
+	suite.EqualError(err, "GetResolvConf is not implemented for LinuxProvider")
+}
+
+// In order for `go test` to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run.
+func TestLinuxGetResolvConfPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(LinuxGetResolvConfPublicTestSuite))
 }

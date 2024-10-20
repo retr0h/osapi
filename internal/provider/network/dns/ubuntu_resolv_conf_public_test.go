@@ -29,25 +29,25 @@ import (
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
-type UbuntuResolvConfPublicTestSuite struct {
+type UbuntuGetResolvConfPublicTestSuite struct {
 	suite.Suite
 
 	appFs          afero.Fs
 	resolvConfFile string
 }
 
-func (suite *UbuntuResolvConfPublicTestSuite) SetupTest() {
+func (suite *UbuntuGetResolvConfPublicTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
 	suite.resolvConfFile = "/run/systemd/resolve/resolv.conf"
 }
 
-func (suite *UbuntuResolvConfPublicTestSuite) SetupSubTest() {
+func (suite *UbuntuGetResolvConfPublicTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *UbuntuResolvConfPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuGetResolvConfPublicTestSuite) TearDownTest() {}
 
-func (suite *UbuntuResolvConfPublicTestSuite) TestGetResolvConf() {
+func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConf() {
 	tests := []struct {
 		name    string
 		content []byte
@@ -115,6 +115,6 @@ options edns0`),
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuResolvConfPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuResolvConfPublicTestSuite))
+func TestUbuntuGetResolvConfPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuGetResolvConfPublicTestSuite))
 }
