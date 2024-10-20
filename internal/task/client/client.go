@@ -38,19 +38,22 @@ func New(
 	return &Client{
 		logger:    logger,
 		appConfig: appConfig,
+		ConnectFn: nats.Connect,
+		JetStreamFn: func(nc *nats.Conn) (jetstream.JetStream, error) {
+			return jetstream.New(nc)
+		},
 	}
 }
 
 // Connect establishes the connection to the NATS server and JetStream context.
 // This method returns an error if there are any issues during connection.
 func (c *Client) Connect() error {
-	nc, err := nats.Connect(fmt.Sprintf("nats://localhost:%d", c.appConfig.Task.Server.Port))
+	nc, err := c.ConnectFn(fmt.Sprintf("nats://localhost:%d", c.appConfig.Task.Server.Port))
 	if err != nil {
 		return fmt.Errorf("error connecting to NATS: %w", err)
 	}
-	c.nc = nc
 
-	js, err := jetstream.New(nc)
+	js, err := c.JetStreamFn(nc)
 	if err != nil {
 		return fmt.Errorf("error creating JetStream context: %w", err)
 	}

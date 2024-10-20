@@ -32,10 +32,11 @@ import (
 
 // Client implementation of the Client's task operations.
 type Client struct {
-	logger    *slog.Logger
-	appConfig config.Config
-	JS        jetstream.JetStream
-	nc        *nats.Conn
+	logger      *slog.Logger
+	appConfig   config.Config
+	JS          jetstream.JetStream
+	ConnectFn   func(url string, options ...nats.Option) (*nats.Conn, error)
+	JetStreamFn func(*nats.Conn) (jetstream.JetStream, error)
 }
 
 // MessageItem represents a JetStream message with metadata and content.

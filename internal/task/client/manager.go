@@ -31,6 +31,7 @@ type Manager interface {
 	// Connect establishes the connection to the NATS server and JetStream context.
 	// This method returns an error if there are any issues during connection.
 	Connect() error
+	//// Connect(...jetstream.JetStreamOpt) error
 	// CountStreamMessages returns the total number of messages in the specified JetStream stream (queue).
 	CountStreamMessages(
 		ctx context.Context,
