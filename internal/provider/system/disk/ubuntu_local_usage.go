@@ -38,7 +38,7 @@ import (
 // the remaining partitions.
 // If a non-permission-related error occurs, the function returns an error.
 func (u *Ubuntu) GetLocalUsageStats() ([]UsageStats, error) {
-	partitions, err := u.PartitionsFunc(false)
+	partitions, err := u.PartitionsFn(false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get disk partitions: %w", err)
 	}
@@ -50,7 +50,7 @@ func (u *Ubuntu) GetLocalUsageStats() ([]UsageStats, error) {
 			continue
 		}
 
-		usage, err := u.UsageFunc(partition.Mountpoint)
+		usage, err := u.UsageFn(partition.Mountpoint)
 		if err != nil {
 			if isPermissionError(err) {
 				u.logger.Warn(

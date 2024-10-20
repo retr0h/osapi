@@ -74,7 +74,7 @@ func (suite *UbuntuGetUptimePublicTestSuite) TestGetUptime() {
 			ubuntu := host.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				ubuntu.InfoFunc = tc.setupMock()
+				ubuntu.InfoFn = tc.setupMock()
 			}
 
 			got, err := ubuntu.GetUptime()

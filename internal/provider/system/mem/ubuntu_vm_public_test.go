@@ -82,7 +82,7 @@ func (suite *UbuntuGetStatsPublicTestSuite) TestGetStats() {
 			ubuntu := mem.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				ubuntu.VirtualMemoryFunc = tc.setupMock()
+				ubuntu.VirtualMemoryFn = tc.setupMock()
 			}
 
 			got, err := ubuntu.GetStats()

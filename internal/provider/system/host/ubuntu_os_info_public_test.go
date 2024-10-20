@@ -79,7 +79,7 @@ func (suite *UbuntuGetOSInfoPublicTestSuite) TestGetHostname() {
 			ubuntu := host.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				ubuntu.InfoFunc = tc.setupMock()
+				ubuntu.InfoFn = tc.setupMock()
 			}
 
 			got, err := ubuntu.GetOSInfo()

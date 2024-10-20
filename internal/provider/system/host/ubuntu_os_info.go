@@ -28,7 +28,7 @@ import (
 // distribution name and version. It returns an OSInfo struct containing this
 // data and an error if something goes wrong during the process.
 func (u *Ubuntu) GetOSInfo() (*OSInfo, error) {
-	info, err := u.InfoFunc()
+	info, err := u.InfoFn()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get host info: %w", err)
 	}

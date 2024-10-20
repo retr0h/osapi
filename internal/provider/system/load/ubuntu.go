@@ -26,12 +26,12 @@ import (
 
 // Ubuntu implements the Mem interface for Ubuntu.
 type Ubuntu struct {
-	AvgFunc func() (*load.AvgStat, error)
+	AvgFn func() (*load.AvgStat, error)
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider() *Ubuntu {
 	return &Ubuntu{
-		AvgFunc: load.Avg,
+		AvgFn: load.Avg,
 	}
 }

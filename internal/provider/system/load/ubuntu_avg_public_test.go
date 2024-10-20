@@ -82,7 +82,7 @@ func (suite *UbuntuGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 			ubuntu := load.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				ubuntu.AvgFunc = tc.setupMock()
+				ubuntu.AvgFn = tc.setupMock()
 			}
 
 			got, err := ubuntu.GetAverageStats()

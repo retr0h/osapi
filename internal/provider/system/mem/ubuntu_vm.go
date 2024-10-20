@@ -24,7 +24,7 @@ package mem
 // It returns a Stats struct with total, free, and cached memory in
 // bytes, and an error if something goes wrong.
 func (u *Ubuntu) GetStats() (*Stats, error) {
-	memInfo, err := u.VirtualMemoryFunc()
+	memInfo, err := u.VirtualMemoryFn()
 	if err != nil {
 		return nil, err
 	}

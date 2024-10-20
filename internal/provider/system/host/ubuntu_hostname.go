@@ -23,7 +23,7 @@ package host
 // GetHostname retrieves the hostname of the system.
 // It returns the hostname as a string, and an error if something goes wrong.
 func (u *Ubuntu) GetHostname() (string, error) {
-	hostInfo, err := u.InfoFunc()
+	hostInfo, err := u.InfoFn()
 	if err != nil {
 		return "", err
 	}

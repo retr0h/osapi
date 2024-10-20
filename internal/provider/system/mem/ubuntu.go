@@ -26,12 +26,12 @@ import (
 
 // Ubuntu implements the Mem interface for Ubuntu.
 type Ubuntu struct {
-	VirtualMemoryFunc func() (*mem.VirtualMemoryStat, error)
+	VirtualMemoryFn func() (*mem.VirtualMemoryStat, error)
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider() *Ubuntu {
 	return &Ubuntu{
-		VirtualMemoryFunc: mem.VirtualMemory,
+		VirtualMemoryFn: mem.VirtualMemory,
 	}
 }

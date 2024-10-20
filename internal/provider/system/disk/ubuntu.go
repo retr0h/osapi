@@ -28,9 +28,9 @@ import (
 
 // Ubuntu implements the Mem interface for Ubuntu.
 type Ubuntu struct {
-	logger         *slog.Logger
-	PartitionsFunc func(all bool) ([]disk.PartitionStat, error)
-	UsageFunc      func(path string) (*disk.UsageStat, error)
+	logger       *slog.Logger
+	PartitionsFn func(all bool) ([]disk.PartitionStat, error)
+	UsageFn      func(path string) (*disk.UsageStat, error)
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
@@ -38,8 +38,8 @@ func NewUbuntuProvider(
 	logger *slog.Logger,
 ) *Ubuntu {
 	return &Ubuntu{
-		logger:         logger,
-		PartitionsFunc: disk.Partitions,
-		UsageFunc:      disk.Usage,
+		logger:       logger,
+		PartitionsFn: disk.Partitions,
+		UsageFn:      disk.Usage,
 	}
 }

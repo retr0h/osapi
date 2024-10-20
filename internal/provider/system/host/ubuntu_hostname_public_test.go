@@ -73,7 +73,7 @@ func (suite *UbuntuGetHostnamePublicTestSuite) TestGetHostname() {
 			ubuntu := host.NewUbuntuProvider()
 
 			if tc.setupMock != nil {
-				ubuntu.InfoFunc = tc.setupMock()
+				ubuntu.InfoFn = tc.setupMock()
 			}
 
 			got, err := ubuntu.GetHostname()
