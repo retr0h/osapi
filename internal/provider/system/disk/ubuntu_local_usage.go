@@ -82,6 +82,10 @@ func (u *Ubuntu) GetLocalUsageStats() ([]UsageStats, error) {
 // gopsutil library, which does not provide a more explicit way of classifying
 // permission-related errors.
 func isPermissionError(err error) bool {
+	if err == nil {
+		return false
+	}
+
 	// Check if the error is related to EACCES or permission denied.
 	if pathErr, ok := err.(*os.PathError); ok {
 		if errno, ok := pathErr.Err.(syscall.Errno); ok && errno == syscall.EACCES {
