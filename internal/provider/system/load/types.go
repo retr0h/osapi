@@ -20,6 +20,12 @@
 
 package load
 
+// Provider implements the methods to interact with various Load components.
+type Provider interface {
+	// GetAverageStats retrieves the system load averages.
+	GetAverageStats() (*AverageStats, error)
+}
+
 // AverageStats represents the system load averages over 1, 5, and 15 minutes.
 type AverageStats struct {
 	// Load average over the last 1 minute
