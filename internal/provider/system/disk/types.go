@@ -20,6 +20,12 @@
 
 package disk
 
+// Provider implements the methods to interact with various Disk components.
+type Provider interface {
+	// GetLocalUsageStats retrieves disk space statistics.
+	GetLocalUsageStats() ([]UsageStats, error)
+}
+
 // UsageStats holds information about disk space usage.
 type UsageStats struct {
 	// Disk identifier, e.g., "/dev/sda1"

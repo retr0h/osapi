@@ -18,10 +18,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package disk
+package host
 
-// Provider implements the methods to interact with various Disk components.
+import (
+	"time"
+)
+
+// Provider implements the methods to interact with various Host components.
 type Provider interface {
-	// GetLocalUsageStats retrieves disk space statistics.
-	GetLocalUsageStats() ([]UsageStats, error)
+	// GetUptime retrieves the system uptime.
+	GetUptime() (time.Duration, error)
+	// GetHostname retrieves the hostname of the system.
+	GetHostname() (string, error)
+	// GetOSInfo retrieves information about the operating system, including the
+	// distribution name and version. It returns an OSInfo struct containing this
+	// data and an error if something goes wrong during the process.
+	GetOSInfo() (*OSInfo, error)
+}
+
+// OSInfo represents the operating system information.
+type OSInfo struct {
+	// The name of the Linux distribution (e.g., Ubuntu, CentOS).
+	Distribution string
+	// The version of the Linux distribution (e.g., 20.04, 8.3).
+	Version string
 }

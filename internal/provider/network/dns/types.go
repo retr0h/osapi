@@ -18,12 +18,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package host
+package dns
 
-// OSInfo represents the operating system information.
-type OSInfo struct {
-	// The name of the Linux distribution (e.g., Ubuntu, CentOS).
-	Distribution string
-	// The version of the Linux distribution (e.g., 20.04, 8.3).
-	Version string
+// Provider implements the methods to interact with various DNS components.
+type Provider interface {
+	// GetResolvConf retrieves the DNS configuration.
+	GetResolvConf() (*Config, error)
+}
+
+// Config represents the DNS configuration with servers and search domains.
+type Config struct {
+	// List of DNS server IP addresses (IPv4 or IPv6)
+	DNSServers []string
+	// List of search domains for DNS resolution
+	SearchDomains []string
 }

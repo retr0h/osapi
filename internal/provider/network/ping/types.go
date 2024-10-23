@@ -18,14 +18,30 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package mem
+package ping
 
-// Stats holds memory information in bytes.
-type Stats struct {
-	// Total memory in bytes
-	Total uint64
-	// Free memory in bytes
-	Free uint64
-	// Cached memory in bytes
-	Cached uint64
+import (
+	"time"
+)
+
+// Provider implements the methods to interact with various ping components.
+type Provider interface {
+	// Do pings the given host and returns the ping statistics or an error.
+	Do(address string) (*Result, error)
+}
+
+// Result represents custom ping result details.
+type Result struct {
+	// Number of packets sent
+	PacketsSent int
+	// Number of packets received
+	PacketsReceived int
+	// Percentage of packet loss
+	PacketLoss float64
+	// Minimum round-trip time
+	MinRTT time.Duration
+	// Average round-trip time
+	AvgRTT time.Duration
+	// Maximum round-trip time
+	MaxRTT time.Duration
 }
