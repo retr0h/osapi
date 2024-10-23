@@ -21,19 +21,28 @@
 package ping
 
 import (
-	"github.com/spf13/afero"
+	probing "github.com/prometheus-community/pro-bing"
 )
 
 // Ubuntu implements the Ping interface for Ubuntu.
 type Ubuntu struct {
-	appFs afero.Fs
+	NewPingerFn func(address string) (Pinger, error)
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	appFs afero.Fs,
-) *Ubuntu {
+func NewUbuntuProvider() *Ubuntu {
 	return &Ubuntu{
-		appFs: appFs,
+		NewPingerFn: func(address string) (Pinger, error) {
+			rawPinger, err := probing.NewPinger(address)
+			if err != nil {
+				return nil, err
+			}
+			return &PingerWrapper{Pinger: rawPinger}, nil
+		},
 	}
+}
+
+// SetCount sets the count of pings to be sent.
+func (p *PingerWrapper) SetCount(count int) {
+	p.Pinger.Count = count
 }

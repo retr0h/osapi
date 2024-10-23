@@ -21,11 +21,11 @@
 package ping_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -35,17 +35,12 @@ import (
 
 type UbuntuDoPublicTestSuite struct {
 	suite.Suite
-	ctrl *gomock.Controller
 
-	appFs          afero.Fs
-	resolvConfFile string
+	ctrl *gomock.Controller
 }
 
 func (suite *UbuntuDoPublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
-
-	suite.appFs = afero.NewMemMapFs()
-	suite.resolvConfFile = "/run/systemd/resolve/resolv.conf"
 }
 
 func (suite *UbuntuDoPublicTestSuite) SetupSubTest() {
@@ -59,7 +54,7 @@ func (suite *UbuntuDoPublicTestSuite) TearDownTest() {
 func (suite *UbuntuDoPublicTestSuite) TestDo() {
 	tests := []struct {
 		name        string
-		setupMock   func() *mocks.MockProvider
+		setupMock   func() *mocks.MockPinger
 		address     string
 		want        *ping.Result
 		wantErr     bool
@@ -68,8 +63,8 @@ func (suite *UbuntuDoPublicTestSuite) TestDo() {
 		{
 			name:    "when Do Ok",
 			address: "1.1.1.1",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+			setupMock: func() *mocks.MockPinger {
+				mock := mocks.NewDefaultMockPinger(suite.ctrl)
 
 				return mock
 			},
@@ -84,24 +79,59 @@ func (suite *UbuntuDoPublicTestSuite) TestDo() {
 			wantErr: false,
 		},
 		{
-			name:    "when Do errors",
+			name:    "when NewPingerFn errors",
+			address: "invalid-address",
+			setupMock: func() *mocks.MockPinger {
+				return nil
+			},
+			wantErr:     true,
+			wantErrType: fmt.Errorf("failed to initialize pinger"),
+		},
+		{
+			name:    "when pinger.Run errors",
 			address: "1.1.1.1",
-			setupMock: func() *mocks.MockProvider {
-				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().Do("1.1.1.1").Return(nil, assert.AnError)
+			setupMock: func() *mocks.MockPinger {
+				mock := mocks.NewPlainMockPinger(suite.ctrl)
+
+				mocks.SetCommonExpectations(mock)
+				mock.EXPECT().Run().Return(assert.AnError)
 
 				return mock
 			},
-			want:        nil,
 			wantErr:     true,
 			wantErrType: assert.AnError,
+		},
+		{
+			name:    "when ping operation times out",
+			address: "1.1.1.1",
+			setupMock: func() *mocks.MockPinger {
+				mock := mocks.NewMockPinger(suite.ctrl)
+
+				mocks.SetCommonExpectations(mock)
+				mock.EXPECT().Run().DoAndReturn(func() error {
+					time.Sleep(10 * time.Second)
+					return nil
+				})
+
+				return mock
+			},
+			wantErr:     true,
+			wantErrType: fmt.Errorf("ping operation timed out after 5s"),
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			mock := tc.setupMock()
-			got, err := mock.Do(tc.address)
+
+			ubuntu := ping.NewUbuntuProvider()
+			if mock != nil {
+				ubuntu.NewPingerFn = func(address string) (ping.Pinger, error) {
+					return mock, nil
+				}
+			}
+
+			got, err := ubuntu.Do(tc.address)
 
 			if !tc.wantErr {
 				suite.NoError(err)

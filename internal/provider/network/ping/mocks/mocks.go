@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	probing "github.com/prometheus-community/pro-bing"
 
 	"github.com/retr0h/osapi/internal/provider/network/ping"
 )
@@ -35,7 +36,7 @@ func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
 
 // NewDefaultMockProvider creates a Mock with defaults.
 func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
-	mock := NewMockProvider(ctrl)
+	mock := NewPlainMockProvider(ctrl)
 
 	result := &ping.Result{
 		PacketsSent:     3,
@@ -51,4 +52,33 @@ func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock.EXPECT().Do("2001:4860:4860::8888").Return(result, nil).AnyTimes()
 
 	return mock
+}
+
+// NewPlainMockPinger creates a pinger Mock without defaults.
+func NewPlainMockPinger(ctrl *gomock.Controller) *MockPinger {
+	return NewMockPinger(ctrl)
+}
+
+// NewDefaultMockPinger creates a pinger Mock with defaults.
+func NewDefaultMockPinger(ctrl *gomock.Controller) *MockPinger {
+	mock := NewPlainMockPinger(ctrl)
+
+	SetCommonExpectations(mock)
+	mock.EXPECT().Run().Return(nil)
+	mock.EXPECT().Statistics().Return(&probing.Statistics{
+		PacketsSent: 3,
+		PacketsRecv: 3,
+		PacketLoss:  0,
+		MinRtt:      10 * time.Millisecond,
+		AvgRtt:      15 * time.Millisecond,
+		MaxRtt:      20 * time.Millisecond,
+	})
+
+	return mock
+}
+
+// SetCommonExpectations sets the common expectations on the mock pinger.
+func SetCommonExpectations(mock *MockPinger) {
+	mock.EXPECT().SetCount(3)
+	mock.EXPECT().SetPrivileged(false)
 }

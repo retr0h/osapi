@@ -24,8 +24,6 @@ import (
 	"context"
 	"fmt"
 	"time"
-
-	probing "github.com/prometheus-community/pro-bing"
 )
 
 // Do pings the given host and returns the ping statistics or an error.
@@ -42,12 +40,13 @@ import (
 //  2. Set capabilities on the binary to allow raw socket usage:
 //     sudo setcap cap_net_raw=+ep /path/to/your/compiled/binary
 func (u *Ubuntu) Do(address string) (*Result, error) {
-	pinger, err := probing.NewPinger(address)
+	pinger, err := u.NewPingerFn(address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pinger: %w", err)
 	}
 
-	pinger.Count = 3
+	pinger.SetCount(3)
+	pinger.SetPrivileged(false)
 
 	// Create a context with a timeout for the entire ping operation
 	timeout := 5 * time.Second

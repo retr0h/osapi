@@ -87,6 +87,18 @@ func (mr *MockPingerMockRecorder) Run() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockPinger)(nil).Run))
 }
 
+// SetCount mocks base method.
+func (m *MockPinger) SetCount(count int) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetCount", count)
+}
+
+// SetCount indicates an expected call of SetCount.
+func (mr *MockPingerMockRecorder) SetCount(count interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCount", reflect.TypeOf((*MockPinger)(nil).SetCount), count)
+}
+
 // SetPrivileged mocks base method.
 func (m *MockPinger) SetPrivileged(privileged bool) {
 	m.ctrl.T.Helper()

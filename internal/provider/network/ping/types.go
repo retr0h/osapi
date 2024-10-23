@@ -22,12 +22,32 @@ package ping
 
 import (
 	"time"
+
+	probing "github.com/prometheus-community/pro-bing"
 )
 
 // Provider implements the methods to interact with various ping components.
 type Provider interface {
 	// Do pings the given host and returns the ping statistics or an error.
 	Do(address string) (*Result, error)
+}
+
+// Pinger is the interface representing the pinging functionality.
+type Pinger interface {
+	// SetPrivileged sets whether the pinger will run in privileged mode (using raw sockets).
+	// This may require elevated privileges or specific system configurations to work.
+	SetPrivileged(privileged bool)
+	// Run initiates the ping operation. This method blocks until the operation is completed.
+	Run() error
+	// Statistics returns the results of the ping operation, including packet loss, RTT, and other metrics.
+	Statistics() *probing.Statistics
+	// SetCount specifies the number of ping packets to send. A value of 3 means the ping will attempt 3 times.
+	SetCount(count int)
+}
+
+// PingerWrapper wrapper struct around probing.Pinger.
+type PingerWrapper struct {
+	*probing.Pinger
 }
 
 // Result represents custom ping result details.
