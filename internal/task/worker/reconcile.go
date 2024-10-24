@@ -63,16 +63,7 @@ func (w *Worker) reconcile(
 		return err
 	}
 
-	switch taskType {
-	case task.ShutdownTaskType:
-		// return handler.Handle(t)
-		fmt.Println("SHUTDOWN")
-	case task.ChangeDNSTaskType:
-		// return handler.Handle(t)
-		fmt.Println("CHANGE DNS")
-	default:
-		return fmt.Errorf("unsupported task type: %s", taskType)
-	}
+	fmt.Println(taskType.String())
 
 	return nil
 }
