@@ -39,7 +39,7 @@ var clientTaskListCmd = &cobra.Command{
 	Short: "List all actions",
 	Long: `List all actions the task runner is processing.
 `,
-	Run: func(cmd *cobra.Command, _ []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		taskHandler := handler.(client.TaskHandler)
 		resp, err := taskHandler.GetTaskList(context.TODO())
 		if err != nil {
