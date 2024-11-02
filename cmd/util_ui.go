@@ -36,6 +36,7 @@ var (
 	purple    = lipgloss.Color("99")
 	gray      = lipgloss.Color("245")
 	lightGray = lipgloss.Color("241")
+	white     = lipgloss.Color("15")
 )
 
 // section represents a header with its corresponding rows.
@@ -77,7 +78,7 @@ func printStyledTable(sections []section) {
 		}
 
 		var (
-			HeaderStyle  = re.NewStyle().Foreground(purple).Bold(true).Align(lipgloss.Center)
+			HeaderStyle  = re.NewStyle().Foreground(white).Bold(true).Align(lipgloss.Center)
 			CellStyle    = re.NewStyle().Padding(0, 1).Width(dynamicWidth)
 			OddRowStyle  = CellStyle.Foreground(gray)
 			EvenRowStyle = CellStyle.Foreground(lightGray)
@@ -98,8 +99,8 @@ func printStyledTable(sections []section) {
 			BorderStyle(BorderStyle).
 			StyleFunc(func(row, _ int) lipgloss.Style {
 				switch {
-				case row == 0:
-					return HeaderStyle
+				// case row == 0:
+				// 	return HeaderStyle
 				case row%2 == 0:
 					return EvenRowStyle
 				default:
@@ -107,8 +108,14 @@ func printStyledTable(sections []section) {
 				}
 			})
 
+		styledHeaders := make([]string, len(section.Headers))
+		for i, header := range section.Headers {
+			styledHeaders[i] = HeaderStyle.Render(header)
+		}
+		t.Headers(styledHeaders...)
+
 		// Add headers and rows for the current section to the table.
-		t.Headers(section.Headers...)
+		// t.Headers(section.Headers...)
 		t.Rows(section.Rows...)
 
 		// Render the styled table.
