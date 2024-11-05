@@ -30,7 +30,9 @@ import (
 // ServerManager responsible for Server operations.
 type ServerManager interface {
 	// Start starts the Echo server with the configured port.
-	Start() error
+	Start()
+	// Stop gracefully shuts down the Echo server.
+	Stop()
 	// CreateHandlers initializes handlers and returns a slice of functions to register them.
 	CreateHandlers(
 		appFs afero.Fs,

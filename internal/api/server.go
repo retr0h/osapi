@@ -21,8 +21,11 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -61,7 +64,31 @@ func New(
 }
 
 // Start starts the Echo server with the configured port.
-func (s *Server) Start() error {
-	s.logger.Info("starting server")
-	return s.Echo.Start(fmt.Sprintf(":%d", s.appConfig.API.Server.Port))
+func (s *Server) Start() {
+	go func() {
+		s.logger.Info("starting server")
+		listenAddr := fmt.Sprintf(":%d", s.appConfig.API.Server.Port)
+		if err := s.Echo.Start(listenAddr); err != nil && err != http.ErrServerClosed {
+			s.logger.Error(
+				"failed to start server",
+				slog.String("error", err.Error()),
+			)
+		}
+	}()
+}
+
+// Stop gracefully shuts down the Echo server.
+func (s *Server) Stop() {
+	s.logger.Info("stopping server")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := s.Echo.Shutdown(ctx); err != nil {
+		s.logger.Error(
+			"server shutdown failed",
+			slog.String("error", err.Error()),
+		)
+	} else {
+		s.logger.Info("server stopped gracefully")
+	}
 }

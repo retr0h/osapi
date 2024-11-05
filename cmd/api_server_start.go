@@ -21,6 +21,10 @@
 package cmd
 
 import (
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/spf13/cobra"
 
 	"github.com/retr0h/osapi/internal/api"
@@ -45,10 +49,13 @@ var apiServerStartCmd = &cobra.Command{
 		handlers := sm.CreateHandlers(appFs, clientManager)
 		sm.RegisterHandlers(handlers)
 
-		err = sm.Start()
-		if err != nil {
-			logFatal("failed to start server", err)
-		}
+		sm.Start()
+
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+		<-quit
+
+		sm.Stop()
 	},
 }
 
