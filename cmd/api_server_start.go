@@ -21,9 +21,11 @@
 package cmd
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -55,7 +57,10 @@ var apiServerStartCmd = &cobra.Command{
 		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 		<-quit
 
-		sm.Stop()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		sm.Stop(ctx)
 	},
 }
 

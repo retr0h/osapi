@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -78,10 +77,8 @@ func (s *Server) Start() {
 }
 
 // Stop gracefully shuts down the Echo server.
-func (s *Server) Stop() {
+func (s *Server) Stop(ctx context.Context) {
 	s.logger.Info("stopping server")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	if err := s.Echo.Shutdown(ctx); err != nil {
 		s.logger.Error(
