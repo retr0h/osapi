@@ -23,9 +23,6 @@ package worker
 import (
 	"context"
 	"log/slog"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/spf13/afero"
 
@@ -48,8 +45,8 @@ func New(
 	}
 }
 
-// Start starts the worker process, subscribing to a JetStream stream and
-// processing messages indefinitely.
+// Start begins the worker process, subscribing to a JetStream stream and
+// processing messages until the context is canceled.
 func (w *Worker) Start(ctx context.Context) {
 	iter, err := w.ClientManager.GetMessageIterator(ctx)
 	if err != nil {
@@ -62,60 +59,74 @@ func (w *Worker) Start(ctx context.Context) {
 
 	w.logger.Info("worker started successfully")
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-
+	// Run message processing in a separate goroutine
+	done := make(chan struct{})
 	go func() {
-		<-quit
-		w.logger.Info("shutting down worker")
-		iter.Stop()
-	}()
+		defer close(done)
 
-	for {
-		msg, err := iter.Next()
-		if err != nil {
-			if err.Error() == "nats: messages iterator closed" {
-				w.logger.Info("iterator closed, exiting message loop")
-				break
-			}
-			w.logger.Error(
-				"error fetching message",
-				slog.String("error", err.Error()),
-			)
-			continue
-		}
-
-		if msg != nil {
-			metadata, err := msg.Metadata()
-			if err != nil {
-				w.logger.Error(
-					"error retrieving message metadata",
-					slog.String("error", err.Error()),
-				)
+		for {
+			select {
+			case <-ctx.Done():
+				w.logger.Info("context canceled, stopping worker")
+				iter.Stop()
 				return
-			}
 
-			seq := metadata.Sequence.Stream
-
-			err = w.reconcile(seq, msg.Data())
-			if err != nil {
-				w.logger.Error(
-					"error reconciling message, not acking",
-					slog.String("error", err.Error()),
-					slog.Uint64("seq", seq),
-				)
-			} else {
-				// Acknowledge the message if reconcile was successful
-				if err := msg.Ack(); err != nil {
+			default:
+				// Process the next message
+				msg, err := iter.Next()
+				if err != nil {
+					if err.Error() == "nats: messages iterator closed" {
+						w.logger.Info("iterator closed, exiting message loop")
+						return
+					}
 					w.logger.Error(
-						"error acking message",
+						"error fetching message",
 						slog.String("error", err.Error()),
-						slog.Uint64("seq", seq),
 					)
+					continue
+				}
+
+				if msg != nil {
+					metadata, err := msg.Metadata()
+					if err != nil {
+						w.logger.Error(
+							"error retrieving message metadata",
+							slog.String("error", err.Error()),
+						)
+						return
+					}
+
+					seq := metadata.Sequence.Stream
+					err = w.reconcile(seq, msg.Data())
+					if err != nil {
+						w.logger.Error(
+							"error reconciling message, not acking",
+							slog.String("error", err.Error()),
+							slog.Uint64("seq", seq),
+						)
+					} else {
+						// Acknowledge the message if reconcile was successful
+						if err := msg.Ack(); err != nil {
+							w.logger.Error(
+								"error acking message",
+								slog.String("error", err.Error()),
+								slog.Uint64("seq", seq),
+							)
+						}
+					}
 				}
 			}
 		}
+	}()
+
+	// Wait for either context cancellation or message processing completion
+	select {
+	case <-ctx.Done():
+		w.logger.Info("stopping worker")
+		iter.Stop()
+	case <-done:
+		w.logger.Info("worker completed message processing")
 	}
 
-	w.logger.Info("worker shut down successfully")
+	w.logger.Info("worker shut down gracefully")
 }
