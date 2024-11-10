@@ -52,7 +52,7 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 		memProvider = mem.NewLinuxProvider()
 		loadProvider = load.NewLinuxProvider()
 		hostProvider = host.NewLinuxProvider()
-		diskProvider = disk.NewLinuxProvider(s.logger)
+		diskProvider = disk.NewLinuxProvider()
 	}
 
 	return []func(e *echo.Echo){

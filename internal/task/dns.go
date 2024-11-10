@@ -27,7 +27,10 @@ import (
 // CreateAndMarshalChangeDNSAction creates a ChangeDNSAction message with the
 // given DNS servers and search domains, wraps it in a Task, and marshals it
 // to protobuf bytes.
-func CreateAndMarshalChangeDNSAction(servers []string, searchDomains []string) ([]byte, error) {
+func CreateAndMarshalChangeDNSAction(
+	servers []string,
+	searchDomains []string,
+) ([]byte, error) {
 	dnsAction := &taskpb.ChangeDNSAction{}
 
 	if len(servers) > 0 {

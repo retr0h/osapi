@@ -20,20 +20,10 @@
 
 package disk
 
-import (
-	"log/slog"
-)
-
 // Linux implements the Disk interface for Linux.
-type Linux struct {
-	logger *slog.Logger
-}
+type Linux struct{}
 
 // NewLinuxProvider factory to create a new Linux instance.
-func NewLinuxProvider(
-	logger *slog.Logger,
-) *Linux {
-	return &Linux{
-		logger: logger,
-	}
+func NewLinuxProvider() *Linux {
+	return &Linux{}
 }

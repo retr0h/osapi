@@ -24,6 +24,11 @@ package dns
 type Provider interface {
 	// GetResolvConf retrieves the DNS configuration.
 	GetResolvConf() (*Config, error)
+	// SetResolvConf sets the DNS configuration.
+	SetResolvConf(
+		_ []string,
+		_ []string,
+	) error
 }
 
 // Config represents the DNS configuration with servers and search domains.

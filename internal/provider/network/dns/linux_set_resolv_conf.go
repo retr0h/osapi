@@ -18,43 +18,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package task
+package dns
 
 import (
 	"fmt"
-
-	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
 )
 
-const (
-	// UnknownTaskType is a fallback for unrecognized task types.
-	UnknownTaskType Type = iota
-	// ShutdownTaskType represents a Shutdown task.
-	ShutdownTaskType
-	// ChangeDNSTaskType represents a Change DNS task.
-	ChangeDNSTaskType
-)
-
-// String provides a string representation of the task type.
-func (t Type) String() string {
-	switch t {
-	case ShutdownTaskType:
-		return "Shutdown"
-	case ChangeDNSTaskType:
-		return "ChangeDNS"
-	default:
-		return "Unknown"
-	}
-}
-
-// GetTaskType abstracts the logic for determining the task type.
-func GetTaskType(t *taskpb.Task) (Type, error) {
-	switch t.GetAction().(type) {
-	case *taskpb.Task_ShutdownAction:
-		return ShutdownTaskType, nil
-	case *taskpb.Task_ChangeDnsAction:
-		return ChangeDNSTaskType, nil
-	default:
-		return UnknownTaskType, fmt.Errorf("unknown task action type")
-	}
+// SetResolvConf writes DNS configuration to the specified resolv.conf file.
+// It accepts a Config struct containing the DNS settings and writes these settings
+// to /run/systemd/resolve/resolv.conf or an alternative location if specified.
+// The function returns an error if the operation fails.
+func (l *Linux) SetResolvConf(
+	_ []string,
+	_ []string,
+) error {
+	return fmt.Errorf("SetResolvConf is not implemented for LinuxProvider")
 }

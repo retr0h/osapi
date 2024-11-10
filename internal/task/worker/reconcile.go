@@ -23,7 +23,12 @@ package worker
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 
+	"github.com/shirou/gopsutil/v4/host"
+	"github.com/spf13/afero"
+
+	"github.com/retr0h/osapi/internal/provider/network/dns"
 	"github.com/retr0h/osapi/internal/task"
 	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
 )
@@ -46,24 +51,50 @@ func (w *Worker) reconcile(
 	seq uint64,
 	data []byte,
 ) error {
+	var t taskpb.Task
+
+	err := task.UnmarshalProto(data, &t)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal task id: %d %w", seq, err)
+	}
+
 	w.logger.Info(
 		"reconciling message",
 		slog.Uint64("id", seq),
 	)
 
-	var t taskpb.Task
+	switch action := t.GetAction().(type) {
+	case *taskpb.Task_ShutdownAction:
+		return nil
+	case *taskpb.Task_ChangeDnsAction:
+		dnsProvider := GetDNSProvider(w.appFs, w.logger)
+		dnsServers := action.ChangeDnsAction.DnsServers
+		searchDomains := action.ChangeDnsAction.SearchDomains
 
-	err := task.UnmarshalProto(data, &t)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal task: %w", err)
+		return dnsProvider.SetResolvConf(dnsServers, searchDomains)
+	default:
+		return fmt.Errorf("unknown task action type")
+	}
+}
+
+// GetDNSProvider returns a DNS provider handler based on the system platform.
+// It selects the appropriate DNS provider implementation depending on the OS platform
+// detected (e.g., Ubuntu-specific vs. general Linux). This allows platform-specific
+// DNS configurations to be handled in a unified manner.
+func GetDNSProvider(
+	appFs afero.Fs,
+	logger *slog.Logger,
+) dns.Provider {
+	var dnsProvider dns.Provider
+
+	info, _ := host.Info()
+
+	switch strings.ToLower(info.Platform) {
+	case "ubuntu":
+		dnsProvider = dns.NewUbuntuProvider(appFs, logger)
+	default:
+		dnsProvider = dns.NewLinuxProvider()
 	}
 
-	taskType, err := task.GetTaskType(&t)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(taskType.String())
-
-	return nil
+	return dnsProvider
 }

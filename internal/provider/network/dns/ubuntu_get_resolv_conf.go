@@ -29,26 +29,33 @@ import (
 // GetResolvConf reads the DNS configuration from /run/systemd/resolve/resolv.conf.
 // It returns a Config struct, and an error if something goes wrong.
 //
-// Cross-platform considerations: This function is designed specifically for Linux systems
-// that utilize systemd-resolved for managing DNS configurations. It reads from
-// /run/systemd/resolve/resolv.conf, which is commonly used when systemd-resolved is active.
-// For non-systemd Linux systems or non-Linux Unix-like systems (e.g., BSD or macOS), this
-// file may not exist or may be irrelevant.
+// Cross-platform considerations: This function is designed specifically for
+// Linux systems that utilize systemd-resolved for managing DNS configurations.
+// It reads from /run/systemd/resolve/resolv.conf, which is commonly used when
+// systemd-resolved is active. For non-systemd Linux systems or non-Linux
+// Unix-like systems (e.g., BSD or macOS), this file may not exist or may be
+// irrelevant.
 //
 // Important Notice:
 //   - This function requires privilege escalation to operate correctly.
+//   - This function writes directly to /run/systemd/resolve/resolv.conf, which
+//     may be overwritten by systemd-resolved. In the future, consider moving to
+//     resolvectl for better integration with systemd-resolved, as it manages
+//     DNS settings dynamically and supports per-interface configurations.
 //
 // About /run/systemd/resolve/resolv.conf:
-//   - This file is managed by systemd-resolved and contains the current DNS servers and
-//     search domains configured on the system.
-//   - Unlike /etc/resolv.conf, this file is specific to systemd-resolved and reflects its
-//     settings, rather than being a general resolv.conf file used by other resolvers.
-//   - When systemd-resolved is running, /etc/resolv.conf might be symlinked to this file,
-//     making it a reliable location for DNS information on systems using systemd.
+//   - This file is managed by systemd-resolved and contains the current DNS
+//     servers and search domains configured on the system.
+//   - Unlike /etc/resolv.conf, this file is specific to systemd-resolved and
+//     reflects its settings, rather than being a general resolv.conf file used
+//     by other resolvers.
+//   - When systemd-resolved is running, /etc/resolv.conf might be symlinked to
+//     this file, making it a reliable location for DNS information on systems
+//     using systemd.
 //
 // Mocking:
-//   - Afero is used for file system abstraction, which allows for easier testing and mocking
-//     of file reads.
+//   - Afero is used for file system abstraction, which allows for easier
+//     testing and mocking of file reads.
 //
 // See `systemd-resolved.service(8)` manual page for further information.
 func (u *Ubuntu) GetResolvConf() (*Config, error) {

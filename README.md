@@ -13,7 +13,7 @@
 
 <img src="asset/logo.png" align="left" />
 
-A CRUD API for managing Linux systems.
+*(OSAPI /ˈoʊsɑːpi/ - Oh-sah-pee)* A CRUD API for managing Linux systems.
 
 This project provides basic management capabilities to Linux systems, enabling
 them to be used as appliances.

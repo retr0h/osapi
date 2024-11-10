@@ -18,16 +18,37 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package task
+package dns_test
 
 import (
-	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
-// Handler is an interface for handling different task types.
-type Handler interface {
-	Handle(task *taskpb.Task) error
+type LinuxSetResolvConfPublicTestSuite struct {
+	suite.Suite
 }
 
-// Type represents the task type as an enum.
-type Type int
+func (suite *LinuxSetResolvConfPublicTestSuite) SetupTest() {
+}
+
+func (suite *LinuxSetResolvConfPublicTestSuite) TearDownTest() {}
+
+func (suite *LinuxSetResolvConfPublicTestSuite) TestSetResolvConf() {
+	linux := dns.NewLinuxProvider()
+
+	servers := []string{}
+	searchDomains := []string{}
+	err := linux.SetResolvConf(servers, searchDomains)
+
+	suite.EqualError(err, "SetResolvConf is not implemented for LinuxProvider")
+}
+
+// In order for `go test` to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run.
+func TestLinuxSetResolvConfPublicTestSuite(t *testing.T) {
+	suite.Run(t, new(LinuxSetResolvConfPublicTestSuite))
+}

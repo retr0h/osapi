@@ -21,19 +21,24 @@
 package dns
 
 import (
+	"log/slog"
+
 	"github.com/spf13/afero"
 )
 
 // Ubuntu implements the DNS interface for Ubuntu.
 type Ubuntu struct {
-	appFs afero.Fs
+	appFs  afero.Fs
+	logger *slog.Logger
 }
 
 // NewUbuntuProvider factory to create a new Ubuntu instance.
 func NewUbuntuProvider(
 	appFs afero.Fs,
+	logger *slog.Logger,
 ) *Ubuntu {
 	return &Ubuntu{
-		appFs: appFs,
+		appFs:  appFs,
+		logger: logger,
 	}
 }

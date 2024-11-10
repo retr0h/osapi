@@ -48,3 +48,17 @@ func (mr *MockProviderMockRecorder) GetResolvConf() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResolvConf", reflect.TypeOf((*MockProvider)(nil).GetResolvConf))
 }
+
+// SetResolvConf mocks base method.
+func (m *MockProvider) SetResolvConf(arg0, arg1 []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetResolvConf", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetResolvConf indicates an expected call of SetResolvConf.
+func (mr *MockProviderMockRecorder) SetResolvConf(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetResolvConf", reflect.TypeOf((*MockProvider)(nil).SetResolvConf), arg0, arg1)
+}

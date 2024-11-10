@@ -21,8 +21,6 @@
 package disk_test
 
 import (
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -32,18 +30,15 @@ import (
 
 type LinuxGetLocalUsageStatsPublicTestSuite struct {
 	suite.Suite
-
-	logger *slog.Logger
 }
 
 func (suite *LinuxGetLocalUsageStatsPublicTestSuite) SetupTest() {
-	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
 func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
-	linux := disk.NewLinuxProvider(suite.logger)
+	linux := disk.NewLinuxProvider()
 
 	got, err := linux.GetLocalUsageStats()
 

@@ -46,7 +46,7 @@ func (s *Server) GetNetworkHandler(
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
 		pingProvider = ping.NewUbuntuProvider()
-		dnsProvider = dns.NewUbuntuProvider(appFs)
+		dnsProvider = dns.NewUbuntuProvider(appFs, s.logger)
 	default:
 		pingProvider = ping.NewLinuxProvider()
 		dnsProvider = dns.NewLinuxProvider()

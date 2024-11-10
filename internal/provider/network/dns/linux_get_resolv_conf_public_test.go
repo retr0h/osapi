@@ -21,8 +21,6 @@
 package dns_test
 
 import (
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -32,12 +30,9 @@ import (
 
 type LinuxGetResolvConfPublicTestSuite struct {
 	suite.Suite
-
-	logger *slog.Logger
 }
 
 func (suite *LinuxGetResolvConfPublicTestSuite) SetupTest() {
-	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
 func (suite *LinuxGetResolvConfPublicTestSuite) TearDownTest() {}

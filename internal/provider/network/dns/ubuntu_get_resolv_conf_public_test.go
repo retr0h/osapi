@@ -21,6 +21,8 @@
 package dns_test
 
 import (
+	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -33,11 +35,13 @@ type UbuntuGetResolvConfPublicTestSuite struct {
 	suite.Suite
 
 	appFs          afero.Fs
+	logger         *slog.Logger
 	resolvConfFile string
 }
 
 func (suite *UbuntuGetResolvConfPublicTestSuite) SetupTest() {
 	suite.appFs = afero.NewMemMapFs()
+	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	suite.resolvConfFile = "/run/systemd/resolve/resolv.conf"
 }
 
@@ -100,7 +104,7 @@ options edns0`),
 				_ = afero.WriteFile(suite.appFs, suite.resolvConfFile, tc.content, 0o644)
 			}
 
-			net := dns.NewUbuntuProvider(suite.appFs)
+			net := dns.NewUbuntuProvider(suite.appFs, suite.logger)
 			got, err := net.GetResolvConf()
 
 			if !tc.wantErr {
