@@ -7,7 +7,7 @@ toolchain go1.22.2
 require (
 	github.com/charmbracelet/bubbletea v1.2.2
 	github.com/charmbracelet/lipgloss v1.0.0
-	github.com/go-playground/validator/v10 v10.22.1
+	github.com/go-playground/validator/v10 v10.23.0
 	github.com/golang/mock v1.6.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/lmittmann/tint v1.0.5
