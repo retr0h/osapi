@@ -20,13 +20,12 @@
 
 ---
 package: gen
-output: system.gen.go
+output: common.gen.go
 generate:
   models: true
-  echo-server: true
-  strict-server: true
-import-mapping:
-  ../../common/gen/api.yaml: github.com/retr0h/osapi/internal/api/common/gen
+  echo-server: false
+  chi-server: false
+  gin-server: false
 output-options:
   # to make sure that all types are generated
   skip-prune: true

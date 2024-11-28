@@ -17,6 +17,10 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // DNSConfigResponse defines model for DNSConfigResponse.
 type DNSConfigResponse struct {
 	// SearchDomains List of search domains.
@@ -52,6 +56,18 @@ type DiskResponse struct {
 
 // DisksResponse List of local disk usage information.
 type DisksResponse = []DiskResponse
+
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	// Code The error code.
+	Code *int `json:"code,omitempty"`
+
+	// Details Additional details about the error.
+	Details *string `json:"details,omitempty"`
+
+	// Error A description of the error that occurred.
+	Error *string `json:"error,omitempty"`
+}
 
 // HostnameResponse The hostname of the system.
 type HostnameResponse struct {
@@ -168,18 +184,6 @@ type TaskStatusResponse struct {
 
 // NetworkErrorResponse defines model for network.ErrorResponse.
 type NetworkErrorResponse struct {
-	// Code The error code.
-	Code int `json:"code"`
-
-	// Details Additional details about the error, specifying which component failed.
-	Details *string `json:"details,omitempty"`
-
-	// Error A description of the error that occurred.
-	Error string `json:"error"`
-}
-
-// SystemErrorResponse defines model for system.ErrorResponse.
-type SystemErrorResponse struct {
 	// Code The error code.
 	Code int `json:"code"`
 
@@ -331,6 +335,9 @@ type ClientInterface interface {
 
 	// GetTaskID request
 	GetTaskID(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVersion request
+	GetVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetNetworkDNS(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -479,6 +486,18 @@ func (c *Client) DeleteTaskID(ctx context.Context, id uint64, reqEditors ...Requ
 
 func (c *Client) GetTaskID(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetTaskIDRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVersionRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -812,6 +831,33 @@ func NewGetTaskIDRequest(server string, id uint64) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetVersionRequest generates requests for GetVersion
+func NewGetVersionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/version")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -890,6 +936,9 @@ type ClientWithResponsesInterface interface {
 
 	// GetTaskIDWithResponse request
 	GetTaskIDWithResponse(ctx context.Context, id uint64, reqEditors ...RequestEditorFn) (*GetTaskIDResponse, error)
+
+	// GetVersionWithResponse request
+	GetVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetVersionResponse, error)
 }
 
 type GetNetworkDNSResponse struct {
@@ -966,7 +1015,9 @@ type GetSystemHostnameResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *HostnameResponse
-	JSON500      *SystemErrorResponse
+	JSON401      *ErrorResponse
+	JSON403      *ErrorResponse
+	JSON500      *ErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -989,7 +1040,9 @@ type GetSystemStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *SystemStatusResponse
-	JSON500      *SystemErrorResponse
+	JSON401      *ErrorResponse
+	JSON403      *ErrorResponse
+	JSON500      *ErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1125,6 +1178,28 @@ func (r GetTaskIDResponse) StatusCode() int {
 	return 0
 }
 
+type GetVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetNetworkDNSWithResponse request returning *GetNetworkDNSResponse
 func (c *ClientWithResponses) GetNetworkDNSWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetNetworkDNSResponse, error) {
 	rsp, err := c.GetNetworkDNS(ctx, reqEditors...)
@@ -1237,6 +1312,15 @@ func (c *ClientWithResponses) GetTaskIDWithResponse(ctx context.Context, id uint
 		return nil, err
 	}
 	return ParseGetTaskIDResponse(rsp)
+}
+
+// GetVersionWithResponse request returning *GetVersionResponse
+func (c *ClientWithResponses) GetVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetVersionResponse, error) {
+	rsp, err := c.GetVersion(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVersionResponse(rsp)
 }
 
 // ParseGetNetworkDNSResponse parses an HTTP response from a GetNetworkDNSWithResponse call
@@ -1366,8 +1450,22 @@ func ParseGetSystemHostnameResponse(rsp *http.Response) (*GetSystemHostnameRespo
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest SystemErrorResponse
+		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1399,8 +1497,22 @@ func ParseGetSystemStatusResponse(rsp *http.Response) (*GetSystemStatusResponse,
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest SystemErrorResponse
+		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1584,6 +1696,32 @@ func ParseGetTaskIDResponse(rsp *http.Response) (*GetTaskIDResponse, error) {
 			return nil, err
 		}
 		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetVersionResponse parses an HTTP response from a GetVersionWithResponse call
+func ParseGetVersionResponse(rsp *http.Response) (*GetVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	}
 

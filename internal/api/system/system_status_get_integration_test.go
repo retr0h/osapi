@@ -151,7 +151,7 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+			wantBody: `{"error":"assert.AnError general error for testing"}`,
 		},
 		{
 			name: "when host.GetUptime errors",
@@ -179,7 +179,7 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+			wantBody: `{"error":"assert.AnError general error for testing"}`,
 		},
 		{
 			name: "when load.GetAverageStats errors",
@@ -206,7 +206,7 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+			wantBody: `{"error":"assert.AnError general error for testing"}`,
 		},
 		{
 			name: "when mem.GetStats errors",
@@ -233,7 +233,7 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+			wantBody: `{"error":"assert.AnError general error for testing"}`,
 		},
 		{
 			name: "when host.GetOSInfo errors",
@@ -262,7 +262,7 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+			wantBody: `{"error":"assert.AnError general error for testing"}`,
 		},
 		{
 			name: "when disk.GetLocalUsageStats errors",
@@ -289,7 +289,7 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+			wantBody: `{"error":"assert.AnError general error for testing"}`,
 		},
 	}
 
@@ -300,14 +300,11 @@ func (suite *SystemStatusGetIntegrationTestSuite) TestGetSystemStatus() {
 			hostMock := tc.setupHostMock()
 			diskMock := tc.setupDiskMock()
 
+			systemHandler := system.New(memMock, loadMock, hostMock, diskMock)
+			strictHandler := systemGen.NewStrictHandler(systemHandler, nil)
+
 			a := api.New(suite.appConfig, suite.logger)
-			systemGen.RegisterHandlers(a.Echo,
-				system.New(
-					memMock,
-					loadMock,
-					hostMock,
-					diskMock,
-				))
+			systemGen.RegisterHandlers(a.Echo, strictHandler)
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()

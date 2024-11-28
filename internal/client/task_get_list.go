@@ -26,7 +26,7 @@ import (
 	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// List get all items through the task API endpoint.
+// GetTaskList get all items through the task API endpoint.
 func (c *Client) GetTaskList(
 	ctx context.Context,
 ) (*gen.GetTaskResponse, error) {

@@ -69,10 +69,10 @@ tasks:
       - task: mod
       - task: fmt:check
       - task: vet
-      - task: cov
+      - task: unit:cov
       - task: unit:int
 
-  cov:
+  unit:cov:
     desc: Generate coverage
     env:
       # https://github.com/golang/go/issues/65570
@@ -82,7 +82,7 @@ tasks:
       - gocover-cobertura --ignore-files mock.go < cover.out > cobertura.xml
       - go tool cover -func=cover.out
 
-  cov:map:
+  unit:cov:map:
     desc: Generate coverage and show heatmap
     cmds:
       - task: cov
@@ -118,6 +118,8 @@ tasks:
 
   serve:
     desc: Live reload of server
+    env:
+      IGNORE_LINUX: true
     cmds:
       - air server
 

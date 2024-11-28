@@ -18,30 +18,31 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package config
 
 import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system/disk"
-	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
+	"github.com/go-playground/validator/v10"
 )
 
-// ensure that we've conformed to the `StrictServerInterface` with a compile-time check
-var _ gen.StrictServerInterface = (*System)(nil)
+// regsiterValidatorsFn function to switch when testing
+var registerValidatorsFn = registerValidators
 
-// New factory to create a new instance.
-func New(
-	mp mem.Provider,
-	lp load.Provider,
-	hp host.Provider,
-	dp disk.Provider,
-) *System {
-	return &System{
-		MemProvider:  mp,
-		LoadProvider: lp,
-		HostProvider: hp,
-		DiskProvider: dp,
+// registerValidators register customer validators.
+func registerValidators(_ *validator.Validate) error {
+	// NOTE(retr0h): hook for future validators
+	return nil
+}
+
+// Validate validates a structs exposed fields.
+func Validate(
+	c *Config,
+) error {
+	validate := validator.New()
+
+	err := registerValidatorsFn(validate)
+	if err != nil {
+		return err
 	}
+
+	return validate.Struct(c)
 }

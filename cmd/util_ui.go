@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -29,6 +30,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 	"golang.org/x/term"
+
+	"github.com/retr0h/osapi/internal/client/gen"
 )
 
 // TODO(retr0h): consider moving out of global scope
@@ -47,7 +50,9 @@ type section struct {
 }
 
 // printStyledTable renders a styled table with dynamic column widths.
-func printStyledTable(sections []section) {
+func printStyledTable(
+	sections []section,
+) {
 	re := lipgloss.NewRenderer(os.Stdout)
 
 	// Measure terminal width dynamically
@@ -124,7 +129,9 @@ func printStyledTable(sections []section) {
 }
 
 // printStyledMap format and print the map into a styled, padded table.
-func printStyledMap(data map[string]interface{}) {
+func printStyledMap(
+	data map[string]interface{},
+) {
 	paddingStyle := lipgloss.NewStyle().Padding(1, 2)
 
 	var builder strings.Builder
@@ -145,7 +152,9 @@ func printStyledMap(data map[string]interface{}) {
 }
 
 // formatList helper function to convert []string to a formatted string.
-func formatList(list []string) string {
+func formatList(
+	list []string,
+) string {
 	if len(list) == 0 {
 		return "None"
 	}
@@ -153,7 +162,9 @@ func formatList(list []string) string {
 }
 
 // getMaxHeaderLength calculates the maximum length of the given headers.
-func getMaxHeaderLength(headers []string) int {
+func getMaxHeaderLength(
+	headers []string,
+) int {
 	maxLen := 0
 	for _, header := range headers {
 		if len(header) > maxLen {
@@ -164,7 +175,9 @@ func getMaxHeaderLength(headers []string) int {
 }
 
 // safeInt returns a default value when the input *int is nil.
-func safeInt(i *int) int {
+func safeInt(
+	i *int,
+) int {
 	if i != nil {
 		return *i
 	}
@@ -172,7 +185,9 @@ func safeInt(i *int) int {
 }
 
 // safeString function to safely dereference string pointers
-func safeString(s *string) string {
+func safeString(
+	s *string,
+) string {
 	if s != nil {
 		return *s
 	}
@@ -180,7 +195,9 @@ func safeString(s *string) string {
 }
 
 // safeTime function to safely dereference time.Time pointers
-func safeTime(t *time.Time) string {
+func safeTime(
+	t *time.Time,
+) string {
 	if t != nil {
 		return t.Format(time.RFC3339)
 	}
@@ -188,7 +205,9 @@ func safeTime(t *time.Time) string {
 }
 
 // float64ToSafeString converts a *float64 to a string. Returns "N/A" if nil.
-func float64ToSafeString(f *float64) string {
+func float64ToSafeString(
+	f *float64,
+) string {
 	if f != nil {
 		return fmt.Sprintf("%f", *f)
 	}
@@ -196,7 +215,9 @@ func float64ToSafeString(f *float64) string {
 }
 
 // intToSafeString converts a *int to a string. Returns "N/A" if nil.
-func intToSafeString(i *int) string {
+func intToSafeString(
+	i *int,
+) string {
 	if i != nil {
 		return fmt.Sprintf("%d", *i)
 	}
@@ -204,9 +225,49 @@ func intToSafeString(i *int) string {
 }
 
 // uint64ToSafeString converts a *uint64 to a string, returning "N/A" if nil.
-func uint64ToSafeString(i *uint64) string {
+func uint64ToSafeString(
+	i *uint64,
+) string {
 	if i != nil {
 		return fmt.Sprintf("%d", *i)
 	}
 	return "N/A"
+}
+
+// handleAuthError handles authentication and authorization errors (401 and 403).
+func handleAuthError(
+	jsonError *gen.ErrorResponse,
+	statusCode int,
+	logger *slog.Logger,
+) {
+	errorMsg := "unknown error"
+
+	if jsonError != nil && jsonError.Error != nil {
+		errorMsg = safeString(jsonError.Error)
+	}
+
+	logger.Error(
+		"authorization error",
+		slog.Int("code", statusCode),
+		slog.String("response", errorMsg),
+	)
+}
+
+// handleUnknownError handles unexpected errors, such as 500 Internal Server Error.
+func handleUnknownError(
+	json500 *gen.ErrorResponse,
+	statusCode int,
+	logger *slog.Logger,
+) {
+	errorMsg := "unknown error"
+
+	if json500 != nil && json500.Error != nil {
+		errorMsg = safeString(json500.Error)
+	}
+
+	logger.Error(
+		"error in response",
+		slog.Int("code", statusCode),
+		slog.String("error", errorMsg),
+	)
 }

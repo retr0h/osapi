@@ -23,36 +23,46 @@ package config
 // Config represents the root structure of the YAML configuration file.
 // This struct is used to unmarshal configuration data from Viper.
 type Config struct {
-	API
+	API `     mask:"struct"`
 	Task
 	// Debug enable or disable debug option set from CLI.
-	Debug bool `mapstruture:"debug"`
+	Debug bool `              mapstruture:"debug"`
 }
 
 // API configuration settings.
 type API struct {
 	Client
-	Server
+	Server `mask:"struct"`
 }
 
 // Client configuration settings.
 type Client struct {
 	// URL the client will connect to
 	URL string `mapstructure:"url"`
+	// Security contains security-related configuration for the client, such as access tokens.
+	Security ClientSecurity `mapstructure:"security" mask:"struct"`
 }
 
 // Server configuration settings.
 type Server struct {
 	// Port the server will bind to.
 	Port int `mapstructure:"port"`
-	// Security-related configuration, such as CORS settings.
-	Security Security `mapstructure:"security"`
+	// Security contains security-related configuration for the server, such as CORS and tokens.
+	Security ServerSecurity `mapstructure:"security" mask:"struct"`
 }
 
-// Security represents the "security" configuration under the "server" section.
-type Security struct {
+// ServerSecurity represents security-related settings for the server.
+type ServerSecurity struct {
 	// CORS Cross-Origin Resource Sharing (CORS) settings for the server.
 	CORS CORS `mapstructure:"cors"`
+	// SigningKey is the key used for signing or validating tokens.
+	SigningKey string `mapstructure:"signing_key" validate:"required" mask:"password"`
+}
+
+// ClientSecurity represents security-related settings for the client.
+type ClientSecurity struct {
+	// BearerToken is the JWT used for role-based access control.
+	BearerToken string `mapstructure:"bearer_token" validate:"required"`
 }
 
 // CORS represents the CORS (Cross-Origin Resource Sharing) settings.

@@ -18,30 +18,42 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package token
 
 import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system/disk"
-	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
+	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
-// ensure that we've conformed to the `StrictServerInterface` with a compile-time check
-var _ gen.StrictServerInterface = (*System)(nil)
-
-// New factory to create a new instance.
-func New(
-	mp mem.Provider,
-	lp load.Provider,
-	hp host.Provider,
-	dp disk.Provider,
-) *System {
-	return &System{
-		MemProvider:  mp,
-		LoadProvider: lp,
-		HostProvider: hp,
-		DiskProvider: dp,
+// Generate generates a signed JWT with the given roles.
+func (t *Token) Generate(
+	signingKey string,
+	roles []string,
+	subject string,
+) (string, error) {
+	claims := CustomClaims{
+		Roles: roles,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer: "osapi",
+			// NOTE(retr0h):
+			// - The Audience claim (aud) in a JWT is used to specify the intended
+			//   recipients of the token. It ensures the token is only processed by
+			//   the services or APIs for which it was issued.
+			// - Currently, the Audience claim is included in the token but not
+			//   validated during use. In the future, Audience will be used to
+			//   restrict tokens to specific services or APIs.
+			Audience: jwt.ClaimStrings([]string{
+				"https://localhost",
+				"http://localhost",
+			}),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 3, 0)),
+			Subject:   subject,
+		},
 	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(signingKey))
 }

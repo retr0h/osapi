@@ -37,6 +37,9 @@ paths:
       description: Get the current status of the system including hostname, uptime, load averages, memory, and disk usage.
       tags:
         - system_status
+      security:
+        - BearerAuth:
+            - read
       responses:
         '200':
           description: A JSON object containing the system's status information.
@@ -44,18 +47,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SystemStatusResponse'
+        '401':
+          description: Unauthorized - API key required
+          content:
+            application/json:
+              schema:
+                $ref: '../../common/gen/api.yaml#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '../../common/gen/api.yaml#/components/schemas/ErrorResponse'
         '500':
           description: Error retrieving system status.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/system.ErrorResponse'
+                $ref: '../../common/gen/api.yaml#/components/schemas/ErrorResponse'
   /system/hostname:
     get:
       summary: Retrieve system hostname
       description: Get the current hostname of the system.
       tags:
         - system_operations
+      security:
+        - BearerAuth:
+            - read
       responses:
         '200':
           description: A JSON object containing the system's hostname.
@@ -63,15 +81,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HostnameResponse'
+        '401':
+          description: Unauthorized - API key required
+          content:
+            application/json:
+              schema:
+                $ref: '../../common/gen/api.yaml#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '../../common/gen/api.yaml#/components/schemas/ErrorResponse'
         '500':
           description: Error retrieving hostname.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/system.ErrorResponse'
+                $ref: '../../common/gen/api.yaml#/components/schemas/ErrorResponse'
 
 components:
   schemas:
+    ErrorResponse:
+      $ref: '../../common/gen/api.yaml#/components/schemas/ErrorResponse'
+
     LoadAverageResponse:
       type: object
       description: The system load averages for 1, 5, and 15 minutes.
@@ -199,22 +232,3 @@ components:
       required:
         - distribution
         - version
-
-    system.ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-          description: A description of the error that occurred.
-          example: "Failed to retrieve system status."
-        details:
-          type: string
-          description: Additional details about the error, specifying which component failed.
-          example: "Failed to get hostname due to network timeout."
-        code:
-          type: integer
-          description: The error code.
-          example: 500
-      required:
-        - error
-        - code

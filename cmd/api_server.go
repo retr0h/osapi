@@ -22,9 +22,13 @@ package cmd
 
 import (
 	"log/slog"
+	"strings"
 
+	"github.com/ggwhite/go-masker/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/retr0h/osapi/internal/config"
 )
 
 // apiServerCmd represents the apiServer command.
@@ -34,13 +38,28 @@ var apiServerCmd = &cobra.Command{
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		validateDistribution()
 
+		masker := masker.NewMaskerMarshaler()
+		maskedConfig, err := masker.Struct(&appConfig)
+		if err != nil {
+			logFatal("failed to mask config", err)
+		}
+
+		maskedAppConfig, ok := maskedConfig.(*config.Config)
+		if !ok {
+			logFatal("failed to type assert maskedConfig", nil)
+		}
+
 		logger.Info(
 			"api server configuration",
 			slog.Bool("debug", appConfig.Debug),
 			slog.Int("api.server.port", appConfig.API.Server.Port),
-			slog.Any(
+			slog.String(
 				"api.server.security.cors.allow_origins",
-				appConfig.API.Server.Security.CORS.AllowOrigins,
+				strings.Join(appConfig.API.Server.Security.CORS.AllowOrigins, ","),
+			),
+			slog.String(
+				"api.server.security.signing_key",
+				maskedAppConfig.API.Server.Security.SigningKey,
 			),
 		)
 	},

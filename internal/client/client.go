@@ -46,6 +46,20 @@ func New(
 func NewClientWithResponses(
 	appConfig config.Config,
 ) (*gen.ClientWithResponses, error) {
-	hc := http.Client{}
+	transport := &authTransport{
+		base:       http.DefaultTransport,
+		authHeader: "Bearer " + appConfig.Client.Security.BearerToken,
+	}
+
+	hc := http.Client{
+		Transport: transport,
+	}
+
 	return gen.NewClientWithResponses(appConfig.Client.URL, gen.WithHTTPClient(&hc))
+}
+
+// RoundTrip implements the http.RoundTripper interface.
+func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set("Authorization", t.authHeader)
+	return t.base.RoundTrip(req)
 }

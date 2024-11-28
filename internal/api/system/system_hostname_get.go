@@ -21,25 +21,25 @@
 package system
 
 import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
+	"context"
 
 	"github.com/retr0h/osapi/internal/api/system/gen"
 )
 
 // GetSystemHostname get the system hostname API endpoint.
-func (s System) GetSystemHostname(
-	ctx echo.Context,
-) error {
+func (s *System) GetSystemHostname(
+	_ context.Context,
+	_ gen.GetSystemHostnameRequestObject,
+) (gen.GetSystemHostnameResponseObject, error) {
 	hostname, err := s.HostProvider.GetHostname()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
-			Error: err.Error(),
-		})
+		errMsg := err.Error()
+		return gen.GetSystemHostname500JSONResponse{
+			Error: &errMsg,
+		}, nil
 	}
 
-	return ctx.JSON(http.StatusOK, gen.HostnameResponse{
+	return gen.GetSystemHostname200JSONResponse{
 		Hostname: hostname,
-	})
+	}, nil
 }

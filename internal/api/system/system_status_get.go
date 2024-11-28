@@ -21,59 +21,64 @@
 package system
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"time"
-
-	"github.com/labstack/echo/v4"
 
 	"github.com/retr0h/osapi/internal/api/system/gen"
 )
 
 // GetSystemStatus get the system status API endpoint.
-func (s System) GetSystemStatus(
-	ctx echo.Context,
-) error {
+func (s *System) GetSystemStatus(
+	_ context.Context,
+	_ gen.GetSystemStatusRequestObject,
+) (gen.GetSystemStatusResponseObject, error) {
 	hostname, err := s.HostProvider.GetHostname()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
-			Error: err.Error(),
-		})
+		errMsg := err.Error()
+		return gen.GetSystemStatus500JSONResponse{
+			Error: &errMsg,
+		}, nil
 	}
 
 	uptime, err := s.HostProvider.GetUptime()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
-			Error: err.Error(),
-		})
+		errMsg := err.Error()
+		return gen.GetSystemStatus500JSONResponse{
+			Error: &errMsg,
+		}, nil
 	}
 
 	loadAvgStats, err := s.LoadProvider.GetAverageStats()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
-			Error: err.Error(),
-		})
+		errMsg := err.Error()
+		return gen.GetSystemStatus500JSONResponse{
+			Error: &errMsg,
+		}, nil
 	}
 
 	memStats, err := s.MemProvider.GetStats()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
-			Error: err.Error(),
-		})
+		errMsg := err.Error()
+		return gen.GetSystemStatus500JSONResponse{
+			Error: &errMsg,
+		}, nil
 	}
 
 	osInfo, err := s.HostProvider.GetOSInfo()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
-			Error: err.Error(),
-		})
+		errMsg := err.Error()
+		return gen.GetSystemStatus500JSONResponse{
+			Error: &errMsg,
+		}, nil
 	}
 
 	diskStats, err := s.DiskProvider.GetLocalUsageStats()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, gen.SystemErrorResponse{
-			Error: err.Error(),
-		})
+		errMsg := err.Error()
+		return gen.GetSystemStatus500JSONResponse{
+			Error: &errMsg,
+		}, nil
 	}
 
 	// Convert []systemDiskUsageStats to []gen.Disks
@@ -88,7 +93,7 @@ func (s System) GetSystemStatus(
 		disks = append(disks, disk)
 	}
 
-	return ctx.JSON(http.StatusOK, gen.SystemStatusResponse{
+	return gen.GetSystemStatus200JSONResponse{
 		Hostname: hostname,
 		Uptime:   formatDuration(uptime),
 		LoadAverage: gen.LoadAverageResponse{
@@ -109,7 +114,7 @@ func (s System) GetSystemStatus(
 			Used:  uint64ToInt(memStats.Cached),
 		},
 		Disks: disks,
-	})
+	}, nil
 }
 
 func formatDuration(d time.Duration) string {

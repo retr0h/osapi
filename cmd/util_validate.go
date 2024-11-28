@@ -37,7 +37,10 @@ var supportedVersions = []struct {
 }
 
 // IsLinuxVersionSupported checks if the given distribution and version are supported.
-func IsLinuxVersionSupported(distro string, version string) bool {
+func IsLinuxVersionSupported(
+	distro string,
+	version string,
+) bool {
 	// Convert both distro and version to lowercase to make the check case-insensitive
 	distro = strings.ToLower(distro)
 

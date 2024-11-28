@@ -94,6 +94,11 @@ func initConfig() {
 	if err := viper.Unmarshal(&appConfig); err != nil {
 		logFatal("failed to unmarshal config", err, "osapiFile", viper.ConfigFileUsed())
 	}
+
+	err := config.Validate(&appConfig)
+	if err != nil {
+		logFatal("validation failed", err, "osapiFile", viper.ConfigFileUsed())
+	}
 }
 
 func initLogger() {

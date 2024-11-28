@@ -4,7 +4,18 @@
 package gen
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
+	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	externalRef0 "github.com/retr0h/osapi/internal/api/common/gen"
+)
+
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
 // DiskResponse Local disk usage information.
@@ -24,6 +35,9 @@ type DiskResponse struct {
 
 // DisksResponse List of local disk usage information.
 type DisksResponse = []DiskResponse
+
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse = externalRef0.ErrorResponse
 
 // HostnameResponse The hostname of the system.
 type HostnameResponse struct {
@@ -85,18 +99,6 @@ type SystemStatusResponse struct {
 	Uptime string `json:"uptime"`
 }
 
-// SystemErrorResponse defines model for system.ErrorResponse.
-type SystemErrorResponse struct {
-	// Code The error code.
-	Code int `json:"code"`
-
-	// Details Additional details about the error, specifying which component failed.
-	Details *string `json:"details,omitempty"`
-
-	// Error A description of the error that occurred.
-	Error string `json:"error"`
-}
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Retrieve system hostname
@@ -116,6 +118,8 @@ type ServerInterfaceWrapper struct {
 func (w *ServerInterfaceWrapper) GetSystemHostname(ctx echo.Context) error {
 	var err error
 
+	ctx.Set(BearerAuthScopes, []string{"read"})
+
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetSystemHostname(ctx)
 	return err
@@ -124,6 +128,8 @@ func (w *ServerInterfaceWrapper) GetSystemHostname(ctx echo.Context) error {
 // GetSystemStatus converts echo context to params.
 func (w *ServerInterfaceWrapper) GetSystemStatus(ctx echo.Context) error {
 	var err error
+
+	ctx.Set(BearerAuthScopes, []string{"read"})
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetSystemStatus(ctx)
@@ -161,4 +167,158 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/system/hostname", wrapper.GetSystemHostname)
 	router.GET(baseURL+"/system/status", wrapper.GetSystemStatus)
 
+}
+
+type GetSystemHostnameRequestObject struct {
+}
+
+type GetSystemHostnameResponseObject interface {
+	VisitGetSystemHostnameResponse(w http.ResponseWriter) error
+}
+
+type GetSystemHostname200JSONResponse HostnameResponse
+
+func (response GetSystemHostname200JSONResponse) VisitGetSystemHostnameResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSystemHostname401JSONResponse externalRef0.ErrorResponse
+
+func (response GetSystemHostname401JSONResponse) VisitGetSystemHostnameResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSystemHostname403JSONResponse externalRef0.ErrorResponse
+
+func (response GetSystemHostname403JSONResponse) VisitGetSystemHostnameResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSystemHostname500JSONResponse externalRef0.ErrorResponse
+
+func (response GetSystemHostname500JSONResponse) VisitGetSystemHostnameResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSystemStatusRequestObject struct {
+}
+
+type GetSystemStatusResponseObject interface {
+	VisitGetSystemStatusResponse(w http.ResponseWriter) error
+}
+
+type GetSystemStatus200JSONResponse SystemStatusResponse
+
+func (response GetSystemStatus200JSONResponse) VisitGetSystemStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSystemStatus401JSONResponse externalRef0.ErrorResponse
+
+func (response GetSystemStatus401JSONResponse) VisitGetSystemStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSystemStatus403JSONResponse externalRef0.ErrorResponse
+
+func (response GetSystemStatus403JSONResponse) VisitGetSystemStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetSystemStatus500JSONResponse externalRef0.ErrorResponse
+
+func (response GetSystemStatus500JSONResponse) VisitGetSystemStatusResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+	// Retrieve system hostname
+	// (GET /system/hostname)
+	GetSystemHostname(ctx context.Context, request GetSystemHostnameRequestObject) (GetSystemHostnameResponseObject, error)
+	// Retrieve system status
+	// (GET /system/status)
+	GetSystemStatus(ctx context.Context, request GetSystemStatusRequestObject) (GetSystemStatusResponseObject, error)
+}
+
+type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
+type StrictMiddlewareFunc = strictecho.StrictEchoMiddlewareFunc
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+}
+
+// GetSystemHostname operation middleware
+func (sh *strictHandler) GetSystemHostname(ctx echo.Context) error {
+	var request GetSystemHostnameRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSystemHostname(ctx.Request().Context(), request.(GetSystemHostnameRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSystemHostname")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetSystemHostnameResponseObject); ok {
+		return validResponse.VisitGetSystemHostnameResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetSystemStatus operation middleware
+func (sh *strictHandler) GetSystemStatus(ctx echo.Context) error {
+	var request GetSystemStatusRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSystemStatus(ctx.Request().Context(), request.(GetSystemStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSystemStatus")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetSystemStatusResponseObject); ok {
+		return validResponse.VisitGetSystemStatusResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
 }

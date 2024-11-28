@@ -61,3 +61,45 @@ info:
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT
+tags:
+  - name: info
+    x-displayName: Info
+    description: Operations related to the info endpoint.
+
+paths:
+  /version:
+    get:
+      summary: Retrieve the software version
+      description: Get the current version of the software running on the system.
+      tags:
+        - info
+      responses:
+        "400":
+          description: A common JSON error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: A description of the error that occurred.
+          example: Failed to retrieve status.
+        details:
+          type: string
+          description: Additional details about the error.
+          example: Failed due to network timeout.
+        code:
+          type: integer
+          description: The error code.
+          example: 500
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

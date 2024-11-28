@@ -26,7 +26,11 @@ import (
 
 // logFatal logs a fatal error message along with optional structured data
 // and then exits the program with a status code of 1.
-func logFatal(message string, err error, kvPairs ...any) {
+func logFatal(
+	message string,
+	err error,
+	kvPairs ...any,
+) {
 	if err != nil {
 		kvPairs = append(kvPairs, "error", err)
 	}

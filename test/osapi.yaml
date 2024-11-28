@@ -4,9 +4,12 @@ debug: false
 api:
   client:
     url: http://0.0.0.0:8080
+    security:
+      bearer_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJyZWFkIl0sImlzcyI6Im9zYXBpIiwic3ViIjoiam9obkBkZXdleS53cyIsImF1ZCI6WyJodHRwczovL2xvY2FsaG9zdCIsImh0dHA6Ly9sb2NhbGhvc3QiXSwiZXhwIjoxNzQwODY1NzcwLCJpYXQiOjE3MzI5MTY5NzB9.fHERakKxHGDrcYKAQ8uZDVe7PipUQgJ7ciZRd_oQSGw
   server:
     port: 8080
     security:
+      signing_key: 111fdb0cfd9788fa6af8815f856a0374bf7a0174ad62fa8b98ec07a55f68d8d8
       cors:
         allow_origins:
           - http://localhost:3001

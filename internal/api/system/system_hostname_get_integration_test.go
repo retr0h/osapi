@@ -91,7 +91,7 @@ func (suite *SystemHostnameGetIntegrationTestSuite) TestGetSystemHostname() {
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+			wantBody: `{"error":"assert.AnError general error for testing"}`,
 		},
 	}
 
@@ -102,14 +102,11 @@ func (suite *SystemHostnameGetIntegrationTestSuite) TestGetSystemHostname() {
 			hostMock := tc.setupHostMock()
 			diskMock := diskMocks.NewPlainMockProvider(suite.ctrl)
 
+			systemHandler := system.New(memMock, loadMock, hostMock, diskMock)
+			strictHandler := systemGen.NewStrictHandler(systemHandler, nil)
+
 			a := api.New(suite.appConfig, suite.logger)
-			systemGen.RegisterHandlers(a.Echo,
-				system.New(
-					memMock,
-					loadMock,
-					hostMock,
-					diskMock,
-				))
+			systemGen.RegisterHandlers(a.Echo, strictHandler)
 
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
 			rec := httptest.NewRecorder()

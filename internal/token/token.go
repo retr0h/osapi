@@ -18,30 +18,40 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package system
+package token
 
 import (
-	"github.com/retr0h/osapi/internal/api/system/gen"
-	"github.com/retr0h/osapi/internal/provider/system/disk"
-	"github.com/retr0h/osapi/internal/provider/system/host"
-	"github.com/retr0h/osapi/internal/provider/system/load"
-	"github.com/retr0h/osapi/internal/provider/system/mem"
+	"log/slog"
 )
 
-// ensure that we've conformed to the `StrictServerInterface` with a compile-time check
-var _ gen.StrictServerInterface = (*System)(nil)
+// RoleHierarchy defines the relationship between roles and their associated scopes.
+// Each role is mapped to a list of permissible scopes. This hierarchy is used to
+// determine whether a user with a given role has access to specific actions.
+//
+// Example:
+//   - "admin" includes "read", "write", and "admin" scopes.
+//   - "write" includes "read" and "write" scopes.
+//   - "read" includes only the "read" scope.
+var RoleHierarchy = map[string][]string{
+	"admin": {"read", "write", "admin"},
+	"write": {"read", "write"},
+	"read":  {"read"},
+}
 
 // New factory to create a new instance.
 func New(
-	mp mem.Provider,
-	lp load.Provider,
-	hp host.Provider,
-	dp disk.Provider,
-) *System {
-	return &System{
-		MemProvider:  mp,
-		LoadProvider: lp,
-		HostProvider: hp,
-		DiskProvider: dp,
+	logger *slog.Logger,
+) *Token {
+	return &Token{
+		logger: logger,
 	}
+}
+
+// GenerateAllowedRoles extracts the keys from RoleHierarchy to create a list of allowed roles.
+func GenerateAllowedRoles(roleHierarchy map[string][]string) []string {
+	roles := make([]string, 0, len(roleHierarchy))
+	for role := range roleHierarchy {
+		roles = append(roles, role)
+	}
+	return roles
 }

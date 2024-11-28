@@ -63,17 +63,12 @@ var clientSystemHostnameGetCmd = &cobra.Command{
 			}
 			printStyledMap(hostnameData)
 
+		case http.StatusUnauthorized:
+			handleAuthError(resp.JSON401, resp.StatusCode(), logger)
+		case http.StatusForbidden:
+			handleAuthError(resp.JSON403, resp.StatusCode(), logger)
 		default:
-			errorMsg := "unknown error"
-			if resp.JSON500 != nil {
-				errorMsg = resp.JSON500.Error
-			}
-
-			logger.Error(
-				"error in response",
-				slog.Int("code", resp.StatusCode()),
-				slog.String("response", errorMsg),
-			)
+			handleUnknownError(resp.JSON500, resp.StatusCode(), logger)
 		}
 	},
 }

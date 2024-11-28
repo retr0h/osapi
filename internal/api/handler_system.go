@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
 	sysHost "github.com/shirou/gopsutil/v4/host"
 
 	"github.com/retr0h/osapi/internal/api/system"
@@ -32,6 +33,7 @@ import (
 	"github.com/retr0h/osapi/internal/provider/system/host"
 	"github.com/retr0h/osapi/internal/provider/system/load"
 	"github.com/retr0h/osapi/internal/provider/system/mem"
+	"github.com/retr0h/osapi/internal/token"
 )
 
 // GetSystemHandler returns system handler for registration.
@@ -55,15 +57,32 @@ func (s *Server) GetSystemHandler() []func(e *echo.Echo) {
 		diskProvider = disk.NewLinuxProvider()
 	}
 
+	var tokenManager token.Manager = token.New(s.logger)
+
+	systemHandler := system.New(
+		memProvider,
+		loadProvider,
+		hostProvider,
+		diskProvider,
+	)
+
+	strictHandler := systemGen.NewStrictHandler(
+		systemHandler,
+		[]systemGen.StrictMiddlewareFunc{
+			func(handler strictecho.StrictEchoHandlerFunc, _ string) strictecho.StrictEchoHandlerFunc {
+				return scopeMiddleware(
+					handler,
+					tokenManager,
+					s.appConfig.API.Server.Security.SigningKey,
+					systemGen.BearerAuthScopes,
+				)
+			},
+		},
+	)
+
 	return []func(e *echo.Echo){
 		func(e *echo.Echo) {
-			systemHandler := system.New(
-				memProvider,
-				loadProvider,
-				hostProvider,
-				diskProvider,
-			)
-			systemGen.RegisterHandlers(e, systemHandler)
+			systemGen.RegisterHandlers(e, strictHandler)
 		},
 	}
 }

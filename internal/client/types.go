@@ -22,6 +22,7 @@ package client
 
 import (
 	"log/slog"
+	"net/http"
 
 	"github.com/retr0h/osapi/internal/client/gen"
 	"github.com/retr0h/osapi/internal/config"
@@ -34,4 +35,9 @@ type Client struct {
 
 	logger    *slog.Logger
 	appConfig config.Config
+}
+
+type authTransport struct {
+	base       http.RoundTripper
+	authHeader string
 }
