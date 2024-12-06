@@ -23,34 +23,43 @@ package dns
 import (
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 )
 
-// SetResolvConf updates the resolv.conf file with new DNS servers and search
-// domains, preserving existing settings if new values are not provided.
+// SetResolvConf updates the DNS configuration for a specific network interface
+// using the `resolvectl` command. It applies new DNS servers and search domains
+// if provided, while preserving existing settings for values that are not specified.
 // The function returns an error if the operation fails.
 //
-// Important Notice:
-//   - This function writes directly to /run/systemd/resolve/resolv.conf, which
-//     may be overwritten by systemd-resolved. In the future, consider moving to
-//     resolvectl for better integration with systemd-resolved, as it manages
-//     DNS settings dynamically and supports per-interface configurations.
+// Cross-platform considerations:
+//   - This function is designed specifically for Linux systems that utilize
+//     `systemd-resolved` for managing DNS configurations.
+//   - It relies on the `resolvectl` command, which is available on systems with
+//     `systemd` version 237 or later. On non-systemd systems or older versions of
+//     Linux, this functionality may not be available.
 //
-// Mocking:
-//   - Afero is used for file system abstraction, which allows for easier
-//     testing and mocking of file reads.
+// Notes about the implementation:
+//   - This function queries DNS information dynamically using `resolvectl`, which
+//     supports per-interface configurations and reflects the live state of DNS
+//     settings managed by `systemd-resolved`.
+//   - If no search domains are configured for the interface, the function defaults
+//     to returning `["."]` to indicate the root domain.
+//
+// Requirements:
+//   - The `resolvectl` command must be installed and available in the system path.
+//   - The caller must have sufficient privileges to query network settings for the
+//     specified interface.
 //
 // See `systemd-resolved.service(8)` manual page for further information.
 func (u *Ubuntu) SetResolvConf(
 	servers []string,
 	searchDomains []string,
 ) error {
-	const resolvConfFile = "/run/systemd/resolve/resolv.conf"
-	const tmpResolvConfFile = "/run/systemd/resolve/resolv.conf.tmp"
+	// TODO(retr0h): parameterize the interface
+	const interfaceName = "wlp0s20f3"
 
 	u.logger.Info(
-		"setting resolv conf",
+		"setting resolvectl configuration",
 		slog.String("servers", strings.Join(servers, ", ")),
 		slog.String("search_domains", strings.Join(searchDomains, ", ")),
 	)
@@ -61,7 +70,7 @@ func (u *Ubuntu) SetResolvConf(
 
 	existingConfig, err := u.GetResolvConf()
 	if err != nil {
-		return fmt.Errorf("failed to get current resolv.conf: %w", err)
+		return fmt.Errorf("failed to get current resolvectl configuration: %w", err)
 	}
 
 	// Use existing values if new values are not provided
@@ -72,36 +81,24 @@ func (u *Ubuntu) SetResolvConf(
 		searchDomains = existingConfig.SearchDomains
 	}
 
-	file, err := u.appFs.OpenFile(tmpResolvConfFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-	if err != nil {
-		return fmt.Errorf("failed to open temporary file %s: %w", tmpResolvConfFile, err)
-	}
-	defer func() { _ = file.Close() }()
-
-	// Write the DNS servers, if any are provided
+	// Set DNS servers
 	if len(servers) > 0 {
-		for _, server := range servers {
-			if _, err := file.WriteString(fmt.Sprintf("nameserver %s\n", server)); err != nil {
-				return fmt.Errorf("failed to write nameserver %s to temp file: %w", server, err)
-			}
+		cmd := "resolvectl"
+		args := append([]string{"dns", interfaceName}, servers...)
+		output, err := u.execManager.RunCmd(cmd, args)
+		if err != nil {
+			return fmt.Errorf("failed to set DNS servers with resolvectl: %w - %s", err, output)
 		}
 	}
 
-	// Write the search domains, if any are provided
+	// Set search domains
 	if len(searchDomains) > 0 {
-		searchLine := fmt.Sprintf("search %s\n", strings.Join(searchDomains, " "))
-		if _, err := file.WriteString(searchLine); err != nil {
-			return fmt.Errorf("failed to write search domains to temp file: %w", err)
+		cmd := "resolvectl"
+		args := append([]string{"domain", interfaceName}, searchDomains...)
+		output, err := u.execManager.RunCmd(cmd, args)
+		if err != nil {
+			return fmt.Errorf("failed to set search domains with resolvectl: %w - %s", err, output)
 		}
-	}
-
-	if err := file.Close(); err != nil {
-		return fmt.Errorf("failed to close temp file %s: %w", tmpResolvConfFile, err)
-	}
-
-	// Atomically move the temporary file to replace the resolv.conf file
-	if err := u.appFs.Rename(tmpResolvConfFile, resolvConfFile); err != nil {
-		return fmt.Errorf("failed to move temp file to %s: %w", resolvConfFile, err)
 	}
 
 	return nil

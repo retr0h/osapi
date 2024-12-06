@@ -29,6 +29,7 @@ import (
 
 	"github.com/retr0h/osapi/internal/api/network"
 	networkGen "github.com/retr0h/osapi/internal/api/network/gen"
+	"github.com/retr0h/osapi/internal/exec"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 	"github.com/retr0h/osapi/internal/provider/network/ping"
 	"github.com/retr0h/osapi/internal/task/client"
@@ -36,17 +37,19 @@ import (
 
 // GetNetworkHandler returns network handler for registration.
 func (s *Server) GetNetworkHandler(
-	appFs afero.Fs,
+	_ afero.Fs,
 	clientManager client.Manager,
 ) []func(e *echo.Echo) {
 	var pingProvider ping.Provider
 	var dnsProvider dns.Provider
+	var execManager exec.Manager
 
 	info, _ := host.Info()
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
+		execManager = exec.New(s.logger)
 		pingProvider = ping.NewUbuntuProvider()
-		dnsProvider = dns.NewUbuntuProvider(appFs, s.logger)
+		dnsProvider = dns.NewUbuntuProvider(s.logger, execManager)
 	default:
 		pingProvider = ping.NewLinuxProvider()
 		dnsProvider = dns.NewLinuxProvider()

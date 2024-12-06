@@ -21,71 +21,60 @@
 package dns
 
 import (
-	"bufio"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
-// GetResolvConf reads the DNS configuration from /run/systemd/resolve/resolv.conf.
-// It returns a Config struct, and an error if something goes wrong.
+// GetResolvConf retrieves the DNS configuration for a specific network interface
+// using the `resolvectl` command. It returns a Config struct containing the DNS
+// servers and search domains for the interface, and an error if something goes wrong.
 //
-// Cross-platform considerations: This function is designed specifically for
-// Linux systems that utilize systemd-resolved for managing DNS configurations.
-// It reads from /run/systemd/resolve/resolv.conf, which is commonly used when
-// systemd-resolved is active. For non-systemd Linux systems or non-Linux
-// Unix-like systems (e.g., BSD or macOS), this file may not exist or may be
-// irrelevant.
+// Cross-platform considerations:
+//   - This function is designed specifically for Linux systems that utilize
+//     `systemd-resolved` for managing DNS configurations.
+//   - It relies on the `resolvectl` command, which is available on systems with
+//     `systemd` version 237 or later. On non-systemd systems or older versions of
+//     Linux, this functionality may not be available.
 //
-// Important Notice:
-//   - This function requires privilege escalation to operate correctly.
-//   - This function writes directly to /run/systemd/resolve/resolv.conf, which
-//     may be overwritten by systemd-resolved. In the future, consider moving to
-//     resolvectl for better integration with systemd-resolved, as it manages
-//     DNS settings dynamically and supports per-interface configurations.
+// Notes about the implementation:
+//   - This function queries DNS information dynamically using `resolvectl`, which
+//     supports per-interface configurations and reflects the live state of DNS
+//     settings managed by `systemd-resolved`.
+//   - If no search domains are configured for the interface, the function defaults
+//     to returning `["."]` to indicate the root domain.
 //
-// About /run/systemd/resolve/resolv.conf:
-//   - This file is managed by systemd-resolved and contains the current DNS
-//     servers and search domains configured on the system.
-//   - Unlike /etc/resolv.conf, this file is specific to systemd-resolved and
-//     reflects its settings, rather than being a general resolv.conf file used
-//     by other resolvers.
-//   - When systemd-resolved is running, /etc/resolv.conf might be symlinked to
-//     this file, making it a reliable location for DNS information on systems
-//     using systemd.
-//
-// Mocking:
-//   - Afero is used for file system abstraction, which allows for easier
-//     testing and mocking of file reads.
+// Requirements:
+//   - The `resolvectl` command must be installed and available in the system path.
+//   - The caller must have sufficient privileges to query network settings for the
+//     specified interface.
 //
 // See `systemd-resolved.service(8)` manual page for further information.
 func (u *Ubuntu) GetResolvConf() (*Config, error) {
-	const resolvConfFile = "/run/systemd/resolve/resolv.conf"
+	// TODO(retr0h): parameterize the interface
+	const interfaceName = "wlp0s20f3"
 
-	file, err := u.appFs.Open(resolvConfFile)
+	cmd := "resolvectl"
+	args := []string{"status", interfaceName}
+	output, err := u.execManager.RunCmd(cmd, args)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open %s: %w", resolvConfFile, err)
+		return nil, fmt.Errorf("failed to run resolvectl: %w - %s", err, output)
 	}
-	defer func() { _ = file.Close() }()
 
 	config := &Config{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		fields := strings.Fields(line)
-		if len(fields) < 2 {
-			continue
-		}
 
-		switch fields[0] {
-		case "nameserver":
-			config.DNSServers = append(config.DNSServers, fields[1])
-		case "search", "domain":
-			config.SearchDomains = append(config.SearchDomains, fields[1:]...)
-		}
+	// Parse DNS Servers
+	dnsServersRegex := regexp.MustCompile(`DNS Servers:\s+([^\n]+)`)
+	if matches := dnsServersRegex.FindStringSubmatch(output); len(matches) > 1 {
+		config.DNSServers = strings.Fields(matches[1])
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading %s: %w", resolvConfFile, err)
+	// Parse Search Domains
+	searchDomainRegex := regexp.MustCompile(`DNS Domain:\s+([^\n]+)`)
+	if matches := searchDomainRegex.FindStringSubmatch(output); len(matches) > 1 {
+		config.SearchDomains = strings.Fields(matches[1])
+	} else {
+		config.SearchDomains = []string{"."}
 	}
 
 	return config, nil

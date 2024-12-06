@@ -26,36 +26,39 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spf13/afero"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/retr0h/osapi/internal/exec/mocks"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
 type UbuntuSetResolvConfPublicTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 
-	appFs          afero.Fs
-	logger         *slog.Logger
-	resolvConfFile string
+	logger *slog.Logger
 }
 
 func (suite *UbuntuSetResolvConfPublicTestSuite) SetupTest() {
-	suite.appFs = afero.NewMemMapFs()
+	suite.ctrl = gomock.NewController(suite.T())
+
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
-	suite.resolvConfFile = "/run/systemd/resolve/resolv.conf"
 }
 
 func (suite *UbuntuSetResolvConfPublicTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *UbuntuSetResolvConfPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuSetResolvConfPublicTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
 
 func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 	tests := []struct {
 		name          string
-		content       []byte
+		setupMock     func() *mocks.MockManager
 		servers       []string
 		searchDomains []string
 		want          *dns.Config
@@ -64,11 +67,11 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 	}{
 		{
 			name: "when SetResolvConf Ok",
-			content: []byte(`
-nameserver 1.1.1.1
-nameserver 2.2.2.2
-search foo.example.com bar.example.com
-`),
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewSetResolvConfManager(suite.ctrl)
+
+				return mock
+			},
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -91,11 +94,11 @@ search foo.example.com bar.example.com
 		},
 		{
 			name: "when SetResolvConf preserves existing servers Ok",
-			content: []byte(`
-nameserver 1.1.1.1
-nameserver 2.2.2.2
-search foo.example.com bar.example.com
-`),
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewSetResolvConfManagerPreserveDNSServers(suite.ctrl)
+
+				return mock
+			},
 			searchDomains: []string{
 				"foo.local",
 				"bar.local",
@@ -114,11 +117,11 @@ search foo.example.com bar.example.com
 		},
 		{
 			name: "when SetResolvConf preserves existing search domains Ok",
-			content: []byte(`
-nameserver 1.1.1.1
-nameserver 2.2.2.2
-search foo.example.com bar.example.com
-`),
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewSetResolvConfManagerPreserveDNSDomain(suite.ctrl)
+
+				return mock
+			},
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -136,13 +139,28 @@ search foo.example.com bar.example.com
 			wantErr: false,
 		},
 		{
-			name:        "when SetResolvConf missing args errors",
-			wantErr:     true,
+			name:    "when SetResolvConf missing args errors",
+			wantErr: true,
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainManager(suite.ctrl)
+
+				return mock
+			},
+
 			wantErrType: fmt.Errorf("no DNS servers or search domains provided; nothing to update"),
 		},
 		{
-			name:    "when SetResolvConf missing resolvConfFile errors",
-			content: []byte{},
+			name: "when GetResolvConf errors",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainManager(suite.ctrl)
+
+				mock.EXPECT().
+					RunCmd(mocks.ResolveCommand, []string{"status", mocks.NetworkInterfaceName}).
+					Return("", assert.AnError).
+					AnyTimes()
+
+				return mock
+			},
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -151,37 +169,66 @@ search foo.example.com bar.example.com
 				"foo.local",
 				"bar.local",
 			},
-			want:        &dns.Config{},
 			wantErr:     true,
-			wantErrType: fmt.Errorf("failed to get current resolv.conf"),
+			wantErrType: assert.AnError,
 		},
-		// {
-		// 	name: "when scanner.Err errors",
-		// 	// Write a large amount of data to trigger scanner's buffer size limit.
-		// 	content: make([]byte, 10*1024*1024),
-		// 	want:    &dns.Config{},
-		// 	wantErr: true,
-		// },
+		{
+			name: "when exec.RunCmd setting DNS Domain errors",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewSetResolvConfManagerSetDNSDomainError(suite.ctrl)
+
+				return mock
+			},
+			servers: []string{
+				"8.8.8.8",
+				"9.9.9.9",
+			},
+			searchDomains: []string{
+				"foo.local",
+				"bar.local",
+			},
+			wantErr:     true,
+			wantErrType: assert.AnError,
+		},
+		{
+			name: "when exec.RunCmd setting DNS Servers errors",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewSetResolvConfManagerSetDNSServersError(suite.ctrl)
+
+				return mock
+			},
+			servers: []string{
+				"8.8.8.8",
+				"9.9.9.9",
+			},
+			searchDomains: []string{
+				"foo.local",
+				"bar.local",
+			},
+			wantErr:     true,
+			wantErrType: assert.AnError,
+		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			if len(tc.content) != 0 {
-				_ = afero.WriteFile(suite.appFs, suite.resolvConfFile, tc.content, 0o644)
-			}
+			suite.Run(tc.name, func() {
+				mock := tc.setupMock()
 
-			net := dns.NewUbuntuProvider(suite.appFs, suite.logger)
-			err := net.SetResolvConf(tc.servers, tc.searchDomains)
+				net := dns.NewUbuntuProvider(suite.logger, mock)
+				err := net.SetResolvConf(tc.servers, tc.searchDomains)
 
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-			} else {
-				suite.NoError(err)
-				got, err := net.GetResolvConf()
-				suite.Equal(tc.want, got)
-				suite.NoError(err)
-			}
+				if tc.wantErr {
+					suite.Error(err)
+					suite.Contains(err.Error(), tc.wantErrType.Error())
+				} else {
+					suite.NoError(err)
+
+					got, err := net.GetResolvConf()
+					suite.Equal(tc.want, got)
+					suite.NoError(err)
+				}
+			})
 		})
 	}
 }

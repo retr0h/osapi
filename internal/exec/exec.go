@@ -18,27 +18,46 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package dns
+package exec
 
 import (
 	"log/slog"
-
-	"github.com/retr0h/osapi/internal/exec"
+	"os/exec"
+	"strings"
 )
 
-// Ubuntu implements the DNS interface for Ubuntu.
-type Ubuntu struct {
-	logger      *slog.Logger
-	execManager exec.Manager
+// New factory to create a new Exec instance.
+func New(
+	logger *slog.Logger,
+) *Exec {
+	return &Exec{
+		logger: logger,
+	}
 }
 
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	logger *slog.Logger,
-	em exec.Manager,
-) *Ubuntu {
-	return &Ubuntu{
-		logger:      logger,
-		execManager: em,
+// RunCmdImpl executes the provided command with the specified arguments and
+// an optional working directory. It captures and logs the combined output
+// (stdout and stderr) of the command.
+func (e *Exec) RunCmdImpl(
+	name string,
+	args []string,
+	cwd string,
+) (string, error) {
+	cmd := exec.Command(name, args...)
+	if cwd != "" {
+		cmd.Dir = cwd
 	}
+	out, err := cmd.CombinedOutput()
+	e.logger.Debug(
+		"exec",
+		slog.String("command", strings.Join(cmd.Args, " ")),
+		slog.String("cwd", cwd),
+		slog.String("output", string(out)),
+		slog.Any("error", err),
+	)
+	if err != nil {
+		return string(out), err
+	}
+
+	return string(out), nil
 }

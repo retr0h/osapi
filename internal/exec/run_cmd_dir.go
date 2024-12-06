@@ -18,27 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package dns
+package exec
 
-import (
-	"log/slog"
-
-	"github.com/retr0h/osapi/internal/exec"
-)
-
-// Ubuntu implements the DNS interface for Ubuntu.
-type Ubuntu struct {
-	logger      *slog.Logger
-	execManager exec.Manager
-}
-
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	logger *slog.Logger,
-	em exec.Manager,
-) *Ubuntu {
-	return &Ubuntu{
-		logger:      logger,
-		execManager: em,
-	}
+// RunCmdInDir executes the provided command with arguments, using the current
+// provided directory.
+func (e *Exec) RunCmdInDir(
+	name string,
+	args []string,
+	cwd string,
+) (string, error) {
+	return e.RunCmdImpl(name, args, cwd)
 }

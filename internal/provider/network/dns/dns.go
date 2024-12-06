@@ -20,25 +20,37 @@
 
 package dns
 
-import (
-	"log/slog"
+// TODO(retr0h): Implement
+// TODO(retr0h): Implement
+// TODO(retr0h): Implement
 
-	"github.com/retr0h/osapi/internal/exec"
-)
+// import (
+// 	"log/slog"
 
-// Ubuntu implements the DNS interface for Ubuntu.
-type Ubuntu struct {
-	logger      *slog.Logger
-	execManager exec.Manager
-}
+// 	"github.com/retr0h/osapi/internal/exec"
+// 	"github.com/spf13/afero"
+// )
 
-// NewUbuntuProvider factory to create a new Ubuntu instance.
-func NewUbuntuProvider(
-	logger *slog.Logger,
-	em exec.Manager,
-) *Ubuntu {
-	return &Ubuntu{
-		logger:      logger,
-		execManager: em,
-	}
-}
+// // NewProviderForPlatform returns a DNS provider based on the system platform.
+// // It selects the appropriate DNS provider implementation depending on the OS platform
+// // detected (e.g., Ubuntu-specific vs. general Linux). This allows platform-specific
+// // DNS configurations to be handled in a unified manner.
+// func NewProviderForPlatform(
+// 	appFs afero.Fs,
+// 	logger *slog.Logger,
+// ) dns.Provider {
+// 	var dnsProvider dns.Provider
+// 	var execManager exec.Manager
+
+// 	info, _ := host.Info()
+
+// 	switch strings.ToLower(info.Platform) {
+// 	case "ubuntu":
+// 		execManager = exec.New(logger)
+// 		dnsProvider = dns.NewUbuntuProvider(appFs, logger, execManager)
+// 	default:
+// 		dnsProvider = dns.NewLinuxProvider()
+// 	}
+
+// 	return dnsProvider
+// }

@@ -24,9 +24,9 @@ import (
 	"fmt"
 )
 
-// SetResolvConf writes DNS configuration to the specified resolv.conf file.
-// It accepts a Config struct containing the DNS settings and writes these settings
-// to /run/systemd/resolve/resolv.conf or an alternative location if specified.
+// SetResolvConf updates the DNS configuration for a specific network interface
+// using the `resolvectl` command. It applies new DNS servers and search domains
+// if provided, while preserving existing settings for values that are not specified.
 // The function returns an error if the operation fails.
 func (l *Linux) SetResolvConf(
 	_ []string,

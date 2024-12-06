@@ -25,49 +25,50 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spf13/afero"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/retr0h/osapi/internal/exec/mocks"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
 type UbuntuGetResolvConfPublicTestSuite struct {
 	suite.Suite
+	ctrl *gomock.Controller
 
-	appFs          afero.Fs
-	logger         *slog.Logger
-	resolvConfFile string
+	logger *slog.Logger
 }
 
 func (suite *UbuntuGetResolvConfPublicTestSuite) SetupTest() {
-	suite.appFs = afero.NewMemMapFs()
+	suite.ctrl = gomock.NewController(suite.T())
+
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
-	suite.resolvConfFile = "/run/systemd/resolve/resolv.conf"
 }
 
 func (suite *UbuntuGetResolvConfPublicTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *UbuntuGetResolvConfPublicTestSuite) TearDownTest() {}
+func (suite *UbuntuGetResolvConfPublicTestSuite) TearDownTest() {
+	suite.ctrl.Finish()
+}
 
 func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConf() {
 	tests := []struct {
-		name    string
-		content []byte
-		want    *dns.Config
-		wantErr bool
+		name        string
+		setupMock   func() *mocks.MockManager
+		want        *dns.Config
+		wantErr     bool
+		wantErrType error
 	}{
 		{
 			name: "when GetResolvConf Ok",
-			content: []byte(`
-nameserver 192.168.1.1
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 2001:4860:4860::8888
-nameserver 2001:4860:4860::8844
-search example.com local.lan
-options edns0`),
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewGetResolvConfManager(suite.ctrl)
+
+				return mock
+			},
 			want: &dns.Config{
 				DNSServers: []string{
 					"192.168.1.1",
@@ -84,27 +85,48 @@ options edns0`),
 			wantErr: false,
 		},
 		{
-			name:    "when GetResolvConf missing resolvConfFile",
-			content: []byte{},
-			want:    &dns.Config{},
-			wantErr: true,
+			name: "when default DNS Domain",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewGetResolvConfManagerNoDNSDomain(suite.ctrl)
+
+				return mock
+			},
+			want: &dns.Config{
+				DNSServers: []string{
+					"192.168.1.1",
+					"8.8.8.8",
+					"8.8.4.4",
+					"2001:4860:4860::8888",
+					"2001:4860:4860::8844",
+				},
+				SearchDomains: []string{
+					".",
+				},
+			},
+			wantErr: false,
 		},
 		{
-			name: "when scanner.Err errors",
-			// Write a large amount of data to trigger scanner's buffer size limit.
-			content: make([]byte, 10*1024*1024),
-			want:    &dns.Config{},
-			wantErr: true,
+			name: "when exec.RunCmd errors",
+			setupMock: func() *mocks.MockManager {
+				mock := mocks.NewPlainManager(suite.ctrl)
+
+				mock.EXPECT().
+					RunCmd(mocks.ResolveCommand, []string{"status", mocks.NetworkInterfaceName}).
+					Return("", assert.AnError).
+					AnyTimes()
+
+				return mock
+			},
+			wantErr:     true,
+			wantErrType: assert.AnError,
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			if len(tc.content) != 0 {
-				_ = afero.WriteFile(suite.appFs, suite.resolvConfFile, tc.content, 0o644)
-			}
+			mock := tc.setupMock()
 
-			net := dns.NewUbuntuProvider(suite.appFs, suite.logger)
+			net := dns.NewUbuntuProvider(suite.logger, mock)
 			got, err := net.GetResolvConf()
 
 			if !tc.wantErr {
@@ -112,6 +134,7 @@ options edns0`),
 				suite.Equal(tc.want, got)
 			} else {
 				suite.Error(err)
+				suite.Contains(err.Error(), tc.wantErrType.Error())
 			}
 		})
 	}

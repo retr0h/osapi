@@ -85,7 +85,7 @@ tasks:
   unit:cov:map:
     desc: Generate coverage and show heatmap
     cmds:
-      - task: cov
+      - task: unit:cov
       - go tool cover -html=cover.out
 
   fmt:

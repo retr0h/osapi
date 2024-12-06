@@ -26,8 +26,8 @@ import (
 	"strings"
 
 	"github.com/shirou/gopsutil/v4/host"
-	"github.com/spf13/afero"
 
+	"github.com/retr0h/osapi/internal/exec"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 	"github.com/retr0h/osapi/internal/task"
 	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
@@ -67,7 +67,7 @@ func (w *Worker) reconcile(
 	case *taskpb.Task_ShutdownAction:
 		return nil
 	case *taskpb.Task_ChangeDnsAction:
-		dnsProvider := GetDNSProvider(w.appFs, w.logger)
+		dnsProvider := GetDNSProvider(w.logger)
 		dnsServers := action.ChangeDnsAction.DnsServers
 		searchDomains := action.ChangeDnsAction.SearchDomains
 
@@ -82,16 +82,17 @@ func (w *Worker) reconcile(
 // detected (e.g., Ubuntu-specific vs. general Linux). This allows platform-specific
 // DNS configurations to be handled in a unified manner.
 func GetDNSProvider(
-	appFs afero.Fs,
 	logger *slog.Logger,
 ) dns.Provider {
 	var dnsProvider dns.Provider
+	var execManager exec.Manager
 
 	info, _ := host.Info()
 
 	switch strings.ToLower(info.Platform) {
 	case "ubuntu":
-		dnsProvider = dns.NewUbuntuProvider(appFs, logger)
+		execManager = exec.New(logger)
+		dnsProvider = dns.NewUbuntuProvider(logger, execManager)
 	default:
 		dnsProvider = dns.NewLinuxProvider()
 	}
