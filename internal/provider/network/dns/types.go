@@ -30,6 +30,7 @@ type Provider interface {
 	SetResolvConfByInterface(
 		_ []string,
 		_ []string,
+		_ string,
 	) error
 }
 

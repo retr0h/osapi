@@ -96,7 +96,7 @@ func (suite *NetworkDNSGetByInterfaceIntegrationTestSuite) TestGetNetworkDNSByIn
 			path: "/network/dns/wlp0s20f3",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetResolvConfByInterface().
+				mock.EXPECT().GetResolvConfByInterface("wlp0s20f3").
 					Return(nil, assert.AnError).AnyTimes()
 
 				return mock
