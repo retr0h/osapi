@@ -34,28 +34,28 @@ import (
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
-type UbuntuSetResolvConfPublicTestSuite struct {
+type UbuntuSetResolvConfByInterfacePublicTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
 	logger *slog.Logger
 }
 
-func (suite *UbuntuSetResolvConfPublicTestSuite) SetupTest() {
+func (suite *UbuntuSetResolvConfByInterfacePublicTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *UbuntuSetResolvConfPublicTestSuite) SetupSubTest() {
+func (suite *UbuntuSetResolvConfByInterfacePublicTestSuite) SetupSubTest() {
 	suite.SetupTest()
 }
 
-func (suite *UbuntuSetResolvConfPublicTestSuite) TearDownTest() {
+func (suite *UbuntuSetResolvConfByInterfacePublicTestSuite) TearDownTest() {
 	suite.ctrl.Finish()
 }
 
-func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
+func (suite *UbuntuSetResolvConfByInterfacePublicTestSuite) TestSetResolvConfByInterface() {
 	tests := []struct {
 		name          string
 		setupMock     func() *mocks.MockManager
@@ -151,11 +151,10 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 				return mock
 			},
 			interfaceName: "wlp0s20f3",
-
-			wantErrType: fmt.Errorf("no DNS servers or search domains provided; nothing to update"),
+			wantErrType:   fmt.Errorf("no DNS servers or search domains provided; nothing to update"),
 		},
 		{
-			name: "when GetResolvConf errors",
+			name: "when GetResolvConfByInterface errors",
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainManager(suite.ctrl)
 
@@ -224,7 +223,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 				mock := tc.setupMock()
 
 				net := dns.NewUbuntuProvider(suite.logger, mock)
-				err := net.SetResolvConf(tc.servers, tc.searchDomains, tc.interfaceName)
+				err := net.SetResolvConfByInterface(tc.servers, tc.searchDomains, tc.interfaceName)
 
 				if tc.wantErr {
 					suite.Error(err)
@@ -232,7 +231,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 				} else {
 					suite.NoError(err)
 
-					got, err := net.GetResolvConf()
+					got, err := net.GetResolvConfByInterface(tc.interfaceName)
 					suite.Equal(tc.want, got)
 					suite.NoError(err)
 				}
@@ -243,6 +242,6 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestUbuntuSetResolvConfPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(UbuntuSetResolvConfPublicTestSuite))
+func TestUbuntuSetResolvConfByInterfacePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(UbuntuSetResolvConfByInterfacePublicTestSuite))
 }

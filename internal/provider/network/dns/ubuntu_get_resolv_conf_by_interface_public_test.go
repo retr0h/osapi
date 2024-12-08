@@ -54,13 +54,14 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TearDownTest() {
 	suite.ctrl.Finish()
 }
 
-func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConf() {
+func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() {
 	tests := []struct {
-		name        string
-		setupMock   func() *mocks.MockManager
-		want        *dns.Config
-		wantErr     bool
-		wantErrType error
+		name          string
+		setupMock     func() *mocks.MockManager
+		interfaceName string
+		want          *dns.Config
+		wantErr       bool
+		wantErrType   error
 	}{
 		{
 			name: "when GetResolvConf Ok",
@@ -69,6 +70,7 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 			want: &dns.Config{
 				DNSServers: []string{
 					"192.168.1.1",
@@ -91,6 +93,7 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 			want: &dns.Config{
 				DNSServers: []string{
 					"192.168.1.1",
@@ -117,8 +120,9 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConf() {
 
 				return mock
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			interfaceName: "wlp0s20f3",
+			wantErr:       true,
+			wantErrType:   assert.AnError,
 		},
 	}
 
@@ -127,7 +131,7 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConf() {
 			mock := tc.setupMock()
 
 			net := dns.NewUbuntuProvider(suite.logger, mock)
-			got, err := net.GetResolvConf()
+			got, err := net.GetResolvConfByInterface(tc.interfaceName)
 
 			if !tc.wantErr {
 				suite.NoError(err)

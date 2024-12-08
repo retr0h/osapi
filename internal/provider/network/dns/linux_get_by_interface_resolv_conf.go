@@ -24,9 +24,11 @@ import (
 	"fmt"
 )
 
-// GetResolvConf retrieves the DNS configuration for a specific network interface
+// GetResolvConfByInterface retrieves the DNS configuration for a specific network interface
 // using the `resolvectl` command. It returns a Config struct containing the DNS
 // servers and search domains for the interface, and an error if something goes wrong.
-func (l *Linux) GetResolvConf() (*Config, error) {
-	return nil, fmt.Errorf("GetResolvConf is not implemented for LinuxProvider")
+func (l *Linux) GetResolvConfByInterface(
+	_ string,
+) (*Config, error) {
+	return nil, fmt.Errorf("GetResolvConfByInterface is not implemented for LinuxProvider")
 }

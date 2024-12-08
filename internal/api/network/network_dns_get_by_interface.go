@@ -28,11 +28,12 @@ import (
 	"github.com/retr0h/osapi/internal/api/network/gen"
 )
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (n Network) GetNetworkDNS(
+// GetNetworkDNSByInterface get the network dns get API endpoint.
+func (n Network) GetNetworkDNSByInterface(
 	ctx echo.Context,
+	interfaceName string,
 ) error {
-	dnsConfig, err := n.DNSProvider.GetResolvConf()
+	dnsConfig, err := n.DNSProvider.GetResolvConfByInterface(interfaceName)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
 			Error: err.Error(),

@@ -23,7 +23,6 @@ package network_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -44,7 +43,7 @@ import (
 	taskClientMocks "github.com/retr0h/osapi/internal/task/client/mocks"
 )
 
-type NetworkDNSPutIntegrationTestSuite struct {
+type NetworkDNSPutByInterfaceIntegrationTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
@@ -52,18 +51,18 @@ type NetworkDNSPutIntegrationTestSuite struct {
 	logger    *slog.Logger
 }
 
-func (suite *NetworkDNSPutIntegrationTestSuite) SetupTest() {
+func (suite *NetworkDNSPutByInterfaceIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *NetworkDNSPutIntegrationTestSuite) TearDownTest() {
+func (suite *NetworkDNSPutByInterfaceIntegrationTestSuite) TearDownTest() {
 	suite.ctrl.Finish()
 }
 
-func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
+func (suite *NetworkDNSPutByInterfaceIntegrationTestSuite) TestPutNetworkDNSByInterface() {
 	tests := []struct {
 		name                string
 		path                string
@@ -308,9 +307,6 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				suite.Empty(rec.Body.String())
 			} else {
 				suite.JSONEq(tc.wantBody, rec.Body.String())
-				fmt.Println(rec.Body.String())
-				fmt.Println(rec.Body.String())
-				fmt.Println(rec.Body.String())
 			}
 		})
 	}
@@ -318,6 +314,6 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestNetworkDNSPutIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkDNSPutIntegrationTestSuite))
+func TestNetworkDNSPutByInterfaceIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(NetworkDNSPutByInterfaceIntegrationTestSuite))
 }

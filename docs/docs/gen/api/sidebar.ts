@@ -48,7 +48,7 @@ const sidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
-          id: "gen/api/get-network-dns",
+          id: "gen/api/get-network-dns-by-interface",
           label: "List DNS servers",
           className: "api-method get",
         },

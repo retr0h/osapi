@@ -116,13 +116,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/network.ErrorResponse'
-  /network/dns:
+  /network/dns/{interfaceName}:
     get:
       summary: List DNS servers
-      description: Retrieve the list of currently configured DNS servers.
+      description: >-
+        Retrieve the list of currently configured DNS servers for a specific
+        network interface.
       tags:
         - Network_Management_API_dns_operations
-      operationId: GetNetworkDNS
+      operationId: GetNetworkDNSByInterface
+      parameters:
+        - name: interfaceName
+          in: path
+          required: true
+          schema:
+            type: string
+            x-oapi-codegen-extra-tags:
+              validate: required,alphanum
+          description: >
+            The name of the network interface to retrieve DNS configuration for.
+            Must only contain letters and numbers.
       responses:
         '200':
           description: List of DNS servers.
@@ -136,6 +149,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/network.ErrorResponse'
+  /network/dns:
     put:
       summary: Update DNS servers
       description: Update the system's DNS server configuration.
