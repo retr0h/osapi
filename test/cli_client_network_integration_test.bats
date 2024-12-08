@@ -29,7 +29,7 @@ teardown() {
 }
 
 @test "invoke client network dns get subcommand" {
-	run go run ${PROGRAM} client network dns get
+	run go run ${PROGRAM} client network dns get --interface-name eth0
 
 	[ "$status" -eq 0 ]
 }
@@ -37,7 +37,8 @@ teardown() {
 @test "invoke client network dns update subcommand" {
 	run go run ${PROGRAM} client network dns update \
 		--servers "1.1.1.1,8.8.8.8" \
-		--search-domains "foo.bar,baz.qux"
+		--search-domains "foo.bar,baz.qux" \
+		--interface-name eth0
 
 	[ "$status" -eq 0 ]
 }

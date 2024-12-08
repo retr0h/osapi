@@ -40,7 +40,7 @@ import (
 	taskClientMocks "github.com/retr0h/osapi/internal/task/client/mocks"
 )
 
-type NetworkDNSGetIntegrationTestSuite struct {
+type NetworkDNSGetByInterfaceIntegrationTestSuite struct {
 	suite.Suite
 	ctrl *gomock.Controller
 
@@ -48,18 +48,18 @@ type NetworkDNSGetIntegrationTestSuite struct {
 	logger    *slog.Logger
 }
 
-func (suite *NetworkDNSGetIntegrationTestSuite) SetupTest() {
+func (suite *NetworkDNSGetByInterfaceIntegrationTestSuite) SetupTest() {
 	suite.ctrl = gomock.NewController(suite.T())
 
 	suite.appConfig = config.Config{}
 	suite.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
-func (suite *NetworkDNSGetIntegrationTestSuite) TearDownTest() {
+func (suite *NetworkDNSGetByInterfaceIntegrationTestSuite) TearDownTest() {
 	suite.ctrl.Finish()
 }
 
-func (suite *NetworkDNSGetIntegrationTestSuite) TestGetNetworkDNS() {
+func (suite *NetworkDNSGetByInterfaceIntegrationTestSuite) TestGetNetworkDNSByInterface() {
 	tests := []struct {
 		name      string
 		path      string
@@ -69,7 +69,7 @@ func (suite *NetworkDNSGetIntegrationTestSuite) TestGetNetworkDNS() {
 	}{
 		{
 			name: "when get Ok",
-			path: "/network/dns",
+			path: "/network/dns/wlp0s20f3",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
 
@@ -92,17 +92,28 @@ func (suite *NetworkDNSGetIntegrationTestSuite) TestGetNetworkDNS() {
 }`,
 		},
 		{
-			name: "when GetResolvConf errors",
-			path: "/network/dns",
+			name: "when GetResolvConfByInterface errors",
+			path: "/network/dns/wlp0s20f3",
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewPlainMockProvider(suite.ctrl)
-				mock.EXPECT().GetResolvConf().
+				mock.EXPECT().GetResolvConfByInterface("wlp0s20f3").
 					Return(nil, assert.AnError).AnyTimes()
 
 				return mock
 			},
 			wantCode: http.StatusInternalServerError,
 			wantBody: `{"code":0, "error":"assert.AnError general error for testing"}`,
+		},
+		{
+			name: "when Interface Name is invalid",
+			path: "/network/dns/eth!",
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewPlainMockProvider(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"code":0,"error":"Key: 'GetNetworkDNSByInterfaceParams.InterfaceName' Error:Field validation for 'InterfaceName' failed on the 'alphanum' tag"}`,
 		},
 	}
 
@@ -128,6 +139,6 @@ func (suite *NetworkDNSGetIntegrationTestSuite) TestGetNetworkDNS() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestNetworkDNSGetIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkDNSGetIntegrationTestSuite))
+func TestNetworkDNSGetByInterfaceIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(NetworkDNSGetByInterfaceIntegrationTestSuite))
 }

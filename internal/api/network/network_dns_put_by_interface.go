@@ -67,7 +67,12 @@ func (n Network) PutNetworkDNS(
 		searchDomains = *newDNSConfig.SearchDomains
 	}
 
-	data, err := CreateAndMarshalChangeDNSActionFunc(servers, searchDomains)
+	var interfaceName string
+	if newDNSConfig.InterfaceName != nil {
+		interfaceName = *newDNSConfig.InterfaceName
+	}
+
+	data, err := CreateAndMarshalChangeDNSActionFunc(servers, searchDomains, interfaceName)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
 			Error: err.Error(),

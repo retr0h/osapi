@@ -34,31 +34,31 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 	return m.recorder
 }
 
-// GetResolvConf mocks base method.
-func (m *MockProvider) GetResolvConf() (*dns.Config, error) {
+// GetResolvConfByInterface mocks base method.
+func (m *MockProvider) GetResolvConfByInterface(arg0 string) (*dns.Config, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResolvConf")
+	ret := m.ctrl.Call(m, "GetResolvConfByInterface", arg0)
 	ret0, _ := ret[0].(*dns.Config)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetResolvConf indicates an expected call of GetResolvConf.
-func (mr *MockProviderMockRecorder) GetResolvConf() *gomock.Call {
+// GetResolvConfByInterface indicates an expected call of GetResolvConfByInterface.
+func (mr *MockProviderMockRecorder) GetResolvConfByInterface(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResolvConf", reflect.TypeOf((*MockProvider)(nil).GetResolvConf))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResolvConfByInterface", reflect.TypeOf((*MockProvider)(nil).GetResolvConfByInterface), arg0)
 }
 
-// SetResolvConf mocks base method.
-func (m *MockProvider) SetResolvConf(arg0, arg1 []string) error {
+// SetResolvConfByInterface mocks base method.
+func (m *MockProvider) SetResolvConfByInterface(arg0, arg1 []string, arg2 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetResolvConf", arg0, arg1)
+	ret := m.ctrl.Call(m, "SetResolvConfByInterface", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SetResolvConf indicates an expected call of SetResolvConf.
-func (mr *MockProviderMockRecorder) SetResolvConf(arg0, arg1 interface{}) *gomock.Call {
+// SetResolvConfByInterface indicates an expected call of SetResolvConfByInterface.
+func (mr *MockProviderMockRecorder) SetResolvConfByInterface(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetResolvConf", reflect.TypeOf((*MockProvider)(nil).SetResolvConf), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetResolvConfByInterface", reflect.TypeOf((*MockProvider)(nil).SetResolvConfByInterface), arg0, arg1, arg2)
 }

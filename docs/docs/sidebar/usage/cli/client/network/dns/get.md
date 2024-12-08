@@ -3,7 +3,7 @@
 Get the systems DNS config:
 
 ```bash
-$ osapi client network dns get
+$ osapi client network dns get --interface-name eth0
 
   Search Domains: .
   Servers: 192.168.0.247, 2607:f428:ffff:ffff::1, 2607:f428:ffff:ffff::2

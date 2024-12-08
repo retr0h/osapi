@@ -36,7 +36,7 @@ func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
 	// Set up default expectations for the mock methods
-	mock.EXPECT().GetResolvConf().Return(&dns.Config{
+	mock.EXPECT().GetResolvConfByInterface("wlp0s20f3").Return(&dns.Config{
 		DNSServers: []string{
 			"192.168.1.1",
 			"8.8.8.8",

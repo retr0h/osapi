@@ -28,27 +28,27 @@ import (
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
-type LinuxSetResolvConfPublicTestSuite struct {
+type LinuxGetResolvConfByInterfacePublicTestSuite struct {
 	suite.Suite
 }
 
-func (suite *LinuxSetResolvConfPublicTestSuite) SetupTest() {
+func (suite *LinuxGetResolvConfByInterfacePublicTestSuite) SetupTest() {
 }
 
-func (suite *LinuxSetResolvConfPublicTestSuite) TearDownTest() {}
+func (suite *LinuxGetResolvConfByInterfacePublicTestSuite) TearDownTest() {}
 
-func (suite *LinuxSetResolvConfPublicTestSuite) TestSetResolvConf() {
+func (suite *LinuxGetResolvConfByInterfacePublicTestSuite) TestGetResolvConfByInterface() {
 	linux := dns.NewLinuxProvider()
 
-	servers := []string{}
-	searchDomains := []string{}
-	err := linux.SetResolvConf(servers, searchDomains)
+	interfaceName := ""
+	got, err := linux.GetResolvConfByInterface(interfaceName)
 
-	suite.EqualError(err, "SetResolvConf is not implemented for LinuxProvider")
+	suite.Empty(got)
+	suite.EqualError(err, "GetResolvConfByInterface is not implemented for LinuxProvider")
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxSetResolvConfPublicTestSuite(t *testing.T) {
-	suite.Run(t, new(LinuxSetResolvConfPublicTestSuite))
+func TestLinuxGetResolvConfByInterfacePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(LinuxGetResolvConfByInterfacePublicTestSuite))
 }

@@ -116,13 +116,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/network.ErrorResponse'
-  /network/dns:
+  /network/dns/{interfaceName}:
     get:
       summary: List DNS servers
-      description: Retrieve the list of currently configured DNS servers.
+      description: >-
+        Retrieve the list of currently configured DNS servers for a specific
+        network interface.
       tags:
         - Network_Management_API_dns_operations
-      operationId: GetNetworkDNS
+      operationId: GetNetworkDNSByInterface
+      parameters:
+        - name: interfaceName
+          in: path
+          required: true
+          schema:
+            type: string
+            x-oapi-codegen-extra-tags:
+              validate: required,alphanum
+          description: >
+            The name of the network interface to retrieve DNS configuration for.
+            Must only contain letters and numbers.
       responses:
         '200':
           description: List of DNS servers.
@@ -130,12 +143,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DNSConfigResponse'
+        '400':
+          description: Invalid interface name provided.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/network.ErrorResponse'
         '500':
           description: Error retrieving DNS servers.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/network.ErrorResponse'
+  /network/dns:
     put:
       summary: Update DNS servers
       description: Update the system's DNS server configuration.
@@ -147,7 +167,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DNSConfigUpdateResponse'
+              $ref: '#/components/schemas/DNSConfigUpdateRequest'
       responses:
         '202':
           description: DNS servers update successfully accepted.
@@ -429,7 +449,7 @@ components:
           description: List of search domains.
           items:
             type: string
-    DNSConfigUpdateResponse:
+    DNSConfigUpdateRequest:
       type: object
       properties:
         servers:
@@ -447,6 +467,13 @@ components:
           description: New list of search domains to configure.
           items:
             type: string
+        interface_name:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required,alphanum
+          description: >
+            The name of the network interface to apply DNS configuration to.
+            Must only contain letters and numbers.
     network.ErrorResponse:
       type: object
       properties:

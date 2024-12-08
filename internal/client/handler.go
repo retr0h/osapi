@@ -35,13 +35,18 @@ type CombinedHandler interface {
 
 // NetworkHandler defines an interface for interacting with Network client operations.
 type NetworkHandler interface {
-	// GetNetworkDNS get the network dns get API endpoint.
-	GetNetworkDNS(ctx context.Context) (*gen.GetNetworkDNSResponse, error)
+	// GetNetworkDNSByInterface get the network dns get API endpoint.
+	GetNetworkDNSByInterface(
+		ctx context.Context,
+		_ string,
+	) (*gen.GetNetworkDNSByInterfaceResponse, error)
+
 	// PutNetworkDNS put the network dns put API endpoint.
 	PutNetworkDNS(
 		ctx context.Context,
 		servers []string,
 		searchDomains []string,
+		interfaceName string,
 	) (*gen.PutNetworkDNSResponse, error)
 	// PostNetworkPing post the network ping API endpoint.
 	PostNetworkPing(

@@ -45,7 +45,8 @@ Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 192.168.1.1
 DNS Servers: 192.168.1.1 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844
-DNS Domain: example.com local.lan`
+DNS Domain: example.com local.lan
+`
 
 	mock := NewMockManager(ctrl)
 
@@ -61,7 +62,8 @@ func NewGetResolvConfManagerNoDNSDomain(ctrl *gomock.Controller) *MockManager {
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 192.168.1.1
-DNS Servers: 192.168.1.1 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844`
+DNS Servers: 192.168.1.1 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844
+`
 
 	mock := NewMockManager(ctrl)
 
@@ -77,7 +79,8 @@ Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 8.8.8.8
 DNS Servers: 8.8.8.8 9.9.9.9
-DNS Domain: foo.local bar.local`
+DNS Domain: foo.local bar.local
+`
 
 	mock := NewMockManager(ctrl)
 
@@ -96,14 +99,16 @@ Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 192.168.1.1
 DNS Servers: 1.1.1.1 2.2.2.2
-DNS Domain: example.com local.lan `
+DNS Domain: example.com local.lan
+`
 
 	subsequentOutput := `
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 1.1.1.1
 DNS Servers: 1.1.1.1 2.2.2.2
-DNS Domain: foo.local bar.local`
+DNS Domain: foo.local bar.local
+`
 
 	mock := NewMockManager(ctrl)
 
@@ -131,14 +136,51 @@ Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 192.168.1.1
 DNS Servers: 1.1.1.1 2.2.2.2
-DNS Domain: foo.example.com bar.example.com`
+DNS Domain: foo.example.com bar.example.com
+`
 
 	subsequentOutput := `
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 1.1.1.1
 DNS Servers: 8.8.8.8 9.9.9.9
-DNS Domain: foo.example.com bar.example.com`
+DNS Domain: foo.example.com bar.example.com
+`
+
+	mock := NewMockManager(ctrl)
+
+	gomock.InOrder(
+		mock.EXPECT().
+			RunCmd(ResolveCommand, []string{"status", NetworkInterfaceName}).
+			Return(initialOutput, nil),
+
+		mock.EXPECT().
+			RunCmd(ResolveCommand, []string{"status", NetworkInterfaceName}).
+			Return(subsequentOutput, nil),
+	)
+
+	mockRunCmdDNS(mock, []string{"8.8.8.8", "9.9.9.9"}, nil)
+	mockRunCmdDomain(mock, []string{"foo.example.com", "bar.example.com"}, nil)
+
+	return mock
+}
+
+// NewSetResolvConfManagerFiltersRootDNSDomain creates a DNS Mock for SetResolvConf
+// with no DNS Domain.
+func NewSetResolvConfManagerFiltersRootDNSDomain(ctrl *gomock.Controller) *MockManager {
+	initialOutput := `
+Current Scopes: DNS
+Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
+Current DNS Server: 192.168.1.1
+DNS Servers: 1.1.1.1 2.2.2.2
+`
+
+	subsequentOutput := `
+Current Scopes: DNS
+Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
+Current DNS Server: 1.1.1.1
+DNS Servers: 8.8.8.8 9.9.9.9
+`
 
 	mock := NewMockManager(ctrl)
 
@@ -166,7 +208,8 @@ Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 8.8.8.8
 DNS Servers: 8.8.8.8 9.9.9.9
-DNS Domain: foo.local bar.local`
+DNS Domain: foo.local bar.local
+`
 
 	mock := NewMockManager(ctrl)
 
@@ -185,7 +228,8 @@ Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 8.8.8.8
 DNS Servers: 8.8.8.8 9.9.9.9
-DNS Domain: foo.local bar.local`
+DNS Domain: foo.local bar.local
+`
 
 	mock := NewMockManager(ctrl)
 

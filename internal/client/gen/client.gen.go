@@ -30,8 +30,11 @@ type DNSConfigResponse struct {
 	Servers *[]string `json:"servers,omitempty"`
 }
 
-// DNSConfigUpdateResponse defines model for DNSConfigUpdateResponse.
-type DNSConfigUpdateResponse struct {
+// DNSConfigUpdateRequest defines model for DNSConfigUpdateRequest.
+type DNSConfigUpdateRequest struct {
+	// InterfaceName The name of the network interface to apply DNS configuration to. Must only contain letters and numbers.
+	InterfaceName *string `json:"interface_name,omitempty" validate:"required,alphanum"`
+
 	// SearchDomains New list of search domains to configure.
 	SearchDomains *[]string `json:"search_domains,omitempty" validate:"required_without=Servers,omitempty,dive,hostname,min=1"`
 
@@ -219,7 +222,7 @@ type PostTaskJSONBody struct {
 }
 
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
-type PutNetworkDNSJSONRequestBody = DNSConfigUpdateResponse
+type PutNetworkDNSJSONRequestBody = DNSConfigUpdateRequest
 
 // PostNetworkPingJSONRequestBody defines body for PostNetworkPing for application/json ContentType.
 type PostNetworkPingJSONRequestBody PostNetworkPingJSONBody
@@ -300,13 +303,13 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetNetworkDNS request
-	GetNetworkDNS(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// PutNetworkDNSWithBody request with any body
 	PutNetworkDNSWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PutNetworkDNS(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNetworkDNSByInterface request
+	GetNetworkDNSByInterface(ctx context.Context, interfaceName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostNetworkPingWithBody request with any body
 	PostNetworkPingWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -340,18 +343,6 @@ type ClientInterface interface {
 	GetVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetNetworkDNS(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetNetworkDNSRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) PutNetworkDNSWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPutNetworkDNSRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -366,6 +357,18 @@ func (c *Client) PutNetworkDNSWithBody(ctx context.Context, contentType string, 
 
 func (c *Client) PutNetworkDNS(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPutNetworkDNSRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNetworkDNSByInterface(ctx context.Context, interfaceName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNetworkDNSByInterfaceRequest(c.Server, interfaceName)
 	if err != nil {
 		return nil, err
 	}
@@ -508,33 +511,6 @@ func (c *Client) GetVersion(ctx context.Context, reqEditors ...RequestEditorFn) 
 	return c.Client.Do(req)
 }
 
-// NewGetNetworkDNSRequest generates requests for GetNetworkDNS
-func NewGetNetworkDNSRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/network/dns")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewPutNetworkDNSRequest calls the generic PutNetworkDNS builder with application/json body
 func NewPutNetworkDNSRequest(server string, body PutNetworkDNSJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -571,6 +547,40 @@ func NewPutNetworkDNSRequestWithBody(server string, contentType string, body io.
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetNetworkDNSByInterfaceRequest generates requests for GetNetworkDNSByInterface
+func NewGetNetworkDNSByInterfaceRequest(server string, interfaceName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "interfaceName", runtime.ParamLocationPath, interfaceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/network/dns/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -901,13 +911,13 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetNetworkDNSWithResponse request
-	GetNetworkDNSWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetNetworkDNSResponse, error)
-
 	// PutNetworkDNSWithBodyWithResponse request with any body
 	PutNetworkDNSWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutNetworkDNSResponse, error)
 
 	PutNetworkDNSWithResponse(ctx context.Context, body PutNetworkDNSJSONRequestBody, reqEditors ...RequestEditorFn) (*PutNetworkDNSResponse, error)
+
+	// GetNetworkDNSByInterfaceWithResponse request
+	GetNetworkDNSByInterfaceWithResponse(ctx context.Context, interfaceName string, reqEditors ...RequestEditorFn) (*GetNetworkDNSByInterfaceResponse, error)
 
 	// PostNetworkPingWithBodyWithResponse request with any body
 	PostNetworkPingWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostNetworkPingResponse, error)
@@ -941,29 +951,6 @@ type ClientWithResponsesInterface interface {
 	GetVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetVersionResponse, error)
 }
 
-type GetNetworkDNSResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *DNSConfigResponse
-	JSON500      *NetworkErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetNetworkDNSResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetNetworkDNSResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type PutNetworkDNSResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -981,6 +968,30 @@ func (r PutNetworkDNSResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PutNetworkDNSResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNetworkDNSByInterfaceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DNSConfigResponse
+	JSON400      *NetworkErrorResponse
+	JSON500      *NetworkErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNetworkDNSByInterfaceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNetworkDNSByInterfaceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1200,15 +1211,6 @@ func (r GetVersionResponse) StatusCode() int {
 	return 0
 }
 
-// GetNetworkDNSWithResponse request returning *GetNetworkDNSResponse
-func (c *ClientWithResponses) GetNetworkDNSWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetNetworkDNSResponse, error) {
-	rsp, err := c.GetNetworkDNS(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetNetworkDNSResponse(rsp)
-}
-
 // PutNetworkDNSWithBodyWithResponse request with arbitrary body returning *PutNetworkDNSResponse
 func (c *ClientWithResponses) PutNetworkDNSWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutNetworkDNSResponse, error) {
 	rsp, err := c.PutNetworkDNSWithBody(ctx, contentType, body, reqEditors...)
@@ -1224,6 +1226,15 @@ func (c *ClientWithResponses) PutNetworkDNSWithResponse(ctx context.Context, bod
 		return nil, err
 	}
 	return ParsePutNetworkDNSResponse(rsp)
+}
+
+// GetNetworkDNSByInterfaceWithResponse request returning *GetNetworkDNSByInterfaceResponse
+func (c *ClientWithResponses) GetNetworkDNSByInterfaceWithResponse(ctx context.Context, interfaceName string, reqEditors ...RequestEditorFn) (*GetNetworkDNSByInterfaceResponse, error) {
+	rsp, err := c.GetNetworkDNSByInterface(ctx, interfaceName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNetworkDNSByInterfaceResponse(rsp)
 }
 
 // PostNetworkPingWithBodyWithResponse request with arbitrary body returning *PostNetworkPingResponse
@@ -1323,39 +1334,6 @@ func (c *ClientWithResponses) GetVersionWithResponse(ctx context.Context, reqEdi
 	return ParseGetVersionResponse(rsp)
 }
 
-// ParseGetNetworkDNSResponse parses an HTTP response from a GetNetworkDNSWithResponse call
-func ParseGetNetworkDNSResponse(rsp *http.Response) (*GetNetworkDNSResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetNetworkDNSResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest DNSConfigResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest NetworkErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParsePutNetworkDNSResponse parses an HTTP response from a PutNetworkDNSWithResponse call
 func ParsePutNetworkDNSResponse(rsp *http.Response) (*PutNetworkDNSResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -1370,6 +1348,46 @@ func ParsePutNetworkDNSResponse(rsp *http.Response) (*PutNetworkDNSResponse, err
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest NetworkErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNetworkDNSByInterfaceResponse parses an HTTP response from a GetNetworkDNSByInterfaceWithResponse call
+func ParseGetNetworkDNSByInterfaceResponse(rsp *http.Response) (*GetNetworkDNSByInterfaceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNetworkDNSByInterfaceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DNSConfigResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest NetworkErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

@@ -26,9 +26,10 @@ import (
 	"github.com/retr0h/osapi/internal/client/gen"
 )
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (c *Client) GetNetworkDNS(
+// GetNetworkDNSByInterface get the network dns get API endpoint.
+func (c *Client) GetNetworkDNSByInterface(
 	ctx context.Context,
-) (*gen.GetNetworkDNSResponse, error) {
-	return c.Client.GetNetworkDNSWithResponse(ctx)
+	interfaceName string,
+) (*gen.GetNetworkDNSByInterfaceResponse, error) {
+	return c.Client.GetNetworkDNSByInterfaceWithResponse(ctx, interfaceName)
 }

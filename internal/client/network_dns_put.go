@@ -31,8 +31,11 @@ func (c *Client) PutNetworkDNS(
 	ctx context.Context,
 	servers []string,
 	searchDomains []string,
+	interfaceName string,
 ) (*gen.PutNetworkDNSResponse, error) {
-	body := gen.DNSConfigUpdateResponse{}
+	body := gen.DNSConfigUpdateRequest{}
+
+	body.InterfaceName = stringPtr(interfaceName)
 
 	if len(servers) > 0 {
 		body.Servers = &servers
@@ -43,4 +46,8 @@ func (c *Client) PutNetworkDNS(
 	}
 
 	return c.Client.PutNetworkDNSWithResponse(ctx, body)
+}
+
+func stringPtr(s string) *string {
+	return &s
 }

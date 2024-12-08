@@ -4,7 +4,11 @@
 package gen
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
+	"github.com/oapi-codegen/runtime"
 )
 
 // DNSConfigResponse defines model for DNSConfigResponse.
@@ -16,8 +20,11 @@ type DNSConfigResponse struct {
 	Servers *[]string `json:"servers,omitempty"`
 }
 
-// DNSConfigUpdateResponse defines model for DNSConfigUpdateResponse.
-type DNSConfigUpdateResponse struct {
+// DNSConfigUpdateRequest defines model for DNSConfigUpdateRequest.
+type DNSConfigUpdateRequest struct {
+	// InterfaceName The name of the network interface to apply DNS configuration to. Must only contain letters and numbers.
+	InterfaceName *string `json:"interface_name,omitempty" validate:"required,alphanum"`
+
 	// SearchDomains New list of search domains to configure.
 	SearchDomains *[]string `json:"search_domains,omitempty" validate:"required_without=Servers,omitempty,dive,hostname,min=1"`
 
@@ -65,19 +72,19 @@ type PostNetworkPingJSONBody struct {
 }
 
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
-type PutNetworkDNSJSONRequestBody = DNSConfigUpdateResponse
+type PutNetworkDNSJSONRequestBody = DNSConfigUpdateRequest
 
 // PostNetworkPingJSONRequestBody defines body for PostNetworkPing for application/json ContentType.
 type PostNetworkPingJSONRequestBody PostNetworkPingJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List DNS servers
-	// (GET /network/dns)
-	GetNetworkDNS(ctx echo.Context) error
 	// Update DNS servers
 	// (PUT /network/dns)
 	PutNetworkDNS(ctx echo.Context) error
+	// List DNS servers
+	// (GET /network/dns/{interfaceName})
+	GetNetworkDNSByInterface(ctx echo.Context, interfaceName string) error
 	// Ping a remote server
 	// (POST /network/ping)
 	PostNetworkPing(ctx echo.Context) error
@@ -88,21 +95,28 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// GetNetworkDNS converts echo context to params.
-func (w *ServerInterfaceWrapper) GetNetworkDNS(ctx echo.Context) error {
-	var err error
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetNetworkDNS(ctx)
-	return err
-}
-
 // PutNetworkDNS converts echo context to params.
 func (w *ServerInterfaceWrapper) PutNetworkDNS(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PutNetworkDNS(ctx)
+	return err
+}
+
+// GetNetworkDNSByInterface converts echo context to params.
+func (w *ServerInterfaceWrapper) GetNetworkDNSByInterface(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "interfaceName" -------------
+	var interfaceName string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "interfaceName", ctx.Param("interfaceName"), &interfaceName, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter interfaceName: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetNetworkDNSByInterface(ctx, interfaceName)
 	return err
 }
 
@@ -143,8 +157,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/network/dns", wrapper.GetNetworkDNS)
 	router.PUT(baseURL+"/network/dns", wrapper.PutNetworkDNS)
+	router.GET(baseURL+"/network/dns/:interfaceName", wrapper.GetNetworkDNSByInterface)
 	router.POST(baseURL+"/network/ping", wrapper.PostNetworkPing)
 
 }

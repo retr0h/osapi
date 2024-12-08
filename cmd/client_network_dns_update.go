@@ -40,9 +40,15 @@ var clientNetworkDNSUpdateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, _ []string) {
 		servers, _ := cmd.Flags().GetStringSlice("servers")
 		searchDomains, _ := cmd.Flags().GetStringSlice("search-domains")
+		interfaceName, _ := cmd.Flags().GetString("interface-name")
 
 		networkHandler := handler.(client.NetworkHandler)
-		resp, err := networkHandler.PutNetworkDNS(context.TODO(), servers, searchDomains)
+		resp, err := networkHandler.PutNetworkDNS(
+			context.TODO(),
+			servers,
+			searchDomains,
+			interfaceName,
+		)
 		if err != nil {
 			logFatal("failed to update network dns endpoint", err)
 		}
@@ -91,6 +97,9 @@ func init() {
 		StringSlice("servers", []string{}, "List of DNS server IP addresses (comma-separated)")
 	clientNetworkDNSUpdateCmd.PersistentFlags().
 		StringSlice("search-domains", []string{}, "List of DNS search domains (comma-separated)")
+	clientNetworkDNSUpdateCmd.PersistentFlags().
+		String("interface-name", "", "Name of the network interface to retrieve DNS server configurations (required)")
 
 	clientNetworkDNSUpdateCmd.MarkFlagsOneRequired("servers", "search-domains")
+	_ = clientNetworkDNSUpdateCmd.MarkPersistentFlagRequired("interface-name")
 }

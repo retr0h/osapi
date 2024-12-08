@@ -30,6 +30,7 @@ import (
 func CreateAndMarshalChangeDNSAction(
 	servers []string,
 	searchDomains []string,
+	interfaceName string,
 ) ([]byte, error) {
 	dnsAction := &taskpb.ChangeDNSAction{}
 
@@ -39,6 +40,10 @@ func CreateAndMarshalChangeDNSAction(
 
 	if len(searchDomains) > 0 {
 		dnsAction.SearchDomains = searchDomains
+	}
+
+	if interfaceName != "" {
+		dnsAction.InterfaceName = interfaceName
 	}
 
 	// Wrap ChangeDnsAction into a Task message

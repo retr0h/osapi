@@ -22,14 +22,13 @@ package dns
 
 import (
 	"fmt"
-	"log/slog"
+	"regexp"
 	"strings"
 )
 
-// SetResolvConf updates the DNS configuration for a specific network interface
-// using the `resolvectl` command. It applies new DNS servers and search domains
-// if provided, while preserving existing settings for values that are not specified.
-// The function returns an error if the operation fails.
+// GetResolvConfByInterface retrieves the DNS configuration for a specific network interface
+// using the `resolvectl` command. It returns a Config struct containing the DNS
+// servers and search domains for the interface, and an error if something goes wrong.
 //
 // Cross-platform considerations:
 //   - This function is designed specifically for Linux systems that utilize
@@ -51,55 +50,39 @@ import (
 //     specified interface.
 //
 // See `systemd-resolved.service(8)` manual page for further information.
-func (u *Ubuntu) SetResolvConf(
-	servers []string,
-	searchDomains []string,
-) error {
-	// TODO(retr0h): parameterize the interface
-	const interfaceName = "wlp0s20f3"
-
-	u.logger.Info(
-		"setting resolvectl configuration",
-		slog.String("servers", strings.Join(servers, ", ")),
-		slog.String("search_domains", strings.Join(searchDomains, ", ")),
-	)
-
-	if len(servers) == 0 && len(searchDomains) == 0 {
-		return fmt.Errorf("no DNS servers or search domains provided; nothing to update")
-	}
-
-	existingConfig, err := u.GetResolvConf()
+func (u *Ubuntu) GetResolvConfByInterface(
+	interfaceName string,
+) (*Config, error) {
+	cmd := "resolvectl"
+	args := []string{"status", interfaceName}
+	output, err := u.execManager.RunCmd(cmd, args)
 	if err != nil {
-		return fmt.Errorf("failed to get current resolvectl configuration: %w", err)
+		return nil, fmt.Errorf("failed to run resolvectl: %w - %s", err, output)
 	}
 
-	// Use existing values if new values are not provided
-	if len(servers) == 0 {
-		servers = existingConfig.DNSServers
-	}
-	if len(searchDomains) == 0 {
-		searchDomains = existingConfig.SearchDomains
-	}
-
-	// Set DNS servers
-	if len(servers) > 0 {
-		cmd := "resolvectl"
-		args := append([]string{"dns", interfaceName}, servers...)
-		output, err := u.execManager.RunCmd(cmd, args)
-		if err != nil {
-			return fmt.Errorf("failed to set DNS servers with resolvectl: %w - %s", err, output)
-		}
+	//  Gross.... `resolvectl` fails to exit != 0 when interface does not exist
+	//
+	// $ resolvectl status invalid
+	// Failed to resolve interface "invalid", ignoring: No such device
+	if strings.Contains(output, "No such device") {
+		return nil, fmt.Errorf("interface %q does not exist", interfaceName)
 	}
 
-	// Set search domains
-	if len(searchDomains) > 0 {
-		cmd := "resolvectl"
-		args := append([]string{"domain", interfaceName}, searchDomains...)
-		output, err := u.execManager.RunCmd(cmd, args)
-		if err != nil {
-			return fmt.Errorf("failed to set search domains with resolvectl: %w - %s", err, output)
-		}
+	config := &Config{}
+
+	// Parse DNS Servers
+	dnsServersRegex := regexp.MustCompile(`DNS Servers:\s+([^\n]+)`)
+	if matches := dnsServersRegex.FindStringSubmatch(output); len(matches) > 1 {
+		config.DNSServers = strings.Fields(matches[1])
 	}
 
-	return nil
+	// Parse Search Domains
+	searchDomainRegex := regexp.MustCompile(`DNS Domain:\s+([^\n]+)`)
+	if matches := searchDomainRegex.FindStringSubmatch(output); len(matches) > 1 {
+		config.SearchDomains = strings.Fields(matches[1])
+	} else {
+		config.SearchDomains = []string{"."}
+	}
+
+	return config, nil
 }

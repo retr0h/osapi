@@ -18,19 +18,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-package dns
+package dns_test
 
 import (
-	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/retr0h/osapi/internal/provider/network/dns"
 )
 
-// SetResolvConf updates the DNS configuration for a specific network interface
-// using the `resolvectl` command. It applies new DNS servers and search domains
-// if provided, while preserving existing settings for values that are not specified.
-// The function returns an error if the operation fails.
-func (l *Linux) SetResolvConf(
-	_ []string,
-	_ []string,
-) error {
-	return fmt.Errorf("SetResolvConf is not implemented for LinuxProvider")
+type LinuxSetResolvConfByInterfacePublicTestSuite struct {
+	suite.Suite
+}
+
+func (suite *LinuxSetResolvConfByInterfacePublicTestSuite) SetupTest() {
+}
+
+func (suite *LinuxSetResolvConfByInterfacePublicTestSuite) TearDownTest() {}
+
+func (suite *LinuxSetResolvConfByInterfacePublicTestSuite) TestSetResolvConfByInterface() {
+	linux := dns.NewLinuxProvider()
+
+	servers := []string{}
+	searchDomains := []string{}
+	interfaceName := ""
+	err := linux.SetResolvConfByInterface(servers, searchDomains, interfaceName)
+
+	suite.EqualError(err, "SetResolvConfByInterface is not implemented for LinuxProvider")
+}
+
+// In order for `go test` to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run.
+func TestLinuxSetResolvConfByInterfacePublicTestSuite(t *testing.T) {
+	suite.Run(t, new(LinuxSetResolvConfByInterfacePublicTestSuite))
 }

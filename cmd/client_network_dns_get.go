@@ -37,13 +37,16 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 	Short: "Get the DNS configuration",
 	Long: `Get the servers current DNS configuration.
 `,
-	Run: func(_ *cobra.Command, _ []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
+		interfaceName, _ := cmd.Flags().GetString("interface-name")
+
 		networkHandler := handler.(client.NetworkHandler)
-		resp, err := networkHandler.GetNetworkDNS(context.TODO())
+		resp, err := networkHandler.GetNetworkDNSByInterface(context.TODO(), interfaceName)
 		if err != nil {
 			logFatal("failed to get network dns endpoint", err)
 		}
 
+		errorMsg := "unknown error"
 		switch resp.StatusCode() {
 		case http.StatusOK:
 			if jsonOutput {
@@ -72,8 +75,18 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 			}
 			printStyledMap(dnsData)
 
+		case http.StatusBadRequest:
+			if resp.JSON400 != nil {
+				errorMsg = resp.JSON400.Error
+			}
+
+			logger.Error(
+				"bad request",
+				slog.Int("code", resp.StatusCode()),
+				slog.String("response", errorMsg),
+			)
+
 		default:
-			errorMsg := "unknown error"
 			if resp.JSON500 != nil {
 				errorMsg = resp.JSON500.Error
 			}
@@ -81,7 +94,7 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 			logger.Error(
 				"error in response",
 				slog.Int("code", resp.StatusCode()),
-				slog.String("error", errorMsg),
+				slog.String("response", errorMsg),
 			)
 		}
 	},
@@ -89,4 +102,9 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 
 func init() {
 	clientNetworkDNSCmd.AddCommand(clientNetworkDNSGetCmd)
+
+	clientNetworkDNSGetCmd.PersistentFlags().
+		String("interface-name", "", "Name of the network interface to retrieve DNS server configurations (required)")
+
+	_ = clientNetworkDNSGetCmd.MarkPersistentFlagRequired("interface-name")
 }

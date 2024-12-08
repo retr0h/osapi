@@ -23,16 +23,40 @@ package network
 import (
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 
 	"github.com/retr0h/osapi/internal/api/network/gen"
 )
 
-// GetNetworkDNS get the network dns get API endpoint.
-func (n Network) GetNetworkDNS(
+// GetNetworkDNSByInterface get the network dns get API endpoint.
+func (n Network) GetNetworkDNSByInterface(
 	ctx echo.Context,
+	interfaceName string,
 ) error {
-	dnsConfig, err := n.DNSProvider.GetResolvConf()
+	// GetNetworkDNSByInterfaceParams defines parameters for GetNetworkDNSByInterface.
+	//
+	// NOTE(retr0h): oapi-codegen does not generate models for GET requests
+	// because GET typically doesn't involve a request body. Instead, it works
+	// with path parameters, query parameters, or header parameters, which are
+	// not converted into structs automatically by oapi-codegen.
+	type GetNetworkDNSByInterfaceParams struct {
+		InterfaceName string `validate:"required,alphanum"`
+	}
+
+	params := GetNetworkDNSByInterfaceParams{
+		InterfaceName: interfaceName,
+	}
+
+	// Validate the struct
+	if err := validate.Struct(params); err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		return ctx.JSON(http.StatusBadRequest, gen.NetworkErrorResponse{
+			Error: validationErrors.Error(),
+		})
+	}
+
+	dnsConfig, err := n.DNSProvider.GetResolvConfByInterface(interfaceName)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.NetworkErrorResponse{
 			Error: err.Error(),

@@ -48,6 +48,9 @@ message ChangeDNSAction {
 
     // List of search domains for DNS resolution
     repeated string search_domains = 2;
+
+    // The name of the network interface to apply DNS settings to
+    string interface_name = 3;
 }
 
 message Task {
