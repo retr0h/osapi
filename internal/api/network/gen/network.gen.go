@@ -16,8 +16,11 @@ type DNSConfigResponse struct {
 	Servers *[]string `json:"servers,omitempty"`
 }
 
-// DNSConfigUpdateResponse defines model for DNSConfigUpdateResponse.
-type DNSConfigUpdateResponse struct {
+// DNSConfigUpdateRequest defines model for DNSConfigUpdateRequest.
+type DNSConfigUpdateRequest struct {
+	// InterfaceName The name of the network interface to apply DNS configuration to. Must only contain letters and numbers.
+	InterfaceName *string `json:"interface_name,omitempty" validate:"required,alphanum"`
+
 	// SearchDomains New list of search domains to configure.
 	SearchDomains *[]string `json:"search_domains,omitempty" validate:"required_without=Servers,omitempty,dive,hostname,min=1"`
 
@@ -65,7 +68,7 @@ type PostNetworkPingJSONBody struct {
 }
 
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
-type PutNetworkDNSJSONRequestBody = DNSConfigUpdateResponse
+type PutNetworkDNSJSONRequestBody = DNSConfigUpdateRequest
 
 // PostNetworkPingJSONRequestBody defines body for PostNetworkPing for application/json ContentType.
 type PostNetworkPingJSONRequestBody PostNetworkPingJSONBody

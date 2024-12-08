@@ -106,7 +106,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DNSConfigUpdateResponse'
+              $ref: '#/components/schemas/DNSConfigUpdateRequest'
       responses:
         '202':
           description: DNS servers update successfully accepted.
@@ -199,7 +199,7 @@ components:
           items:
             type: string
 
-    DNSConfigUpdateResponse:
+    DNSConfigUpdateRequest:
       type: object
       properties:
         servers:
@@ -217,6 +217,13 @@ components:
           description: New list of search domains to configure.
           items:
             type: string
+        interface_name:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required,alphanum
+          description: >
+            The name of the network interface to apply DNS configuration to.
+            Must only contain letters and numbers.
 
     network.ErrorResponse:
       type: object

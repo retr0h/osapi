@@ -23,6 +23,7 @@ package network_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -78,7 +79,8 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 			body: `
 {
   "servers": [ "1.1.1.1", "2001:4860:4860::8888"],
-  "search_domains": [ "foo.bar"]
+  "search_domains": [ "foo.bar"],
+  "interface_name": "eth0"
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -97,7 +99,8 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 			path: "/network/dns",
 			body: `
 {
-  "search_domains": [ "foo.bar"]
+  "search_domains": [ "foo.bar"],
+  "interface_name": "eth0"
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -116,7 +119,8 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 			path: "/network/dns",
 			body: `
 {
-  "servers": [ "1.1.1.1", "2001:4860:4860::8888"]
+  "servers": [ "1.1.1.1", "2001:4860:4860::8888"],
+  "interface_name": "eth0"
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -145,14 +149,15 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateResponse.SearchDomains' Error:Field validation for 'SearchDomains' failed on the 'required_without' tag\nKey: 'DNSConfigUpdateResponse.Servers' Error:Field validation for 'Servers' failed on the 'required_without' tag"}`,
+			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateRequest.InterfaceName' Error:Field validation for 'InterfaceName' failed on the 'required' tag\nKey: 'DNSConfigUpdateRequest.SearchDomains' Error:Field validation for 'SearchDomains' failed on the 'required_without' tag\nKey: 'DNSConfigUpdateRequest.Servers' Error:Field validation for 'Servers' failed on the 'required_without' tag"}`,
 		},
 		{
 			name: "when body's Servers are not a proper ipv4 and ipv6 addresses",
 			path: "/network/dns",
 			body: `
 {
-  "servers": [ "1.1", "2001:4860:4860:8888"]
+  "servers": [ "1.1", "2001:4860:4860:8888"],
+  "interface_name": "eth0"
 }`, // Invalid ipv4 and ipv6 addresses
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -165,14 +170,15 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateResponse.Servers[0]' Error:Field validation for 'Servers[0]' failed on the 'ip' tag\nKey: 'DNSConfigUpdateResponse.Servers[1]' Error:Field validation for 'Servers[1]' failed on the 'ip' tag"}`,
+			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateRequest.Servers[0]' Error:Field validation for 'Servers[0]' failed on the 'ip' tag\nKey: 'DNSConfigUpdateRequest.Servers[1]' Error:Field validation for 'Servers[1]' failed on the 'ip' tag"}`,
 		},
 		{
 			name: "when body's Search Domains are invalid",
 			path: "/network/dns",
 			body: `
 {
-  "search_domains": [ "example..com", "-example.com", "example-.com", "excample_123.com"]
+  "search_domains": [ "example..com", "-example.com", "example-.com", "excample_123.com"],
+  "interface_name": "eth0"
 }`, // Invalid RFC 1123 hostnames
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -185,7 +191,29 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateResponse.SearchDomains[0]' Error:Field validation for 'SearchDomains[0]' failed on the 'hostname' tag\nKey: 'DNSConfigUpdateResponse.SearchDomains[1]' Error:Field validation for 'SearchDomains[1]' failed on the 'hostname' tag\nKey: 'DNSConfigUpdateResponse.SearchDomains[3]' Error:Field validation for 'SearchDomains[3]' failed on the 'hostname' tag"}`,
+			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateRequest.SearchDomains[0]' Error:Field validation for 'SearchDomains[0]' failed on the 'hostname' tag\nKey: 'DNSConfigUpdateRequest.SearchDomains[1]' Error:Field validation for 'SearchDomains[1]' failed on the 'hostname' tag\nKey: 'DNSConfigUpdateRequest.SearchDomains[3]' Error:Field validation for 'SearchDomains[3]' failed on the 'hostname' tag"}`,
+		},
+		{
+			name: "when body's Interface Name is invalid",
+			path: "/network/dns",
+			body: `
+{
+  "search_domains": [ "example..com", "-example.com", "example-.com", "excample_123.com"],
+  "search_domains": [ "foo.bar"],
+  "interface_name": "eth0!"
+}`,
+			setupMock: func() *mocks.MockProvider {
+				mock := mocks.NewDefaultMockProvider(suite.ctrl)
+
+				return mock
+			},
+			setuptaskClientMock: func() *taskClientMocks.MockManager {
+				mock := taskClientMocks.NewDefaultMockManager(suite.ctrl)
+
+				return mock
+			},
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"code":0,"error":"Key: 'DNSConfigUpdateRequest.InterfaceName' Error:Field validation for 'InterfaceName' failed on the 'alphanum' tag"}`,
 		},
 		{
 			name: "when body is malformed",
@@ -210,7 +238,8 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 			body: `
 {
   "servers": [ "1.1.1.1", "2001:4860:4860::8888"],
-  "search_domains": [ "foo.bar"]
+  "search_domains": [ "foo.bar"],
+  "interface_name": "eth0"
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -234,7 +263,8 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 			body: `
 {
   "servers": [ "1.1.1.1", "2001:4860:4860::8888"],
-  "search_domains": [ "foo.bar"]
+  "search_domains": [ "foo.bar"],
+  "interface_name": "eth0"
 }`,
 			setupMock: func() *mocks.MockProvider {
 				mock := mocks.NewDefaultMockProvider(suite.ctrl)
@@ -278,6 +308,9 @@ func (suite *NetworkDNSPutIntegrationTestSuite) TestPutNetworkDNS() {
 				suite.Empty(rec.Body.String())
 			} else {
 				suite.JSONEq(tc.wantBody, rec.Body.String())
+				fmt.Println(rec.Body.String())
+				fmt.Println(rec.Body.String())
+				fmt.Println(rec.Body.String())
 			}
 		})
 	}
