@@ -28,6 +28,7 @@ type Provider interface {
 	SetResolvConf(
 		_ []string,
 		_ []string,
+		_ string,
 	) error
 }
 

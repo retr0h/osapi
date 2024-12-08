@@ -61,6 +61,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 		setupMock     func() *mocks.MockManager
 		servers       []string
 		searchDomains []string
+		interfaceName string
 		want          *dns.Config
 		wantErr       bool
 		wantErrType   error
@@ -72,6 +73,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -99,6 +101,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 			searchDomains: []string{
 				"foo.local",
 				"bar.local",
@@ -122,6 +125,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -146,6 +150,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 
 			wantErrType: fmt.Errorf("no DNS servers or search domains provided; nothing to update"),
 		},
@@ -161,6 +166,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -179,6 +185,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -197,6 +204,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 
 				return mock
 			},
+			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -216,7 +224,7 @@ func (suite *UbuntuSetResolvConfPublicTestSuite) TestSetResolvConf() {
 				mock := tc.setupMock()
 
 				net := dns.NewUbuntuProvider(suite.logger, mock)
-				err := net.SetResolvConf(tc.servers, tc.searchDomains)
+				err := net.SetResolvConf(tc.servers, tc.searchDomains, tc.interfaceName)
 
 				if tc.wantErr {
 					suite.Error(err)

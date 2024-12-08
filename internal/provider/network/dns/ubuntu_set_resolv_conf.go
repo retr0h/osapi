@@ -54,10 +54,8 @@ import (
 func (u *Ubuntu) SetResolvConf(
 	servers []string,
 	searchDomains []string,
+	interfaceName string,
 ) error {
-	// TODO(retr0h): parameterize the interface
-	const interfaceName = "wlp0s20f3"
-
 	u.logger.Info(
 		"setting resolvectl configuration",
 		slog.String("servers", strings.Join(servers, ", ")),
