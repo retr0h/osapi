@@ -60,6 +60,14 @@ func (u *Ubuntu) GetResolvConfByInterface(
 		return nil, fmt.Errorf("failed to run resolvectl: %w - %s", err, output)
 	}
 
+	//  Gross.... `resolvectl` fails to exit != 0 when interface does not exist
+	//
+	// $ resolvectl status invalid
+	// Failed to resolve interface "invalid", ignoring: No such device
+	if strings.Contains(output, "No such device") {
+		return nil, fmt.Errorf("interface %q does not exist", interfaceName)
+	}
+
 	config := &Config{}
 
 	// Parse DNS Servers

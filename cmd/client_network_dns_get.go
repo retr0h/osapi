@@ -37,9 +37,11 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 	Short: "Get the DNS configuration",
 	Long: `Get the servers current DNS configuration.
 `,
-	Run: func(_ *cobra.Command, _ []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
+		interfaceName, _ := cmd.Flags().GetString("interface-name")
+
 		networkHandler := handler.(client.NetworkHandler)
-		resp, err := networkHandler.GetNetworkDNS(context.TODO())
+		resp, err := networkHandler.GetNetworkDNSByInterface(context.TODO(), interfaceName)
 		if err != nil {
 			logFatal("failed to get network dns endpoint", err)
 		}
@@ -89,4 +91,9 @@ var clientNetworkDNSGetCmd = &cobra.Command{
 
 func init() {
 	clientNetworkDNSCmd.AddCommand(clientNetworkDNSGetCmd)
+
+	clientNetworkDNSGetCmd.PersistentFlags().
+		String("interface-name", "", "Name of the network interface to retrieve DNS server configurations (required)")
+
+	clientNetworkDNSGetCmd.MarkPersistentFlagRequired("interface-name")
 }

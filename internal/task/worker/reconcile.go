@@ -71,7 +71,10 @@ func (w *Worker) reconcile(
 		dnsServers := action.ChangeDnsAction.DnsServers
 		searchDomains := action.ChangeDnsAction.SearchDomains
 
-		return dnsProvider.SetResolvConf(dnsServers, searchDomains)
+		// TODO
+		interfaceName := "wlp0s20f3"
+
+		return dnsProvider.SetResolvConfByInterface(dnsServers, searchDomains, interfaceName)
 	default:
 		return fmt.Errorf("unknown task action type")
 	}
