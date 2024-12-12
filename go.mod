@@ -11,7 +11,7 @@ require (
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/golang/mock v1.6.0
-	github.com/labstack/echo/v4 v4.13.0
+	github.com/labstack/echo/v4 v4.13.2
 	github.com/lmittmann/tint v1.0.5
 	github.com/nats-io/nats-server/v2 v2.10.23
 	github.com/nats-io/nats.go v1.37.0
@@ -101,9 +101,9 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.30.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.31.0 // indirect
+	golang.org/x/net v0.32.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
