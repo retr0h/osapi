@@ -17,7 +17,7 @@ require (
 	github.com/nats-io/nats.go v1.38.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
-	github.com/prometheus-community/pro-bing v0.5.0
+	github.com/prometheus-community/pro-bing v0.6.0
 	github.com/samber/slog-echo v1.15.1
 	github.com/shirou/gopsutil/v4 v4.24.12
 	github.com/spf13/afero v1.12.0
