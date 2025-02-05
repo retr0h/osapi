@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.22.2
 
 require (
-	github.com/charmbracelet/bubbletea v1.2.4
+	github.com/charmbracelet/bubbletea v1.3.0
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/ggwhite/go-masker/v2 v2.1.0
 	github.com/go-playground/validator/v10 v10.24.0
@@ -31,7 +31,7 @@ require (
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/charmbracelet/x/ansi v0.4.5 // indirect
+	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
@@ -50,7 +50,7 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/minio/highwayhash v1.0.3 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
