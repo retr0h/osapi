@@ -952,6 +952,20 @@ func (mr *MockJetStreamMockRecorder) CleanupPublisher() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanupPublisher", reflect.TypeOf((*MockJetStream)(nil).CleanupPublisher))
 }
 
+// Conn mocks base method.
+func (m *MockJetStream) Conn() *nats.Conn {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Conn")
+	ret0, _ := ret[0].(*nats.Conn)
+	return ret0
+}
+
+// Conn indicates an expected call of Conn.
+func (mr *MockJetStreamMockRecorder) Conn() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Conn", reflect.TypeOf((*MockJetStream)(nil).Conn))
+}
+
 // Consumer mocks base method.
 func (m *MockJetStream) Consumer(arg0 context.Context, arg1, arg2 string) (jetstream.Consumer, error) {
 	m.ctrl.T.Helper()
@@ -1246,6 +1260,20 @@ func (m *MockJetStream) ObjectStores(arg0 context.Context) jetstream.ObjectStore
 func (mr *MockJetStreamMockRecorder) ObjectStores(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ObjectStores", reflect.TypeOf((*MockJetStream)(nil).ObjectStores), arg0)
+}
+
+// Options mocks base method.
+func (m *MockJetStream) Options() jetstream.JetStreamOptions {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Options")
+	ret0, _ := ret[0].(jetstream.JetStreamOptions)
+	return ret0
+}
+
+// Options indicates an expected call of Options.
+func (mr *MockJetStreamMockRecorder) Options() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Options", reflect.TypeOf((*MockJetStream)(nil).Options))
 }
 
 // OrderedConsumer mocks base method.
