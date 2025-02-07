@@ -14,7 +14,7 @@ require (
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/lmittmann/tint v1.0.7
 	github.com/nats-io/nats-server/v2 v2.10.25
-	github.com/nats-io/nats.go v1.38.0
+	github.com/nats-io/nats.go v1.39.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/prometheus-community/pro-bing v0.6.1
