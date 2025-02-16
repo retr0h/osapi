@@ -28,7 +28,7 @@ jobs:
       - name: Deps
         run: task -y deps
       - name: Test
-        run: task -y linux:tune test
+        run: task -y test
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         env:

@@ -21,6 +21,7 @@ tasks:
   test:
     desc: Test all
     cmds:
+      - task: linux:tune
       - task: go:test
       - task: bats:test
 
@@ -33,5 +34,7 @@ tasks:
 
   linux:tune:
     desc: Enable "unprivileged" ping
+    platforms:
+      - linux
     cmds:
       - sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
