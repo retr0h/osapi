@@ -24,11 +24,30 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	natsserver "github.com/nats-io/nats-server/v2/server"
+	"github.com/nats-io/nats.go"
+	"github.com/osapi-io/nats-client/pkg/client"
+	"github.com/osapi-io/nats-server/pkg/server"
 	"github.com/spf13/cobra"
 
-	"github.com/retr0h/osapi/internal/task/server"
+	"github.com/retr0h/osapi/internal/task"
 )
+
+// ServerManager responsible for Server operations.
+type ServerManager interface {
+	// Start starts the server.
+	Start() error
+	// Stop gracefully stops the embedded NATS server.
+	Stop()
+}
+
+// ClientManager responsible for Client operations.
+type ClientManager interface {
+	// SetupJetStream creates the JetStream connection and stream configuration.
+	SetupJetStream(js nats.JetStreamContext) error
+}
 
 // taskServerStartCmd represents the taskServerStart command.
 var taskServerStartCmd = &cobra.Command{
@@ -40,10 +59,59 @@ itself, removing the need for a separately deployed server. This setup ensures
 a seamless integration for managing real-time communication and message distribution.
 `,
 	Run: func(_ *cobra.Command, _ []string) {
-		var sm server.Manager = server.New(appConfig, logger)
+		opts := &server.Options{
+			Options: &natsserver.Options{
+				Host:      appConfig.Task.Server.Host,
+				Port:      appConfig.Task.Server.Port,
+				JetStream: true,
+				Debug:     appConfig.Debug,
+				Trace:     appConfig.Task.Server.Trace,
+				StoreDir:  appConfig.Task.Server.FileStoreDir,
+				NoSigs:    true,
+				NoLog:     appConfig.Task.Server.NoLog,
+			},
+			ReadyTimeout: 5 * time.Second,
+		}
+
+		var sm ServerManager = server.New(logger, opts)
 		err := sm.Start()
 		if err != nil {
-			logFatal("failed to start server", err)
+			logger.Error("failed to start server", "error", err)
+			os.Exit(1)
+		}
+
+		streamOpts := &client.StreamConfig{
+			StreamConfig: &nats.StreamConfig{
+				Name:     task.StreamName,
+				Subjects: []string{task.SubjectName},
+				Storage:  nats.FileStorage,
+				Replicas: 1,
+			},
+			Consumers: []*client.ConsumerConfig{
+				{
+					ConsumerConfig: &nats.ConsumerConfig{
+						Durable:    task.ConsumerName,
+						AckPolicy:  nats.AckExplicitPolicy,
+						MaxDeliver: 5,
+						AckWait:    30 * time.Second,
+					},
+				},
+			},
+		}
+
+		js, err := client.NewJetStreamContext(
+			appConfig.Task.Server.Host,
+			appConfig.Task.Server.Port,
+		)
+		if err != nil {
+			logger.Error("failed to create jetstream context", "error", err)
+			os.Exit(1)
+		}
+
+		var cm ClientManager = client.New(logger, streamOpts)
+		if err := cm.SetupJetStream(js); err != nil {
+			logger.Error("failed setting up jetstream", "error", err)
+			os.Exit(1)
 		}
 
 		quit := make(chan os.Signal, 1)

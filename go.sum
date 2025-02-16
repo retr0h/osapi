@@ -170,6 +170,10 @@ github.com/onsi/gomega v1.17.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAl
 github.com/onsi/gomega v1.19.0/go.mod h1:LY+I3pBVzYsTBU1AnDwOSxaYi9WoWiqgwooUqq9yPro=
 github.com/onsi/gomega v1.27.6 h1:ENqfyGeS5AX/rlXDd/ETokDz93u0YufY1Pgxuy/PvWE=
 github.com/onsi/gomega v1.27.6/go.mod h1:PIQNjfQwkP3aQAH7lf7j87O/5FiNr+ZR8+ipb+qQlhg=
+github.com/osapi-io/nats-client v0.0.0-20250216053240-4f307516fc4b h1:vXRJqTs2WQVsjdF8ir13g+chvk+TZwA2IIL411JIEJ0=
+github.com/osapi-io/nats-client v0.0.0-20250216053240-4f307516fc4b/go.mod h1:5r/bjsREDoMlhsz3A7PSGE9mb4FklHXU74eyCQ+Eto4=
+github.com/osapi-io/nats-server v0.0.0-20250216161036-9e807daa5c67 h1:V0EvIRHWRI2tHsaekJg5D3QFDXIPPFVq7XYpHk4gNc0=
+github.com/osapi-io/nats-server v0.0.0-20250216161036-9e807daa5c67/go.mod h1:HBvkd1FpGdRaFP8knJOZ7mO6wDa4iAbJECrfLWASWIU=
 github.com/pelletier/go-toml/v2 v2.2.2 h1:aYUidT7k73Pcl9nb2gScu7NSrKCSHIDE89b3+6Wq+LM=
 github.com/pelletier/go-toml/v2 v2.2.2/go.mod h1:1t835xjRzz80PqgE6HHgN2JOsmgYu/h4qDAS4n929Rs=
 github.com/perimeterx/marshmallow v1.1.5 h1:a2LALqQ1BlHM8PZblsDdidgv1mWi1DgC2UmX50IvK2s=

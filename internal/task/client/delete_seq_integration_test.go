@@ -24,12 +24,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/osapi-io/nats-server/pkg/server"
 	"github.com/stretchr/testify/suite"
 
 	customerrors "github.com/retr0h/osapi/internal/errors"
 	"github.com/retr0h/osapi/internal/task/client"
 	clienttest "github.com/retr0h/osapi/internal/task/client/testing"
-	"github.com/retr0h/osapi/internal/task/server"
 )
 
 type DeleteMessageBySeqIntegrationTestSuite struct {
@@ -42,6 +42,9 @@ type DeleteMessageBySeqIntegrationTestSuite struct {
 func (suite *DeleteMessageBySeqIntegrationTestSuite) SetupTest() {
 	suite.server = clienttest.NewServer()
 	err := suite.server.Start()
+	suite.Require().NoError(err)
+
+	err = clienttest.SetupStream()
 	suite.Require().NoError(err)
 
 	c, err := clienttest.NewClient()

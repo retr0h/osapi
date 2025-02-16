@@ -1,8 +1,8 @@
 module github.com/retr0h/osapi
 
-go 1.22.0
+go 1.23
 
-toolchain go1.22.2
+toolchain go1.23.6
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.3
@@ -17,6 +17,8 @@ require (
 	github.com/nats-io/nats.go v1.39.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
+	github.com/osapi-io/nats-client v0.0.0-20250216053240-4f307516fc4b
+	github.com/osapi-io/nats-server v0.0.0-20250216161036-9e807daa5c67
 	github.com/prometheus-community/pro-bing v0.6.1
 	github.com/samber/slog-echo v1.15.1
 	github.com/shirou/gopsutil/v4 v4.25.1

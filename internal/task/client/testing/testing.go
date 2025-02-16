@@ -21,18 +21,26 @@
 package testing
 
 import (
+	"errors"
 	"log/slog"
 	"os"
+	"time"
+
+	natsserver "github.com/nats-io/nats-server/v2/server"
+	"github.com/nats-io/nats.go"
+	natsclient "github.com/osapi-io/nats-client/pkg/client"
+	"github.com/osapi-io/nats-server/pkg/server"
 
 	"github.com/retr0h/osapi/internal/config"
+	"github.com/retr0h/osapi/internal/task"
 	"github.com/retr0h/osapi/internal/task/client"
-	"github.com/retr0h/osapi/internal/task/server"
 )
 
 var (
 	appConfig = config.Config{
 		Task: config.Task{
 			Server: config.TaskServer{
+				Host: "0.0.0.0",
 				Port: 4222,
 			},
 		},
@@ -42,7 +50,63 @@ var (
 
 // NewServer initializes and returns a new Server instance.
 func NewServer() *server.Server {
-	return server.New(appConfig, logger)
+	opts := &server.Options{
+		Options: &natsserver.Options{
+			Host:      appConfig.Task.Server.Host,
+			Port:      appConfig.Task.Server.Port,
+			JetStream: true,
+			Debug:     true,
+			Trace:     true,
+			StoreDir:  "",
+			NoSigs:    true,
+			NoLog:     false,
+		},
+		ReadyTimeout: 5 * time.Second,
+	}
+
+	return server.New(logger, opts)
+}
+
+// SetupStream configures a NATS JetStream stream and consumers for testing.
+func SetupStream() error {
+	streamOpts := &natsclient.StreamConfig{
+		StreamConfig: &nats.StreamConfig{
+			Name:     task.StreamName,
+			Subjects: []string{task.SubjectName},
+			Storage:  nats.MemoryStorage,
+		},
+		Consumers: []*natsclient.ConsumerConfig{
+			{
+				ConsumerConfig: &nats.ConsumerConfig{
+					Durable:    task.ConsumerName,
+					AckPolicy:  nats.AckExplicitPolicy,
+					MaxDeliver: 5,
+					AckWait:    30 * time.Second,
+				},
+			},
+		},
+	}
+
+	js, err := natsclient.NewJetStreamContext(
+		appConfig.Task.Server.Host,
+		appConfig.Task.Server.Port,
+	)
+	if err != nil {
+		return err
+	}
+
+	// clear jetstream streams
+	// streamChan := js.StreamNames()
+	// for name := range streamChan {
+	// 	_ = js.DeleteStream(name)
+	// }
+
+	c := natsclient.New(logger, streamOpts)
+	if err := c.SetupJetStream(js); err != nil && !errors.Is(err, nats.ErrStreamNameAlreadyInUse) {
+		return err
+	}
+
+	return nil
 }
 
 // NewClient initializes and returns a new Client instance.

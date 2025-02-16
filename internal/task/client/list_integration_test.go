@@ -24,11 +24,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/osapi-io/nats-server/pkg/server"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/osapi/internal/task/client"
 	clienttest "github.com/retr0h/osapi/internal/task/client/testing"
-	"github.com/retr0h/osapi/internal/task/server"
 )
 
 type ListUndeliveredMessagesIntegrationTestSuite struct {
@@ -41,6 +41,9 @@ type ListUndeliveredMessagesIntegrationTestSuite struct {
 func (suite *ListUndeliveredMessagesIntegrationTestSuite) SetupTest() {
 	suite.server = clienttest.NewServer()
 	err := suite.server.Start()
+	suite.Require().NoError(err)
+
+	err = clienttest.SetupStream()
 	suite.Require().NoError(err)
 
 	c, err := clienttest.NewClient()
