@@ -4,6 +4,12 @@ sidebar_position: 3
 
 # Testing
 
+Enable [Remote Taskfile][] feature.
+
+```bash
+export TASK_X_REMOTE_TASKFILES=1
+```
+
 Install dependencies:
 
 ```bash
@@ -27,3 +33,5 @@ List helpful targets:
 ```bash
 $ task
 ```
+
+[Remote Taskfile]: https://taskfile.dev/experiments/remote-taskfiles/

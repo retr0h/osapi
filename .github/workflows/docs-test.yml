@@ -10,6 +10,8 @@ jobs:
   test-deploy:
     name: Test deployment
     runs-on: ubuntu-latest
+    env:
+      TASK_X_REMOTE_TASKFILES: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,6 +25,6 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint the website
-        run: task docs:fmt:check
+        run: task -y docs:fmt:check
       - name: Test build website
-        run: task docs:build
+        run: task -y docs:build

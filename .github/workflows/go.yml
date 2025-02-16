@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TASK_X_REMOTE_TASKFILES: 1
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
@@ -24,9 +26,9 @@ jobs:
       - name: Install shfmt
         uses: mfinelli/setup-shfmt@v3
       - name: Deps
-        run: task deps
+        run: task -y deps
       - name: Test
-        run: task test
+        run: task -y linux:tune test
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         env:
