@@ -1,8 +1,6 @@
 module github.com/retr0h/osapi
 
-go 1.23
-
-toolchain go1.23.6
+go 1.24
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.3
@@ -33,7 +31,6 @@ require (
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/bats-core/bats-core v1.11.1 // indirect
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
