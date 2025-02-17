@@ -20,4 +20,4 @@
 
 package mocks
 
-//go:generate go run github.com/golang/mock/mockgen -source=../manager.go -destination=manager.gen.go -package=mocks
+//go:generate go tool github.com/golang/mock/mockgen -source=../manager.go -destination=manager.gen.go -package=mocks
