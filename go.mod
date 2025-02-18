@@ -13,7 +13,6 @@ require (
 	github.com/lmittmann/tint v1.0.7
 	github.com/nats-io/nats-server/v2 v2.10.25
 	github.com/nats-io/nats.go v1.39.0
-	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/osapi-io/nats-client v0.0.0-20250216053240-4f307516fc4b
 	github.com/osapi-io/nats-server v0.0.0-20250216161036-9e807daa5c67
@@ -21,7 +20,7 @@ require (
 	github.com/samber/slog-echo v1.15.1
 	github.com/shirou/gopsutil/v4 v4.25.1
 	github.com/spf13/afero v1.12.0
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/term v0.29.0
@@ -166,6 +165,7 @@ require (
 	github.com/nishanths/exhaustive v0.12.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.19.0 // indirect
+	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
