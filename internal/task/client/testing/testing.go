@@ -69,6 +69,19 @@ func NewServer() *server.Server {
 
 // SetupStream configures a NATS JetStream stream and consumers for testing.
 func SetupStream() error {
+	jsOpts := &natsclient.ClientOptions{
+		Host: appConfig.Task.Server.Host,
+		Port: appConfig.Task.Server.Port,
+		Auth: natsclient.AuthOptions{
+			AuthType: natsclient.NoAuth,
+		},
+	}
+
+	js, err := natsclient.NewJetStreamContext(jsOpts)
+	if err != nil {
+		return err
+	}
+
 	streamOpts := &natsclient.StreamConfig{
 		StreamConfig: &nats.StreamConfig{
 			Name:     task.StreamName,
@@ -87,22 +100,9 @@ func SetupStream() error {
 		},
 	}
 
-	js, err := natsclient.NewJetStreamContext(
-		appConfig.Task.Server.Host,
-		appConfig.Task.Server.Port,
-	)
-	if err != nil {
-		return err
-	}
-
-	// clear jetstream streams
-	// streamChan := js.StreamNames()
-	// for name := range streamChan {
-	// 	_ = js.DeleteStream(name)
-	// }
-
-	c := natsclient.New(logger, streamOpts)
-	if err := c.SetupJetStream(js); err != nil && !errors.Is(err, nats.ErrStreamNameAlreadyInUse) {
+	c := natsclient.New(logger)
+	if err := c.SetupJetStream(js, streamOpts); err != nil &&
+		!errors.Is(err, nats.ErrStreamNameAlreadyInUse) {
 		return err
 	}
 

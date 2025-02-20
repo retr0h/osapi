@@ -45,8 +45,8 @@ type ServerManager interface {
 
 // ClientManager responsible for Client operations.
 type ClientManager interface {
-	// SetupJetStream creates the JetStream connection and stream configuration.
-	SetupJetStream(js nats.JetStreamContext) error
+	// SetupJetStream configures JetStream streams and consumers.
+	SetupJetStream(js nats.JetStreamContext, streamConfigs ...*client.StreamConfig) error
 }
 
 // taskServerStartCmd represents the taskServerStart command.
@@ -80,6 +80,20 @@ a seamless integration for managing real-time communication and message distribu
 			os.Exit(1)
 		}
 
+		jsOpts := &client.ClientOptions{
+			Host: appConfig.Task.Server.Host,
+			Port: appConfig.Task.Server.Port,
+			Auth: client.AuthOptions{
+				AuthType: client.NoAuth,
+			},
+		}
+
+		js, err := client.NewJetStreamContext(jsOpts)
+		if err != nil {
+			logger.Error("failed to create jetstream context", "error", err)
+			os.Exit(1)
+		}
+
 		streamOpts := &client.StreamConfig{
 			StreamConfig: &nats.StreamConfig{
 				Name:     task.StreamName,
@@ -99,17 +113,8 @@ a seamless integration for managing real-time communication and message distribu
 			},
 		}
 
-		js, err := client.NewJetStreamContext(
-			appConfig.Task.Server.Host,
-			appConfig.Task.Server.Port,
-		)
-		if err != nil {
-			logger.Error("failed to create jetstream context", "error", err)
-			os.Exit(1)
-		}
-
-		var cm ClientManager = client.New(logger, streamOpts)
-		if err := cm.SetupJetStream(js); err != nil {
+		var cm ClientManager = client.New(logger)
+		if err := cm.SetupJetStream(js, streamOpts); err != nil {
 			logger.Error("failed setting up jetstream", "error", err)
 			os.Exit(1)
 		}
