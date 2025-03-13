@@ -17,7 +17,7 @@ require (
 	github.com/osapi-io/nats-client v0.0.0-20250220054034-b2352166f097
 	github.com/osapi-io/nats-server v0.0.0-20250216161036-9e807daa5c67
 	github.com/prometheus-community/pro-bing v0.6.1
-	github.com/samber/slog-echo v1.15.1
+	github.com/samber/slog-echo v1.16.1
 	github.com/shirou/gopsutil/v4 v4.25.2
 	github.com/spf13/afero v1.12.0
 	github.com/spf13/cobra v1.9.1
@@ -186,7 +186,7 @@ require (
 	github.com/ryanrolds/sqlclosecheck v0.5.1 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/samber/lo v1.47.0 // indirect
+	github.com/samber/lo v1.49.1 // indirect
 	github.com/sanposhiho/wastedassign/v2 v2.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1 // indirect
 	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
