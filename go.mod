@@ -18,7 +18,7 @@ require (
 	github.com/osapi-io/nats-server v0.0.0-20250216161036-9e807daa5c67
 	github.com/prometheus-community/pro-bing v0.6.1
 	github.com/samber/slog-echo v1.16.1
-	github.com/shirou/gopsutil/v4 v4.25.2
+	github.com/shirou/gopsutil/v4 v4.25.3
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
