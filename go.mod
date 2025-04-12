@@ -12,7 +12,7 @@ require (
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/lmittmann/tint v1.0.7
 	github.com/nats-io/nats-server/v2 v2.11.1
-	github.com/nats-io/nats.go v1.40.1
+	github.com/nats-io/nats.go v1.41.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/osapi-io/nats-client v0.0.0-20250220054034-b2352166f097
 	github.com/osapi-io/nats-server v0.0.0-20250216161036-9e807daa5c67
