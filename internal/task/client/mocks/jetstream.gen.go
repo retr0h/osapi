@@ -512,6 +512,20 @@ func (mr *MockStreamMockRecorder) SecureDeleteMsg(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SecureDeleteMsg", reflect.TypeOf((*MockStream)(nil).SecureDeleteMsg), arg0, arg1)
 }
 
+// UnpinConsumer mocks base method.
+func (m *MockStream) UnpinConsumer(arg0 context.Context, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnpinConsumer", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnpinConsumer indicates an expected call of UnpinConsumer.
+func (mr *MockStreamMockRecorder) UnpinConsumer(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnpinConsumer", reflect.TypeOf((*MockStream)(nil).UnpinConsumer), arg0, arg1, arg2)
+}
+
 // UpdateConsumer mocks base method.
 func (m *MockStream) UpdateConsumer(arg0 context.Context, arg1 jetstream.ConsumerConfig) (jetstream.Consumer, error) {
 	m.ctrl.T.Helper()
