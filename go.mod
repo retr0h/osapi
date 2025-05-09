@@ -11,14 +11,14 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/lmittmann/tint v1.0.7
-	github.com/nats-io/nats-server/v2 v2.11.2
-	github.com/nats-io/nats.go v1.41.2
+	github.com/nats-io/nats-server/v2 v2.11.3
+	github.com/nats-io/nats.go v1.42.0
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/osapi-io/nats-client v0.0.0-20250220054034-b2352166f097
 	github.com/osapi-io/nats-server v0.0.0-20250216161036-9e807daa5c67
 	github.com/prometheus-community/pro-bing v0.7.0
 	github.com/samber/slog-echo v1.16.1
-	github.com/shirou/gopsutil/v4 v4.25.3
+	github.com/shirou/gopsutil/v4 v4.25.4
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
