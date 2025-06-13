@@ -78,11 +78,11 @@ var clientTaskListCmd = &cobra.Command{
 					createdTime = message.Created.Format(time.RFC3339)
 				}
 
-				protoString := task.SafeMarshalTaskToString(message.Body)
+				actionSummary := task.SafeMarshalTaskToSummary(message.Body)
 				messageRows = append(messageRows, []string{
 					uint64ToSafeString(message.Id),
 					createdTime,
-					protoString,
+					actionSummary,
 				})
 			}
 

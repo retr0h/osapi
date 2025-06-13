@@ -21,7 +21,6 @@ package task_test
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -71,7 +70,7 @@ func (suite *PostTaskIntegrationTestSuite) TestPostTask() {
 		{
 			name: "when post Ok",
 			path: "/task",
-			body: `{"body": "dGVzdCBtZXNzYWdl"}`,
+			body: `{"body": {"type": "dns", "data": {"dns_servers": ["8.8.8.8"], "search_domains": ["example.com"], "interface_name": "eth0"}}}`,
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewDefaultMockManager(suite.ctrl)
 
@@ -95,23 +94,24 @@ func (suite *PostTaskIntegrationTestSuite) TestPostTask() {
 		{
 			name: "when body is empty",
 			path: "/task",
-			body: `{"body": ""}`,
+			body: `{"body": {"type": "", "data": null}}`,
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewDefaultMockManager(suite.ctrl)
 
 				return mock
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: `{"code":0,"error":"Body field is required and cannot be empty"}`,
+			wantBody: `{"code":0,"error":"Body field with type and data is required and cannot be empty"}`,
 		},
 		{
 			name: "when PublishToStream errors",
 			path: "/task",
-			body: `{"body": "dGVzdCBtZXNzYWdl"}`,
+			body: `{"body": {"type": "dns", "data": {"dns_servers": ["8.8.8.8"], "search_domains": ["example.com"], "interface_name": "eth0"}}}`,
 			setupMock: func() *mocks.MockManager {
 				mock := mocks.NewPlainMockManager(suite.ctrl)
-				expectedBody, err := base64.StdEncoding.DecodeString("dGVzdCBtZXNzYWdl")
-				suite.Require().NoError(err)
+				expectedBody := []byte(
+					`{"data":{"dns_servers":["8.8.8.8"],"interface_name":"eth0","search_domains":["example.com"]},"type":"dns"}`,
+				)
 
 				mock.EXPECT().
 					PublishToStream(context.Background(), expectedBody).

@@ -7,3 +7,5 @@ result.xml
 .task/
 test/vendor/
 tmp/
+
+osapi

@@ -21,39 +21,35 @@
 package task
 
 import (
-	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
+	"encoding/json"
 )
 
 // CreateAndMarshalChangeDNSAction creates a ChangeDNSAction message with the
 // given DNS servers and search domains, wraps it in a Task, and marshals it
-// to protobuf bytes.
+// to JSON bytes.
 func CreateAndMarshalChangeDNSAction(
 	servers []string,
 	searchDomains []string,
 	interfaceName string,
 ) ([]byte, error) {
-	dnsAction := &taskpb.ChangeDNSAction{}
-
-	if len(servers) > 0 {
-		dnsAction.DnsServers = servers
+	dnsAction := ChangeDNSAction{
+		DNSServers:    servers,
+		SearchDomains: searchDomains,
+		InterfaceName: interfaceName,
 	}
 
-	if len(searchDomains) > 0 {
-		dnsAction.SearchDomains = searchDomains
+	dnsActionData, err := json.Marshal(dnsAction)
+	if err != nil {
+		return nil, err
 	}
 
-	if interfaceName != "" {
-		dnsAction.InterfaceName = interfaceName
+	// Wrap ChangeDNSAction into a Task message
+	task := Task{
+		Type: ActionTypeDNS,
+		Data: dnsActionData,
 	}
 
-	// Wrap ChangeDnsAction into a Task message
-	taskAction := &taskpb.Task{
-		Action: &taskpb.Task_ChangeDnsAction{
-			ChangeDnsAction: dnsAction,
-		},
-	}
-
-	data, err := MarshalProto(taskAction)
+	data, err := json.Marshal(task)
 	if err != nil {
 		return nil, err
 	}

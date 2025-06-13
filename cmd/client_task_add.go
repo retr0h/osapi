@@ -22,7 +22,7 @@ package cmd
 
 import (
 	"context"
-	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -32,6 +32,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/retr0h/osapi/internal/client"
+	"github.com/retr0h/osapi/internal/task"
 )
 
 // clientTaskAddCmd represents the clientTaskAdd command.
@@ -41,7 +42,7 @@ var clientTaskAddCmd = &cobra.Command{
 	Long: `Adds an action for processing by the task runner.
 `,
 	Run: func(cmd *cobra.Command, _ []string) {
-		filePath, _ := cmd.Flags().GetString("proto-file")
+		filePath, _ := cmd.Flags().GetString("json-file")
 
 		file, err := os.Open(filePath)
 		if err != nil {
@@ -54,9 +55,14 @@ var clientTaskAddCmd = &cobra.Command{
 			logFatal("failed to read file", err)
 		}
 
-		encodedBody := base64.StdEncoding.EncodeToString([]byte(fileContents))
+		// Parse the JSON task
+		var taskData task.Task
+		if err := json.Unmarshal(fileContents, &taskData); err != nil {
+			logFatal("failed to parse JSON task file", err)
+		}
+
 		taskHandler := handler.(client.TaskHandler)
-		resp, err := taskHandler.PostTask(context.TODO(), encodedBody)
+		resp, err := taskHandler.PostTask(context.TODO(), taskData)
 		if err != nil {
 			logFatal("failed to add task endpoint", err)
 		}
@@ -67,7 +73,7 @@ var clientTaskAddCmd = &cobra.Command{
 			if jsonOutput {
 				logger.Info(
 					"task add",
-					slog.String("proto_file", filePath),
+					slog.String("json_file", filePath),
 					slog.String("response", string(resp.Body)),
 					slog.String("status", "ok"),
 				)
@@ -112,5 +118,7 @@ func init() {
 	clientTaskCmd.AddCommand(clientTaskAddCmd)
 
 	clientTaskAddCmd.PersistentFlags().
-		StringP("proto-file", "", "", "Path to the file containing the binary protobuf data")
+		StringP("json-file", "", "", "Path to the file containing the JSON task data")
+
+	_ = clientTaskAddCmd.MarkPersistentFlagRequired("json-file")
 }

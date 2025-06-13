@@ -1,0 +1,8 @@
+{
+  "type": "shutdown",
+  "data": {
+    "action_type": "reboot",
+    "delay_seconds": 60,
+    "message": "System will reboot in 60 seconds"
+  }
+}

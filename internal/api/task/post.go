@@ -21,6 +21,7 @@
 package task
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -40,13 +41,21 @@ func (t Task) PostTask(
 		})
 	}
 
-	if len(newItem.Body) == 0 {
+	if newItem.Body.Type == "" || newItem.Body.Data == nil {
 		return ctx.JSON(http.StatusBadRequest, gen.TaskErrorResponse{
-			Error: "Body field is required and cannot be empty",
+			Error: "Body field with type and data is required and cannot be empty",
 		})
 	}
 
-	seq, err := t.ClientManager.PublishToStream(ctx.Request().Context(), newItem.Body)
+	// Marshal the task JSON object to bytes for the message queue
+	taskBytes, err := json.Marshal(newItem.Body)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, gen.TaskErrorResponse{
+			Error: "Invalid task format: " + err.Error(),
+		})
+	}
+
+	seq, err := t.ClientManager.PublishToStream(ctx.Request().Context(), taskBytes)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, gen.TaskErrorResponse{
 			Error: err.Error(),

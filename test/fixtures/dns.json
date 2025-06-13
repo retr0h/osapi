@@ -1,0 +1,8 @@
+{
+  "type": "dns",
+  "data": {
+    "dns_servers": ["8.8.8.8", "8.8.4.4"],
+    "search_domains": ["example.com"],
+    "interface_name": "eth0"
+  }
+}

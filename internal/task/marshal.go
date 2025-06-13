@@ -21,65 +21,122 @@
 package task
 
 import (
+	"encoding/json"
 	"fmt"
-
-	"google.golang.org/protobuf/encoding/prototext"
-	"google.golang.org/protobuf/proto"
-
-	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
 )
 
-// MarshalProto is a generic function to marshal any proto.Message.
-func MarshalProto(message proto.Message) ([]byte, error) {
-	data, err := proto.Marshal(message)
+// MarshalJSON is a generic function to marshal any data structure to JSON.
+func MarshalJSON(data interface{}) ([]byte, error) {
+	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal message: %w", err)
+		return nil, fmt.Errorf("failed to marshal to JSON: %w", err)
 	}
-	return data, nil
+	return jsonData, nil
 }
 
-// UnmarshalProto is a generic function to unmarshal any proto.Message.
-func UnmarshalProto(data []byte, message proto.Message) error {
-	err := proto.Unmarshal(data, message)
+// UnmarshalJSON is a generic function to unmarshal JSON data.
+func UnmarshalJSON(data []byte, v interface{}) error {
+	err := json.Unmarshal(data, v)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal message: %w", err)
+		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 	return nil
 }
 
-// MarshalTextString is a helper function that formats a proto.Message into a multi-line string.
-func MarshalTextString(message proto.Message) (string, error) {
-	marshaler := prototext.MarshalOptions{
-		Multiline: true,
-		Indent:    "  ",
-	}
-
-	protoBytes, err := marshaler.Marshal(message)
+// MarshalJSONIndent formats a data structure into a multi-line indented JSON string.
+func MarshalJSONIndent(data interface{}) (string, error) {
+	jsonBytes, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal proto message to text: %w", err)
+		return "", fmt.Errorf("failed to marshal to indented JSON: %w", err)
 	}
 
-	return string(protoBytes), nil
+	return string(jsonBytes), nil
 }
 
-// SafeMarshalTaskToString safely converts the provided proto data into a
-// string representation of taskpb.Task.
+// SafeMarshalTaskToString safely converts the provided JSON data into a
+// string representation of Task.
 func SafeMarshalTaskToString(body *[]byte) string {
-	var taskMessage taskpb.Task
+	var taskMessage Task
 
 	if body == nil {
 		return "N/A"
 	}
 
-	err := UnmarshalProto(*body, &taskMessage)
+	err := UnmarshalJSON(*body, &taskMessage)
 	if err != nil {
 		return err.Error()
 	}
 
-	protoString, err := MarshalTextString(&taskMessage)
+	jsonString, err := MarshalJSONIndent(taskMessage)
 	if err != nil {
 		return err.Error()
 	}
 
-	return protoString
+	return jsonString
+}
+
+// SafeMarshalTaskToSummary safely converts the provided JSON data into a
+// concise human-readable summary of the Task.
+func SafeMarshalTaskToSummary(body *[]byte) string {
+	var taskMessage Task
+
+	if body == nil {
+		return "N/A"
+	}
+
+	err := UnmarshalJSON(*body, &taskMessage)
+	if err != nil {
+		return "Error: " + err.Error()
+	}
+
+	switch taskMessage.Type {
+	case ActionTypeDNS:
+		var dnsAction ChangeDNSAction
+		err = UnmarshalJSON(taskMessage.Data, &dnsAction)
+		if err != nil {
+			return "DNS: Error parsing data"
+		}
+
+		servers := "none"
+		if len(dnsAction.DNSServers) > 0 {
+			if len(dnsAction.DNSServers) == 1 {
+				servers = dnsAction.DNSServers[0]
+			} else {
+				servers = fmt.Sprintf("%s (+%d more)", dnsAction.DNSServers[0], len(dnsAction.DNSServers)-1)
+			}
+		}
+
+		domains := "none"
+		if len(dnsAction.SearchDomains) > 0 {
+			if len(dnsAction.SearchDomains) == 1 {
+				domains = dnsAction.SearchDomains[0]
+			} else {
+				domains = fmt.Sprintf("%s (+%d more)", dnsAction.SearchDomains[0], len(dnsAction.SearchDomains)-1)
+			}
+		}
+
+		return fmt.Sprintf("DNS: %s → %s | %s", dnsAction.InterfaceName, servers, domains)
+
+	case ActionTypeShutdown:
+		var shutdownAction ShutdownAction
+		err = UnmarshalJSON(taskMessage.Data, &shutdownAction)
+		if err != nil {
+			return "Shutdown: Error parsing data"
+		}
+
+		delay := ""
+		if shutdownAction.DelaySeconds > 0 {
+			delay = fmt.Sprintf(" (delay: %ds)", shutdownAction.DelaySeconds)
+		}
+
+		message := ""
+		if shutdownAction.Message != "" {
+			message = fmt.Sprintf(" - %s", shutdownAction.Message)
+		}
+
+		return fmt.Sprintf("Shutdown: %s%s%s", shutdownAction.ActionType, delay, message)
+
+	default:
+		return fmt.Sprintf("Unknown: %s", taskMessage.Type)
+	}
 }

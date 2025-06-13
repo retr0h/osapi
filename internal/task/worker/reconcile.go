@@ -21,6 +21,7 @@
 package worker
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -30,13 +31,12 @@ import (
 	"github.com/retr0h/osapi/internal/exec"
 	"github.com/retr0h/osapi/internal/provider/network/dns"
 	"github.com/retr0h/osapi/internal/task"
-	taskpb "github.com/retr0h/osapi/internal/task/gen/proto/task"
 )
 
 // reconcile applies the desired state to the system by making necessary changes.
 //
 // This function compares the current system state with the desired state, which is
-// serialized as protobuf actions in the message queue, and performs any required actions
+// serialized as JSON actions in the message queue, and performs any required actions
 // to bring the system into alignment with the desired configuration.
 // It may involve tasks such as modifying configurations, starting/stopping services, or
 // other system-level operations. If any changes are applied, the function ensures they are
@@ -51,9 +51,9 @@ func (w *Worker) reconcile(
 	seq uint64,
 	data []byte,
 ) error {
-	var t taskpb.Task
+	var t task.Task
 
-	err := task.UnmarshalProto(data, &t)
+	err := task.UnmarshalJSON(data, &t)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal task id: %d %w", seq, err)
 	}
@@ -61,21 +61,61 @@ func (w *Worker) reconcile(
 	w.logger.Info(
 		"reconciling message",
 		slog.Uint64("id", seq),
+		slog.String("type", string(t.Type)),
 	)
 
-	switch action := t.GetAction().(type) {
-	case *taskpb.Task_ShutdownAction:
-		return nil
-	case *taskpb.Task_ChangeDnsAction:
-		dnsProvider := GetDNSProvider(w.logger)
-		dnsServers := action.ChangeDnsAction.DnsServers
-		searchDomains := action.ChangeDnsAction.SearchDomains
-		interfaceName := action.ChangeDnsAction.InterfaceName
-
-		return dnsProvider.SetResolvConfByInterface(dnsServers, searchDomains, interfaceName)
+	switch t.Type {
+	case task.ActionTypeShutdown:
+		return w.handleShutdownAction(t.Data)
+	case task.ActionTypeDNS:
+		return w.handleDNSAction(t.Data)
 	default:
-		return fmt.Errorf("unknown task action type")
+		return fmt.Errorf("unknown task action type: %s", t.Type)
 	}
+}
+
+// handleShutdownAction processes shutdown/reboot actions.
+func (w *Worker) handleShutdownAction(data json.RawMessage) error {
+	var shutdownAction task.ShutdownAction
+
+	err := json.Unmarshal(data, &shutdownAction)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal shutdown action: %w", err)
+	}
+
+	w.logger.Info(
+		"processing shutdown action",
+		slog.String("action_type", string(shutdownAction.ActionType)),
+		slog.Int("delay_seconds", int(shutdownAction.DelaySeconds)),
+		slog.String("message", shutdownAction.Message),
+	)
+
+	// TODO: implement shutdown/reboot logic
+	return nil
+}
+
+// handleDNSAction processes DNS configuration change actions.
+func (w *Worker) handleDNSAction(data json.RawMessage) error {
+	var dnsAction task.ChangeDNSAction
+
+	err := json.Unmarshal(data, &dnsAction)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal DNS action: %w", err)
+	}
+
+	w.logger.Info(
+		"processing DNS action",
+		slog.String("interface", dnsAction.InterfaceName),
+		slog.Any("dns_servers", dnsAction.DNSServers),
+		slog.Any("search_domains", dnsAction.SearchDomains),
+	)
+
+	dnsProvider := GetDNSProvider(w.logger)
+	return dnsProvider.SetResolvConfByInterface(
+		dnsAction.DNSServers,
+		dnsAction.SearchDomains,
+		dnsAction.InterfaceName,
+	)
 }
 
 // GetDNSProvider returns a DNS provider handler based on the system platform.

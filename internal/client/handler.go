@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"github.com/retr0h/osapi/internal/client/gen"
+	"github.com/retr0h/osapi/internal/task"
 )
 
 // CombinedHandler is a superset of all smaller handler interfaces.
@@ -74,7 +75,7 @@ type TaskHandler interface {
 	// PostTask inserts a single item into the task API endpoint.
 	PostTask(
 		ctx context.Context,
-		messageBody string,
+		taskData task.Task,
 	) (*gen.PostTaskResponse, error)
 	// GetTaskStatus gets status through the task API endpoint.
 	GetTaskStatus(ctx context.Context) (*gen.GetTaskStatusResponse, error)

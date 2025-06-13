@@ -12,6 +12,12 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for PostTaskJSONBodyBodyType.
+const (
+	Dns      PostTaskJSONBodyBodyType = "dns"
+	Shutdown PostTaskJSONBodyBodyType = "shutdown"
+)
+
 // TaskItemIdResponse defines model for TaskItemIdResponse.
 type TaskItemIdResponse struct {
 	// Id Unique identifier of the task item.
@@ -58,9 +64,18 @@ type TaskErrorResponse struct {
 
 // PostTaskJSONBody defines parameters for PostTask.
 type PostTaskJSONBody struct {
-	// Body Base64-encoded representation of the body of the task item.
-	Body []byte `json:"body"`
+	// Body JSON representation of the task item.
+	Body struct {
+		// Data The action-specific data.
+		Data map[string]interface{} `json:"data"`
+
+		// Type The type of task action to perform.
+		Type PostTaskJSONBodyBodyType `json:"type"`
+	} `json:"body"`
 }
+
+// PostTaskJSONBodyBodyType defines parameters for PostTask.
+type PostTaskJSONBodyBodyType string
 
 // PostTaskJSONRequestBody defines body for PostTask for application/json ContentType.
 type PostTaskJSONRequestBody PostTaskJSONBody

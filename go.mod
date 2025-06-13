@@ -24,7 +24,6 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/term v0.32.0
-	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -237,6 +236,7 @@ require (
 	golang.org/x/exp/typeparams v0.0.0-20250210185358-939b2ce775ac // indirect
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	honnef.co/go/tools v0.6.0 // indirect
 	mvdan.cc/gofumpt v0.7.0 // indirect

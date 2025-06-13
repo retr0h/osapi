@@ -21,6 +21,12 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// Defines values for PostTaskJSONBodyBodyType.
+const (
+	Dns      PostTaskJSONBodyBodyType = "dns"
+	Shutdown PostTaskJSONBodyBodyType = "shutdown"
+)
+
 // DNSConfigResponse defines model for DNSConfigResponse.
 type DNSConfigResponse struct {
 	// SearchDomains List of search domains.
@@ -217,9 +223,18 @@ type PostNetworkPingJSONBody struct {
 
 // PostTaskJSONBody defines parameters for PostTask.
 type PostTaskJSONBody struct {
-	// Body Base64-encoded representation of the body of the task item.
-	Body []byte `json:"body"`
+	// Body JSON representation of the task item.
+	Body struct {
+		// Data The action-specific data.
+		Data map[string]interface{} `json:"data"`
+
+		// Type The type of task action to perform.
+		Type PostTaskJSONBodyBodyType `json:"type"`
+	} `json:"body"`
 }
+
+// PostTaskJSONBodyBodyType defines parameters for PostTask.
+type PostTaskJSONBodyBodyType string
 
 // PutNetworkDNSJSONRequestBody defines body for PutNetworkDNS for application/json ContentType.
 type PutNetworkDNSJSONRequestBody = DNSConfigUpdateRequest

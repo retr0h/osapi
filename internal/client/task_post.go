@@ -22,23 +22,49 @@ package client
 
 import (
 	"context"
-	"encoding/base64"
+	"encoding/json"
+	"fmt"
 
 	"github.com/retr0h/osapi/internal/client/gen"
+	"github.com/retr0h/osapi/internal/task"
 )
 
 // PostTask inserts a single item into the task API endpoint.
 func (c *Client) PostTask(
 	ctx context.Context,
-	messageBody string,
+	taskData task.Task,
 ) (*gen.PostTaskResponse, error) {
-	decodedBytes, err := base64.StdEncoding.DecodeString(messageBody)
+	// Convert task data to map for the API
+	var dataMap map[string]interface{}
+	dataBytes, err := json.Marshal(taskData.Data)
 	if err != nil {
 		return nil, err
 	}
 
+	err = json.Unmarshal(dataBytes, &dataMap)
+	if err != nil {
+		return nil, err
+	}
+
+	// Map our task types to the generated types
+	var bodyType gen.PostTaskJSONBodyBodyType
+	switch taskData.Type {
+	case task.ActionTypeDNS:
+		bodyType = gen.Dns
+	case task.ActionTypeShutdown:
+		bodyType = gen.Shutdown
+	default:
+		return nil, fmt.Errorf("unknown task type: %s", taskData.Type)
+	}
+
 	body := gen.PostTaskJSONRequestBody{
-		Body: decodedBytes,
+		Body: struct {
+			Data map[string]interface{}       `json:"data"`
+			Type gen.PostTaskJSONBodyBodyType `json:"type"`
+		}{
+			Data: dataMap,
+			Type: bodyType,
+		},
 	}
 
 	return c.Client.PostTaskWithResponse(ctx, body)

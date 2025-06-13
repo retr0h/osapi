@@ -268,9 +268,21 @@ paths:
               type: object
               properties:
                 body:
-                  type: string
-                  format: byte
-                  description: Base64-encoded representation of the body of the task item.
+                  type: object
+                  description: JSON representation of the task item.
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - dns
+                        - shutdown
+                      description: The type of task action to perform.
+                    data:
+                      type: object
+                      description: The action-specific data.
+                  required:
+                    - type
+                    - data
               required:
                 - body
               additionalProperties: false

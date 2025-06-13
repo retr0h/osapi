@@ -30,7 +30,7 @@ teardown() {
 
 # NOTE(retr0h): subsequent tests rely on this one -- will refactor
 @test "invoke client task add subcommand" {
-	run go run ${PROGRAM} client task add --proto-file proto/dns.bin
+	run go run ${PROGRAM} client task add --json-file fixtures/dns.json
 
 	[ "$status" -eq 0 ]
 }
