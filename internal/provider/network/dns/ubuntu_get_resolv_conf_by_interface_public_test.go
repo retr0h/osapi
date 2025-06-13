@@ -67,7 +67,7 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 		{
 			name: "when GetResolvConf Ok",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewGetResolvConfManager(suite.ctrl)
+				mock := mocks.NewGetResolvConfMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -90,7 +90,7 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 		{
 			name: "when default DNS Domain",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewGetResolvConfManagerNoDNSDomain(suite.ctrl)
+				mock := mocks.NewGetResolvConfNoDNSDomainMockManager(suite.ctrl)
 
 				return mock
 			},
@@ -112,7 +112,7 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 		{
 			name: "when Interface Name is invalid",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainManager(suite.ctrl)
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 				output := `Failed to resolve interface "invalid", ignoring: No such device`
 
 				mock.EXPECT().
@@ -129,7 +129,7 @@ func (suite *UbuntuGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 		{
 			name: "when exec.RunCmd errors",
 			setupMock: func() *mocks.MockManager {
-				mock := mocks.NewPlainManager(suite.ctrl)
+				mock := mocks.NewPlainMockManager(suite.ctrl)
 
 				mock.EXPECT().
 					RunCmd(mocks.ResolveCommand, []string{"status", mocks.NetworkInterfaceName}).
