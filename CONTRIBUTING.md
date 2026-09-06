@@ -317,6 +317,9 @@ module. Change both together.
   setter. Do not use an alias to re-cover behavior the caller's own test already
   reaches; a helper with its own contract is what the pattern is for.
 
+External tests in this repository live in a `_test` package beside the code they
+cover, and tables carry `validateFunc` callbacks.
+
 ### Test layers
 
 - **Unit tests** (`*_test.go`, `*_public_test.go`). Fast, mocked dependencies.
