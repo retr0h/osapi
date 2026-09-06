@@ -28,7 +28,10 @@ them to be used as appliances.
 
 ## Documentation
 
-[Getting Started] | [API] | [Usage] | [SDK]
+- [Getting Started]
+- [API]
+- [Usage]
+- [SDK]
 
 ## Sister projects
 
