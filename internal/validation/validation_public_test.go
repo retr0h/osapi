@@ -25,6 +25,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/go-playground/validator/v10"
+
 	"github.com/osapi-io/osapi/internal/validation"
 )
 
@@ -294,110 +296,150 @@ func (s *ValidationPublicTestSuite) TestIpOrFact() {
 
 func (s *ValidationPublicTestSuite) TestCronSchedule() {
 	tests := []struct {
-		name     string
-		field    string
-		wantOK   bool
-		contains []string
+		name         string
+		field        string
+		contains     []string
+		validateFunc func(string, bool)
 	}{
 		// Valid expressions
 		{
-			name:   "when every minute",
-			field:  "* * * * *",
-			wantOK: true,
+			name:  "when every minute",
+			field: "* * * * *",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when daily at 2am",
-			field:  "0 2 * * *",
-			wantOK: true,
+			name:  "when daily at 2am",
+			field: "0 2 * * *",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when every 5 minutes",
-			field:  "*/5 * * * *",
-			wantOK: true,
+			name:  "when every 5 minutes",
+			field: "*/5 * * * *",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when weekdays at 9am",
-			field:  "0 9 * * 1-5",
-			wantOK: true,
+			name:  "when weekdays at 9am",
+			field: "0 9 * * 1-5",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when first of month at midnight",
-			field:  "0 0 1 * *",
-			wantOK: true,
+			name:  "when first of month at midnight",
+			field: "0 0 1 * *",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when multiple hours",
-			field:  "0 2,14 * * *",
-			wantOK: true,
+			name:  "when multiple hours",
+			field: "0 2,14 * * *",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when range with step",
-			field:  "0-30/5 * * * *",
-			wantOK: true,
+			name:  "when range with step",
+			field: "0-30/5 * * * *",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when month and day names",
-			field:  "0 0 * jan-mar mon",
-			wantOK: true,
+			name:  "when month and day names",
+			field: "0 0 * jan-mar mon",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		// Invalid expressions
 		{
-			name:   "when empty string",
-			field:  "",
-			wantOK: false,
+			name:  "when empty string",
+			field: "",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when random text",
-			field:  "not a cron expression",
-			wantOK: false,
+			name:  "when random text",
+			field: "not a cron expression",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when too few fields",
-			field:  "* * *",
-			wantOK: false,
+			name:  "when too few fields",
+			field: "* * *",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when too many fields (6 fields)",
-			field:  "* * * * * *",
-			wantOK: false,
+			name:  "when too many fields (6 fields)",
+			field: "* * * * * *",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when minute out of range",
-			field:  "60 * * * *",
-			wantOK: false,
+			name:  "when minute out of range",
+			field: "60 * * * *",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when hour out of range",
-			field:  "0 25 * * *",
-			wantOK: false,
+			name:  "when hour out of range",
+			field: "0 25 * * *",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when day of month out of range",
-			field:  "0 0 32 * *",
-			wantOK: false,
+			name:  "when day of month out of range",
+			field: "0 0 32 * *",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when month out of range",
-			field:  "0 0 * 13 *",
-			wantOK: false,
+			name:  "when month out of range",
+			field: "0 0 * 13 *",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when day of week out of range",
-			field:  "0 0 * * 8",
-			wantOK: false,
+			name:  "when day of week out of range",
+			field: "0 0 * * 8",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when invalid character",
-			field:  "0 0 * * abc",
-			wantOK: false,
+			name:  "when invalid character",
+			field: "0 0 * * abc",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when invalid expression shows hint in struct validation",
-			field:  "bad",
-			wantOK: false,
+			name:  "when invalid expression shows hint in struct validation",
+			field: "bad",
 			contains: []string{
 				"cron_schedule",
 				"is not a valid cron expression",
+			},
+			validateFunc: func(errMsg string, ok bool) {
+				s.False(ok)
+				s.Contains(errMsg, "cron_schedule")
+				s.Contains(errMsg, "is not a valid cron expression")
 			},
 		},
 	}
@@ -409,14 +451,10 @@ func (s *ValidationPublicTestSuite) TestCronSchedule() {
 				type cronReq struct {
 					Schedule string `validate:"required,cron_schedule"`
 				}
-				errMsg, ok := validation.Struct(cronReq{Schedule: tt.field})
-				s.Equal(tt.wantOK, ok)
-				for _, c := range tt.contains {
-					s.Contains(errMsg, c)
-				}
+
+				tt.validateFunc(validation.Struct(cronReq{Schedule: tt.field}))
 			} else {
-				_, ok := validation.Var(tt.field, "cron_schedule")
-				s.Equal(tt.wantOK, ok)
+				tt.validateFunc(validation.Var(tt.field, "cron_schedule"))
 			}
 		})
 	}
@@ -424,45 +462,59 @@ func (s *ValidationPublicTestSuite) TestCronSchedule() {
 
 func (s *ValidationPublicTestSuite) TestGoDuration() {
 	tests := []struct {
-		name     string
-		field    string
-		wantOK   bool
-		contains []string
+		name         string
+		field        string
+		contains     []string
+		validateFunc func(string, bool)
 	}{
 		{
-			name:   "when valid duration 30s passes",
-			field:  "30s",
-			wantOK: true,
+			name:  "when valid duration 30s passes",
+			field: "30s",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when valid duration 5m passes",
-			field:  "5m",
-			wantOK: true,
+			name:  "when valid duration 5m passes",
+			field: "5m",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when valid duration 1h passes",
-			field:  "1h",
-			wantOK: true,
+			name:  "when valid duration 1h passes",
+			field: "1h",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when valid duration 720h passes",
-			field:  "720h",
-			wantOK: true,
+			name:  "when valid duration 720h passes",
+			field: "720h",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when invalid duration 7d fails",
-			field:  "7d",
-			wantOK: false,
+			name:  "when invalid duration 7d fails",
+			field: "7d",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when invalid duration abc fails",
-			field:  "abc",
-			wantOK: false,
+			name:  "when invalid duration abc fails",
+			field: "abc",
+			validateFunc: func(_ string, ok bool) {
+				s.False(ok)
+			},
 		},
 		{
-			name:   "when empty string passes with omitempty",
-			field:  "",
-			wantOK: true,
+			name:  "when empty string passes with omitempty",
+			field: "",
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
 			name:  "when invalid duration shows hint in struct validation",
@@ -470,6 +522,11 @@ func (s *ValidationPublicTestSuite) TestGoDuration() {
 			contains: []string{
 				"go_duration",
 				"is not a valid Go duration",
+			},
+			validateFunc: func(errMsg string, ok bool) {
+				s.False(ok)
+				s.Contains(errMsg, "go_duration")
+				s.Contains(errMsg, "is not a valid Go duration")
 			},
 		},
 	}
@@ -481,18 +538,13 @@ func (s *ValidationPublicTestSuite) TestGoDuration() {
 				type durationReq struct {
 					MaxAge string `validate:"required,go_duration"`
 				}
-				errMsg, ok := validation.Struct(durationReq{MaxAge: tt.field})
-				s.False(ok)
-				for _, c := range tt.contains {
-					s.Contains(errMsg, c)
-				}
+
+				tt.validateFunc(validation.Struct(durationReq{MaxAge: tt.field}))
 			} else if tt.field == "" {
 				// Test empty string with omitempty — validation should pass.
-				_, ok := validation.Var(tt.field, "omitempty,go_duration")
-				s.Equal(tt.wantOK, ok)
+				tt.validateFunc(validation.Var(tt.field, "omitempty,go_duration"))
 			} else {
-				_, ok := validation.Var(tt.field, "go_duration")
-				s.Equal(tt.wantOK, ok)
+				tt.validateFunc(validation.Var(tt.field, "go_duration"))
 			}
 		})
 	}
@@ -529,108 +581,132 @@ func (s *ValidationPublicTestSuite) TestAtLeastOneField() {
 	groups := []string{"admin"}
 
 	tests := []struct {
-		name       string
-		input      any
-		wantOK     bool
-		wantErrMsg string
+		name         string
+		input        any
+		validateFunc func(string, bool)
 	}{
 		{
-			name:   "when one pointer field is non-nil",
-			input:  allPointers{Shell: &str},
-			wantOK: true,
+			name:  "when one pointer field is non-nil",
+			input: allPointers{Shell: &str},
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when slice pointer field is non-nil",
-			input:  allPointers{Groups: &groups},
-			wantOK: true,
+			name:  "when slice pointer field is non-nil",
+			input: allPointers{Groups: &groups},
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:       "when all pointer fields are nil",
-			input:      allPointers{},
-			wantOK:     false,
-			wantErrMsg: "at least one field must be provided",
+			name:  "when all pointer fields are nil",
+			input: allPointers{},
+			validateFunc: func(errMsg string, ok bool) {
+				s.False(ok)
+				s.Equal("at least one field must be provided", errMsg)
+			},
 		},
 		{
-			name:   "when non-pointer field is non-zero",
-			input:  withNonPointer{Name: "test"},
-			wantOK: true,
+			name:  "when non-pointer field is non-zero",
+			input: withNonPointer{Name: "test"},
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:   "when bool field is true",
-			input:  withNonPointer{Enabled: true},
-			wantOK: true,
+			name:  "when bool field is true",
+			input: withNonPointer{Enabled: true},
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:       "when all fields are zero",
-			input:      withNonPointer{},
-			wantOK:     false,
-			wantErrMsg: "at least one field must be provided",
+			name:  "when all fields are zero",
+			input: withNonPointer{},
+			validateFunc: func(errMsg string, ok bool) {
+				s.False(ok)
+				s.Equal("at least one field must be provided", errMsg)
+			},
 		},
 		{
-			name:   "when slice field is non-nil",
-			input:  withSlice{Items: []string{"a"}},
-			wantOK: true,
+			name:  "when slice field is non-nil",
+			input: withSlice{Items: []string{"a"}},
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:       "when slice field is nil",
-			input:      withSlice{},
-			wantOK:     false,
-			wantErrMsg: "at least one field must be provided",
+			name:  "when slice field is nil",
+			input: withSlice{},
+			validateFunc: func(errMsg string, ok bool) {
+				s.False(ok)
+				s.Equal("at least one field must be provided", errMsg)
+			},
 		},
 		{
-			name:   "when map field is non-nil",
-			input:  withMap{Labels: map[string]string{"env": "dev"}},
-			wantOK: true,
+			name:  "when map field is non-nil",
+			input: withMap{Labels: map[string]string{"env": "dev"}},
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:       "when map field is nil",
-			input:      withMap{},
-			wantOK:     false,
-			wantErrMsg: "at least one field must be provided",
+			name:  "when map field is nil",
+			input: withMap{},
+			validateFunc: func(errMsg string, ok bool) {
+				s.False(ok)
+				s.Equal("at least one field must be provided", errMsg)
+			},
 		},
 		{
-			name:       "when only unexported fields",
-			input:      unexportedOnly{},
-			wantOK:     false,
-			wantErrMsg: "at least one field must be provided",
+			name:  "when only unexported fields",
+			input: unexportedOnly{},
+			validateFunc: func(errMsg string, ok bool) {
+				s.False(ok)
+				s.Equal("at least one field must be provided", errMsg)
+			},
 		},
 		{
-			name:   "when pointer to struct is passed",
-			input:  &allPointers{Shell: &str},
-			wantOK: true,
+			name:  "when pointer to struct is passed",
+			input: &allPointers{Shell: &str},
+			validateFunc: func(_ string, ok bool) {
+				s.True(ok)
+			},
 		},
 		{
-			name:       "when non-struct is passed",
-			input:      "not a struct",
-			wantOK:     false,
-			wantErrMsg: "expected struct",
+			name:  "when non-struct is passed",
+			input: "not a struct",
+			validateFunc: func(errMsg string, ok bool) {
+				s.False(ok)
+				s.Equal("expected struct", errMsg)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			errMsg, ok := validation.AtLeastOneField(tt.input)
-			s.Equal(tt.wantOK, ok)
-			if !ok {
-				s.Equal(tt.wantErrMsg, errMsg)
-			}
+			tt.validateFunc(validation.AtLeastOneField(tt.input))
 		})
 	}
 }
 
 func (s *ValidationPublicTestSuite) TestInstance() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*validator.Validate)
 	}{
 		{
 			name: "when returns shared validator instance",
+			validateFunc: func(v *validator.Validate) {
+				s.NotNil(v)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			v := validation.Instance()
-			s.NotNil(v)
+			tt.validateFunc(validation.Instance())
 		})
 	}
 }

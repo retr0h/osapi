@@ -971,14 +971,12 @@ func (s *JobsPublicTestSuite) TestGetJobStatus() {
 
 func (s *JobsPublicTestSuite) TestListJobs() {
 	tests := []struct {
-		name               string
-		statusFilter       string
-		limit              int
-		offset             int
-		expectedErr        string
-		setupMocks         func()
-		expectedJobs       int
-		expectedTotalCount int
+		name         string
+		statusFilter string
+		limit        int
+		offset       int
+		setupMocks   func()
+		validateFunc func(*client.ListJobsResult, error)
 	}{
 		{
 			name:         "no jobs found",
@@ -986,14 +984,21 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 			setupMocks: func() {
 				s.mockKV.EXPECT().Keys(gomock.Any()).Return(nil, jetstream.ErrNoKeysFound)
 			},
-			expectedJobs:       0,
-			expectedTotalCount: 0,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 0)
+				s.Equal(0, result.TotalCount)
+			},
 		},
 		{
-			name:        "kv error",
-			expectedErr: "error fetching jobs",
+			name: "kv error",
 			setupMocks: func() {
 				s.mockKV.EXPECT().Keys(gomock.Any()).Return(nil, errors.New("connection failed"))
+			},
+			validateFunc: func(_ *client.ListJobsResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "error fetching jobs")
 			},
 		},
 		{
@@ -1015,8 +1020,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-2").Return(mockEntry2, nil)
 			},
-			expectedJobs:       2,
-			expectedTotalCount: 2,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 2)
+				s.Equal(2, result.TotalCount)
+			},
 		},
 		{
 			name:         "filters out non matching status",
@@ -1026,16 +1035,24 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				// Two-pass: no kv.Get needed for filtering
 				s.mockKV.EXPECT().Keys(gomock.Any()).Return([]string{"jobs.job-1"}, nil)
 			},
-			expectedJobs:       0,
-			expectedTotalCount: 0,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 0)
+				s.Equal(0, result.TotalCount)
+			},
 		},
 		{
 			name: "empty job ID after trim skipped",
 			setupMocks: func() {
 				s.mockKV.EXPECT().Keys(gomock.Any()).Return([]string{"jobs."}, nil)
 			},
-			expectedJobs:       0,
-			expectedTotalCount: 0,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 0)
+				s.Equal(0, result.TotalCount)
+			},
 		},
 		{
 			name: "getJobStatusFromKeys error skipped",
@@ -1048,8 +1065,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 					Get(gomock.Any(), "jobs.job-bad").
 					Return(nil, errors.New("kv error"))
 			},
-			expectedJobs:       0,
-			expectedTotalCount: 1,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 0)
+				s.Equal(1, result.TotalCount)
+			},
 		},
 		{
 			name: "only processes jobs prefix keys",
@@ -1085,8 +1106,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 					Get(gomock.Any(), "responses.job-1.host.123").
 					Return(mockRespEntry, nil)
 			},
-			expectedJobs:       1,
-			expectedTotalCount: 1,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 1)
+				s.Equal(1, result.TotalCount)
+			},
 		},
 		{
 			name:  "limit restricts returned jobs",
@@ -1103,8 +1128,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-2").Return(mockEntry, nil)
 			},
-			expectedJobs:       1,
-			expectedTotalCount: 2,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 1)
+				s.Equal(2, result.TotalCount)
+			},
 		},
 		{
 			name:   "offset skips jobs",
@@ -1121,8 +1150,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-1").Return(mockEntry, nil)
 			},
-			expectedJobs:       1,
-			expectedTotalCount: 2,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 1)
+				s.Equal(2, result.TotalCount)
+			},
 		},
 		{
 			name:   "offset beyond total returns empty",
@@ -1132,8 +1165,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 					Keys(gomock.Any()).
 					Return([]string{"jobs.job-1", "jobs.job-2"}, nil)
 			},
-			expectedJobs:       0,
-			expectedTotalCount: 2,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 0)
+				s.Equal(2, result.TotalCount)
+			},
 		},
 		{
 			name:         "filter with offset skips matching jobs",
@@ -1159,8 +1196,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-1").Return(mockEntry1, nil)
 			},
-			expectedJobs:       2,
-			expectedTotalCount: 3,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 2)
+				s.Equal(3, result.TotalCount)
+			},
 		},
 		{
 			name:         "filter with limit restricts results",
@@ -1180,8 +1221,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-2").Return(mockEntry2, nil)
 			},
-			expectedJobs:       1,
-			expectedTotalCount: 2,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 1)
+				s.Equal(2, result.TotalCount)
+			},
 		},
 		{
 			name:         "filter skips jobs with get error",
@@ -1204,10 +1249,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-bad").Return(mockEntry, nil)
 			},
-			expectedJobs: 1,
-			// totalCount is 2 because key-name-based counting finds
-			// both jobs matching the filter before Pass 2 Get errors
-			expectedTotalCount: 2,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 1)
+				s.Equal(2, result.TotalCount)
+			},
 		},
 		{
 			name: "getJobStatusFromKeys with invalid JSON",
@@ -1220,8 +1267,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				mockEntry.EXPECT().Value().Return([]byte(`not valid json`))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-1").Return(mockEntry, nil)
 			},
-			expectedJobs:       0,
-			expectedTotalCount: 1,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 0)
+				s.Equal(1, result.TotalCount)
+			},
 		},
 		{
 			name:  "limit exceeding max capped to default",
@@ -1245,8 +1296,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-1").Return(mockEntry1, nil)
 			},
-			expectedJobs:       2,
-			expectedTotalCount: 2,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 2)
+				s.Equal(2, result.TotalCount)
+			},
 		},
 		{
 			name: "newest first ordering",
@@ -1274,8 +1329,12 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-1").Return(mockEntry1, nil)
 			},
-			expectedJobs:       3,
-			expectedTotalCount: 3,
+			validateFunc: func(result *client.ListJobsResult, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Len(result.Jobs, 3)
+				s.Equal(3, result.TotalCount)
+			},
 		},
 	}
 
@@ -1283,32 +1342,22 @@ func (s *JobsPublicTestSuite) TestListJobs() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			result, err := s.jobsClient.ListJobs(
+			tt.validateFunc(s.jobsClient.ListJobs(
 				s.ctx,
 				tt.statusFilter,
 				tt.limit,
 				tt.offset,
-			)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				s.Len(result.Jobs, tt.expectedJobs)
-				s.Equal(tt.expectedTotalCount, result.TotalCount)
-			}
+			))
 		})
 	}
 }
 
 func (s *JobsPublicTestSuite) TestDeleteJob() {
 	tests := []struct {
-		name        string
-		jobID       string
-		expectedErr string
-		setupMocks  func()
+		name         string
+		jobID        string
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name:  "successful deletion",
@@ -1319,21 +1368,26 @@ func (s *JobsPublicTestSuite) TestDeleteJob() {
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-123").Return(mockEntry, nil)
 				s.mockKV.EXPECT().Delete(gomock.Any(), "jobs.job-123").Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
-			name:        "job not found",
-			jobID:       "nonexistent",
-			expectedErr: "job not found: nonexistent",
+			name:  "job not found",
+			jobID: "nonexistent",
 			setupMocks: func() {
 				s.mockKV.EXPECT().
 					Get(gomock.Any(), "jobs.nonexistent").
 					Return(nil, errors.New("key not found"))
 			},
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "job not found: nonexistent")
+			},
 		},
 		{
-			name:        "delete error",
-			jobID:       "job-456",
-			expectedErr: "failed to delete job",
+			name:  "delete error",
+			jobID: "job-456",
 			setupMocks: func() {
 				mockEntry := jobmocks.NewMockKeyValueEntry(s.mockCtrl)
 				mockEntry.EXPECT().Value().Return([]byte(`{"id":"job-456"}`)).AnyTimes()
@@ -1342,6 +1396,10 @@ func (s *JobsPublicTestSuite) TestDeleteJob() {
 					Delete(gomock.Any(), "jobs.job-456").
 					Return(errors.New("storage failure"))
 			},
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to delete job")
+			},
 		},
 	}
 
@@ -1349,14 +1407,7 @@ func (s *JobsPublicTestSuite) TestDeleteJob() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			err := s.jobsClient.DeleteJob(s.ctx, tt.jobID)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(s.jobsClient.DeleteJob(s.ctx, tt.jobID))
 		})
 	}
 }
@@ -1782,15 +1833,9 @@ func (s *JobsPublicTestSuite) TestRetryJob() {
 
 func (s *JobsPublicTestSuite) TestGetQueueSummary() {
 	tests := []struct {
-		name               string
-		expectedErr        string
-		setupMocks         func()
-		expectedTotalJobs  int
-		expectedSubmitted  int
-		expectedProcessing int
-		expectedCompleted  int
-		expectedFailed     int
-		expectedDLQ        int
+		name         string
+		setupMocks   func()
+		validateFunc func(*job.QueueStats, error)
 	}{
 		{
 			name: "when no keys found returns empty stats",
@@ -1799,20 +1844,27 @@ func (s *JobsPublicTestSuite) TestGetQueueSummary() {
 					Keys(gomock.Any()).
 					Return(nil, jetstream.ErrNoKeysFound)
 			},
-			expectedTotalJobs:  0,
-			expectedSubmitted:  0,
-			expectedProcessing: 0,
-			expectedCompleted:  0,
-			expectedFailed:     0,
-			expectedDLQ:        0,
+			validateFunc: func(stats *job.QueueStats, err error) {
+				s.NoError(err)
+				s.NotNil(stats)
+				s.Equal(0, stats.TotalJobs)
+				s.Equal(0, stats.StatusCounts["submitted"])
+				s.Equal(0, stats.StatusCounts["processing"])
+				s.Equal(0, stats.StatusCounts["completed"])
+				s.Equal(0, stats.StatusCounts["failed"])
+				s.Equal(0, stats.DLQCount)
+			},
 		},
 		{
-			name:        "when keys error returns error",
-			expectedErr: "error fetching keys",
+			name: "when keys error returns error",
 			setupMocks: func() {
 				s.mockKV.EXPECT().
 					Keys(gomock.Any()).
 					Return(nil, errors.New("connection failed"))
+			},
+			validateFunc: func(_ *job.QueueStats, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "error fetching keys")
 			},
 		},
 		{
@@ -1847,12 +1899,16 @@ func (s *JobsPublicTestSuite) TestGetQueueSummary() {
 					GetStreamInfo(gomock.Any(), "JOBS-DLQ").
 					Return(nil, errors.New("no stream"))
 			},
-			expectedTotalJobs:  5,
-			expectedSubmitted:  1,
-			expectedProcessing: 1,
-			expectedCompleted:  2,
-			expectedFailed:     1,
-			expectedDLQ:        0,
+			validateFunc: func(stats *job.QueueStats, err error) {
+				s.NoError(err)
+				s.NotNil(stats)
+				s.Equal(5, stats.TotalJobs)
+				s.Equal(1, stats.StatusCounts["submitted"])
+				s.Equal(1, stats.StatusCounts["processing"])
+				s.Equal(2, stats.StatusCounts["completed"])
+				s.Equal(1, stats.StatusCounts["failed"])
+				s.Equal(0, stats.DLQCount)
+			},
 		},
 		{
 			name: "when DLQ has messages includes DLQ count",
@@ -1869,12 +1925,16 @@ func (s *JobsPublicTestSuite) TestGetQueueSummary() {
 						State: jetstream.StreamState{Msgs: 3},
 					}, nil)
 			},
-			expectedTotalJobs:  1,
-			expectedSubmitted:  1,
-			expectedProcessing: 0,
-			expectedCompleted:  0,
-			expectedFailed:     0,
-			expectedDLQ:        3,
+			validateFunc: func(stats *job.QueueStats, err error) {
+				s.NoError(err)
+				s.NotNil(stats)
+				s.Equal(1, stats.TotalJobs)
+				s.Equal(1, stats.StatusCounts["submitted"])
+				s.Equal(0, stats.StatusCounts["processing"])
+				s.Equal(0, stats.StatusCounts["completed"])
+				s.Equal(0, stats.StatusCounts["failed"])
+				s.Equal(3, stats.DLQCount)
+			},
 		},
 		{
 			name: "when malformed status key is skipped",
@@ -1891,12 +1951,16 @@ func (s *JobsPublicTestSuite) TestGetQueueSummary() {
 					GetStreamInfo(gomock.Any(), "JOBS-DLQ").
 					Return(nil, errors.New("no stream"))
 			},
-			expectedTotalJobs:  1,
-			expectedSubmitted:  0,
-			expectedProcessing: 0,
-			expectedCompleted:  1,
-			expectedFailed:     0,
-			expectedDLQ:        0,
+			validateFunc: func(stats *job.QueueStats, err error) {
+				s.NoError(err)
+				s.NotNil(stats)
+				s.Equal(1, stats.TotalJobs)
+				s.Equal(0, stats.StatusCounts["submitted"])
+				s.Equal(0, stats.StatusCounts["processing"])
+				s.Equal(1, stats.StatusCounts["completed"])
+				s.Equal(0, stats.StatusCounts["failed"])
+				s.Equal(0, stats.DLQCount)
+			},
 		},
 		{
 			name: "when DLQ error returns zero DLQ count",
@@ -1912,12 +1976,16 @@ func (s *JobsPublicTestSuite) TestGetQueueSummary() {
 					GetStreamInfo(gomock.Any(), "JOBS-DLQ").
 					Return(nil, errors.New("stream not found"))
 			},
-			expectedTotalJobs:  1,
-			expectedSubmitted:  0,
-			expectedProcessing: 0,
-			expectedCompleted:  1,
-			expectedFailed:     0,
-			expectedDLQ:        0,
+			validateFunc: func(stats *job.QueueStats, err error) {
+				s.NoError(err)
+				s.NotNil(stats)
+				s.Equal(1, stats.TotalJobs)
+				s.Equal(0, stats.StatusCounts["submitted"])
+				s.Equal(0, stats.StatusCounts["processing"])
+				s.Equal(1, stats.StatusCounts["completed"])
+				s.Equal(0, stats.StatusCounts["failed"])
+				s.Equal(0, stats.DLQCount)
+			},
 		},
 	}
 
@@ -1925,21 +1993,7 @@ func (s *JobsPublicTestSuite) TestGetQueueSummary() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			stats, err := s.jobsClient.GetQueueSummary(s.ctx)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-				s.NotNil(stats)
-				s.Equal(tt.expectedTotalJobs, stats.TotalJobs)
-				s.Equal(tt.expectedSubmitted, stats.StatusCounts["submitted"])
-				s.Equal(tt.expectedProcessing, stats.StatusCounts["processing"])
-				s.Equal(tt.expectedCompleted, stats.StatusCounts["completed"])
-				s.Equal(tt.expectedFailed, stats.StatusCounts["failed"])
-				s.Equal(tt.expectedDLQ, stats.DLQCount)
-			}
+			tt.validateFunc(s.jobsClient.GetQueueSummary(s.ctx))
 		})
 	}
 }
