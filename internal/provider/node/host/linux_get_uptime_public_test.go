@@ -40,10 +40,15 @@ func (suite *LinuxGetUptimePublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Equal(time.Duration(0), result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -51,10 +56,7 @@ func (suite *LinuxGetUptimePublicTestSuite) TestGetUptime() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetUptime()
-
-			suite.Equal(time.Duration(0), got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetUptime())
 		})
 	}
 }
