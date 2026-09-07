@@ -1918,19 +1918,23 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 		name             string
 		keys             []string
 		expectedOrderIDs []string
-		expectedStatuses map[string]string
+		validateFunc     func(map[string]string)
 	}{
 		{
 			name:             "empty keys",
 			keys:             []string{},
 			expectedOrderIDs: nil,
-			expectedStatuses: map[string]string{},
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{}, got)
+			},
 		},
 		{
 			name:             "only jobs keys no status events",
 			keys:             []string{"jobs.job-1", "jobs.job-2"},
 			expectedOrderIDs: []string{"job-2", "job-1"},
-			expectedStatuses: map[string]string{},
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{}, got)
+			},
 		},
 		{
 			name: "single agent completed",
@@ -1942,8 +1946,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.completed.agent1.103",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "completed",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "completed",
+				}, got)
 			},
 		},
 		{
@@ -1956,8 +1962,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.failed.agent1.103",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "failed",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "failed",
+				}, got)
 			},
 		},
 		{
@@ -1969,8 +1977,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.started.agent1.102",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "processing",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "processing",
+				}, got)
 			},
 		},
 		{
@@ -1980,8 +1990,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.submitted._api.100",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "submitted",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "submitted",
+				}, got)
 			},
 		},
 		{
@@ -1992,8 +2004,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.acknowledged.agent1.101",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "processing",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "processing",
+				}, got)
 			},
 		},
 		{
@@ -2005,8 +2019,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.failed.agent2.102",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "partial_failure",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "partial_failure",
+				}, got)
 			},
 		},
 		{
@@ -2017,8 +2033,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.completed.agent2.102",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "completed",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "completed",
+				}, got)
 			},
 		},
 		{
@@ -2029,8 +2047,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.started.agent2.102",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "processing",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "processing",
+				}, got)
 			},
 		},
 		{
@@ -2041,8 +2061,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.retried.agent1.101",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "completed",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "completed",
+				}, got)
 			},
 		},
 		{
@@ -2056,10 +2078,12 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-3.failed.agent1.301",
 			},
 			expectedOrderIDs: []string{"job-3", "job-2", "job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "completed",
-				"job-2": "processing",
-				"job-3": "failed",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "completed",
+					"job-2": "processing",
+					"job-3": "failed",
+				}, got)
 			},
 		},
 		{
@@ -2070,8 +2094,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.completed.agent1.101",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "completed",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "completed",
+				}, got)
 			},
 		},
 		{
@@ -2082,15 +2108,19 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.completed.agent1.101",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "completed",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "completed",
+				}, got)
 			},
 		},
 		{
 			name:             "empty job ID after trim skipped",
 			keys:             []string{"jobs."},
 			expectedOrderIDs: nil,
-			expectedStatuses: map[string]string{},
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{}, got)
+			},
 		},
 		{
 			name: "single agent skipped",
@@ -2102,8 +2132,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.skipped.agent1.103",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "skipped",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "skipped",
+				}, got)
 			},
 		},
 		{
@@ -2114,8 +2146,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.skipped.agent2.102",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "skipped",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "skipped",
+				}, got)
 			},
 		},
 		{
@@ -2126,8 +2160,10 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 				"status.job-1.completed.agent2.102",
 			},
 			expectedOrderIDs: []string{"job-1"},
-			expectedStatuses: map[string]string{
-				"job-1": "completed",
+			validateFunc: func(got map[string]string) {
+				s.Equal(map[string]string{
+					"job-1": "completed",
+				}, got)
 			},
 		},
 	}
@@ -2137,7 +2173,7 @@ func (s *JobsPublicTestSuite) TestComputeStatusFromKeyNames() {
 			orderedIDs, statuses := client.ExportComputeStatusFromKeyNames(tt.keys)
 
 			s.Equal(tt.expectedOrderIDs, orderedIDs)
-			s.Equal(tt.expectedStatuses, statuses)
+			tt.validateFunc(statuses)
 		})
 	}
 }

@@ -613,97 +613,123 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusRBACHTTP() {
 
 func (s *NodeStatusGetPublicTestSuite) TestFormatDuration() {
 	tests := []struct {
-		name  string
-		input time.Duration
-		want  string
+		name         string
+		input        time.Duration
+		validateFunc func(string)
 	}{
 		{
 			name:  "0 days, 0 hours, 0 minutes",
 			input: time.Duration(0) * time.Second,
-			want:  "0 days, 0 hours, 0 minutes",
+			validateFunc: func(got string) {
+				s.Equal("0 days, 0 hours, 0 minutes", got)
+			},
 		},
 		{
 			name:  "0 days, 0 hours, 1 minute",
 			input: time.Duration(60) * time.Second,
-			want:  "0 days, 0 hours, 1 minute",
+			validateFunc: func(got string) {
+				s.Equal("0 days, 0 hours, 1 minute", got)
+			},
 		},
 		{
 			name:  "0 days, 1 hour, 0 minutes",
 			input: time.Duration(3600) * time.Second,
-			want:  "0 days, 1 hour, 0 minutes",
+			validateFunc: func(got string) {
+				s.Equal("0 days, 1 hour, 0 minutes", got)
+			},
 		},
 		{
 			name:  "1 day, 0 hours, 0 minutes",
 			input: time.Duration(24*3600) * time.Second,
-			want:  "1 day, 0 hours, 0 minutes",
+			validateFunc: func(got string) {
+				s.Equal("1 day, 0 hours, 0 minutes", got)
+			},
 		},
 		{
 			name:  "1 day, 1 hour, 1 minute",
 			input: time.Duration(24*3600+3600+60) * time.Second,
-			want:  "1 day, 1 hour, 1 minute",
+			validateFunc: func(got string) {
+				s.Equal("1 day, 1 hour, 1 minute", got)
+			},
 		},
 		{
 			name:  "4 days, 1 hour, 25 minutes",
 			input: time.Duration(int64(math.Trunc(350735.47))) * time.Second,
-			want:  "4 days, 1 hour, 25 minutes",
+			validateFunc: func(got string) {
+				s.Equal("4 days, 1 hour, 25 minutes", got)
+			},
 		},
 		{
 			name:  "2 days, 2 hours, 2 minutes",
 			input: time.Duration(2*24*3600+2*3600+2*60) * time.Second,
-			want:  "2 days, 2 hours, 2 minutes",
+			validateFunc: func(got string) {
+				s.Equal("2 days, 2 hours, 2 minutes", got)
+			},
 		},
 		{
 			name:  "0 days, 0 hours, 59 minutes",
 			input: time.Duration(59) * time.Minute,
-			want:  "0 days, 0 hours, 59 minutes",
+			validateFunc: func(got string) {
+				s.Equal("0 days, 0 hours, 59 minutes", got)
+			},
 		},
 		{
 			name:  "0 days, 23 hours, 59 minutes",
 			input: time.Duration(23*3600+59*60) * time.Second,
-			want:  "0 days, 23 hours, 59 minutes",
+			validateFunc: func(got string) {
+				s.Equal("0 days, 23 hours, 59 minutes", got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			got := apinode.ExportFormatDuration(tc.input)
-			s.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (s *NodeStatusGetPublicTestSuite) TestUint64ToInt() {
 	tests := []struct {
-		name  string
-		input uint64
-		want  int
+		name         string
+		input        uint64
+		validateFunc func(int)
 	}{
 		{
 			name:  "when within bounds - small value",
 			input: 123,
-			want:  123,
+			validateFunc: func(got int) {
+				s.Equal(123, got)
+			},
 		},
 		{
 			name:  "when within bounds - max int value",
 			input: uint64(math.MaxInt),
-			want:  math.MaxInt,
+			validateFunc: func(got int) {
+				s.Equal(math.MaxInt, got)
+			},
 		},
 		{
 			name:  "when overflow value - just above max int",
 			input: uint64(math.MaxInt) + 1,
-			want:  math.MaxInt,
+			validateFunc: func(got int) {
+				s.Equal(math.MaxInt, got)
+			},
 		},
 		{
 			name:  "when overflow value - large uint64",
 			input: math.MaxUint64,
-			want:  math.MaxInt,
+			validateFunc: func(got int) {
+				s.Equal(math.MaxInt, got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			result := apinode.ExportUint64ToInt(tc.input)
-			s.Equal(tc.want, result)
+			tc.validateFunc(result)
 		})
 	}
 }

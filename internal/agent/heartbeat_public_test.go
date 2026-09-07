@@ -599,26 +599,30 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestStartHeartbeatHostnameChange() {
 
 func (s *HeartbeatLowLevelPublicTestSuite) TestRegistryKey() {
 	tests := []struct {
-		name      string
-		machineID string
-		expected  string
+		name         string
+		machineID    string
+		validateFunc func(string)
 	}{
 		{
 			name:      "simple machine ID",
 			machineID: "abc-123-def",
-			expected:  "agents.abc_123_def",
+			validateFunc: func(got string) {
+				s.Equal("agents.abc_123_def", got)
+			},
 		},
 		{
 			name:      "machine ID with dots",
 			machineID: "A1B2C3D4-E5F6.7890",
-			expected:  "agents.A1B2C3D4_E5F6_7890",
+			validateFunc: func(got string) {
+				s.Equal("agents.A1B2C3D4_E5F6_7890", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			result := agent.ExportRegistryKey(tt.machineID)
-			s.Equal(tt.expected, result)
+			tt.validateFunc(result)
 		})
 	}
 }

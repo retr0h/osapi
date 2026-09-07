@@ -135,10 +135,10 @@ func (s *DrainPublicTestSuite) TestCheckDrainFlag() {
 
 func (s *DrainPublicTestSuite) TestHandleDrainDetection() {
 	tests := []struct {
-		name          string
-		initialState  string
-		setupMock     func()
-		expectedState string
+		name         string
+		initialState string
+		setupMock    func()
+		validateFunc func(string)
 	}{
 		{
 			name:         "when drain flag set and agent is Ready transitions to Cordoned",
@@ -164,7 +164,9 @@ func (s *DrainPublicTestSuite) TestHandleDrainDetection() {
 					).
 					Return(nil)
 			},
-			expectedState: job.AgentStateCordoned,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateCordoned, got)
+			},
 		},
 		{
 			name:         "when drain flag removed and agent is Draining transitions to Ready",
@@ -191,7 +193,9 @@ func (s *DrainPublicTestSuite) TestHandleDrainDetection() {
 					Return(context.Canceled).
 					AnyTimes()
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
 			name:         "when drain flag removed and agent is Cordoned transitions to Ready",
@@ -218,7 +222,9 @@ func (s *DrainPublicTestSuite) TestHandleDrainDetection() {
 					Return(context.Canceled).
 					AnyTimes()
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
 			name:         "when drain flag still set and agent is already Draining stays Draining",
@@ -228,7 +234,9 @@ func (s *DrainPublicTestSuite) TestHandleDrainDetection() {
 					CheckDrainFlag(gomock.Any(), "test-machine-id").
 					Return(true)
 			},
-			expectedState: job.AgentStateDraining,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateDraining, got)
+			},
 		},
 		{
 			name:         "when no drain flag and agent is Ready stays Ready",
@@ -238,7 +246,9 @@ func (s *DrainPublicTestSuite) TestHandleDrainDetection() {
 					CheckDrainFlag(gomock.Any(), "test-machine-id").
 					Return(false)
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 	}
 
@@ -252,7 +262,7 @@ func (s *DrainPublicTestSuite) TestHandleDrainDetection() {
 				"test-machine-id",
 				"test-agent",
 			)
-			s.Equal(tt.expectedState, agent.GetAgentState(s.testAgent))
+			tt.validateFunc(agent.GetAgentState(s.testAgent))
 		})
 	}
 }

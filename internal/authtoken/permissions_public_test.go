@@ -176,41 +176,49 @@ func (s *PermissionsPublicTestSuite) TestResolvePermissions() {
 
 func (s *PermissionsPublicTestSuite) TestHasPermission() {
 	tests := []struct {
-		name     string
-		resolved map[string]bool
-		required string
-		expected bool
+		name         string
+		resolved     map[string]bool
+		required     string
+		validateFunc func(bool)
 	}{
 		{
 			name:     "present permission returns true",
 			resolved: map[string]bool{authtoken.PermNodeRead: true},
 			required: authtoken.PermNodeRead,
-			expected: true,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
 			name:     "absent permission returns false",
 			resolved: map[string]bool{authtoken.PermNodeRead: true},
 			required: authtoken.PermJobWrite,
-			expected: false,
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
 			name:     "empty resolved set returns false",
 			resolved: map[string]bool{},
 			required: authtoken.PermNodeRead,
-			expected: false,
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
 			name:     "nil resolved set returns false",
 			resolved: nil,
 			required: authtoken.PermNodeRead,
-			expected: false,
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			result := authtoken.HasPermission(tt.resolved, tt.required)
-			s.Equal(tt.expected, result)
+			tt.validateFunc(result)
 		})
 	}
 }

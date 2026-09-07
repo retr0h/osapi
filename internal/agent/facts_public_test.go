@@ -399,26 +399,30 @@ func (s *FactsPublicTestSuite) TestGetFacts() {
 
 func (s *FactsPublicTestSuite) TestFactsKey() {
 	tests := []struct {
-		name      string
-		machineID string
-		expected  string
+		name         string
+		machineID    string
+		validateFunc func(string)
 	}{
 		{
 			name:      "simple machine ID",
 			machineID: "abc-123-def",
-			expected:  "facts.abc_123_def",
+			validateFunc: func(got string) {
+				s.Equal("facts.abc_123_def", got)
+			},
 		},
 		{
 			name:      "machine ID with dots",
 			machineID: "A1B2C3D4-E5F6.7890",
-			expected:  "facts.A1B2C3D4_E5F6_7890",
+			validateFunc: func(got string) {
+				s.Equal("facts.A1B2C3D4_E5F6_7890", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			result := agent.ExportFactsKey(tt.machineID)
-			s.Equal(tt.expected, result)
+			tt.validateFunc(result)
 		})
 	}
 }

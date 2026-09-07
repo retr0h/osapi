@@ -299,7 +299,7 @@ func (s *UserGetPublicTestSuite) TestGetNodeUserByNameRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
+		validateFunc func(int)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -307,7 +307,9 @@ func (s *UserGetPublicTestSuite) TestGetNodeUserByNameRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusUnauthorized,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusUnauthorized, got)
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -323,7 +325,9 @@ func (s *UserGetPublicTestSuite) TestGetNodeUserByNameRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusForbidden,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusForbidden, got)
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -348,7 +352,9 @@ func (s *UserGetPublicTestSuite) TestGetNodeUserByNameRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusOK, got)
+			},
 		},
 	}
 
@@ -376,7 +382,7 @@ func (s *UserGetPublicTestSuite) TestGetNodeUserByNameRBACHTTP() {
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec.Code)
 		})
 	}
 }

@@ -38,16 +38,18 @@ func (suite *FactsPublicTestSuite) TearDownTest() {}
 
 func (suite *FactsPublicTestSuite) TestSetFactsFunc() {
 	tests := []struct {
-		name      string
-		factsFn   provider.FactsFunc
-		wantFacts map[string]any
+		name         string
+		factsFn      provider.FactsFunc
+		validateFunc func(map[string]any)
 	}{
 		{
 			name: "when sets the facts function",
 			factsFn: func() map[string]any {
 				return map[string]any{"cpu_count": 4}
 			},
-			wantFacts: map[string]any{"cpu_count": 4},
+			validateFunc: func(got map[string]any) {
+				suite.Equal(map[string]any{"cpu_count": 4}, got)
+			},
 		},
 	}
 
@@ -57,30 +59,34 @@ func (suite *FactsPublicTestSuite) TestSetFactsFunc() {
 			fa.SetFactsFunc(tc.factsFn)
 
 			got := fa.Facts()
-			suite.Equal(tc.wantFacts, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *FactsPublicTestSuite) TestFacts() {
 	tests := []struct {
-		name      string
-		factsFn   provider.FactsFunc
-		setFacts  bool
-		wantFacts map[string]any
+		name         string
+		factsFn      provider.FactsFunc
+		setFacts     bool
+		validateFunc func(map[string]any)
 	}{
 		{
-			name:      "when factsFn is nil returns nil",
-			setFacts:  false,
-			wantFacts: nil,
+			name:     "when factsFn is nil returns nil",
+			setFacts: false,
+			validateFunc: func(got map[string]any) {
+				suite.Equal(map[string]any(nil), got)
+			},
 		},
 		{
-			name:     "when factsFn is set returns facts",
-			setFacts: true,
+			name: "when factsFn is set returns facts",
 			factsFn: func() map[string]any {
 				return map[string]any{"cpu_count": 4}
 			},
-			wantFacts: map[string]any{"cpu_count": 4},
+			setFacts: true,
+			validateFunc: func(got map[string]any) {
+				suite.Equal(map[string]any{"cpu_count": 4}, got)
+			},
 		},
 	}
 
@@ -92,7 +98,7 @@ func (suite *FactsPublicTestSuite) TestFacts() {
 			}
 
 			got := fa.Facts()
-			suite.Equal(tc.wantFacts, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -104,18 +110,20 @@ type testFactsProvider struct {
 
 func (suite *FactsPublicTestSuite) TestWireProviderFacts() {
 	tests := []struct {
-		name      string
-		providers []any
-		wantFacts map[string]any
-		checkIdx  int
+		name         string
+		providers    []any
+		checkIdx     int
+		validateFunc func(map[string]any)
 	}{
 		{
 			name: "when wires facts to implementing providers",
 			providers: []any{
 				&testFactsProvider{},
 			},
-			wantFacts: map[string]any{"os": "linux"},
-			checkIdx:  0,
+			checkIdx: 0,
+			validateFunc: func(got map[string]any) {
+				suite.Equal(map[string]any{"os": "linux"}, got)
+			},
 		},
 		{
 			name: "when skips non-implementing providers",
@@ -123,8 +131,10 @@ func (suite *FactsPublicTestSuite) TestWireProviderFacts() {
 				"not-a-provider",
 				&testFactsProvider{},
 			},
-			wantFacts: map[string]any{"os": "linux"},
-			checkIdx:  1,
+			checkIdx: 1,
+			validateFunc: func(got map[string]any) {
+				suite.Equal(map[string]any{"os": "linux"}, got)
+			},
 		},
 	}
 
@@ -142,7 +152,7 @@ func (suite *FactsPublicTestSuite) TestWireProviderFacts() {
 			suite.Require().True(ok)
 
 			got := p.Facts()
-			suite.Equal(tc.wantFacts, got)
+			tc.validateFunc(got)
 		})
 	}
 }

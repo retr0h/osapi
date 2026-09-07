@@ -555,66 +555,86 @@ func (s *AgentPublicTestSuite) TestCreateOrUpdateConsumer() {
 
 func (s *AgentPublicTestSuite) TestSanitizeKeyForNATS() {
 	tests := []struct {
-		name     string
-		input    string
-		expected string
+		name         string
+		input        string
+		validateFunc func(string)
 	}{
 		{
-			name:     "valid characters only",
-			input:    "validKey123",
-			expected: "validKey123",
+			name:  "valid characters only",
+			input: "validKey123",
+			validateFunc: func(got string) {
+				s.Equal("validKey123", got)
+			},
 		},
 		{
-			name:     "alphanumeric with underscores and hyphens",
-			input:    "valid_key-123",
-			expected: "valid_key-123",
+			name:  "alphanumeric with underscores and hyphens",
+			input: "valid_key-123",
+			validateFunc: func(got string) {
+				s.Equal("valid_key-123", got)
+			},
 		},
 		{
-			name:     "hostname with dots",
-			input:    "server.example.com",
-			expected: "server_example_com",
+			name:  "hostname with dots",
+			input: "server.example.com",
+			validateFunc: func(got string) {
+				s.Equal("server_example_com", got)
+			},
 		},
 		{
-			name:     "hostname with special characters",
-			input:    "agent.host-name@domain.com",
-			expected: "agent_host-name_domain_com",
+			name:  "hostname with special characters",
+			input: "agent.host-name@domain.com",
+			validateFunc: func(got string) {
+				s.Equal("agent_host-name_domain_com", got)
+			},
 		},
 		{
-			name:     "email-like string",
-			input:    "user@domain.com",
-			expected: "user_domain_com",
+			name:  "email-like string",
+			input: "user@domain.com",
+			validateFunc: func(got string) {
+				s.Equal("user_domain_com", got)
+			},
 		},
 		{
-			name:     "string with spaces",
-			input:    "agent node 1",
-			expected: "agent_node_1",
+			name:  "string with spaces",
+			input: "agent node 1",
+			validateFunc: func(got string) {
+				s.Equal("agent_node_1", got)
+			},
 		},
 		{
-			name:     "string with mixed special characters",
-			input:    "agent#1!@#$%^&*()",
-			expected: "agent_1__________",
+			name:  "string with mixed special characters",
+			input: "agent#1!@#$%^&*()",
+			validateFunc: func(got string) {
+				s.Equal("agent_1__________", got)
+			},
 		},
 		{
-			name:     "empty string",
-			input:    "",
-			expected: "",
+			name:  "empty string",
+			input: "",
+			validateFunc: func(got string) {
+				s.Equal("", got)
+			},
 		},
 		{
-			name:     "only special characters",
-			input:    "!@#$%^&*()",
-			expected: "__________",
+			name:  "only special characters",
+			input: "!@#$%^&*()",
+			validateFunc: func(got string) {
+				s.Equal("__________", got)
+			},
 		},
 		{
-			name:     "path-like string",
-			input:    "/path/to/resource",
-			expected: "_path_to_resource",
+			name:  "path-like string",
+			input: "/path/to/resource",
+			validateFunc: func(got string) {
+				s.Equal("_path_to_resource", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			got := client.ExportSanitizeKeyForNATS(tt.input)
-			s.Equal(tt.expected, got)
+			tt.validateFunc(got)
 		})
 	}
 }

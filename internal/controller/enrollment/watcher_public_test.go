@@ -1021,35 +1021,41 @@ func (s *WatcherPublicTestSuite) TestStart() {
 
 func (s *WatcherPublicTestSuite) TestEnrollSubject() {
 	tests := []struct {
-		name      string
-		namespace string
-		suffix    string
-		want      string
+		name         string
+		namespace    string
+		suffix       string
+		validateFunc func(string)
 	}{
 		{
 			name:      "with namespace",
 			namespace: "osapi",
 			suffix:    "enroll.request",
-			want:      "osapi.enroll.request",
+			validateFunc: func(got string) {
+				s.Equal("osapi.enroll.request", got)
+			},
 		},
 		{
 			name:      "without namespace",
 			namespace: "",
 			suffix:    "enroll.request",
-			want:      "enroll.request",
+			validateFunc: func(got string) {
+				s.Equal("enroll.request", got)
+			},
 		},
 		{
 			name:      "response subject with namespace",
 			namespace: "osapi",
 			suffix:    "enroll.response.machine-001",
-			want:      "osapi.enroll.response.machine-001",
+			validateFunc: func(got string) {
+				s.Equal("osapi.enroll.response.machine-001", got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			got := enrollment.EnrollSubject(tc.namespace, tc.suffix)
-			s.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }

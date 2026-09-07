@@ -147,95 +147,119 @@ func TestValidateDistributionPublicTestSuite(
 
 func (suite *ValidatePublicTestSuite) TestIsOSFamilySupported() {
 	tests := []struct {
-		name       string
-		distro     string
-		version    string
-		wantFamily string
-		wantOK     bool
+		name         string
+		distro       string
+		version      string
+		wantFamily   string
+		validateFunc func(bool)
 	}{
 		{
 			name:       "when darwin is supported with any version",
 			distro:     "darwin",
 			version:    "14.0",
 			wantFamily: "Darwin",
-			wantOK:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:       "when debian 12 is supported",
 			distro:     "debian",
 			version:    "12",
 			wantFamily: "Debian",
-			wantOK:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:       "when debian 12 point release is supported",
 			distro:     "debian",
 			version:    "12.13",
 			wantFamily: "Debian",
-			wantOK:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:       "when debian 13 is supported",
 			distro:     "debian",
 			version:    "13",
 			wantFamily: "Debian",
-			wantOK:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:       "when ubuntu 20.04 is supported",
 			distro:     "ubuntu",
 			version:    "20.04",
 			wantFamily: "Debian",
-			wantOK:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:       "when ubuntu 22.04 is supported",
 			distro:     "ubuntu",
 			version:    "22.04",
 			wantFamily: "Debian",
-			wantOK:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:       "when ubuntu 24.04 is supported",
 			distro:     "ubuntu",
 			version:    "24.04",
 			wantFamily: "Debian",
-			wantOK:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:       "when Ubuntu with uppercase is supported",
 			distro:     "Ubuntu",
 			version:    "24.04",
 			wantFamily: "Debian",
-			wantOK:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:       "when unsupported distro returns false",
 			distro:     "centos",
 			version:    "8",
 			wantFamily: "",
-			wantOK:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name:       "when unsupported version returns false",
 			distro:     "ubuntu",
 			version:    "18.04",
 			wantFamily: "",
-			wantOK:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name:       "when empty distro returns false",
 			distro:     "",
 			version:    "24.04",
 			wantFamily: "",
-			wantOK:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name:       "when empty version returns false",
 			distro:     "ubuntu",
 			version:    "",
 			wantFamily: "",
-			wantOK:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 	}
 
@@ -244,7 +268,7 @@ func (suite *ValidatePublicTestSuite) TestIsOSFamilySupported() {
 			family, ok := cli.IsOSFamilySupported(tc.distro, tc.version)
 
 			suite.Equal(tc.wantFamily, family)
-			suite.Equal(tc.wantOK, ok)
+			tc.validateFunc(ok)
 		})
 	}
 }

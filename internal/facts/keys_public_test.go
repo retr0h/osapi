@@ -70,125 +70,163 @@ func (s *KeysPublicTestSuite) TestBuiltInKeys() {
 
 func (s *KeysPublicTestSuite) TestIsKnownKey() {
 	tests := []struct {
-		name   string
-		key    string
-		wantOK bool
+		name         string
+		key          string
+		validateFunc func(bool)
 	}{
 		{
-			name:   "when interface.primary",
-			key:    facts.KeyInterfacePrimary,
-			wantOK: true,
+			name: "when interface.primary",
+			key:  facts.KeyInterfacePrimary,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when hostname",
-			key:    facts.KeyHostname,
-			wantOK: true,
+			name: "when hostname",
+			key:  facts.KeyHostname,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when arch",
-			key:    facts.KeyArch,
-			wantOK: true,
+			name: "when arch",
+			key:  facts.KeyArch,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when kernel",
-			key:    facts.KeyKernel,
-			wantOK: true,
+			name: "when kernel",
+			key:  facts.KeyKernel,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when fqdn",
-			key:    facts.KeyFQDN,
-			wantOK: true,
+			name: "when fqdn",
+			key:  facts.KeyFQDN,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when containerized",
-			key:    facts.KeyContainerized,
-			wantOK: true,
+			name: "when containerized",
+			key:  facts.KeyContainerized,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when valid custom key",
-			key:    "custom.gateway",
-			wantOK: true,
+			name: "when valid custom key",
+			key:  "custom.gateway",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when valid custom key with dots",
-			key:    "custom.network.gateway",
-			wantOK: true,
+			name: "when valid custom key with dots",
+			key:  "custom.network.gateway",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when custom prefix only",
-			key:    "custom.",
-			wantOK: false,
+			name: "when custom prefix only",
+			key:  "custom.",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when empty string",
-			key:    "",
-			wantOK: false,
+			name: "when empty string",
+			key:  "",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when unknown key",
-			key:    "unknown",
-			wantOK: false,
+			name: "when unknown key",
+			key:  "unknown",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when partial match",
-			key:    "host",
-			wantOK: false,
+			name: "when partial match",
+			key:  "host",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when not fact prefix",
-			key:    "@notfact.x",
-			wantOK: false,
+			name: "when not fact prefix",
+			key:  "@notfact.x",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.Equal(tt.wantOK, facts.IsKnownKey(tt.key))
+			tt.validateFunc(facts.IsKnownKey(tt.key))
 		})
 	}
 }
 
 func (s *KeysPublicTestSuite) TestIsCustomKey() {
 	tests := []struct {
-		name   string
-		key    string
-		wantOK bool
+		name         string
+		key          string
+		validateFunc func(bool)
 	}{
 		{
-			name:   "when valid custom key",
-			key:    "custom.gateway",
-			wantOK: true,
+			name: "when valid custom key",
+			key:  "custom.gateway",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when valid custom key with nested dots",
-			key:    "custom.network.primary.gateway",
-			wantOK: true,
+			name: "when valid custom key with nested dots",
+			key:  "custom.network.primary.gateway",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when custom prefix only",
-			key:    "custom.",
-			wantOK: false,
+			name: "when custom prefix only",
+			key:  "custom.",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when empty string",
-			key:    "",
-			wantOK: false,
+			name: "when empty string",
+			key:  "",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when built-in key",
-			key:    "hostname",
-			wantOK: false,
+			name: "when built-in key",
+			key:  "hostname",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when partial custom prefix",
-			key:    "custo",
-			wantOK: false,
+			name: "when partial custom prefix",
+			key:  "custo",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			s.Equal(tt.wantOK, facts.IsCustomKey(tt.key))
+			tt.validateFunc(facts.IsCustomKey(tt.key))
 		})
 	}
 }

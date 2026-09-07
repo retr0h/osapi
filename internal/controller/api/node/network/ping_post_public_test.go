@@ -687,26 +687,30 @@ func (s *NetworkPingPostPublicTestSuite) TestDurationToString() {
 	dur := 20 * time.Millisecond
 
 	tests := []struct {
-		name string
-		d    *time.Duration
-		want *string
+		name         string
+		d            *time.Duration
+		validateFunc func(*string)
 	}{
 		{
 			name: "when nil",
 			d:    nil,
-			want: nil,
+			validateFunc: func(got *string) {
+				s.Equal((*string)(nil), got)
+			},
 		},
 		{
 			name: "when valid duration",
 			d:    &dur,
-			want: func() *string { str := "20.00ms"; return &str }(),
+			validateFunc: func(got *string) {
+				s.Equal(func() *string { str := "20.00ms"; return &str }(), got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			got := apinetwork.ExportDurationToString(tc.d)
-			s.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }

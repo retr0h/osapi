@@ -879,39 +879,51 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageModifyJobs() {
 
 func (s *HandlerPublicTestSuite) TestExtractChanged() {
 	tests := []struct {
-		name string
-		data json.RawMessage
-		want *bool
+		name         string
+		data         json.RawMessage
+		validateFunc func(*bool)
 	}{
 		{
 			name: "when empty data returns nil",
 			data: nil,
-			want: nil,
+			validateFunc: func(got *bool) {
+				s.Equal((*bool)(nil), got)
+			},
 		},
 		{
 			name: "when invalid JSON returns nil",
 			data: json.RawMessage(`not json`),
-			want: nil,
+			validateFunc: func(got *bool) {
+				s.Equal((*bool)(nil), got)
+			},
 		},
 		{
 			name: "when changed key missing returns nil",
 			data: json.RawMessage(`{"success":true}`),
-			want: nil,
+			validateFunc: func(got *bool) {
+				s.Equal((*bool)(nil), got)
+			},
 		},
 		{
 			name: "when changed is non-bool returns nil",
 			data: json.RawMessage(`{"changed":"yes"}`),
-			want: nil,
+			validateFunc: func(got *bool) {
+				s.Equal((*bool)(nil), got)
+			},
 		},
 		{
 			name: "when changed is true returns true",
 			data: json.RawMessage(`{"changed":true}`),
-			want: boolPtr(true),
+			validateFunc: func(got *bool) {
+				s.Equal(boolPtr(true), got)
+			},
 		},
 		{
 			name: "when changed is false returns false",
 			data: json.RawMessage(`{"changed":false}`),
-			want: boolPtr(false),
+			validateFunc: func(got *bool) {
+				s.Equal(boolPtr(false), got)
+			},
 		},
 	}
 
@@ -919,7 +931,7 @@ func (s *HandlerPublicTestSuite) TestExtractChanged() {
 		s.Run(tt.name, func() {
 			got := agent.ExportExtractChanged(tt.data)
 
-			s.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
@@ -930,12 +942,12 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 	s.Require().NoError(err)
 
 	tests := []struct {
-		name        string
-		setupPKI    func() *pki.Manager
-		data        func() []byte
-		wantPayload string
-		expectError bool
-		errorMsg    string
+		name         string
+		setupPKI     func() *pki.Manager
+		data         func() []byte
+		expectError  bool
+		errorMsg     string
+		validateFunc func(string)
 	}{
 		{
 			name: "when PKI disabled passes through raw data",
@@ -945,8 +957,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 			data: func() []byte {
 				return []byte(`{"id":"test","operation":{"type":"node.hostname.get"}}`)
 			},
-			wantPayload: `{"id":"test","operation":{"type":"node.hostname.get"}}`,
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal(`{"id":"test","operation":{"type":"node.hostname.get"}}`, got)
+			},
 		},
 		{
 			name: "when valid signed envelope with correct controller key",
@@ -967,8 +981,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 				data, _ := json.Marshal(envelope)
 				return data
 			},
-			wantPayload: `{"id":"signed-test"}`,
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal(`{"id":"signed-test"}`, got)
+			},
 		},
 		{
 			name: "when signed envelope with invalid signature",
@@ -990,9 +1006,11 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 				data, _ := json.Marshal(envelope)
 				return data
 			},
-			wantPayload: "",
 			expectError: true,
 			errorMsg:    "invalid controller signature",
+			validateFunc: func(got string) {
+				s.Equal("", got)
+			},
 		},
 		{
 			name: "when signed envelope without controller key skips verification",
@@ -1013,8 +1031,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 				data, _ := json.Marshal(envelope)
 				return data
 			},
-			wantPayload: `{"id":"no-ctrl-key"}`,
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal(`{"id":"no-ctrl-key"}`, got)
+			},
 		},
 		{
 			name: "when raw JSON with PKI enabled passes through",
@@ -1027,8 +1047,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 			data: func() []byte {
 				return []byte(`{"id":"raw-job","operation":{"type":"node.hostname.get"}}`)
 			},
-			wantPayload: `{"id":"raw-job","operation":{"type":"node.hostname.get"}}`,
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal(`{"id":"raw-job","operation":{"type":"node.hostname.get"}}`, got)
+			},
 		},
 		{
 			name: "when invalid JSON with PKI enabled passes through",
@@ -1040,8 +1062,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 			data: func() []byte {
 				return []byte(`not json at all`)
 			},
-			wantPayload: "not json at all",
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal("not json at all", got)
+			},
 		},
 	}
 
@@ -1063,7 +1087,7 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 			}
 
 			s.NoError(err)
-			s.Equal(tt.wantPayload, string(result))
+			tt.validateFunc(string(result))
 		})
 	}
 }

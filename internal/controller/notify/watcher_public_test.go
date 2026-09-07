@@ -247,49 +247,61 @@ func (s *WatcherPublicTestSuite) TestParseRegistryKey() {
 		key               string
 		wantComponentType string
 		wantHostname      string
-		wantOK            bool
+		validateFunc      func(bool)
 	}{
 		{
 			name:              "agents prefix returns agent type",
 			key:               "agents.web-01",
 			wantComponentType: "agent",
 			wantHostname:      "web-01",
-			wantOK:            true,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
 			name:              "api prefix returns api type",
 			key:               "api.api-server-01",
 			wantComponentType: "api",
 			wantHostname:      "api-server-01",
-			wantOK:            true,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
 			name:              "nats prefix returns nats type",
 			key:               "nats.nats-01",
 			wantComponentType: "nats",
 			wantHostname:      "nats-01",
-			wantOK:            true,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
 			name:              "controller prefix returns controller type",
 			key:               "controller.ctrl-01",
 			wantComponentType: "controller",
 			wantHostname:      "ctrl-01",
-			wantOK:            true,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
 			name:              "unknown prefix returns false",
 			key:               "unknown.host-01",
 			wantComponentType: "",
 			wantHostname:      "",
-			wantOK:            false,
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
 			name:              "key without dot returns false",
 			key:               "invalid",
 			wantComponentType: "",
 			wantHostname:      "",
-			wantOK:            false,
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 	}
 
@@ -299,7 +311,7 @@ func (s *WatcherPublicTestSuite) TestParseRegistryKey() {
 
 			s.Equal(tt.wantComponentType, componentType)
 			s.Equal(tt.wantHostname, hostname)
-			s.Equal(tt.wantOK, ok)
+			tt.validateFunc(ok)
 		})
 	}
 }
@@ -310,35 +322,43 @@ func (s *WatcherPublicTestSuite) TestResolveDisplayName() {
 		componentType string
 		identifier    string
 		value         []byte
-		want          string
+		validateFunc  func(string)
 	}{
 		{
 			name:          "non-agent returns identifier as-is",
 			componentType: "controller",
 			identifier:    "ctrl-01",
 			value:         nil,
-			want:          "ctrl-01",
+			validateFunc: func(got string) {
+				s.Equal("ctrl-01", got)
+			},
 		},
 		{
 			name:          "agent with valid hostname returns hostname",
 			componentType: "agent",
 			identifier:    "abc123",
 			value:         []byte(`{"hostname":"web-01"}`),
-			want:          "web-01",
+			validateFunc: func(got string) {
+				s.Equal("web-01", got)
+			},
 		},
 		{
 			name:          "agent with invalid JSON returns identifier",
 			componentType: "agent",
 			identifier:    "abc123",
 			value:         []byte("invalid"),
-			want:          "abc123",
+			validateFunc: func(got string) {
+				s.Equal("abc123", got)
+			},
 		},
 		{
 			name:          "agent with empty hostname returns identifier",
 			componentType: "agent",
 			identifier:    "abc123",
 			value:         []byte(`{"hostname":""}`),
-			want:          "abc123",
+			validateFunc: func(got string) {
+				s.Equal("abc123", got)
+			},
 		},
 	}
 
@@ -349,7 +369,7 @@ func (s *WatcherPublicTestSuite) TestResolveDisplayName() {
 				tt.identifier,
 				tt.value,
 			)
-			s.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }

@@ -136,16 +136,18 @@ func (s *FactsKeysGetPublicTestSuite) TestGetFactKeysRBACHTTP() {
 	tokenManager := authtoken.New(s.logger)
 
 	tests := []struct {
-		name      string
-		setupAuth func(req *http.Request)
-		wantCode  int
+		name         string
+		setupAuth    func(req *http.Request)
+		validateFunc func(int)
 	}{
 		{
 			name: "when no token returns 401",
 			setupAuth: func(_ *http.Request) {
 				// No auth header set
 			},
-			wantCode: http.StatusUnauthorized,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusUnauthorized, got)
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -159,7 +161,9 @@ func (s *FactsKeysGetPublicTestSuite) TestGetFactKeysRBACHTTP() {
 				s.Require().NoError(err)
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 			},
-			wantCode: http.StatusForbidden,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusForbidden, got)
+			},
 		},
 		{
 			name: "when valid token with agent:read returns 200",
@@ -173,7 +177,9 @@ func (s *FactsKeysGetPublicTestSuite) TestGetFactKeysRBACHTTP() {
 				s.Require().NoError(err)
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusOK, got)
+			},
 		},
 		{
 			name: "when admin role returns 200",
@@ -187,7 +193,9 @@ func (s *FactsKeysGetPublicTestSuite) TestGetFactKeysRBACHTTP() {
 				s.Require().NoError(err)
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusOK, got)
+			},
 		},
 	}
 
@@ -212,7 +220,7 @@ func (s *FactsKeysGetPublicTestSuite) TestGetFactKeysRBACHTTP() {
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tt.wantCode, rec.Code)
+			tt.validateFunc(rec.Code)
 		})
 	}
 }

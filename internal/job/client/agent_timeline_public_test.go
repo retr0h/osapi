@@ -403,19 +403,23 @@ func (s *AgentTimelinePublicTestSuite) TestGetAgentTimeline() {
 
 func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 	tests := []struct {
-		name          string
-		events        []job.TimelineEvent
-		expectedState string
+		name         string
+		events       []job.TimelineEvent
+		validateFunc func(string)
 	}{
 		{
-			name:          "when no events returns Ready",
-			events:        []job.TimelineEvent{},
-			expectedState: job.AgentStateReady,
+			name:   "when no events returns Ready",
+			events: []job.TimelineEvent{},
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
-			name:          "when nil events returns Ready",
-			events:        nil,
-			expectedState: job.AgentStateReady,
+			name:   "when nil events returns Ready",
+			events: nil,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
 			name: "when latest event is drain returns Draining",
@@ -427,7 +431,9 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "drain requested",
 				},
 			},
-			expectedState: job.AgentStateDraining,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateDraining, got)
+			},
 		},
 		{
 			name: "when latest event is cordoned returns Cordoned",
@@ -439,7 +445,9 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "node cordoned",
 				},
 			},
-			expectedState: job.AgentStateCordoned,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateCordoned, got)
+			},
 		},
 		{
 			name: "when latest event is undrain returns Ready",
@@ -457,7 +465,9 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "undrain requested",
 				},
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
 			name: "when latest event is ready returns Ready",
@@ -475,7 +485,9 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "agent ready",
 				},
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
 			name: "when latest event is unknown returns Ready",
@@ -487,14 +499,16 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "unknown event",
 				},
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			state := client.ComputeAgentState(tt.events)
-			s.Equal(tt.expectedState, state)
+			tt.validateFunc(state)
 		})
 	}
 }

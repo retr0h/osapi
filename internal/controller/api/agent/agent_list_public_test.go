@@ -528,36 +528,44 @@ func (s *AgentListPublicTestSuite) TestUint64ToInt() {
 	maxInt := int(^uint(0) >> 1)
 
 	tests := []struct {
-		name string
-		val  uint64
-		want int
+		name         string
+		val          uint64
+		validateFunc func(int)
 	}{
 		{
 			name: "when zero",
 			val:  0,
-			want: 0,
+			validateFunc: func(got int) {
+				s.Equal(0, got)
+			},
 		},
 		{
 			name: "when normal value",
 			val:  42,
-			want: 42,
+			validateFunc: func(got int) {
+				s.Equal(42, got)
+			},
 		},
 		{
 			name: "when max int value",
 			val:  uint64(maxInt),
-			want: maxInt,
+			validateFunc: func(got int) {
+				s.Equal(maxInt, got)
+			},
 		},
 		{
 			name: "when overflow",
 			val:  math.MaxUint64,
-			want: maxInt,
+			validateFunc: func(got int) {
+				s.Equal(maxInt, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			got := apiagent.ExportUint64ToInt(tt.val)
-			s.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }

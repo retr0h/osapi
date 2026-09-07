@@ -39,9 +39,9 @@ func (s *ContainerPublicTestSuite) TearDownSubTest() {
 
 func (s *ContainerPublicTestSuite) TestIsContainer() {
 	tests := []struct {
-		name    string
-		setupFS func()
-		want    bool
+		name         string
+		setupFS      func()
+		validateFunc func(bool)
 	}{
 		{
 			name: "when /.dockerenv exists",
@@ -50,7 +50,9 @@ func (s *ContainerPublicTestSuite) TestIsContainer() {
 				_ = fs.WriteFile("/.dockerenv", []byte(""), 0o644)
 				platform.SetContainerFS(fs)
 			},
-			want: true,
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
 			name: "when /.dockerenv does not exist",
@@ -58,7 +60,9 @@ func (s *ContainerPublicTestSuite) TestIsContainer() {
 				fs := memfs.New()
 				platform.SetContainerFS(fs)
 			},
-			want: false,
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 	}
 
@@ -68,7 +72,7 @@ func (s *ContainerPublicTestSuite) TestIsContainer() {
 
 			got := platform.IsContainer()
 
-			s.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }

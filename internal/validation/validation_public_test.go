@@ -131,127 +131,165 @@ func (s *ValidationPublicTestSuite) TestVar() {
 
 func (s *ValidationPublicTestSuite) TestAlphanumOrFact() {
 	tests := []struct {
-		name   string
-		field  string
-		wantOK bool
+		name         string
+		field        string
+		validateFunc func(bool)
 	}{
 		{
-			name:   "when alphanumeric value",
-			field:  "eth0",
-			wantOK: true,
+			name:  "when alphanumeric value",
+			field: "eth0",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when fact reference",
-			field:  "@fact.interface.primary",
-			wantOK: true,
+			name:  "when fact reference",
+			field: "@fact.interface.primary",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when fact custom reference",
-			field:  "@fact.custom.mykey",
-			wantOK: true,
+			name:  "when fact custom reference",
+			field: "@fact.custom.mykey",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when non-alphanum non-fact value",
-			field:  "eth-0!",
-			wantOK: false,
+			name:  "when non-alphanum non-fact value",
+			field: "eth-0!",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when empty value",
-			field:  "",
-			wantOK: false,
+			name:  "when empty value",
+			field: "",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when partial fact prefix",
-			field:  "@fact",
-			wantOK: false,
+			name:  "when partial fact prefix",
+			field: "@fact",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when at-sign without fact",
-			field:  "@notfact.x",
-			wantOK: false,
+			name:  "when at-sign without fact",
+			field: "@notfact.x",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when unknown fact key",
-			field:  "@fact.primary_interface",
-			wantOK: false,
+			name:  "when unknown fact key",
+			field: "@fact.primary_interface",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when fact with bare custom prefix",
-			field:  "@fact.custom.",
-			wantOK: false,
+			name:  "when fact with bare custom prefix",
+			field: "@fact.custom.",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			_, ok := validation.Var(tt.field, "required,alphanum_or_fact")
-			s.Equal(tt.wantOK, ok)
+			tt.validateFunc(ok)
 		})
 	}
 }
 
 func (s *ValidationPublicTestSuite) TestIpOrFact() {
 	tests := []struct {
-		name   string
-		field  string
-		wantOK bool
+		name         string
+		field        string
+		validateFunc func(bool)
 	}{
 		{
-			name:   "when valid IPv4",
-			field:  "1.1.1.1",
-			wantOK: true,
+			name:  "when valid IPv4",
+			field: "1.1.1.1",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when valid IPv6",
-			field:  "::1",
-			wantOK: true,
+			name:  "when valid IPv6",
+			field: "::1",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when fact reference",
-			field:  "@fact.custom.gateway",
-			wantOK: true,
+			name:  "when fact reference",
+			field: "@fact.custom.gateway",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when fact interface primary",
-			field:  "@fact.interface.primary",
-			wantOK: true,
+			name:  "when fact interface primary",
+			field: "@fact.interface.primary",
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:   "when invalid address",
-			field:  "not-an-ip",
-			wantOK: false,
+			name:  "when invalid address",
+			field: "not-an-ip",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when empty value",
-			field:  "",
-			wantOK: false,
+			name:  "when empty value",
+			field: "",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when partial fact prefix",
-			field:  "@fact",
-			wantOK: false,
+			name:  "when partial fact prefix",
+			field: "@fact",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when at-sign without fact",
-			field:  "@notfact.x",
-			wantOK: false,
+			name:  "when at-sign without fact",
+			field: "@notfact.x",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when unknown fact key",
-			field:  "@fact.primary_interface",
-			wantOK: false,
+			name:  "when unknown fact key",
+			field: "@fact.primary_interface",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 		{
-			name:   "when fact with bare custom prefix",
-			field:  "@fact.custom.",
-			wantOK: false,
+			name:  "when fact with bare custom prefix",
+			field: "@fact.custom.",
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			_, ok := validation.Var(tt.field, "required,ip_or_fact")
-			s.Equal(tt.wantOK, ok)
+			tt.validateFunc(ok)
 		})
 	}
 }
