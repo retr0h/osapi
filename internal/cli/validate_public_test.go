@@ -60,17 +60,19 @@ func (suite *ValidateDistributionPublicTestSuite) TearDownTest() {
 
 func (suite *ValidateDistributionPublicTestSuite) TestValidateDistribution() {
 	tests := []struct {
-		name        string
-		ignoreLinux bool
-		hostInfoFn  func() (*host.InfoStat, error)
-		wantExited  bool
+		name         string
+		ignoreLinux  bool
+		hostInfoFn   func() (*host.InfoStat, error)
+		validateFunc func(bool)
 	}{
 		{
 			name: "when host info fails calls LogFatal",
 			hostInfoFn: func() (*host.InfoStat, error) {
 				return nil, fmt.Errorf("host info failed")
 			},
-			wantExited: true,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), true, got)
+			},
 		},
 		{
 			name:        "when IGNORE_LINUX is set returns early",
@@ -81,7 +83,9 @@ func (suite *ValidateDistributionPublicTestSuite) TestValidateDistribution() {
 					PlatformVersion: "14.0",
 				}, nil
 			},
-			wantExited: false,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), false, got)
+			},
 		},
 		{
 			name: "when supported version does not exit",
@@ -91,7 +95,9 @@ func (suite *ValidateDistributionPublicTestSuite) TestValidateDistribution() {
 					PlatformVersion: "24.04",
 				}, nil
 			},
-			wantExited: false,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), false, got)
+			},
 		},
 		{
 			name: "when unsupported version calls LogFatal",
@@ -101,7 +107,9 @@ func (suite *ValidateDistributionPublicTestSuite) TestValidateDistribution() {
 					PlatformVersion: "8",
 				}, nil
 			},
-			wantExited: true,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), true, got)
+			},
 		},
 	}
 
@@ -134,7 +142,7 @@ func (suite *ValidateDistributionPublicTestSuite) TestValidateDistribution() {
 				cli.ValidateDistribution(logger)
 			}()
 
-			assert.Equal(suite.T(), tc.wantExited, exited)
+			tc.validateFunc(exited)
 		})
 	}
 }

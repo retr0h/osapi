@@ -46,17 +46,21 @@ func (suite *LifecyclePublicTestSuite) TestRunServer() {
 	tests := []struct {
 		name         string
 		cleanupCount int
-		wantCleanups int
+		validateFunc func(int)
 	}{
 		{
 			name:         "when context cancelled stops server",
 			cleanupCount: 0,
-			wantCleanups: 0,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 0, got)
+			},
 		},
 		{
 			name:         "when cleanup functions provided runs all",
 			cleanupCount: 3,
-			wantCleanups: 3,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 3, got)
+			},
 		},
 	}
 
@@ -77,7 +81,7 @@ func (suite *LifecyclePublicTestSuite) TestRunServer() {
 			cancel()
 			cli.RunServer(ctx, mockServer, cleanupFns...)
 
-			assert.Equal(suite.T(), tc.wantCleanups, cleanupRan)
+			tc.validateFunc(cleanupRan)
 		})
 	}
 }

@@ -44,40 +44,44 @@ func (suite *DarwinPublicTestSuite) SetupTest() {
 
 func (suite *DarwinPublicTestSuite) TestListUsers() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.ListUsers(suite.ctx)
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.ListUsers(suite.ctx))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestGetUser() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.GetUser(suite.ctx, "testuser")
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.GetUser(suite.ctx, "testuser"))
 		})
 	}
 }
@@ -106,100 +110,110 @@ func (suite *DarwinPublicTestSuite) TestCreateUser() {
 
 func (suite *DarwinPublicTestSuite) TestUpdateUser() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.UpdateUser(suite.ctx, "testuser", user.UpdateUserOpts{})
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.UpdateUser(suite.ctx, "testuser", user.UpdateUserOpts{}))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestDeleteUser() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.DeleteUser(suite.ctx, "testuser")
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.DeleteUser(suite.ctx, "testuser"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestChangePassword() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.ChangePassword(suite.ctx, "testuser", "secret")
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.ChangePassword(suite.ctx, "testuser", "secret"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestListGroups() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.ListGroups(suite.ctx)
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.ListGroups(suite.ctx))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestGetGroup() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.GetGroup(suite.ctx, "testgroup")
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.GetGroup(suite.ctx, "testgroup"))
 		})
 	}
 }
@@ -252,40 +266,44 @@ func (suite *DarwinPublicTestSuite) TestUpdateGroup() {
 
 func (suite *DarwinPublicTestSuite) TestDeleteGroup() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.DeleteGroup(suite.ctx, "testgroup")
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.DeleteGroup(suite.ctx, "testgroup"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestListKeys() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.ListKeys(suite.ctx, "testuser")
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.ListKeys(suite.ctx, "testuser"))
 		})
 	}
 }
@@ -314,20 +332,22 @@ func (suite *DarwinPublicTestSuite) TestAddKey() {
 
 func (suite *DarwinPublicTestSuite) TestRemoveKey() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.RemoveKey(suite.ctx, "testuser", "SHA256:abc123")
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.RemoveKey(suite.ctx, "testuser", "SHA256:abc123"))
 		})
 	}
 }

@@ -35,21 +35,23 @@ type DebianDockerPublicTestSuite struct {
 
 func (s *DebianDockerPublicTestSuite) TestUpdateHostname() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported for container",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Nil(result)
+				s.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			p := host.NewDebianDockerProvider()
-			result, err := p.UpdateHostname("new-hostname")
-
-			s.Error(err)
-			s.Nil(result)
-			s.ErrorIs(err, provider.ErrUnsupported)
+			tt.validateFunc(p.UpdateHostname("new-hostname"))
 		})
 	}
 }

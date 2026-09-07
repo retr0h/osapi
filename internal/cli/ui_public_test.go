@@ -68,24 +68,30 @@ func boolPtr(b bool) *bool { return &b }
 
 func (suite *UIPublicTestSuite) TestBoolToSafeString() {
 	tests := []struct {
-		name string
-		b    *bool
-		want string
+		name         string
+		b            *bool
+		validateFunc func(string)
 	}{
 		{
 			name: "when true returns true",
 			b:    boolPtr(true),
-			want: "true",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "true", got)
+			},
 		},
 		{
 			name: "when false returns false",
 			b:    boolPtr(false),
-			want: "false",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "false", got)
+			},
 		},
 		{
 			name: "when nil returns empty",
 			b:    nil,
-			want: "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 	}
 
@@ -93,7 +99,7 @@ func (suite *UIPublicTestSuite) TestBoolToSafeString() {
 		suite.Run(tc.name, func() {
 			got := cli.BoolToSafeString(tc.b)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -106,14 +112,16 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 		results      []cli.ResultRow
 		fieldHeaders []string
 		wantHeaders  []string
-		wantRows     [][]string
+		validateFunc func([][]string)
 	}{
 		{
 			name:         "when no results returns hostname and status headers",
 			results:      []cli.ResultRow{},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
-			wantRows:     [][]string{},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{}, got)
+			},
 		},
 		{
 			name: "when all results succeed shows ok status",
@@ -123,9 +131,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "ok", "val1"},
-				{"web-02", "ok", "val2"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok", "val1"},
+					{"web-02", "ok", "val2"},
+				}, got)
 			},
 		},
 		{
@@ -136,9 +146,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "ok", "val1"},
-				{"web-02", "err", ""},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok", "val1"},
+					{"web-02", "err", ""},
+				}, got)
 			},
 		},
 		{
@@ -149,9 +161,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "ok", "val1"},
-				{"web-02", "skip"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok", "val1"},
+					{"web-02", "skip"},
+				}, got)
 			},
 		},
 		{
@@ -162,9 +176,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "ok", "val1"},
-				{"web-02", "skip", "partial"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok", "val1"},
+					{"web-02", "skip", "partial"},
+				}, got)
 			},
 		},
 		{
@@ -174,8 +190,10 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "ok", "val1"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok", "val1"},
+				}, got)
 			},
 		},
 		{
@@ -186,9 +204,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "err", ""},
-				{"web-02", "err", ""},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "err", ""},
+					{"web-02", "err", ""},
+				}, got)
 			},
 		},
 		{
@@ -199,9 +219,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "changed", "val1"},
-				{"web-02", "ok", "val2"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "changed", "val1"},
+					{"web-02", "ok", "val2"},
+				}, got)
 			},
 		},
 		{
@@ -223,9 +245,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "changed", "val1"},
-				{"web-02", "err", ""},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "changed", "val1"},
+					{"web-02", "err", ""},
+				}, got)
 			},
 		},
 		{
@@ -236,9 +260,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
-			wantRows: [][]string{
-				{"web-01", "changed"},
-				{"web-02", "ok"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "changed"},
+					{"web-02", "ok"},
+				}, got)
 			},
 		},
 	}
@@ -248,43 +274,51 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 			tr := cli.BuildBroadcastTable(tc.results, tc.fieldHeaders)
 
 			assert.Equal(suite.T(), tc.wantHeaders, tr.Headers)
-			assert.Equal(suite.T(), tc.wantRows, tr.Rows)
+			tc.validateFunc(tr.Rows)
 		})
 	}
 }
 
 func (suite *UIPublicTestSuite) TestFormatLabels() {
 	tests := []struct {
-		name   string
-		labels map[string]string
-		want   string
+		name         string
+		labels       map[string]string
+		validateFunc func(string)
 	}{
 		{
 			name:   "when nil returns empty",
 			labels: nil,
-			want:   "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name:   "when empty map returns empty",
 			labels: map[string]string{},
-			want:   "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name:   "when single label formats correctly",
 			labels: map[string]string{"group": "web"},
-			want:   "group:web",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "group:web", got)
+			},
 		},
 		{
 			name:   "when multiple labels sorts by key",
 			labels: map[string]string{"group": "web", "env": "prod", "az": "us-east"},
-			want:   "az:us-east, env:prod, group:web",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "az:us-east, env:prod, group:web", got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			result := cli.FormatLabels(tc.labels)
-			assert.Equal(suite.T(), tc.want, result)
+			tc.validateFunc(result)
 		})
 	}
 }
@@ -297,14 +331,16 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 		results      []cli.ResultRow
 		fieldHeaders []string
 		wantHeaders  []string
-		wantRows     [][]string
+		validateFunc func([][]string)
 	}{
 		{
 			name:         "when no results returns hostname and status headers",
 			results:      []cli.ResultRow{},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
-			wantRows:     [][]string{},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{}, got)
+			},
 		},
 		{
 			name: "when all succeed shows ok status",
@@ -314,9 +350,11 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 			},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
-			wantRows: [][]string{
-				{"web-01", "ok"},
-				{"web-02", "ok"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok"},
+					{"web-02", "ok"},
+				}, got)
 			},
 		},
 		{
@@ -327,9 +365,11 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 			},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
-			wantRows: [][]string{
-				{"web-01", "ok"},
-				{"web-02", "err"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok"},
+					{"web-02", "err"},
+				}, got)
 			},
 		},
 		{
@@ -339,8 +379,10 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 			},
 			fieldHeaders: []string{"DETAIL"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DETAIL"},
-			wantRows: [][]string{
-				{"web-01", "ok", "extra"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok", "extra"},
+				}, got)
 			},
 		},
 		{
@@ -351,9 +393,11 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 			},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
-			wantRows: [][]string{
-				{"web-01", "changed"},
-				{"web-02", "changed"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "changed"},
+					{"web-02", "changed"},
+				}, got)
 			},
 		},
 		{
@@ -364,9 +408,11 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 			},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
-			wantRows: [][]string{
-				{"web-01", "ok"},
-				{"web-02", "ok"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "ok"},
+					{"web-02", "ok"},
+				}, got)
 			},
 		},
 		{
@@ -377,9 +423,11 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
-			wantRows: [][]string{
-				{"web-01", "changed", "val1"},
-				{"web-02", "ok", "val2"},
+			validateFunc: func(got [][]string) {
+				assert.Equal(suite.T(), [][]string{
+					{"web-01", "changed", "val1"},
+					{"web-02", "ok", "val2"},
+				}, got)
 			},
 		},
 	}
@@ -389,7 +437,7 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 			tr := cli.BuildMutationTable(tc.results, tc.fieldHeaders)
 
 			assert.Equal(suite.T(), tc.wantHeaders, tr.Headers)
-			assert.Equal(suite.T(), tc.wantRows, tr.Rows)
+			tc.validateFunc(tr.Rows)
 		})
 	}
 }
@@ -399,12 +447,12 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTableResult() {
 	skipMsg := "unsupported"
 
 	tests := []struct {
-		name        string
-		results     []cli.ResultRow
-		fieldHdrs   []string
-		wantHeaders []string
-		wantRows    [][]string
-		wantErrors  []cli.ErrorEntry
+		name         string
+		results      []cli.ResultRow
+		fieldHdrs    []string
+		wantHeaders  []string
+		wantRows     [][]string
+		validateFunc func([]cli.ErrorEntry)
 	}{
 		{
 			name: "when errors exist they appear in errors field",
@@ -418,8 +466,10 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTableResult() {
 				{"web-01", "ok", "val1"},
 				{"web-02", "err", ""},
 			},
-			wantErrors: []cli.ErrorEntry{
-				{Hostname: "web-02", Message: "connection refused", Status: "err"},
+			validateFunc: func(got []cli.ErrorEntry) {
+				assert.Equal(suite.T(), []cli.ErrorEntry{
+					{Hostname: "web-02", Message: "connection refused", Status: "err"},
+				}, got)
 			},
 		},
 		{
@@ -434,7 +484,9 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTableResult() {
 				{"web-01", "ok", "val1"},
 				{"web-02", "ok", "val2"},
 			},
-			wantErrors: nil,
+			validateFunc: func(got []cli.ErrorEntry) {
+				assert.Equal(suite.T(), []cli.ErrorEntry(nil), got)
+			},
 		},
 		{
 			name: "when skipped host without fields appears in errors",
@@ -448,8 +500,10 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTableResult() {
 				{"web-01", "ok", "val1"},
 				{"web-02", "skip"},
 			},
-			wantErrors: []cli.ErrorEntry{
-				{Hostname: "web-02", Message: "unsupported", Status: "skip"},
+			validateFunc: func(got []cli.ErrorEntry) {
+				assert.Equal(suite.T(), []cli.ErrorEntry{
+					{Hostname: "web-02", Message: "unsupported", Status: "skip"},
+				}, got)
 			},
 		},
 		{
@@ -466,9 +520,11 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTableResult() {
 				{"web-02", "err"},
 				{"web-03", "ok", "ok"},
 			},
-			wantErrors: []cli.ErrorEntry{
-				{Hostname: "web-01", Message: "connection refused", Status: "err"},
-				{Hostname: "web-02", Message: "unsupported", Status: "err"},
+			validateFunc: func(got []cli.ErrorEntry) {
+				assert.Equal(suite.T(), []cli.ErrorEntry{
+					{Hostname: "web-01", Message: "connection refused", Status: "err"},
+					{Hostname: "web-02", Message: "unsupported", Status: "err"},
+				}, got)
 			},
 		},
 	}
@@ -479,7 +535,7 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTableResult() {
 
 			assert.Equal(suite.T(), tc.wantHeaders, result.Headers)
 			assert.Equal(suite.T(), tc.wantRows, result.Rows)
-			assert.Equal(suite.T(), tc.wantErrors, result.Errors)
+			tc.validateFunc(result.Errors)
 		})
 	}
 }
@@ -488,12 +544,12 @@ func (suite *UIPublicTestSuite) TestBuildMutationTableResult() {
 	errMsg := "permission denied"
 
 	tests := []struct {
-		name        string
-		results     []cli.ResultRow
-		fieldHdrs   []string
-		wantHeaders []string
-		wantRows    [][]string
-		wantErrors  []cli.ErrorEntry
+		name         string
+		results      []cli.ResultRow
+		fieldHdrs    []string
+		wantHeaders  []string
+		wantRows     [][]string
+		validateFunc func([]cli.ErrorEntry)
 	}{
 		{
 			name: "when mutation errors exist they appear in errors field",
@@ -507,8 +563,10 @@ func (suite *UIPublicTestSuite) TestBuildMutationTableResult() {
 				{"web-01", "changed"},
 				{"web-02", "err"},
 			},
-			wantErrors: []cli.ErrorEntry{
-				{Hostname: "web-02", Message: "permission denied", Status: "err"},
+			validateFunc: func(got []cli.ErrorEntry) {
+				assert.Equal(suite.T(), []cli.ErrorEntry{
+					{Hostname: "web-02", Message: "permission denied", Status: "err"},
+				}, got)
 			},
 		},
 		{
@@ -523,7 +581,9 @@ func (suite *UIPublicTestSuite) TestBuildMutationTableResult() {
 				{"web-01", "changed"},
 				{"web-02", "ok"},
 			},
-			wantErrors: nil,
+			validateFunc: func(got []cli.ErrorEntry) {
+				assert.Equal(suite.T(), []cli.ErrorEntry(nil), got)
+			},
 		},
 	}
 
@@ -533,31 +593,37 @@ func (suite *UIPublicTestSuite) TestBuildMutationTableResult() {
 
 			assert.Equal(suite.T(), tc.wantHeaders, result.Headers)
 			assert.Equal(suite.T(), tc.wantRows, result.Rows)
-			assert.Equal(suite.T(), tc.wantErrors, result.Errors)
+			tc.validateFunc(result.Errors)
 		})
 	}
 }
 
 func (suite *UIPublicTestSuite) TestFormatList() {
 	tests := []struct {
-		name string
-		list []string
-		want string
+		name         string
+		list         []string
+		validateFunc func(string)
 	}{
 		{
 			name: "when empty returns None",
 			list: []string{},
-			want: "None",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "None", got)
+			},
 		},
 		{
 			name: "when single item returns it",
 			list: []string{"alpha"},
-			want: "alpha",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "alpha", got)
+			},
 		},
 		{
 			name: "when multiple items joins with comma",
 			list: []string{"alpha", "beta", "gamma"},
-			want: "alpha, beta, gamma",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "alpha, beta, gamma", got)
+			},
 		},
 	}
 
@@ -565,46 +631,54 @@ func (suite *UIPublicTestSuite) TestFormatList() {
 		suite.Run(tc.name, func() {
 			got := cli.FormatList(tc.list)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *UIPublicTestSuite) TestCalculateColumnWidths() {
 	tests := []struct {
-		name       string
-		headers    []string
-		rows       [][]string
-		minPadding int
-		want       []int
+		name         string
+		headers      []string
+		rows         [][]string
+		minPadding   int
+		validateFunc func([]int)
 	}{
 		{
 			name:       "when empty headers returns empty",
 			headers:    []string{},
 			rows:       nil,
 			minPadding: 1,
-			want:       []int{},
+			validateFunc: func(got []int) {
+				assert.Equal(suite.T(), []int{}, got)
+			},
 		},
 		{
 			name:       "when headers wider than rows uses header width",
 			headers:    []string{"HOSTNAME", "STATUS"},
 			rows:       [][]string{{"a", "b"}},
 			minPadding: 1,
-			want:       []int{10, 8},
+			validateFunc: func(got []int) {
+				assert.Equal(suite.T(), []int{10, 8}, got)
+			},
 		},
 		{
 			name:       "when rows wider than headers uses row width",
 			headers:    []string{"A", "B"},
 			rows:       [][]string{{"longvalue", "anotherlongvalue"}},
 			minPadding: 1,
-			want:       []int{11, 18},
+			validateFunc: func(got []int) {
+				assert.Equal(suite.T(), []int{11, 18}, got)
+			},
 		},
 		{
 			name:       "when multi-line content uses longest line width",
 			headers:    []string{"DATA"},
 			rows:       [][]string{{"short\nvery long line here"}},
 			minPadding: 0,
-			want:       []int{19},
+			validateFunc: func(got []int) {
+				assert.Equal(suite.T(), []int{19}, got)
+			},
 		},
 	}
 
@@ -612,31 +686,37 @@ func (suite *UIPublicTestSuite) TestCalculateColumnWidths() {
 		suite.Run(tc.name, func() {
 			got := cli.CalculateColumnWidths(tc.headers, tc.rows, tc.minPadding)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *UIPublicTestSuite) TestGetMaxLineWidth() {
 	tests := []struct {
-		name string
-		text string
-		want int
+		name         string
+		text         string
+		validateFunc func(int)
 	}{
 		{
 			name: "when single line returns its length",
 			text: "hello",
-			want: 5,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 5, got)
+			},
 		},
 		{
 			name: "when multi-line returns longest",
 			text: "short\na much longer line\nmed",
-			want: 18,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 18, got)
+			},
 		},
 		{
 			name: "when empty returns zero",
 			text: "",
-			want: 0,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 0, got)
+			},
 		},
 	}
 
@@ -644,7 +724,7 @@ func (suite *UIPublicTestSuite) TestGetMaxLineWidth() {
 		suite.Run(tc.name, func() {
 			got := cli.GetMaxLineWidth(tc.text)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -653,19 +733,23 @@ func (suite *UIPublicTestSuite) TestSafeString() {
 	str := "hello"
 
 	tests := []struct {
-		name string
-		s    *string
-		want string
+		name         string
+		s            *string
+		validateFunc func(string)
 	}{
 		{
 			name: "when non-nil returns value",
 			s:    &str,
-			want: "hello",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "hello", got)
+			},
 		},
 		{
 			name: "when nil returns empty",
 			s:    nil,
-			want: "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 	}
 
@@ -673,7 +757,7 @@ func (suite *UIPublicTestSuite) TestSafeString() {
 		suite.Run(tc.name, func() {
 			got := cli.SafeString(tc.s)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -682,19 +766,23 @@ func (suite *UIPublicTestSuite) TestSafeUUID() {
 	id := uuid.MustParse("550e8400-e29b-41d4-a716-446655440000")
 
 	tests := []struct {
-		name string
-		u    *uuid.UUID
-		want string
+		name         string
+		u            *uuid.UUID
+		validateFunc func(string)
 	}{
 		{
 			name: "when non-nil returns string",
 			u:    &id,
-			want: "550e8400-e29b-41d4-a716-446655440000",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "550e8400-e29b-41d4-a716-446655440000", got)
+			},
 		},
 		{
 			name: "when nil returns empty",
 			u:    nil,
-			want: "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 	}
 
@@ -702,7 +790,7 @@ func (suite *UIPublicTestSuite) TestSafeUUID() {
 		suite.Run(tc.name, func() {
 			got := cli.SafeUUID(tc.u)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -711,19 +799,23 @@ func (suite *UIPublicTestSuite) TestFloat64ToSafeString() {
 	val := 3.14
 
 	tests := []struct {
-		name string
-		f    *float64
-		want string
+		name         string
+		f            *float64
+		validateFunc func(string)
 	}{
 		{
 			name: "when non-nil returns formatted float",
 			f:    &val,
-			want: "3.140000",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "3.140000", got)
+			},
 		},
 		{
 			name: "when nil returns N/A",
 			f:    nil,
-			want: "N/A",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "N/A", got)
+			},
 		},
 	}
 
@@ -731,7 +823,7 @@ func (suite *UIPublicTestSuite) TestFloat64ToSafeString() {
 		suite.Run(tc.name, func() {
 			got := cli.Float64ToSafeString(tc.f)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -740,19 +832,23 @@ func (suite *UIPublicTestSuite) TestIntToSafeString() {
 	val := 42
 
 	tests := []struct {
-		name string
-		i    *int
-		want string
+		name         string
+		i            *int
+		validateFunc func(string)
 	}{
 		{
 			name: "when non-nil returns formatted int",
 			i:    &val,
-			want: "42",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "42", got)
+			},
 		},
 		{
 			name: "when nil returns N/A",
 			i:    nil,
-			want: "N/A",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "N/A", got)
+			},
 		},
 	}
 
@@ -760,7 +856,7 @@ func (suite *UIPublicTestSuite) TestIntToSafeString() {
 		suite.Run(tc.name, func() {
 			got := cli.IntToSafeString(tc.i)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -984,39 +1080,51 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 
 func (suite *UIPublicTestSuite) TestFormatAge() {
 	tests := []struct {
-		name string
-		d    time.Duration
-		want string
+		name         string
+		d            time.Duration
+		validateFunc func(string)
 	}{
 		{
 			name: "when zero returns empty",
 			d:    0,
-			want: "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name: "when negative returns empty",
 			d:    -1 * time.Hour,
-			want: "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name: "when days and hours formats as days",
 			d:    3*24*time.Hour + 4*time.Hour,
-			want: "3d 4h",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "3d 4h", got)
+			},
 		},
 		{
 			name: "when hours and minutes formats as hours",
 			d:    12*time.Hour + 30*time.Minute,
-			want: "12h 30m",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "12h 30m", got)
+			},
 		},
 		{
 			name: "when only minutes formats as minutes",
 			d:    45 * time.Minute,
-			want: "45m",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "45m", got)
+			},
 		},
 		{
 			name: "when only seconds formats as seconds",
 			d:    30 * time.Second,
-			want: "30s",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "30s", got)
+			},
 		},
 	}
 
@@ -1024,36 +1132,44 @@ func (suite *UIPublicTestSuite) TestFormatAge() {
 		suite.Run(tc.name, func() {
 			got := cli.FormatAge(tc.d)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *UIPublicTestSuite) TestFormatBytes() {
 	tests := []struct {
-		name string
-		b    int
-		want string
+		name         string
+		b            int
+		validateFunc func(string)
 	}{
 		{
 			name: "when bytes returns bytes",
 			b:    512,
-			want: "512 B",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "512 B", got)
+			},
 		},
 		{
 			name: "when kilobytes returns KB",
 			b:    5 * 1024,
-			want: "5.0 KB",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "5.0 KB", got)
+			},
 		},
 		{
 			name: "when megabytes returns MB",
 			b:    3 * 1024 * 1024,
-			want: "3.0 MB",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "3.0 MB", got)
+			},
 		},
 		{
 			name: "when gigabytes returns GB",
 			b:    2 * 1024 * 1024 * 1024,
-			want: "2.0 GB",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "2.0 GB", got)
+			},
 		},
 	}
 
@@ -1061,7 +1177,7 @@ func (suite *UIPublicTestSuite) TestFormatBytes() {
 		suite.Run(tc.name, func() {
 			got := cli.FormatBytes(tc.b)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -1195,22 +1311,58 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 
 func (suite *UIPublicTestSuite) TestStatusWeight() {
 	tests := []struct {
-		name   string
-		status string
-		want   int
+		name         string
+		status       string
+		validateFunc func(int)
 	}{
-		{name: "when ok returns 0", status: "ok", want: 0},
-		{name: "when changed returns 1", status: "changed", want: 1},
-		{name: "when skip returns 2", status: "skip", want: 2},
-		{name: "when err returns 3", status: "err", want: 3},
-		{name: "when unknown returns 0", status: "unknown", want: 0},
-		{name: "when empty returns 0", status: "", want: 0},
+		{
+			name:   "when ok returns 0",
+			status: "ok",
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 0, got)
+			},
+		},
+		{
+			name:   "when changed returns 1",
+			status: "changed",
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 1, got)
+			},
+		},
+		{
+			name:   "when skip returns 2",
+			status: "skip",
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 2, got)
+			},
+		},
+		{
+			name:   "when err returns 3",
+			status: "err",
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 3, got)
+			},
+		},
+		{
+			name:   "when unknown returns 0",
+			status: "unknown",
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 0, got)
+			},
+		},
+		{
+			name:   "when empty returns 0",
+			status: "",
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 0, got)
+			},
+		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			got := cli.ExportStatusWeight(tc.status)
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -1219,46 +1371,58 @@ func (suite *UIPublicTestSuite) TestResolveStatus() {
 	errMsg := "failed"
 
 	tests := []struct {
-		name string
-		row  cli.ResultRow
-		want string
+		name         string
+		row          cli.ResultRow
+		validateFunc func(string)
 	}{
 		{
 			name: "when no error and no change returns ok",
 			row:  cli.ResultRow{Hostname: "h1"},
-			want: "ok",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "ok", got)
+			},
 		},
 		{
 			name: "when changed true returns changed",
 			row:  cli.ResultRow{Hostname: "h1", Changed: boolPtr(true)},
-			want: "changed",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "changed", got)
+			},
 		},
 		{
 			name: "when changed false returns ok",
 			row:  cli.ResultRow{Hostname: "h1", Changed: boolPtr(false)},
-			want: "ok",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "ok", got)
+			},
 		},
 		{
 			name: "when error returns err",
 			row:  cli.ResultRow{Hostname: "h1", Error: &errMsg},
-			want: "err",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "err", got)
+			},
 		},
 		{
 			name: "when status skipped returns skip even with error",
 			row:  cli.ResultRow{Hostname: "h1", Status: "skipped", Error: &errMsg},
-			want: "skip",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "skip", got)
+			},
 		},
 		{
 			name: "when status skip returns skip",
 			row:  cli.ResultRow{Hostname: "h1", Status: "skip"},
-			want: "skip",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "skip", got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			got := cli.ExportResolveStatus(tc.row)
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }

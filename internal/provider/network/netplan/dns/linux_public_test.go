@@ -35,21 +35,23 @@ type LinuxPublicTestSuite struct {
 
 func (s *LinuxPublicTestSuite) TestGetResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns error for linux stub",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Nil(result)
+				s.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			l := &dns.Linux{}
-			result, err := l.GetResolvConfByInterface("eth0")
-
-			s.Error(err)
-			s.Nil(result)
-			s.ErrorIs(err, provider.ErrUnsupported)
+			tt.validateFunc(l.GetResolvConfByInterface("eth0"))
 		})
 	}
 }

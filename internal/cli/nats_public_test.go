@@ -95,9 +95,9 @@ func (suite *NATSPublicTestSuite) TestCloseNATSClient() {
 
 func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 	tests := []struct {
-		name string
-		auth config.NATSAuth
-		want natsclient.AuthOptions
+		name         string
+		auth         config.NATSAuth
+		validateFunc func(natsclient.AuthOptions)
 	}{
 		{
 			name: "when user_pass returns user pass auth",
@@ -106,10 +106,12 @@ func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 				Username: "osapi",
 				Password: "secret",
 			},
-			want: natsclient.AuthOptions{
-				AuthType: natsclient.UserPassAuth,
-				Username: "osapi",
-				Password: "secret",
+			validateFunc: func(got natsclient.AuthOptions) {
+				assert.Equal(suite.T(), natsclient.AuthOptions{
+					AuthType: natsclient.UserPassAuth,
+					Username: "osapi",
+					Password: "secret",
+				}, got)
 			},
 		},
 		{
@@ -118,9 +120,11 @@ func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 				Type:     "nkey",
 				NKeyFile: "/path/to/nkey",
 			},
-			want: natsclient.AuthOptions{
-				AuthType: natsclient.NKeyAuth,
-				NKeyFile: "/path/to/nkey",
+			validateFunc: func(got natsclient.AuthOptions) {
+				assert.Equal(suite.T(), natsclient.AuthOptions{
+					AuthType: natsclient.NKeyAuth,
+					NKeyFile: "/path/to/nkey",
+				}, got)
 			},
 		},
 		{
@@ -128,15 +132,19 @@ func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 			auth: config.NATSAuth{
 				Type: "none",
 			},
-			want: natsclient.AuthOptions{
-				AuthType: natsclient.NoAuth,
+			validateFunc: func(got natsclient.AuthOptions) {
+				assert.Equal(suite.T(), natsclient.AuthOptions{
+					AuthType: natsclient.NoAuth,
+				}, got)
 			},
 		},
 		{
 			name: "when empty type defaults to no auth",
 			auth: config.NATSAuth{},
-			want: natsclient.AuthOptions{
-				AuthType: natsclient.NoAuth,
+			validateFunc: func(got natsclient.AuthOptions) {
+				assert.Equal(suite.T(), natsclient.AuthOptions{
+					AuthType: natsclient.NoAuth,
+				}, got)
 			},
 		},
 	}
@@ -145,7 +153,7 @@ func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildNATSAuthOptions(tc.auth)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }

@@ -291,18 +291,22 @@ func (suite *KeypairPublicTestSuite) TestSignAndVerify() {
 		name         string
 		data         []byte
 		tamper       bool
-		wantVerified bool
+		validateFunc func(bool)
 	}{
 		{
-			name:         "when data is signed and verified",
-			data:         []byte("hello world"),
-			wantVerified: true,
+			name: "when data is signed and verified",
+			data: []byte("hello world"),
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), true, got)
+			},
 		},
 		{
-			name:         "when data is tampered after signing",
-			data:         []byte("hello world"),
-			tamper:       true,
-			wantVerified: false,
+			name:   "when data is tampered after signing",
+			data:   []byte("hello world"),
+			tamper: true,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), false, got)
+			},
 		},
 	}
 
@@ -321,7 +325,7 @@ func (suite *KeypairPublicTestSuite) TestSignAndVerify() {
 			}
 
 			got := pki.Verify(m.PublicKey(), verifyData, sig)
-			assert.Equal(suite.T(), tc.wantVerified, got)
+			tc.validateFunc(got)
 		})
 	}
 }

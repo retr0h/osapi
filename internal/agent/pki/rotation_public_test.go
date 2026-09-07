@@ -41,7 +41,7 @@ func (suite *RotationPublicTestSuite) TestVerifyWithGrace() {
 	tests := []struct {
 		name         string
 		setup        func(m *pki.Manager) (data []byte, sig []byte)
-		wantVerified bool
+		validateFunc func(bool)
 	}{
 		{
 			name: "when signed with current controller key returns true",
@@ -52,7 +52,9 @@ func (suite *RotationPublicTestSuite) TestVerifyWithGrace() {
 				sig := ed25519.Sign(priv, data)
 				return data, sig
 			},
-			wantVerified: true,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), true, got)
+			},
 		},
 		{
 			name: "when signed with previous controller key returns true",
@@ -65,7 +67,9 @@ func (suite *RotationPublicTestSuite) TestVerifyWithGrace() {
 				sig := ed25519.Sign(oldPriv, data)
 				return data, sig
 			},
-			wantVerified: true,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), true, got)
+			},
 		},
 		{
 			name: "when signed with both keys set and current key matches returns true",
@@ -78,7 +82,9 @@ func (suite *RotationPublicTestSuite) TestVerifyWithGrace() {
 				sig := ed25519.Sign(newPriv, data)
 				return data, sig
 			},
-			wantVerified: true,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), true, got)
+			},
 		},
 		{
 			name: "when neither key is set returns false",
@@ -88,7 +94,9 @@ func (suite *RotationPublicTestSuite) TestVerifyWithGrace() {
 				sig := ed25519.Sign(priv, data)
 				return data, sig
 			},
-			wantVerified: false,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), false, got)
+			},
 		},
 		{
 			name: "when signature does not match any key returns false",
@@ -102,7 +110,9 @@ func (suite *RotationPublicTestSuite) TestVerifyWithGrace() {
 				sig := ed25519.Sign(unrelatedPriv, data)
 				return data, sig
 			},
-			wantVerified: false,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), false, got)
+			},
 		},
 		{
 			name: "when only current key is set and signature does not match returns false",
@@ -114,7 +124,9 @@ func (suite *RotationPublicTestSuite) TestVerifyWithGrace() {
 				sig := ed25519.Sign(wrongPriv, data)
 				return data, sig
 			},
-			wantVerified: false,
+			validateFunc: func(got bool) {
+				assert.Equal(suite.T(), false, got)
+			},
 		},
 	}
 
@@ -125,7 +137,7 @@ func (suite *RotationPublicTestSuite) TestVerifyWithGrace() {
 
 			data, sig := tc.setup(m)
 			got := m.VerifyWithGrace(data, sig)
-			assert.Equal(suite.T(), tc.wantVerified, got)
+			tc.validateFunc(got)
 		})
 	}
 }
