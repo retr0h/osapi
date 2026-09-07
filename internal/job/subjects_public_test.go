@@ -841,7 +841,7 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 		wantModifyPrefix string
 		wantBuildQuery   string
 		wantSubscription string
-		wantLabelSubject string
+		validateFunc     func(any)
 	}{
 		{
 			name:             "when namespace is empty",
@@ -850,7 +850,9 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 			wantModifyPrefix: "jobs.modify",
 			wantBuildQuery:   "jobs.query._any",
 			wantSubscription: "jobs.*._any",
-			wantLabelSubject: "jobs.*.label.role.web",
+			validateFunc: func(labels any) {
+				suite.Equal([]string{"jobs.*.label.role.web"}, labels)
+			},
 		},
 		{
 			name:             "when namespace is set",
@@ -859,7 +861,9 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 			wantModifyPrefix: "osapi.jobs.modify",
 			wantBuildQuery:   "osapi.jobs.query._any",
 			wantSubscription: "osapi.jobs.*._any",
-			wantLabelSubject: "osapi.jobs.*.label.role.web",
+			validateFunc: func(labels any) {
+				suite.Equal([]string{"osapi.jobs.*.label.role.web"}, labels)
+			},
 		},
 	}
 
@@ -873,8 +877,7 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 			suite.Equal(tt.wantBuildQuery, job.BuildQuerySubject("_any"))
 			subs := job.BuildAgentSubscriptionPattern("web-01", nil)
 			suite.Contains(subs, tt.wantSubscription)
-			labels := job.BuildLabelSubjects("role", "web")
-			suite.Equal([]string{tt.wantLabelSubject}, labels)
+			tt.validateFunc(job.BuildLabelSubjects("role", "web"))
 		})
 	}
 }

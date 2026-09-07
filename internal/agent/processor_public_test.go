@@ -783,15 +783,14 @@ func (s *ProcessorPublicTestSuite) TestProviderFactoryMethods() {
 
 func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 	tests := []struct {
-		name        string
-		operation   string
-		errorMsg    string
-		createAgent func() *agent.Agent
+		name         string
+		operation    string
+		createAgent  func() *agent.Agent
+		validateFunc func(any, error)
 	}{
 		{
 			name:      "hostname provider error",
 			operation: "hostname.get",
-			errorMsg:  "hostname unavailable",
 			createAgent: func() *agent.Agent {
 				hostMock := hostMocks.NewPlainMockProvider(s.mockCtrl)
 				hostMock.EXPECT().GetHostname().Return("", errors.New("hostname unavailable"))
@@ -809,11 +808,15 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "hostname unavailable")
+				s.Nil(result)
+			},
 		},
 		{
 			name:      "uptime provider error",
 			operation: "uptime.get",
-			errorMsg:  "uptime unavailable",
 			createAgent: func() *agent.Agent {
 				hostMock := hostMocks.NewPlainMockProvider(s.mockCtrl)
 				hostMock.EXPECT().
@@ -833,11 +836,15 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "uptime unavailable")
+				s.Nil(result)
+			},
 		},
 		{
 			name:      "OS info provider error",
 			operation: "os.get",
-			errorMsg:  "os info unavailable",
 			createAgent: func() *agent.Agent {
 				hostMock := hostMocks.NewPlainMockProvider(s.mockCtrl)
 				hostMock.EXPECT().GetOSInfo().Return(nil, errors.New("os info unavailable"))
@@ -855,11 +862,15 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "os info unavailable")
+				s.Nil(result)
+			},
 		},
 		{
 			name:      "disk provider error",
 			operation: "disk.get",
-			errorMsg:  "disk unavailable",
 			createAgent: func() *agent.Agent {
 				diskMock := diskMocks.NewPlainMockProvider(s.mockCtrl)
 				diskMock.EXPECT().GetLocalUsageStats().Return(nil, errors.New("disk unavailable"))
@@ -877,11 +888,15 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "disk unavailable")
+				s.Nil(result)
+			},
 		},
 		{
 			name:      "memory provider error",
 			operation: "memory.get",
-			errorMsg:  "memory unavailable",
 			createAgent: func() *agent.Agent {
 				memMock := memMocks.NewPlainMockProvider(s.mockCtrl)
 				memMock.EXPECT().GetStats().Return(nil, errors.New("memory unavailable"))
@@ -899,11 +914,15 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "memory unavailable")
+				s.Nil(result)
+			},
 		},
 		{
 			name:      "load provider error",
 			operation: "load.get",
-			errorMsg:  "load unavailable",
 			createAgent: func() *agent.Agent {
 				loadMock := loadMocks.NewPlainMockProvider(s.mockCtrl)
 				loadMock.EXPECT().GetAverageStats().Return(nil, errors.New("load unavailable"))
@@ -921,6 +940,11 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "load unavailable")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -934,30 +958,25 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 				Data:      json.RawMessage(`{}`),
 			}
 
-			result, err := agent.ExportProcessNodeOperation(a, request)
-
-			s.Error(err)
-			s.Contains(err.Error(), tt.errorMsg)
-			s.Nil(result)
+			tt.validateFunc(agent.ExportProcessNodeOperation(a, request))
 		})
 	}
 }
 
 func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 	tests := []struct {
-		name        string
-		operation   string
-		jobType     job.Type
-		data        string
-		errorMsg    string
-		createAgent func() *agent.Agent
+		name         string
+		operation    string
+		jobType      job.Type
+		data         string
+		createAgent  func() *agent.Agent
+		validateFunc func(any, error)
 	}{
 		{
 			name:      "DNS get error",
 			operation: "dns.get",
 			jobType:   job.TypeQuery,
 			data:      `{"interface": "eth0"}`,
-			errorMsg:  "DNS lookup failed",
 			createAgent: func() *agent.Agent {
 				dnsMock := dnsMocks.NewPlainMockProvider(s.mockCtrl)
 				dnsMock.EXPECT().
@@ -977,13 +996,17 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "DNS lookup failed")
+				s.Nil(result)
+			},
 		},
 		{
 			name:      "DNS update error",
 			operation: "dns.update",
 			jobType:   job.TypeModify,
 			data:      `{"servers": ["8.8.8.8"], "search_domains": ["example.com"], "interface": "eth0"}`,
-			errorMsg:  "DNS update failed",
 			createAgent: func() *agent.Agent {
 				dnsMock := dnsMocks.NewPlainMockProvider(s.mockCtrl)
 				dnsMock.EXPECT().
@@ -1003,13 +1026,17 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "DNS update failed")
+				s.Nil(result)
+			},
 		},
 		{
 			name:      "ping provider error",
 			operation: "ping.do",
 			jobType:   job.TypeQuery,
 			data:      `{"address": "8.8.8.8"}`,
-			errorMsg:  "ping failed",
 			createAgent: func() *agent.Agent {
 				pingMock := pingMocks.NewPlainMockProvider(s.mockCtrl)
 				pingMock.EXPECT().Do("8.8.8.8").Return(nil, errors.New("ping timeout"))
@@ -1027,6 +1054,11 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "ping failed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -1040,11 +1072,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 				Data:      json.RawMessage(tt.data),
 			}
 
-			result, err := agent.ExportProcessNetworkOperation(a, request)
-
-			s.Error(err)
-			s.Contains(err.Error(), tt.errorMsg)
-			s.Nil(result)
+			tt.validateFunc(agent.ExportProcessNetworkOperation(a, request))
 		})
 	}
 }
