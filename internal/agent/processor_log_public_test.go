@@ -68,12 +68,12 @@ func (s *ProcessorLogPublicTestSuite) newProcessor(
 
 func (s *ProcessorLogPublicTestSuite) TestProcessLogOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() log.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() log.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "nil provider returns error",
@@ -131,9 +131,7 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogOperation() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -141,12 +139,12 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogOperation() {
 
 func (s *ProcessorLogPublicTestSuite) TestProcessLogQuery() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() log.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() log.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "query with default opts (empty data)",
@@ -168,7 +166,7 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogQuery() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var entries []log.Entry
 				err := json.Unmarshal(result, &entries)
 				s.NoError(err)
@@ -199,7 +197,7 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogQuery() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var entries []log.Entry
 				err := json.Unmarshal(result, &entries)
 				s.NoError(err)
@@ -253,9 +251,7 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogQuery() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -263,12 +259,12 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogQuery() {
 
 func (s *ProcessorLogPublicTestSuite) TestProcessLogQueryUnit() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() log.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() log.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "queryUnit with unit name",
@@ -292,7 +288,7 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogQueryUnit() {
 					}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var entries []log.Entry
 				err := json.Unmarshal(result, &entries)
 				s.NoError(err)
@@ -347,9 +343,7 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogQueryUnit() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -357,12 +351,12 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogQueryUnit() {
 
 func (s *ProcessorLogPublicTestSuite) TestProcessLogSources() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() log.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() log.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "sources success",
@@ -378,7 +372,7 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogSources() {
 					Return([]string{"nginx", "sshd", "systemd"}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var sources []string
 				err := json.Unmarshal(result, &sources)
 				s.NoError(err)
@@ -416,9 +410,7 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogSources() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}

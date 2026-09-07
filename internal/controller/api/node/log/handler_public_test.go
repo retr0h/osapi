@@ -52,18 +52,18 @@ func (s *LogHandlerPublicTestSuite) TearDownTest() {
 
 func (s *LogHandlerPublicTestSuite) TestHandler() {
 	tests := []struct {
-		name     string
-		validate func([]func(e *echo.Echo))
+		name         string
+		validateFunc func([]func(e *echo.Echo))
 	}{
 		{
 			name: "returns handler functions",
-			validate: func(handlers []func(e *echo.Echo)) {
+			validateFunc: func(handlers []func(e *echo.Echo)) {
 				s.NotEmpty(handlers)
 			},
 		},
 		{
 			name: "closure registers routes and middleware executes",
-			validate: func(handlers []func(e *echo.Echo)) {
+			validateFunc: func(handlers []func(e *echo.Echo)) {
 				e := echo.New()
 				for _, h := range handlers {
 					h(e)
@@ -86,7 +86,7 @@ func (s *LogHandlerPublicTestSuite) TestHandler() {
 				nil,
 			)
 
-			tt.validate(handlers)
+			tt.validateFunc(handlers)
 		})
 	}
 }

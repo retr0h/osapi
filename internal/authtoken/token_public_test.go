@@ -65,12 +65,12 @@ func (s *AuthTokenPublicTestSuite) TestGenerate() {
 
 func (s *AuthTokenPublicTestSuite) TestValidate() {
 	tests := []struct {
-		name        string
-		tokenFunc   func() string
-		signingKey  string
-		expectError bool
-		errContains string
-		validate    func(*authtoken.CustomClaims)
+		name         string
+		tokenFunc    func() string
+		signingKey   string
+		expectError  bool
+		errContains  string
+		validateFunc func(*authtoken.CustomClaims)
 	}{
 		{
 			name: "valid token",
@@ -80,7 +80,7 @@ func (s *AuthTokenPublicTestSuite) TestValidate() {
 			},
 			signingKey:  s.signingKey,
 			expectError: false,
-			validate: func(claims *authtoken.CustomClaims) {
+			validateFunc: func(claims *authtoken.CustomClaims) {
 				s.Equal([]string{"admin"}, claims.Roles)
 				s.Equal("test-subject", claims.Subject)
 				s.Equal("osapi", claims.Issuer)
@@ -166,9 +166,7 @@ func (s *AuthTokenPublicTestSuite) TestValidate() {
 			} else {
 				s.NoError(err)
 				s.NotNil(claims)
-				if tt.validate != nil {
-					tt.validate(claims)
-				}
+				tt.validateFunc(claims)
 			}
 		})
 	}

@@ -51,12 +51,12 @@ func (s *ProcessorCommandPublicTestSuite) TearDownTest() {
 
 func (s *ProcessorCommandPublicTestSuite) TestProcessCommandOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func(*commandMocks.MockProvider)
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func(*commandMocks.MockProvider)
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "successful exec operation",
@@ -83,7 +83,7 @@ func (s *ProcessorCommandPublicTestSuite) TestProcessCommandOperation() {
 						DurationMs: 12,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r command.Result
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -115,7 +115,7 @@ func (s *ProcessorCommandPublicTestSuite) TestProcessCommandOperation() {
 						DurationMs: 5,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r command.Result
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -207,9 +207,7 @@ func (s *ProcessorCommandPublicTestSuite) TestProcessCommandOperation() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
