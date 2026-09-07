@@ -128,14 +128,23 @@ configuration changes. Generated files (`*.gen.go`, `*.pb.go`) are excluded from
 formatting.
 
 TypeScript and CSS in `ui/` are formatted by [Prettier] and linted by [ESLint].
-Markdown outside the Docusaurus site is formatted by [mdformat]; the site itself
-is formatted by Prettier through the `docusaurus` module.
 
 ```bash
 just react-fmt      # Auto-fix UI formatting
 just react-lint     # Run ESLint
-just md-fmt         # Format markdown outside the site
-just docusaurus-fmt # Format the site
+```
+
+### Documentation
+
+Markdown outside the Docusaurus site is formatted with [mdformat] through `uvx`.
+The site itself is formatted by Prettier through the `docusaurus` module. Both
+styles are enforced by CI.
+
+```bash
+just md-fmt-check         # Check formatting outside the site
+just md-fmt               # Auto-fix formatting outside the site
+just docusaurus-fmt-check # Check site formatting
+just docusaurus-fmt       # Auto-fix site formatting
 ```
 
 ## Code standards
@@ -237,6 +246,12 @@ Three doubles are written by hand, because generating them buys nothing:
 
 The conventions below are specific to OSAPI.
 
+### File headers
+
+Every `.go` file MUST start with the MIT license header. See any existing Go
+file in the repo for the exact format. Build-tagged files put `//go:build` on
+line 1, blank line, then the header.
+
 ### Logging
 
 All logging uses Go's `log/slog` structured logger.
@@ -302,6 +317,9 @@ module. Change both together.
   setter. Do not use an alias to re-cover behavior the caller's own test already
   reaches; a helper with its own contract is what the pattern is for.
 
+External tests in this repository live in a `_test` package beside the code they
+cover, and tables carry `validateFunc` callbacks.
+
 ### Test layers
 
 - **Unit tests** (`*_test.go`, `*_public_test.go`). Fast, mocked dependencies.
@@ -321,6 +339,8 @@ runs read-only tests by default; `OSAPI_INTEGRATION_WRITES=1` enables writes.
 
 - Use `export_test.go` to expose an unexported variable or function to the
   `_test` package, rather than writing an internal test or a hand-rolled stub.
+- The setter form is `SetXFn(fn)` with a matching `ResetXFn()`: the setter swaps
+  the dependency, the reset puts the original back.
 - Use `suite.TearDownSubTest()` to reset swapped variables between table-driven
   sub-tests, not `defer` inside the loop.
 - Platform stubs: test that the Darwin and Linux stubs return `ErrUnsupported`
@@ -414,13 +434,12 @@ layers, and SDK generation flow.
 ## Documentation
 
 OSAPI uses [Docusaurus] to host a documentation server. Content is written in
-Markdown under `docs/docs/`, wrapped at 80 characters.
+Markdown under `docs/docs/`, wrapped at 80 characters. Formatting is covered
+under [Code style](#documentation).
 
 ```bash
 just docusaurus-start     # Start local docs server
 just docusaurus-build     # Build docs for production
-just docusaurus-fmt-check # Check site formatting
-just md-fmt-check         # Check markdown outside the site
 ```
 
 ## Before committing
