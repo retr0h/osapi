@@ -424,6 +424,8 @@ func (s *ProcessorLogPublicTestSuite) TestProcessLogSources() {
 	}
 }
 
-func TestProcessorLogPublicTestSuite(t *testing.T) {
+func TestProcessorLogPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorLogPublicTestSuite))
 }

@@ -368,6 +368,8 @@ func (suite *HealthPublicTestSuite) TestStatus() {
 	}
 }
 
-func TestHealthPublicTestSuite(t *testing.T) {
+func TestHealthPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HealthPublicTestSuite))
 }

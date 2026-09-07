@@ -624,6 +624,8 @@ func (s *ConsumerPublicTestSuite) TestHandleJobMessageJS() {
 	}
 }
 
-func TestConsumerPublicTestSuite(t *testing.T) {
+func TestConsumerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ConsumerPublicTestSuite))
 }

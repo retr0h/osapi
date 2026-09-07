@@ -81,7 +81,9 @@ type newTestAgentParams struct {
 // newTestAgent builds a ProviderRegistry from the supplied providers and
 // constructs an Agent — replacing the old 19-argument agent.New() call used
 // across all test suites.
-func newTestAgent(p newTestAgentParams) *agent.Agent {
+func newTestAgent(
+	p newTestAgentParams,
+) *agent.Agent {
 	logger := p.logger
 	if logger == nil {
 		logger = slog.Default()

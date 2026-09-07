@@ -423,6 +423,8 @@ func (s *FactsPublicTestSuite) TestFactsKey() {
 	}
 }
 
-func TestFactsPublicTestSuite(t *testing.T) {
+func TestFactsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FactsPublicTestSuite))
 }

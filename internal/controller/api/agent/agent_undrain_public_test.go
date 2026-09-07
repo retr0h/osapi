@@ -462,6 +462,8 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentRBACHTTP() {
 	}
 }
 
-func TestAgentUndrainPublicTestSuite(t *testing.T) {
+func TestAgentUndrainPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentUndrainPublicTestSuite))
 }

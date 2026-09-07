@@ -597,6 +597,8 @@ func (s *CronDeletePublicTestSuite) TestDeleteNodeScheduleCronRBACHTTP() {
 	}
 }
 
-func TestCronDeletePublicTestSuite(t *testing.T) {
+func TestCronDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CronDeletePublicTestSuite))
 }

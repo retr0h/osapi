@@ -852,6 +852,8 @@ func (s *WatcherPublicTestSuite) TestStart() {
 	}
 }
 
-func TestWatcherPublicTestSuite(t *testing.T) {
+func TestWatcherPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(WatcherPublicTestSuite))
 }

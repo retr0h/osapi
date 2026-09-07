@@ -77,6 +77,8 @@ func (s *TransportPublicTestSuite) TestRoundTripError() {
 	}
 }
 
-func TestTransportPublicTestSuite(t *testing.T) {
+func TestTransportPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(TransportPublicTestSuite))
 }

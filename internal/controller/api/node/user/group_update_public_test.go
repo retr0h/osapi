@@ -428,6 +428,8 @@ func (s *GroupUpdatePublicTestSuite) TestPutNodeGroupRBACHTTP() {
 	}
 }
 
-func TestGroupUpdatePublicTestSuite(t *testing.T) {
+func TestGroupUpdatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(GroupUpdatePublicTestSuite))
 }

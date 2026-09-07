@@ -61,6 +61,8 @@ func (suite *LinuxGetUptimePublicTestSuite) TestGetUptime() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetUptimePublicTestSuite(t *testing.T) {
+func TestLinuxGetUptimePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetUptimePublicTestSuite))
 }

@@ -41,7 +41,9 @@ type NATSPublicTestSuite struct {
 	ctrl *gomock.Controller
 }
 
-func TestNATSPublicTestSuite(t *testing.T) {
+func TestNATSPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NATSPublicTestSuite))
 }
 

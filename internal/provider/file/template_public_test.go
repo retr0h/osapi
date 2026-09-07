@@ -243,6 +243,8 @@ func (suite *TemplatePublicTestSuite) TestDeployTemplate() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestTemplatePublicTestSuite(t *testing.T) {
+func TestTemplatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(TemplatePublicTestSuite))
 }

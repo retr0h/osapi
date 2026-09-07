@@ -380,6 +380,8 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameRBACHTTP() {
 	}
 }
 
-func TestFileDeletePublicTestSuite(t *testing.T) {
+func TestFileDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileDeletePublicTestSuite))
 }

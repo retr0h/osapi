@@ -424,6 +424,8 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessSignal() {
 	}
 }
 
-func TestProcessorProcessPublicTestSuite(t *testing.T) {
+func TestProcessorProcessPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorProcessPublicTestSuite))
 }

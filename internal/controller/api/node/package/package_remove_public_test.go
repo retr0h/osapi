@@ -492,6 +492,8 @@ func (s *PackageRemovePublicTestSuite) TestDeleteNodePackageRBACHTTP() {
 	}
 }
 
-func TestPackageRemovePublicTestSuite(t *testing.T) {
+func TestPackageRemovePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PackageRemovePublicTestSuite))
 }

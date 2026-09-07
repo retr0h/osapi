@@ -375,7 +375,9 @@ func (suite *UserSSHKeyTypesPublicTestSuite) TestSSHKeyMutationResultFromGen() {
 	}
 }
 
-func TestUserSSHKeyTypesPublicTestSuite(t *testing.T) {
+func TestUserSSHKeyTypesPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(UserSSHKeyTypesPublicTestSuite))
 }

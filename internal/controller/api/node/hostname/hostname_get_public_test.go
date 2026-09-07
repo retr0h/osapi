@@ -518,6 +518,8 @@ func (s *HostnameGetPublicTestSuite) TestGetNodeHostnameRBACHTTP() {
 	}
 }
 
-func TestHostnameGetPublicTestSuite(t *testing.T) {
+func TestHostnameGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HostnameGetPublicTestSuite))
 }

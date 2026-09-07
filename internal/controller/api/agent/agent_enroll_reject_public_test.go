@@ -347,6 +347,8 @@ func (s *AgentEnrollRejectPublicTestSuite) TestRejectAgentRBACHTTP() {
 	}
 }
 
-func TestAgentEnrollRejectPublicTestSuite(t *testing.T) {
+func TestAgentEnrollRejectPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentEnrollRejectPublicTestSuite))
 }

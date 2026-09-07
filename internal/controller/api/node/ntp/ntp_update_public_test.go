@@ -590,6 +590,8 @@ func (s *NtpUpdatePublicTestSuite) TestPutNodeNtpRBACHTTP() {
 	}
 }
 
-func TestNtpUpdatePublicTestSuite(t *testing.T) {
+func TestNtpUpdatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NtpUpdatePublicTestSuite))
 }

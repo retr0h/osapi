@@ -536,6 +536,8 @@ func (s *ContainerRemovePublicTestSuite) TestDeleteNodeContainerDockerByIDRBACHT
 	}
 }
 
-func TestContainerRemovePublicTestSuite(t *testing.T) {
+func TestContainerRemovePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerRemovePublicTestSuite))
 }

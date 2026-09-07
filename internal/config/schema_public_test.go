@@ -181,6 +181,8 @@ func (s *ConfigPublicTestSuite) TestValidateRegisterValidatorsError() {
 	}
 }
 
-func TestConfigPublicTestSuite(t *testing.T) {
+func TestConfigPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ConfigPublicTestSuite))
 }

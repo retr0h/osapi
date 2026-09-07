@@ -688,6 +688,8 @@ func (s *NetworkPingPostPublicTestSuite) TestDurationToString() {
 	}
 }
 
-func TestNetworkPingPostPublicTestSuite(t *testing.T) {
+func TestNetworkPingPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkPingPostPublicTestSuite))
 }

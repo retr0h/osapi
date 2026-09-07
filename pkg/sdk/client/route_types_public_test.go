@@ -399,6 +399,8 @@ func (suite *RouteTypesPublicTestSuite) TestRouteMutationCollectionFromDelete() 
 	}
 }
 
-func TestRouteTypesPublicTestSuite(t *testing.T) {
+func TestRouteTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(RouteTypesPublicTestSuite))
 }

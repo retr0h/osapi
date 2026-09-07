@@ -699,6 +699,8 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 	}
 }
 
-func TestProcessorDockerPublicTestSuite(t *testing.T) {
+func TestProcessorDockerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorDockerPublicTestSuite))
 }

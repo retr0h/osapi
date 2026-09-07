@@ -488,6 +488,8 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceRBACHT
 	}
 }
 
-func TestNetworkInterfaceUpdatePutPublicTestSuite(t *testing.T) {
+func TestNetworkInterfaceUpdatePutPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkInterfaceUpdatePutPublicTestSuite))
 }

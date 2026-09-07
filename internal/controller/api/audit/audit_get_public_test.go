@@ -324,6 +324,8 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDRBACHTTP() {
 	}
 }
 
-func TestAuditGetPublicTestSuite(t *testing.T) {
+func TestAuditGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuditGetPublicTestSuite))
 }

@@ -495,6 +495,8 @@ func (suite *JobPublicTestSuite) TestRetry() {
 	}
 }
 
-func TestJobPublicTestSuite(t *testing.T) {
+func TestJobPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(JobPublicTestSuite))
 }

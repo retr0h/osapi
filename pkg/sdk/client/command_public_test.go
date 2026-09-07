@@ -314,6 +314,8 @@ func (suite *CommandPublicTestSuite) TestShell() {
 	}
 }
 
-func TestCommandPublicTestSuite(t *testing.T) {
+func TestCommandPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CommandPublicTestSuite))
 }

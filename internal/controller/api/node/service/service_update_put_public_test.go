@@ -541,6 +541,8 @@ func (s *ServiceUpdatePutPublicTestSuite) TestPutNodeServiceRBACHTTP() {
 	}
 }
 
-func TestServiceUpdatePutPublicTestSuite(t *testing.T) {
+func TestServiceUpdatePutPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServiceUpdatePutPublicTestSuite))
 }

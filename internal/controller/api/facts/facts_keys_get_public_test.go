@@ -217,6 +217,8 @@ func (s *FactsKeysGetPublicTestSuite) TestGetFactKeysRBACHTTP() {
 	}
 }
 
-func TestFactsKeysGetPublicTestSuite(t *testing.T) {
+func TestFactsKeysGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FactsKeysGetPublicTestSuite))
 }

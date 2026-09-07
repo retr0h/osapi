@@ -515,6 +515,8 @@ func (s *ProcessListPublicTestSuite) TestGetNodeProcessRBACHTTP() {
 	}
 }
 
-func TestProcessListPublicTestSuite(t *testing.T) {
+func TestProcessListPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessListPublicTestSuite))
 }

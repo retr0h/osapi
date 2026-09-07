@@ -572,7 +572,9 @@ func (suite *NetplanPublicTestSuite) TestComputeSHA256() {
 	}
 }
 
-func TestNetplanPublicTestSuite(t *testing.T) {
+func TestNetplanPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	suite.Run(t, new(NetplanPublicTestSuite))

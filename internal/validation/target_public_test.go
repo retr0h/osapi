@@ -507,6 +507,8 @@ func (s *TargetPublicTestSuite) TestValidTargetMatchesMachineID() {
 	s.True(ok)
 }
 
-func TestTargetPublicTestSuite(t *testing.T) {
+func TestTargetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(TargetPublicTestSuite))
 }

@@ -615,6 +615,8 @@ func (s *ConditionPublicTestSuite) TestLastTransitionTimeTracking() {
 	}
 }
 
-func TestConditionPublicTestSuite(t *testing.T) {
+func TestConditionPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ConditionPublicTestSuite))
 }

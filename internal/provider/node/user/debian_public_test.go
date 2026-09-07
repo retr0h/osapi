@@ -83,7 +83,9 @@ func (suite *DebianPublicTestSuite) TearDownTest() {
 	suite.ctrl.Finish()
 }
 
-func (suite *DebianPublicTestSuite) writePasswd(content string) {
+func (suite *DebianPublicTestSuite) writePasswd(
+	content string,
+) {
 	_ = suite.memFs.MkdirAll("/etc", 0o755)
 
 	f, err := suite.memFs.Create("/etc/passwd")
@@ -94,7 +96,9 @@ func (suite *DebianPublicTestSuite) writePasswd(content string) {
 	suite.Require().NoError(f.Close())
 }
 
-func (suite *DebianPublicTestSuite) writeGroup(content string) {
+func (suite *DebianPublicTestSuite) writeGroup(
+	content string,
+) {
 	_ = suite.memFs.MkdirAll("/etc", 0o755)
 
 	f, err := suite.memFs.Create("/etc/group")
@@ -1084,6 +1088,8 @@ func (suite *DebianPublicTestSuite) TestDeleteGroup() {
 	}
 }
 
-func TestDebianPublicTestSuite(t *testing.T) {
+func TestDebianPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianPublicTestSuite))
 }

@@ -269,6 +269,8 @@ func (s *AuditTypesPublicTestSuite) TestAuditListFromGen() {
 	}
 }
 
-func TestAuditTypesPublicTestSuite(t *testing.T) {
+func TestAuditTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuditTypesPublicTestSuite))
 }

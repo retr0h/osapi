@@ -212,6 +212,8 @@ func (s *AuthTokenPublicTestSuite) TestGenerateAndValidateRoundTrip() {
 	}
 }
 
-func TestAuthTokenPublicTestSuite(t *testing.T) {
+func TestAuthTokenPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuthTokenPublicTestSuite))
 }

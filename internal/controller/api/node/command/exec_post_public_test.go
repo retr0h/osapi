@@ -696,6 +696,8 @@ func (s *CommandExecPostPublicTestSuite) TestPostCommandExecRBACHTTP() {
 	}
 }
 
-func TestCommandExecPostPublicTestSuite(t *testing.T) {
+func TestCommandExecPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CommandExecPostPublicTestSuite))
 }

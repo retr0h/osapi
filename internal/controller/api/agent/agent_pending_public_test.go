@@ -322,6 +322,8 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingRBACHTTP() {
 	}
 }
 
-func TestAgentPendingPublicTestSuite(t *testing.T) {
+func TestAgentPendingPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentPendingPublicTestSuite))
 }

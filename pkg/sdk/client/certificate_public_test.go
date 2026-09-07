@@ -841,6 +841,8 @@ func (suite *CertificatePublicTestSuite) TestCertificateDelete() {
 	}
 }
 
-func TestCertificatePublicTestSuite(t *testing.T) {
+func TestCertificatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CertificatePublicTestSuite))
 }

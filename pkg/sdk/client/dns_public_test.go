@@ -492,6 +492,8 @@ func (suite *DNSPublicTestSuite) TestDelete() {
 	}
 }
 
-func TestDNSPublicTestSuite(t *testing.T) {
+func TestDNSPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DNSPublicTestSuite))
 }

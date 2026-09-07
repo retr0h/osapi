@@ -109,6 +109,8 @@ func (suite *HostnameTypesPublicTestSuite) TestHostnameCollectionFromGen() {
 	}
 }
 
-func TestHostnameTypesPublicTestSuite(t *testing.T) {
+func TestHostnameTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HostnameTypesPublicTestSuite))
 }

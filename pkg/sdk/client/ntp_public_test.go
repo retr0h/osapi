@@ -771,6 +771,8 @@ func (suite *NTPPublicTestSuite) TestNtpDelete() {
 	}
 }
 
-func TestNTPPublicTestSuite(t *testing.T) {
+func TestNTPPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NTPPublicTestSuite))
 }

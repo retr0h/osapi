@@ -660,6 +660,8 @@ func (s *CACreatePostPublicTestSuite) TestPostNodeCertificateCaRBACHTTP() {
 	}
 }
 
-func TestCACreatePostPublicTestSuite(t *testing.T) {
+func TestCACreatePostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CACreatePostPublicTestSuite))
 }

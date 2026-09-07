@@ -393,6 +393,8 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerShutdown() {
 	}
 }
 
-func TestProcessorPowerPublicTestSuite(t *testing.T) {
+func TestProcessorPowerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorPowerPublicTestSuite))
 }

@@ -1186,6 +1186,8 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageWithSignedEnvelope() {
 
 func boolPtr(b bool) *bool { return &b }
 
-func TestHandlerPublicTestSuite(t *testing.T) {
+func TestHandlerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HandlerPublicTestSuite))
 }

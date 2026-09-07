@@ -326,6 +326,8 @@ func (s *PropagationPublicTestSuite) TestMapCarrierKeys() {
 	}
 }
 
-func TestPropagationPublicTestSuite(t *testing.T) {
+func TestPropagationPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PropagationPublicTestSuite))
 }

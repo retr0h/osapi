@@ -790,6 +790,8 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSRBACHTTP() {
 	}
 }
 
-func TestNetworkDNSPutByInterfacePublicTestSuite(t *testing.T) {
+func TestNetworkDNSPutByInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkDNSPutByInterfacePublicTestSuite))
 }

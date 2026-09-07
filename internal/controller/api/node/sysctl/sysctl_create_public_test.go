@@ -593,6 +593,8 @@ func (s *SysctlCreatePublicTestSuite) TestPostNodeSysctlRBACHTTP() {
 	}
 }
 
-func TestSysctlCreatePublicTestSuite(t *testing.T) {
+func TestSysctlCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SysctlCreatePublicTestSuite))
 }

@@ -570,6 +570,8 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceDelete() {
 	}
 }
 
-func TestProcessorInterfacePublicTestSuite(t *testing.T) {
+func TestProcessorInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorInterfacePublicTestSuite))
 }

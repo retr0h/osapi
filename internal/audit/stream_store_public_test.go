@@ -668,6 +668,8 @@ func (s *StreamStorePublicTestSuite) TestListAll() {
 	}
 }
 
-func TestStreamStorePublicTestSuite(t *testing.T) {
+func TestStreamStorePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(StreamStorePublicTestSuite))
 }

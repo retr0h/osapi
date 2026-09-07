@@ -521,6 +521,8 @@ func (s *ContainerInspectPublicTestSuite) TestGetNodeContainerDockerByIDRBACHTTP
 	}
 }
 
-func TestContainerInspectPublicTestSuite(t *testing.T) {
+func TestContainerInspectPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerInspectPublicTestSuite))
 }

@@ -450,6 +450,8 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserRBACHTTP() {
 	}
 }
 
-func TestUserCreatePublicTestSuite(t *testing.T) {
+func TestUserCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UserCreatePublicTestSuite))
 }

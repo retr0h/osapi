@@ -684,6 +684,8 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerRBACHTTP() {
 	}
 }
 
-func TestContainerCreatePublicTestSuite(t *testing.T) {
+func TestContainerCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerCreatePublicTestSuite))
 }

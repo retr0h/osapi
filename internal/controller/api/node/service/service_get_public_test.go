@@ -598,6 +598,8 @@ func (s *ServiceGetPublicTestSuite) TestGetNodeServiceByNameRBACHTTP() {
 	}
 }
 
-func TestServiceGetPublicTestSuite(t *testing.T) {
+func TestServiceGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServiceGetPublicTestSuite))
 }

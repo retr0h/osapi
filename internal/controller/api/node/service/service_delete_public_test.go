@@ -431,6 +431,8 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceRBACHTTP() {
 	}
 }
 
-func TestServiceDeletePublicTestSuite(t *testing.T) {
+func TestServiceDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServiceDeletePublicTestSuite))
 }

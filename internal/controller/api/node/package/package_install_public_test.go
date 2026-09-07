@@ -465,6 +465,8 @@ func (s *PackageInstallPublicTestSuite) TestPostNodePackageRBACHTTP() {
 	}
 }
 
-func TestPackageInstallPublicTestSuite(t *testing.T) {
+func TestPackageInstallPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PackageInstallPublicTestSuite))
 }

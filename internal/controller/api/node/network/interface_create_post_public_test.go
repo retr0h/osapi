@@ -568,6 +568,8 @@ func (s *NetworkInterfaceCreatePostPublicTestSuite) TestPostNetworkInterfaceRBAC
 	}
 }
 
-func TestNetworkInterfaceCreatePostPublicTestSuite(t *testing.T) {
+func TestNetworkInterfaceCreatePostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkInterfaceCreatePostPublicTestSuite))
 }

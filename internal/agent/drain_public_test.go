@@ -257,6 +257,8 @@ func (s *DrainPublicTestSuite) TestHandleDrainDetection() {
 	}
 }
 
-func TestDrainPublicTestSuite(t *testing.T) {
+func TestDrainPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DrainPublicTestSuite))
 }

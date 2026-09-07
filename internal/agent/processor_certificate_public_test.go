@@ -407,6 +407,8 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateCAOperation(
 	}
 }
 
-func TestProcessorCertificatePublicTestSuite(t *testing.T) {
+func TestProcessorCertificatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorCertificatePublicTestSuite))
 }

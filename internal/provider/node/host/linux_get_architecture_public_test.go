@@ -60,6 +60,8 @@ func (suite *LinuxGetArchitecturePublicTestSuite) TestGetArchitecture() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetArchitecturePublicTestSuite(t *testing.T) {
+func TestLinuxGetArchitecturePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetArchitecturePublicTestSuite))
 }

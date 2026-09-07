@@ -98,7 +98,9 @@ func (suite *TypesPublicTestSuite) TestEnrollmentStateValues() {
 	}
 }
 
-func TestTypesPublicTestSuite(t *testing.T) {
+func TestTypesPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(TypesPublicTestSuite))
 }

@@ -43,7 +43,9 @@ type PreflightPublicTestSuite struct {
 	tmpDir      string
 }
 
-func TestPreflightPublicTestSuite(t *testing.T) {
+func TestPreflightPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PreflightPublicTestSuite))
 }
 

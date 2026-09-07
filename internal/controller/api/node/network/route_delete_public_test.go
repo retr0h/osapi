@@ -355,6 +355,8 @@ func (s *NetworkRouteDeletePublicTestSuite) TestDeleteNetworkRouteRBACHTTP() {
 	}
 }
 
-func TestNetworkRouteDeletePublicTestSuite(t *testing.T) {
+func TestNetworkRouteDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkRouteDeletePublicTestSuite))
 }

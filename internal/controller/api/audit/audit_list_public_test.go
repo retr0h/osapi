@@ -478,6 +478,8 @@ func (s *AuditListPublicTestSuite) TestGetAuditLogsRBACHTTP() {
 	}
 }
 
-func TestAuditListPublicTestSuite(t *testing.T) {
+func TestAuditListPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuditListPublicTestSuite))
 }

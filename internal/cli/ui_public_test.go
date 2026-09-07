@@ -42,7 +42,9 @@ type UIPublicTestSuite struct {
 	suite.Suite
 }
 
-func TestUIPublicTestSuite(t *testing.T) {
+func TestUIPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UIPublicTestSuite))
 }
 

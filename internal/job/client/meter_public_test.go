@@ -102,7 +102,9 @@ func (s *MeterPublicTestSuite) TestSetMeterProvider() {
 	}
 }
 
-func TestMeterPublicTestSuite(t *testing.T) {
+func TestMeterPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(MeterPublicTestSuite))
 }

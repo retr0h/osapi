@@ -594,6 +594,8 @@ func (s *NetworkDNSGetByInterfacePublicTestSuite) TestGetNetworkDNSByInterfaceRB
 	}
 }
 
-func TestNetworkDNSGetByInterfacePublicTestSuite(t *testing.T) {
+func TestNetworkDNSGetByInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkDNSGetByInterfacePublicTestSuite))
 }

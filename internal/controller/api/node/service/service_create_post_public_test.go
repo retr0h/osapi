@@ -657,6 +657,8 @@ func (s *ServiceCreatePostPublicTestSuite) TestPostNodeServiceRBACHTTP() {
 	}
 }
 
-func TestServiceCreatePostPublicTestSuite(t *testing.T) {
+func TestServiceCreatePostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServiceCreatePostPublicTestSuite))
 }

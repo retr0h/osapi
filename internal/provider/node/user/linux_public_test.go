@@ -332,6 +332,8 @@ func (suite *LinuxPublicTestSuite) TestRemoveKey() {
 	}
 }
 
-func TestLinuxPublicTestSuite(t *testing.T) {
+func TestLinuxPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxPublicTestSuite))
 }

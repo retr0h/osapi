@@ -181,6 +181,8 @@ func (s *HealthReadyGetPublicTestSuite) TestGetHealthReadyHTTP() {
 	}
 }
 
-func TestHealthReadyGetPublicTestSuite(t *testing.T) {
+func TestHealthReadyGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HealthReadyGetPublicTestSuite))
 }

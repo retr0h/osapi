@@ -415,6 +415,8 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareInjectsIdentity() {
 	}
 }
 
-func TestMiddlewarePublicTestSuite(t *testing.T) {
+func TestMiddlewarePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(MiddlewarePublicTestSuite))
 }

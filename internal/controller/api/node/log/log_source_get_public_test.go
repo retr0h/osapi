@@ -480,6 +480,8 @@ func (s *LogSourcePublicTestSuite) TestGetNodeLogSourceRBACHTTP() {
 	}
 }
 
-func TestLogSourcePublicTestSuite(t *testing.T) {
+func TestLogSourcePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogSourcePublicTestSuite))
 }

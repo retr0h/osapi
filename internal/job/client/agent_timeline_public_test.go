@@ -499,6 +499,8 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 	}
 }
 
-func TestAgentTimelinePublicTestSuite(t *testing.T) {
+func TestAgentTimelinePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentTimelinePublicTestSuite))
 }

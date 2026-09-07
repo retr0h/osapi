@@ -467,6 +467,8 @@ func (s *NetworkRouteListGetPublicTestSuite) TestGetNetworkRouteListRBACHTTP() {
 	}
 }
 
-func TestNetworkRouteListGetPublicTestSuite(t *testing.T) {
+func TestNetworkRouteListGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkRouteListGetPublicTestSuite))
 }

@@ -560,6 +560,8 @@ func (s *AgentPublicTestSuite) TestLastHeartbeatTime() {
 	}
 }
 
-func TestAgentPublicTestSuite(t *testing.T) {
+func TestAgentPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentPublicTestSuite))
 }

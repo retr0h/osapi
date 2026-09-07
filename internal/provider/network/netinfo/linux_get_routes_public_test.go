@@ -243,6 +243,8 @@ func (suite *GetRoutesPublicTestSuite) TestGetPrimaryInterface() {
 	}
 }
 
-func TestGetRoutesPublicTestSuite(t *testing.T) {
+func TestGetRoutesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(GetRoutesPublicTestSuite))
 }

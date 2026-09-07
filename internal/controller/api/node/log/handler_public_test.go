@@ -91,6 +91,8 @@ func (s *LogHandlerPublicTestSuite) TestHandler() {
 	}
 }
 
-func TestLogHandlerPublicTestSuite(t *testing.T) {
+func TestLogHandlerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogHandlerPublicTestSuite))
 }

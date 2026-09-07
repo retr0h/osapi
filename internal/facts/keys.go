@@ -56,7 +56,9 @@ func BuiltInKeys() []string {
 // IsKnownKey reports whether key is a recognized fact key.
 // Known keys are the built-in keys plus any key with the "custom."
 // prefix followed by at least one character.
-func IsKnownKey(key string) bool {
+func IsKnownKey(
+	key string,
+) bool {
 	switch key {
 	case KeyInterfacePrimary, KeyHostname, KeyArch, KeyKernel, KeyFQDN, KeyContainerized:
 		return true
@@ -67,6 +69,8 @@ func IsKnownKey(key string) bool {
 
 // IsCustomKey reports whether key is a valid custom fact key
 // (starts with "custom." and has at least one character after the prefix).
-func IsCustomKey(key string) bool {
+func IsCustomKey(
+	key string,
+) bool {
 	return strings.HasPrefix(key, CustomPrefix) && len(key) > len(CustomPrefix)
 }

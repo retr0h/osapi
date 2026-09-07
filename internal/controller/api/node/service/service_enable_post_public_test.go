@@ -446,6 +446,8 @@ func (s *ServiceEnablePostPublicTestSuite) TestPostNodeServiceEnableRBACHTTP() {
 	}
 }
 
-func TestServiceEnablePostPublicTestSuite(t *testing.T) {
+func TestServiceEnablePostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServiceEnablePostPublicTestSuite))
 }

@@ -36,7 +36,9 @@ type LifecyclePublicTestSuite struct {
 	suite.Suite
 }
 
-func TestLifecyclePublicTestSuite(t *testing.T) {
+func TestLifecyclePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LifecyclePublicTestSuite))
 }
 

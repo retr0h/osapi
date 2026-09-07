@@ -363,6 +363,8 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsRBACHTTP() {
 	}
 }
 
-func TestAgentGetPublicTestSuite(t *testing.T) {
+func TestAgentGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentGetPublicTestSuite))
 }

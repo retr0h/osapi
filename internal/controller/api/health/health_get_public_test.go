@@ -124,6 +124,8 @@ func (s *HealthGetPublicTestSuite) TestGetHealthHTTP() {
 	}
 }
 
-func TestHealthGetPublicTestSuite(t *testing.T) {
+func TestHealthGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HealthGetPublicTestSuite))
 }

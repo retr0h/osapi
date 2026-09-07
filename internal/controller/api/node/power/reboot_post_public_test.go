@@ -550,7 +550,9 @@ func (s *RebootPostPublicTestSuite) TestPostNodePowerRebootRBACHTTP() {
 	}
 }
 
-func TestRebootPostPublicTestSuite(t *testing.T) {
+func TestRebootPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(RebootPostPublicTestSuite))
 }
 

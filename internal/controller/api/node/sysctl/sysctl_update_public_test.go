@@ -604,6 +604,8 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlRBACHTTP() {
 	}
 }
 
-func TestSysctlUpdatePublicTestSuite(t *testing.T) {
+func TestSysctlUpdatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SysctlUpdatePublicTestSuite))
 }

@@ -1141,6 +1141,8 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupDelete() {
 	}
 }
 
-func TestProcessorUserPublicTestSuite(t *testing.T) {
+func TestProcessorUserPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorUserPublicTestSuite))
 }

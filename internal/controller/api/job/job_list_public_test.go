@@ -545,6 +545,8 @@ func (s *JobListPublicTestSuite) TestListJobsRBACHTTP() {
 	}
 }
 
-func TestJobListPublicTestSuite(t *testing.T) {
+func TestJobListPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(JobListPublicTestSuite))
 }

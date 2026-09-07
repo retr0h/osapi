@@ -401,6 +401,8 @@ func (s *FactRefPublicTestSuite) TestResolveFacts() {
 	}
 }
 
-func TestFactRefPublicTestSuite(t *testing.T) {
+func TestFactRefPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FactRefPublicTestSuite))
 }

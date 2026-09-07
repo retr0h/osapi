@@ -771,6 +771,8 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCronRBACHTTP() {
 	}
 }
 
-func TestCronCreatePublicTestSuite(t *testing.T) {
+func TestCronCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CronCreatePublicTestSuite))
 }

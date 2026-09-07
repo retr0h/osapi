@@ -435,6 +435,8 @@ func (s *NetworkDNSDeletePublicTestSuite) TestDeleteNetworkDNSRBACHTTP() {
 	}
 }
 
-func TestNetworkDNSDeletePublicTestSuite(t *testing.T) {
+func TestNetworkDNSDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkDNSDeletePublicTestSuite))
 }

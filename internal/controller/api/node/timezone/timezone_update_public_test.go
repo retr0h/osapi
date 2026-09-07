@@ -548,6 +548,8 @@ func (s *TimezoneUpdatePublicTestSuite) TestPutNodeTimezoneRBACHTTP() {
 	}
 }
 
-func TestTimezoneUpdatePublicTestSuite(t *testing.T) {
+func TestTimezoneUpdatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(TimezoneUpdatePublicTestSuite))
 }

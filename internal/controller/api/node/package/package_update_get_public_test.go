@@ -470,6 +470,8 @@ func (s *PackageUpdateGetPublicTestSuite) TestGetNodePackageUpdateRBACHTTP() {
 	}
 }
 
-func TestPackageUpdateGetPublicTestSuite(t *testing.T) {
+func TestPackageUpdateGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PackageUpdateGetPublicTestSuite))
 }

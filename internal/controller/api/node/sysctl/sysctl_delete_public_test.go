@@ -551,6 +551,8 @@ func (s *SysctlDeletePublicTestSuite) TestDeleteNodeSysctlRBACHTTP() {
 	}
 }
 
-func TestSysctlDeletePublicTestSuite(t *testing.T) {
+func TestSysctlDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SysctlDeletePublicTestSuite))
 }

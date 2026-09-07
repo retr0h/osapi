@@ -549,6 +549,8 @@ func (s *SysctlListGetPublicTestSuite) TestGetNodeSysctlRBACHTTP() {
 	}
 }
 
-func TestSysctlListGetPublicTestSuite(t *testing.T) {
+func TestSysctlListGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SysctlListGetPublicTestSuite))
 }

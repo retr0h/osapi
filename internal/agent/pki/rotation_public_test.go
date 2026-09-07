@@ -251,7 +251,9 @@ func (suite *RotationPublicTestSuite) TestPreviousControllerPublicKey() {
 	}
 }
 
-func TestRotationPublicTestSuite(t *testing.T) {
+func TestRotationPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(RotationPublicTestSuite))
 }

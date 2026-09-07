@@ -573,6 +573,8 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopRBACHTTP()
 	}
 }
 
-func TestContainerStopPublicTestSuite(t *testing.T) {
+func TestContainerStopPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerStopPublicTestSuite))
 }

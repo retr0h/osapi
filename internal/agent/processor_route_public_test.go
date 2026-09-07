@@ -586,6 +586,8 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteDelete() {
 	}
 }
 
-func TestProcessorRoutePublicTestSuite(t *testing.T) {
+func TestProcessorRoutePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorRoutePublicTestSuite))
 }

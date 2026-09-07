@@ -492,6 +492,8 @@ func (suite *FileDeployPublicTestSuite) TestUndeploy() {
 	}
 }
 
-func TestFileDeployPublicTestSuite(t *testing.T) {
+func TestFileDeployPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileDeployPublicTestSuite))
 }

@@ -289,6 +289,8 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDRBACHTTP() {
 	}
 }
 
-func TestJobDeletePublicTestSuite(t *testing.T) {
+func TestJobDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(JobDeletePublicTestSuite))
 }

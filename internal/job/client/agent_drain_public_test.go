@@ -346,6 +346,8 @@ func (s *AgentDrainPublicTestSuite) TestOverlayDrainState() {
 	}
 }
 
-func TestAgentDrainPublicTestSuite(t *testing.T) {
+func TestAgentDrainPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentDrainPublicTestSuite))
 }

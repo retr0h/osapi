@@ -599,6 +599,8 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameRBACHTTP() {
 	}
 }
 
-func TestHostnamePutPublicTestSuite(t *testing.T) {
+func TestHostnamePutPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HostnamePutPublicTestSuite))
 }

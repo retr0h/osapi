@@ -420,6 +420,8 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDRBACHTTP() {
 	}
 }
 
-func TestJobRetryPublicTestSuite(t *testing.T) {
+func TestJobRetryPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(JobRetryPublicTestSuite))
 }

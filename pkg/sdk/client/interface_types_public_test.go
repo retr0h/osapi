@@ -418,6 +418,8 @@ func (suite *InterfaceTypesPublicTestSuite) TestInterfaceMutationCollectionFromD
 	}
 }
 
-func TestInterfaceTypesPublicTestSuite(t *testing.T) {
+func TestInterfaceTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(InterfaceTypesPublicTestSuite))
 }

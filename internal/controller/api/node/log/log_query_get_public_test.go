@@ -547,6 +547,8 @@ func (s *LogQueryPublicTestSuite) TestGetNodeLogRBACHTTP() {
 func intPtr(i int) *int          { return &i }
 func stringPtr(s string) *string { return &s }
 
-func TestLogQueryPublicTestSuite(t *testing.T) {
+func TestLogQueryPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogQueryPublicTestSuite))
 }

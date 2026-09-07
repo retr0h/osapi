@@ -952,6 +952,8 @@ func (suite *PackagePublicTestSuite) TestPackageListUpdates() {
 	}
 }
 
-func TestPackagePublicTestSuite(t *testing.T) {
+func TestPackagePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PackagePublicTestSuite))
 }

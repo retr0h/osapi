@@ -468,6 +468,8 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyRBACHTTP() {
 	}
 }
 
-func TestSSHKeyDeletePublicTestSuite(t *testing.T) {
+func TestSSHKeyDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SSHKeyDeletePublicTestSuite))
 }

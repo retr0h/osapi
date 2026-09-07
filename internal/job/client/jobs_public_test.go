@@ -2343,6 +2343,8 @@ func (s *JobsPublicTestSuite) TestGetJobStatusWithPKISigner() {
 	}
 }
 
-func TestJobsPublicTestSuite(t *testing.T) {
+func TestJobsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(JobsPublicTestSuite))
 }

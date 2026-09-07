@@ -458,6 +458,8 @@ func (s *UserUpdatePublicTestSuite) TestPutNodeUserRBACHTTP() {
 	}
 }
 
-func TestUserUpdatePublicTestSuite(t *testing.T) {
+func TestUserUpdatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UserUpdatePublicTestSuite))
 }

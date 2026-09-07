@@ -92,6 +92,8 @@ func (suite *DebianGetFQDNPublicTestSuite) TestGetFQDN() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDebianGetFQDNPublicTestSuite(t *testing.T) {
+func TestDebianGetFQDNPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianGetFQDNPublicTestSuite))
 }

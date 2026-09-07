@@ -648,12 +648,16 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleRBACHTTP() {
 	}
 }
 
-func TestFileStalePublicTestSuite(t *testing.T) {
+func TestFileStalePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileStalePublicTestSuite))
 }
 
 // sha256Hex returns the hex-encoded SHA-256 digest of data.
-func sha256Hex(data []byte) string {
+func sha256Hex(
+	data []byte,
+) string {
 	h := sha256.Sum256(data)
 
 	return hex.EncodeToString(h[:])

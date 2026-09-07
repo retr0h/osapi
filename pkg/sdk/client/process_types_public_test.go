@@ -370,6 +370,8 @@ func (suite *ProcessTypesPublicTestSuite) TestProcessSignalCollectionFromGen() {
 	}
 }
 
-func TestProcessTypesPublicTestSuite(t *testing.T) {
+func TestProcessTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessTypesPublicTestSuite))
 }

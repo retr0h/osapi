@@ -27,7 +27,9 @@ import (
 
 // SetContainerFS overrides the filesystem used for container detection.
 // Pass nil to restore the default (osfs).
-func SetContainerFS(fs avfs.VFS) {
+func SetContainerFS(
+	fs avfs.VFS,
+) {
 	if fs == nil {
 		containerFS = osfs.New()
 		return

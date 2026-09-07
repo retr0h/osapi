@@ -143,6 +143,8 @@ func (suite *UptimePublicTestSuite) TestGet() {
 	}
 }
 
-func TestUptimePublicTestSuite(t *testing.T) {
+func TestUptimePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UptimePublicTestSuite))
 }

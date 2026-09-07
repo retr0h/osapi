@@ -433,6 +433,8 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteRBACHTTP() {
 	}
 }
 
-func TestNetworkRouteUpdatePutPublicTestSuite(t *testing.T) {
+func TestNetworkRouteUpdatePutPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkRouteUpdatePutPublicTestSuite))
 }

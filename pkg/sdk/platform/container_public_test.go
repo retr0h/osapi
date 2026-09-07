@@ -73,6 +73,8 @@ func (s *ContainerPublicTestSuite) TestIsContainer() {
 	}
 }
 
-func TestContainerPublicTestSuite(t *testing.T) {
+func TestContainerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerPublicTestSuite))
 }

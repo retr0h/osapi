@@ -704,6 +704,8 @@ func (s *NodeStatusGetPublicTestSuite) TestUint64ToInt() {
 	}
 }
 
-func TestNodeStatusGetPublicTestSuite(t *testing.T) {
+func TestNodeStatusGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NodeStatusGetPublicTestSuite))
 }

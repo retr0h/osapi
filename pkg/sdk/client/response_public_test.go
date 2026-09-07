@@ -98,6 +98,8 @@ func (suite *ResponsePublicTestSuite) TestData() {
 	}
 }
 
-func TestResponsePublicTestSuite(t *testing.T) {
+func TestResponsePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ResponsePublicTestSuite))
 }

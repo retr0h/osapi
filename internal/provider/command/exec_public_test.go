@@ -137,6 +137,8 @@ func (s *ExecPublicTestSuite) TestExec() {
 	}
 }
 
-func TestExecPublicTestSuite(t *testing.T) {
+func TestExecPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ExecPublicTestSuite))
 }

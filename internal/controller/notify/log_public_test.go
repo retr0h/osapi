@@ -78,6 +78,8 @@ func (s *LogNotifierPublicTestSuite) TestNotify() {
 	}
 }
 
-func TestLogNotifierPublicTestSuite(t *testing.T) {
+func TestLogNotifierPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogNotifierPublicTestSuite))
 }

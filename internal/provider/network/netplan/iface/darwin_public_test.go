@@ -135,7 +135,9 @@ func (suite *DarwinPublicTestSuite) TestDelete() {
 	}
 }
 
-func TestDarwinPublicTestSuite(t *testing.T) {
+func TestDarwinPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	suite.Run(t, new(DarwinPublicTestSuite))

@@ -116,7 +116,9 @@ func New(
 // SetReadinessFunc sets a function called by /health/ready to determine
 // whether this component is ready to serve traffic. If fn returns an error
 // the endpoint responds 503; if nil it responds 200.
-func (s *Server) SetReadinessFunc(fn func() error) {
+func (s *Server) SetReadinessFunc(
+	fn func() error,
+) {
 	s.readinessFunc = fn
 }
 
@@ -200,7 +202,9 @@ func (s *Server) Start() {
 }
 
 // Stop gracefully shuts down the HTTP server and meter provider.
-func (s *Server) Stop(ctx context.Context) {
+func (s *Server) Stop(
+	ctx context.Context,
+) {
 	if err := s.meterProvider.Shutdown(ctx); err != nil {
 		s.logger.Error(
 			"meter provider shutdown error",

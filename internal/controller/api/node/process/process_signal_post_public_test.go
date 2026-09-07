@@ -577,6 +577,8 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalRBACHTTP() {
 	}
 }
 
-func TestProcessSignalPublicTestSuite(t *testing.T) {
+func TestProcessSignalPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessSignalPublicTestSuite))
 }

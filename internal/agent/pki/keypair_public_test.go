@@ -470,7 +470,9 @@ func (suite *KeypairPublicTestSuite) TestParsePublicKeyPEM() {
 	}
 }
 
-func TestKeypairPublicTestSuite(t *testing.T) {
+func TestKeypairPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(KeypairPublicTestSuite))
 }

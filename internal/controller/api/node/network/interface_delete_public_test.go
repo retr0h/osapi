@@ -427,6 +427,8 @@ func (s *NetworkInterfaceDeletePublicTestSuite) TestDeleteNetworkInterfaceRBACHT
 	}
 }
 
-func TestNetworkInterfaceDeletePublicTestSuite(t *testing.T) {
+func TestNetworkInterfaceDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkInterfaceDeletePublicTestSuite))
 }

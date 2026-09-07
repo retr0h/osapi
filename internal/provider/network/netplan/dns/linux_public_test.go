@@ -80,6 +80,8 @@ func (s *LinuxPublicTestSuite) TestUpdateResolvConfByInterface() {
 	}
 }
 
-func TestLinuxPublicTestSuite(t *testing.T) {
+func TestLinuxPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxPublicTestSuite))
 }

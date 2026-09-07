@@ -429,6 +429,8 @@ func (s *ServiceStopPostPublicTestSuite) TestPostNodeServiceStopRBACHTTP() {
 	}
 }
 
-func TestServiceStopPostPublicTestSuite(t *testing.T) {
+func TestServiceStopPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServiceStopPostPublicTestSuite))
 }

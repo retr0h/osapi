@@ -998,6 +998,8 @@ func (s *HealthStatusGetPublicTestSuite) TestMetricsCache() {
 	}
 }
 
-func TestHealthStatusGetPublicTestSuite(t *testing.T) {
+func TestHealthStatusGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HealthStatusGetPublicTestSuite))
 }

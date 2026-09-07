@@ -89,6 +89,8 @@ func (suite *CollectionPublicTestSuite) TestCollectionFirst() {
 	}
 }
 
-func TestCollectionPublicTestSuite(t *testing.T) {
+func TestCollectionPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CollectionPublicTestSuite))
 }

@@ -697,6 +697,8 @@ func (s *CAUpdatePutPublicTestSuite) TestPutNodeCertificateCaRBACHTTP() {
 	}
 }
 
-func TestCAUpdatePutPublicTestSuite(t *testing.T) {
+func TestCAUpdatePutPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CAUpdatePutPublicTestSuite))
 }

@@ -513,6 +513,8 @@ func (s *NtpGetPublicTestSuite) TestGetNodeNtpRBACHTTP() {
 	}
 }
 
-func TestNtpGetPublicTestSuite(t *testing.T) {
+func TestNtpGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NtpGetPublicTestSuite))
 }

@@ -473,6 +473,8 @@ func (s *NodeMemoryGetPublicTestSuite) TestGetNodeMemoryRBACHTTP() {
 	}
 }
 
-func TestNodeMemoryGetPublicTestSuite(t *testing.T) {
+func TestNodeMemoryGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NodeMemoryGetPublicTestSuite))
 }

@@ -473,6 +473,8 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadRBACHTTP() {
 	}
 }
 
-func TestNodeLoadGetPublicTestSuite(t *testing.T) {
+func TestNodeLoadGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NodeLoadGetPublicTestSuite))
 }

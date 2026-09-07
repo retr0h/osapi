@@ -638,7 +638,9 @@ func (s *AgentPublicTestSuite) newClientWithAllKVs(
 }
 
 // agentRegistrationJSON returns valid agent registration JSON for the given hostname.
-func agentRegistrationJSON(hostname string) []byte {
+func agentRegistrationJSON(
+	hostname string,
+) []byte {
 	return agentRegistrationJSONWithMachineID(hostname, "abc123")
 }
 
@@ -1284,6 +1286,8 @@ func (s *AgentPublicTestSuite) TestMergeFacts() {
 	}
 }
 
-func TestAgentPublicTestSuite(t *testing.T) {
+func TestAgentPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentPublicTestSuite))
 }

@@ -54,6 +54,8 @@ func (s *DebianDockerPublicTestSuite) TestUpdateHostname() {
 	}
 }
 
-func TestDebianDockerPublicTestSuite(t *testing.T) {
+func TestDebianDockerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianDockerPublicTestSuite))
 }

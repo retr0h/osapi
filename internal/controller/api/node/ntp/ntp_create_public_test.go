@@ -561,6 +561,8 @@ func (s *NtpCreatePublicTestSuite) TestPostNodeNtpRBACHTTP() {
 	}
 }
 
-func TestNtpCreatePublicTestSuite(t *testing.T) {
+func TestNtpCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NtpCreatePublicTestSuite))
 }

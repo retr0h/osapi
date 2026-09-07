@@ -372,6 +372,8 @@ func (suite *NTPTypesPublicTestSuite) TestNtpMutationCollectionFromDelete() {
 	}
 }
 
-func TestNTPTypesPublicTestSuite(t *testing.T) {
+func TestNTPTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NTPTypesPublicTestSuite))
 }

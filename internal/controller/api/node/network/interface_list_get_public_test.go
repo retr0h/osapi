@@ -605,6 +605,8 @@ func (s *NetworkInterfaceListGetPublicTestSuite) TestGetNetworkInterfaceListRBAC
 	}
 }
 
-func TestNetworkInterfaceListGetPublicTestSuite(t *testing.T) {
+func TestNetworkInterfaceListGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkInterfaceListGetPublicTestSuite))
 }

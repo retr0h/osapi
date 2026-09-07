@@ -470,6 +470,8 @@ func (s *NodeUptimeGetPublicTestSuite) TestGetNodeUptimeRBACHTTP() {
 	}
 }
 
-func TestNodeUptimeGetPublicTestSuite(t *testing.T) {
+func TestNodeUptimeGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NodeUptimeGetPublicTestSuite))
 }

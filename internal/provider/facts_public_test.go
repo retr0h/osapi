@@ -149,6 +149,8 @@ func (suite *FactsPublicTestSuite) TestWireProviderFacts() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestFactsPublicTestSuite(t *testing.T) {
+func TestFactsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FactsPublicTestSuite))
 }

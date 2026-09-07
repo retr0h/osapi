@@ -425,6 +425,8 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordRBACHTTP() {
 	}
 }
 
-func TestUserPasswordPublicTestSuite(t *testing.T) {
+func TestUserPasswordPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UserPasswordPublicTestSuite))
 }

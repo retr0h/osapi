@@ -614,6 +614,8 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlDelete() {
 	}
 }
 
-func TestProcessorSysctlPublicTestSuite(t *testing.T) {
+func TestProcessorSysctlPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorSysctlPublicTestSuite))
 }

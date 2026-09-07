@@ -511,6 +511,8 @@ func (s *TimezoneGetPublicTestSuite) TestGetNodeTimezoneRBACHTTP() {
 	}
 }
 
-func TestTimezoneGetPublicTestSuite(t *testing.T) {
+func TestTimezoneGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(TimezoneGetPublicTestSuite))
 }

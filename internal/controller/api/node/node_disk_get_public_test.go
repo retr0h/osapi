@@ -493,6 +493,8 @@ func (s *NodeDiskGetPublicTestSuite) TestGetNodeDiskRBACHTTP() {
 	}
 }
 
-func TestNodeDiskGetPublicTestSuite(t *testing.T) {
+func TestNodeDiskGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NodeDiskGetPublicTestSuite))
 }

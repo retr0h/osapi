@@ -580,6 +580,8 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaRBACHTTP() {
 	}
 }
 
-func TestCADeletePublicTestSuite(t *testing.T) {
+func TestCADeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CADeletePublicTestSuite))
 }

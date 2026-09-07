@@ -135,6 +135,8 @@ func (s *ShellPublicTestSuite) TestShell() {
 	}
 }
 
-func TestShellPublicTestSuite(t *testing.T) {
+func TestShellPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ShellPublicTestSuite))
 }

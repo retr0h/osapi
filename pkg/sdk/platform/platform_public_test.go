@@ -35,7 +35,9 @@ type PlatformPublicTestSuite struct {
 	suite.Suite
 }
 
-func TestPlatformPublicTestSuite(t *testing.T) {
+func TestPlatformPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PlatformPublicTestSuite))
 }
 

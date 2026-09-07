@@ -594,6 +594,8 @@ func (s *NetworkInterfaceGetPublicTestSuite) TestGetNetworkInterfaceByNameRBACHT
 	}
 }
 
-func TestNetworkInterfaceGetPublicTestSuite(t *testing.T) {
+func TestNetworkInterfaceGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkInterfaceGetPublicTestSuite))
 }

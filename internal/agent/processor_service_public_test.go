@@ -1000,6 +1000,8 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceDisable() {
 	}
 }
 
-func TestProcessorServicePublicTestSuite(t *testing.T) {
+func TestProcessorServicePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorServicePublicTestSuite))
 }

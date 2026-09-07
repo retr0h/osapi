@@ -282,7 +282,9 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 	}
 }
 
-func TestSeedPublicTestSuite(t *testing.T) {
+func TestSeedPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SeedPublicTestSuite))
 }
 
@@ -306,13 +308,17 @@ func (d *errorDir) Stat() (fs.FileInfo, error) {
 	return &dirInfo{}, nil
 }
 
-func (d *errorDir) Read(_ []byte) (int, error) {
+func (d *errorDir) Read(
+	_ []byte,
+) (int, error) {
 	return 0, fmt.Errorf("not a file")
 }
 
 func (d *errorDir) Close() error { return nil }
 
-func (d *errorDir) ReadDir(_ int) ([]fs.DirEntry, error) {
+func (d *errorDir) ReadDir(
+	_ int,
+) ([]fs.DirEntry, error) {
 	return nil, fmt.Errorf("walk error")
 }
 

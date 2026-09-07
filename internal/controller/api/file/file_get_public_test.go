@@ -363,6 +363,8 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameRBACHTTP() {
 	}
 }
 
-func TestFileGetPublicTestSuite(t *testing.T) {
+func TestFileGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileGetPublicTestSuite))
 }

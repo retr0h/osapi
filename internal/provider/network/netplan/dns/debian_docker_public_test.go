@@ -219,6 +219,8 @@ func (s *DebianDockerPublicTestSuite) TestDeleteNetplanConfig() {
 	}
 }
 
-func TestDebianDockerPublicTestSuite(t *testing.T) {
+func TestDebianDockerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianDockerPublicTestSuite))
 }

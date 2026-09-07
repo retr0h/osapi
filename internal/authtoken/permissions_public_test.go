@@ -215,6 +215,8 @@ func (s *PermissionsPublicTestSuite) TestHasPermission() {
 	}
 }
 
-func TestPermissionsPublicTestSuite(t *testing.T) {
+func TestPermissionsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PermissionsPublicTestSuite))
 }

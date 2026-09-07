@@ -472,6 +472,8 @@ func (s *NodeOSGetPublicTestSuite) TestGetNodeOSRBACHTTP() {
 	}
 }
 
-func TestNodeOSGetPublicTestSuite(t *testing.T) {
+func TestNodeOSGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NodeOSGetPublicTestSuite))
 }

@@ -550,6 +550,8 @@ func (s *ShutdownPostPublicTestSuite) TestPostNodePowerShutdownRBACHTTP() {
 	}
 }
 
-func TestShutdownPostPublicTestSuite(t *testing.T) {
+func TestShutdownPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ShutdownPostPublicTestSuite))
 }

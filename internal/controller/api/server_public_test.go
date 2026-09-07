@@ -270,6 +270,8 @@ func (s *ServerPublicTestSuite) TestStopErrorPath() {
 	}
 }
 
-func TestServerPublicTestSuite(t *testing.T) {
+func TestServerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServerPublicTestSuite))
 }

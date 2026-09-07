@@ -616,6 +616,8 @@ func (s *CronGetPublicTestSuite) TestGetNodeScheduleCronByNameRBACHTTP() {
 	}
 }
 
-func TestCronGetPublicTestSuite(t *testing.T) {
+func TestCronGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CronGetPublicTestSuite))
 }

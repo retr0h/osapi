@@ -339,6 +339,8 @@ func (s *UserDeletePublicTestSuite) TestDeleteNodeUserRBACHTTP() {
 	}
 }
 
-func TestUserDeletePublicTestSuite(t *testing.T) {
+func TestUserDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UserDeletePublicTestSuite))
 }

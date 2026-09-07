@@ -559,6 +559,8 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullRBACHTTP()
 	}
 }
 
-func TestContainerPullPublicTestSuite(t *testing.T) {
+func TestContainerPullPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerPullPublicTestSuite))
 }

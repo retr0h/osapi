@@ -155,6 +155,8 @@ func (s *ProcessorNetworkPublicTestSuite) TestProcessDNSDelete() {
 	}
 }
 
-func TestProcessorNetworkPublicTestSuite(t *testing.T) {
+func TestProcessorNetworkPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorNetworkPublicTestSuite))
 }

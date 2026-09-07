@@ -510,6 +510,8 @@ func (s *ProcessGetPublicTestSuite) TestGetNodeProcessByPidRBACHTTP() {
 	}
 }
 
-func TestProcessGetPublicTestSuite(t *testing.T) {
+func TestProcessGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessGetPublicTestSuite))
 }

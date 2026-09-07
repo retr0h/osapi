@@ -538,6 +538,8 @@ func (s *NtpDeletePublicTestSuite) TestDeleteNodeNtpRBACHTTP() {
 	}
 }
 
-func TestNtpDeletePublicTestSuite(t *testing.T) {
+func TestNtpDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NtpDeletePublicTestSuite))
 }

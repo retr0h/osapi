@@ -231,6 +231,8 @@ func (suite *LogTypesPublicTestSuite) TestLogEntryInfoFromGen() {
 	}
 }
 
-func TestLogTypesPublicTestSuite(t *testing.T) {
+func TestLogTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogTypesPublicTestSuite))
 }

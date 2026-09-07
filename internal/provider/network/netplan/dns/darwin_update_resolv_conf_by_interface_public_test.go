@@ -105,6 +105,8 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 	}
 }
 
-func TestDarwinUpdateResolvConfByInterfacePublicTestSuite(t *testing.T) {
+func TestDarwinUpdateResolvConfByInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinUpdateResolvConfByInterfacePublicTestSuite))
 }

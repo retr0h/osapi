@@ -381,6 +381,8 @@ func (s *UserGetPublicTestSuite) TestGetNodeUserByNameRBACHTTP() {
 	}
 }
 
-func TestUserGetPublicTestSuite(t *testing.T) {
+func TestUserGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UserGetPublicTestSuite))
 }

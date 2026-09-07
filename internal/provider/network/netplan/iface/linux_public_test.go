@@ -135,7 +135,9 @@ func (suite *LinuxPublicTestSuite) TestDelete() {
 	}
 }
 
-func TestLinuxPublicTestSuite(t *testing.T) {
+func TestLinuxPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	suite.Run(t, new(LinuxPublicTestSuite))

@@ -92,6 +92,8 @@ func (suite *LogPublicTestSuite) TestLogFatal() {
 	}
 }
 
-func TestLogPublicTestSuite(t *testing.T) {
+func TestLogPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogPublicTestSuite))
 }

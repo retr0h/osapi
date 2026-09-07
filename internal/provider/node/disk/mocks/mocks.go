@@ -27,12 +27,16 @@ import (
 )
 
 // NewPlainMockProvider creates a Mock without defaults.
-func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+func NewPlainMockProvider(
+	ctrl *gomock.Controller,
+) *MockProvider {
 	return NewMockProvider(ctrl)
 }
 
 // NewDefaultMockProvider creates a Mock with defaults.
-func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+func NewDefaultMockProvider(
+	ctrl *gomock.Controller,
+) *MockProvider {
 	mock := NewMockProvider(ctrl)
 
 	mock.EXPECT().GetLocalUsageStats().Return([]disk.Result{

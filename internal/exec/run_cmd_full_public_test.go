@@ -141,6 +141,8 @@ func (suite *RunCmdFullPublicTestSuite) TestRunCmdFull() {
 	}
 }
 
-func TestRunCmdFullPublicTestSuite(t *testing.T) {
+func TestRunCmdFullPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(RunCmdFullPublicTestSuite))
 }

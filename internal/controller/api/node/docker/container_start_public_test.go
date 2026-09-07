@@ -500,6 +500,8 @@ func (s *ContainerStartPublicTestSuite) TestPostNodeContainerDockerStartRBACHTTP
 	}
 }
 
-func TestContainerStartPublicTestSuite(t *testing.T) {
+func TestContainerStartPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerStartPublicTestSuite))
 }

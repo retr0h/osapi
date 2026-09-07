@@ -193,6 +193,8 @@ func (s *KeysPublicTestSuite) TestIsCustomKey() {
 	}
 }
 
-func TestKeysPublicTestSuite(t *testing.T) {
+func TestKeysPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(KeysPublicTestSuite))
 }

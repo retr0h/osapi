@@ -337,6 +337,8 @@ func (s *GroupListGetPublicTestSuite) TestGetNodeGroupRBACHTTP() {
 	}
 }
 
-func TestGroupListGetPublicTestSuite(t *testing.T) {
+func TestGroupListGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(GroupListGetPublicTestSuite))
 }

@@ -397,6 +397,8 @@ func (s *ConvertPublicTestSuite) TestInt64PtrOrNil() {
 	}
 }
 
-func TestConvertPublicTestSuite(t *testing.T) {
+func TestConvertPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ConvertPublicTestSuite))
 }

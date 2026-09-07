@@ -163,6 +163,8 @@ func (s *NATSPublicTestSuite) TestAllObjectStoreBuckets() {
 	}
 }
 
-func TestNATSPublicTestSuite(t *testing.T) {
+func TestNATSPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NATSPublicTestSuite))
 }

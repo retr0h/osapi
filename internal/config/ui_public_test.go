@@ -65,6 +65,8 @@ func (s *UIPublicTestSuite) TestUIEnabled() {
 	}
 }
 
-func TestUIPublicTestSuite(t *testing.T) {
+func TestUIPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UIPublicTestSuite))
 }

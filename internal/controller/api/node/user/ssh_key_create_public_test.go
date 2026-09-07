@@ -488,6 +488,8 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyRBACHTTP() {
 	}
 }
 
-func TestSSHKeyCreatePublicTestSuite(t *testing.T) {
+func TestSSHKeyCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SSHKeyCreatePublicTestSuite))
 }

@@ -314,6 +314,8 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneUpdate() {
 	}
 }
 
-func TestProcessorTimezonePublicTestSuite(t *testing.T) {
+func TestProcessorTimezonePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorTimezonePublicTestSuite))
 }

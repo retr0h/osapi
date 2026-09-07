@@ -362,6 +362,8 @@ func (suite *HealthTypesPublicTestSuite) TestSystemStatusFromGen() {
 	}
 }
 
-func TestHealthTypesPublicTestSuite(t *testing.T) {
+func TestHealthTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HealthTypesPublicTestSuite))
 }

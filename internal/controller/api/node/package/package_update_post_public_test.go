@@ -435,6 +435,8 @@ func (s *PackageUpdatePostPublicTestSuite) TestPostNodePackageUpdateRBACHTTP() {
 	}
 }
 
-func TestPackageUpdatePostPublicTestSuite(t *testing.T) {
+func TestPackageUpdatePostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PackageUpdatePostPublicTestSuite))
 }

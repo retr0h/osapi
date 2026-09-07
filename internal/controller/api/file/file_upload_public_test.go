@@ -716,6 +716,8 @@ func (s *FileUploadPublicTestSuite) TestPostFileRBACHTTP() {
 	}
 }
 
-func TestFileUploadPublicTestSuite(t *testing.T) {
+func TestFileUploadPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileUploadPublicTestSuite))
 }

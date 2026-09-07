@@ -623,6 +623,8 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDRBACHTTP() {
 	}
 }
 
-func TestJobGetPublicTestSuite(t *testing.T) {
+func TestJobGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(JobGetPublicTestSuite))
 }

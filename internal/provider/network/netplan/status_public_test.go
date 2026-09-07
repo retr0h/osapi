@@ -698,7 +698,9 @@ func (suite *StatusPublicTestSuite) TestSectionForType() {
 	}
 }
 
-func TestStatusPublicTestSuite(t *testing.T) {
+func TestStatusPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	suite.Run(t, new(StatusPublicTestSuite))

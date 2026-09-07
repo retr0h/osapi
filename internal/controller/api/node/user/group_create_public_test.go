@@ -426,6 +426,8 @@ func (s *GroupCreatePublicTestSuite) TestPostNodeGroupRBACHTTP() {
 	}
 }
 
-func TestGroupCreatePublicTestSuite(t *testing.T) {
+func TestGroupCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(GroupCreatePublicTestSuite))
 }

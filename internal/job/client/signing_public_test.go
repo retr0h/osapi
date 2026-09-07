@@ -269,6 +269,8 @@ func (s *SigningPublicTestSuite) TestRoundTrip() {
 	s.Equal(originalPayload, unwrapped)
 }
 
-func TestSigningPublicTestSuite(t *testing.T) {
+func TestSigningPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SigningPublicTestSuite))
 }

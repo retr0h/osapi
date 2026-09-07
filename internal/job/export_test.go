@@ -23,7 +23,9 @@ package job
 import "github.com/shirou/gopsutil/v4/host"
 
 // SetDefaultHostnameProvider overrides the default hostname provider for testing.
-func SetDefaultHostnameProvider(p HostnameProvider) {
+func SetDefaultHostnameProvider(
+	p HostnameProvider,
+) {
 	defaultHostnameProvider = p
 }
 
@@ -39,7 +41,9 @@ func ExportNewGopsutilHostnameProvider() HostnameProvider {
 }
 
 // SetHostInfoFn overrides the host.Info function for testing.
-func SetHostInfoFn(fn func() (*host.InfoStat, error)) {
+func SetHostInfoFn(
+	fn func() (*host.InfoStat, error),
+) {
 	hostInfoFn = fn
 }
 

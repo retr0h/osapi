@@ -99,6 +99,8 @@ func (suite *DebianGetOSInfoPublicTestSuite) TestGetOSInfo() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDebianGetOSInfoPublicTestSuite(t *testing.T) {
+func TestDebianGetOSInfoPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianGetOSInfoPublicTestSuite))
 }

@@ -374,6 +374,8 @@ func (s *FileListPublicTestSuite) TestGetFilesRBACHTTP() {
 	}
 }
 
-func TestFileListPublicTestSuite(t *testing.T) {
+func TestFileListPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileListPublicTestSuite))
 }

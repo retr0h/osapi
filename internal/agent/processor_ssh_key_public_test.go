@@ -416,6 +416,8 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyRemove() {
 	}
 }
 
-func TestProcessorSSHKeyPublicTestSuite(t *testing.T) {
+func TestProcessorSSHKeyPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorSSHKeyPublicTestSuite))
 }

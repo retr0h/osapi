@@ -556,6 +556,8 @@ func (suite *PackageTypesPublicTestSuite) TestUpdateInfosFromGen() {
 	}
 }
 
-func TestPackageTypesPublicTestSuite(t *testing.T) {
+func TestPackageTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PackageTypesPublicTestSuite))
 }

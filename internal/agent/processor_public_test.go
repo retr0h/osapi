@@ -1031,6 +1031,8 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 	}
 }
 
-func TestProcessorPublicTestSuite(t *testing.T) {
+func TestProcessorPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorPublicTestSuite))
 }

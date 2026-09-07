@@ -392,7 +392,9 @@ func (suite *ExportPublicTestSuite) TestRunProgress() {
 	}
 }
 
-func TestExportPublicTestSuite(t *testing.T) {
+func TestExportPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ExportPublicTestSuite))
 }
 

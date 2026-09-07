@@ -332,6 +332,8 @@ func (suite *DarwinPublicTestSuite) TestRemoveKey() {
 	}
 }
 
-func TestDarwinPublicTestSuite(t *testing.T) {
+func TestDarwinPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinPublicTestSuite))
 }

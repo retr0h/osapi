@@ -219,7 +219,9 @@ func (s *HeartbeatPublicTestSuite) TestStartWithHeartbeat() {
 	}
 }
 
-func TestHeartbeatPublicTestSuite(t *testing.T) {
+func TestHeartbeatPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HeartbeatPublicTestSuite))
 }
 
@@ -621,6 +623,8 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestRegistryKey() {
 	}
 }
 
-func TestHeartbeatLowLevelPublicTestSuite(t *testing.T) {
+func TestHeartbeatLowLevelPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HeartbeatLowLevelPublicTestSuite))
 }

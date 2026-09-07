@@ -541,6 +541,8 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitRBACHTTP() {
 	}
 }
 
-func TestLogUnitPublicTestSuite(t *testing.T) {
+func TestLogUnitPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogUnitPublicTestSuite))
 }

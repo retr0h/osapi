@@ -40,7 +40,9 @@ import (
 )
 
 // registrationJSON returns a minimal agent registration JSON for the given hostname.
-func registrationJSON(hostname string) []byte {
+func registrationJSON(
+	hostname string,
+) []byte {
 	return []byte(fmt.Sprintf(
 		`{"hostname":%q,"registered_at":"2026-01-01T00:00:00Z"}`,
 		hostname,
@@ -1621,6 +1623,8 @@ func (s *ClientPublicTestSuite) TestQueryWithTargetResolver() {
 	s.Equal(job.StatusCompleted, resp.Status)
 }
 
-func TestClientPublicTestSuite(t *testing.T) {
+func TestClientPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ClientPublicTestSuite))
 }

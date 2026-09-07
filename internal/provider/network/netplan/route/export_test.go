@@ -23,7 +23,9 @@ package route
 import "encoding/json"
 
 // SetMarshalJSON overrides the marshal function for testing.
-func SetMarshalJSON(fn func(interface{}) ([]byte, error)) {
+func SetMarshalJSON(
+	fn func(interface{}) ([]byte, error),
+) {
 	marshalJSON = fn
 }
 
@@ -33,21 +35,30 @@ func ResetMarshalJSON() {
 }
 
 // GenerateRouteYAML exposes generateRouteYAML for testing.
-func GenerateRouteYAML(entry Entry, ifaceSection string) []byte {
+func GenerateRouteYAML(
+	entry Entry,
+	ifaceSection string,
+) []byte {
 	return generateRouteYAML(entry, ifaceSection)
 }
 
 // ContainsDefaultRoute exposes containsDefaultRoute for testing.
-func ContainsDefaultRoute(routes []Route) bool {
+func ContainsDefaultRoute(
+	routes []Route,
+) bool {
 	return containsDefaultRoute(routes)
 }
 
 // BuildRouteMetadata exposes buildRouteMetadata for testing.
-func BuildRouteMetadata(entry Entry) (map[string]string, error) {
+func BuildRouteMetadata(
+	entry Entry,
+) (map[string]string, error) {
 	return buildRouteMetadata(entry)
 }
 
 // RouteFilePath exposes routeFilePath for testing.
-func RouteFilePath(interfaceName string) string {
+func RouteFilePath(
+	interfaceName string,
+) string {
 	return routeFilePath(interfaceName)
 }

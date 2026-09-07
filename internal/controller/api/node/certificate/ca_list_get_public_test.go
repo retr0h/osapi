@@ -555,6 +555,8 @@ func (s *CAListGetPublicTestSuite) TestGetNodeCertificateCaRBACHTTP() {
 	}
 }
 
-func TestCAListGetPublicTestSuite(t *testing.T) {
+func TestCAListGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CAListGetPublicTestSuite))
 }

@@ -1127,6 +1127,8 @@ func (suite *SubjectsPublicTestSuite) TestExpectedAgentHostnames() {
 	}
 }
 
-func TestSubjectsPublicTestSuite(t *testing.T) {
+func TestSubjectsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SubjectsPublicTestSuite))
 }

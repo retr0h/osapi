@@ -577,6 +577,8 @@ func (s *ContainerImageRemovePublicTestSuite) TestDeleteNodeContainerDockerImage
 	}
 }
 
-func TestContainerImageRemovePublicTestSuite(t *testing.T) {
+func TestContainerImageRemovePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerImageRemovePublicTestSuite))
 }

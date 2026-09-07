@@ -447,6 +447,8 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentRBACHTTP() {
 	}
 }
 
-func TestAgentDrainPublicTestSuite(t *testing.T) {
+func TestAgentDrainPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentDrainPublicTestSuite))
 }

@@ -657,6 +657,8 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecRBACHTTP()
 	}
 }
 
-func TestContainerExecPublicTestSuite(t *testing.T) {
+func TestContainerExecPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerExecPublicTestSuite))
 }

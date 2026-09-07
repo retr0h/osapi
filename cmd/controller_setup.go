@@ -387,7 +387,9 @@ func newHealthChecker(
 
 // configuredKVBuckets returns the namespaced names of all KV buckets
 // declared in osapi.yaml. Only non-empty bucket configs are included.
-func configuredKVBuckets(namespace string) []string {
+func configuredKVBuckets(
+	namespace string,
+) []string {
 	var buckets []string
 	for _, info := range appConfig.NATS.AllKVBuckets() {
 		if info.Bucket != "" {
@@ -400,7 +402,9 @@ func configuredKVBuckets(namespace string) []string {
 
 // configuredObjectBuckets returns the namespaced names of all Object Store
 // buckets declared in osapi.yaml.
-func configuredObjectBuckets(namespace string) []string {
+func configuredObjectBuckets(
+	namespace string,
+) []string {
 	var buckets []string
 	for _, info := range appConfig.NATS.AllObjectStoreBuckets() {
 		if info.Bucket != "" {

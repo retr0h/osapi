@@ -182,6 +182,8 @@ func (s *AuditMiddlewarePublicTestSuite) TestAuditMiddleware() {
 	}
 }
 
-func TestAuditMiddlewarePublicTestSuite(t *testing.T) {
+func TestAuditMiddlewarePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuditMiddlewarePublicTestSuite))
 }

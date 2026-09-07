@@ -27,7 +27,9 @@ import (
 )
 
 // handleHealth handles GET /health and always returns 200 with {"status":"ok"}.
-func (s *Server) handleHealth(c echo.Context) error {
+func (s *Server) handleHealth(
+	c echo.Context,
+) error {
 	return c.JSON(http.StatusOK, map[string]string{
 		"status": "ok",
 	})
@@ -36,7 +38,9 @@ func (s *Server) handleHealth(c echo.Context) error {
 // handleReady handles GET /health/ready. It returns 503 when no readiness
 // func is configured or the readiness func returns an error, and 200 when
 // the readiness func returns nil.
-func (s *Server) handleReady(c echo.Context) error {
+func (s *Server) handleReady(
+	c echo.Context,
+) error {
 	if s.readinessFunc == nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{
 			"status": "not_ready",

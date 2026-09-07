@@ -296,6 +296,8 @@ func (s *ProcessorFilePublicTestSuite) TestProcessFileOperationNilProvider() {
 	}
 }
 
-func TestProcessorFilePublicTestSuite(t *testing.T) {
+func TestProcessorFilePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorFilePublicTestSuite))
 }

@@ -553,6 +553,8 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessJobOperationScheduleCatego
 	}
 }
 
-func TestProcessorSchedulePublicTestSuite(t *testing.T) {
+func TestProcessorSchedulePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorSchedulePublicTestSuite))
 }

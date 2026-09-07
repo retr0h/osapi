@@ -520,6 +520,8 @@ func (s *PackageListGetPublicTestSuite) TestGetNodePackageRBACHTTP() {
 	}
 }
 
-func TestPackageListGetPublicTestSuite(t *testing.T) {
+func TestPackageListGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PackageListGetPublicTestSuite))
 }

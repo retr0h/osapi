@@ -553,6 +553,8 @@ func (s *AgentListPublicTestSuite) TestUint64ToInt() {
 	}
 }
 
-func TestAgentListPublicTestSuite(t *testing.T) {
+func TestAgentListPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentListPublicTestSuite))
 }

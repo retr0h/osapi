@@ -34,7 +34,9 @@ type RawOutputPublicTestSuite struct {
 	suite.Suite
 }
 
-func TestRawOutputPublicTestSuite(t *testing.T) {
+func TestRawOutputPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(RawOutputPublicTestSuite))
 }
 

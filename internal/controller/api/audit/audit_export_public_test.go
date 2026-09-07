@@ -331,6 +331,8 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportRBACHTTP() {
 	}
 }
 
-func TestAuditExportPublicTestSuite(t *testing.T) {
+func TestAuditExportPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuditExportPublicTestSuite))
 }

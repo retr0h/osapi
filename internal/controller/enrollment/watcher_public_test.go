@@ -1212,6 +1212,8 @@ func (s *WatcherPublicTestSuite) makePendingJSON(
 	return data
 }
 
-func TestWatcherPublicTestSuite(t *testing.T) {
+func TestWatcherPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(WatcherPublicTestSuite))
 }

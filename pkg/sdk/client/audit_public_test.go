@@ -336,6 +336,8 @@ func (suite *AuditPublicTestSuite) TestExport() {
 	}
 }
 
-func TestAuditPublicTestSuite(t *testing.T) {
+func TestAuditPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuditPublicTestSuite))
 }

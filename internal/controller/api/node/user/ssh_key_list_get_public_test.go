@@ -536,6 +536,8 @@ func (s *SSHKeyListGetPublicTestSuite) TestGetNodeUserSSHKeyRBACHTTP() {
 	}
 }
 
-func TestSSHKeyListGetPublicTestSuite(t *testing.T) {
+func TestSSHKeyListGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SSHKeyListGetPublicTestSuite))
 }

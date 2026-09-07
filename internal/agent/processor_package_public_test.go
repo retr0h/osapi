@@ -619,6 +619,8 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageListUpdates() {
 	}
 }
 
-func TestProcessorPackagePublicTestSuite(t *testing.T) {
+func TestProcessorPackagePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorPackagePublicTestSuite))
 }

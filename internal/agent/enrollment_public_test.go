@@ -873,7 +873,9 @@ func (suite *EnrollmentPublicTestSuite) TestHandleEnrollmentResponse() {
 	}
 }
 
-func TestEnrollmentPublicTestSuite(t *testing.T) {
+func TestEnrollmentPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(EnrollmentPublicTestSuite))
 }

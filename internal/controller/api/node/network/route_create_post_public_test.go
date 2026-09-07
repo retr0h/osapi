@@ -486,6 +486,8 @@ func (s *NetworkRouteCreatePostPublicTestSuite) TestPostNetworkRouteRBACHTTP() {
 	}
 }
 
-func TestNetworkRouteCreatePostPublicTestSuite(t *testing.T) {
+func TestNetworkRouteCreatePostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkRouteCreatePostPublicTestSuite))
 }

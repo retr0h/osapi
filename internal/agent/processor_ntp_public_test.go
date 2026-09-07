@@ -494,6 +494,8 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpDelete() {
 	}
 }
 
-func TestProcessorNtpPublicTestSuite(t *testing.T) {
+func TestProcessorNtpPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorNtpPublicTestSuite))
 }

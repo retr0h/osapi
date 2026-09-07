@@ -703,6 +703,8 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronRBACHTTP() {
 	}
 }
 
-func TestCronUpdatePublicTestSuite(t *testing.T) {
+func TestCronUpdatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CronUpdatePublicTestSuite))
 }

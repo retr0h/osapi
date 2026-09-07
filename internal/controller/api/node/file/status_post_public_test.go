@@ -79,7 +79,9 @@ func (s *FileStatusPostPublicTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
 }
 
-func marshalStatusResult(r providerFile.StatusResult) json.RawMessage {
+func marshalStatusResult(
+	r providerFile.StatusResult,
+) json.RawMessage {
 	b, _ := json.Marshal(r)
 	return b
 }
@@ -669,6 +671,8 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusRBACHTTP() {
 	}
 }
 
-func TestFileStatusPostPublicTestSuite(t *testing.T) {
+func TestFileStatusPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileStatusPostPublicTestSuite))
 }

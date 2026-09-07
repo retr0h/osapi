@@ -93,6 +93,8 @@ func (suite *DarwinGetArchitecturePublicTestSuite) TestGetArchitecture() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinGetArchitecturePublicTestSuite(t *testing.T) {
+func TestDarwinGetArchitecturePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinGetArchitecturePublicTestSuite))
 }

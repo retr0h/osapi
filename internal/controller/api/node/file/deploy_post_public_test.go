@@ -725,6 +725,8 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployRBACHTTP() {
 	}
 }
 
-func TestFileDeployPostPublicTestSuite(t *testing.T) {
+func TestFileDeployPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileDeployPostPublicTestSuite))
 }

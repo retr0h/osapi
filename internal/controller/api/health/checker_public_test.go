@@ -183,6 +183,8 @@ func (s *CheckerPublicTestSuite) TestCheckKV() {
 	}
 }
 
-func TestCheckerPublicTestSuite(t *testing.T) {
+func TestCheckerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CheckerPublicTestSuite))
 }

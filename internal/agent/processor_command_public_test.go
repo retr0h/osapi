@@ -215,6 +215,8 @@ func (s *ProcessorCommandPublicTestSuite) TestProcessCommandOperation() {
 	}
 }
 
-func TestProcessorCommandPublicTestSuite(t *testing.T) {
+func TestProcessorCommandPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorCommandPublicTestSuite))
 }

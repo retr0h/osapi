@@ -140,6 +140,8 @@ func (suite *OSPublicTestSuite) TestGet() {
 	}
 }
 
-func TestOSPublicTestSuite(t *testing.T) {
+func TestOSPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(OSPublicTestSuite))
 }

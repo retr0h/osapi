@@ -113,7 +113,9 @@ func (suite *GetMachineIDFromFSPublicTestSuite) TestGetMachineIDFromFS() {
 	}
 }
 
-func TestGetMachineIDFromFSPublicTestSuite(t *testing.T) {
+func TestGetMachineIDFromFSPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(GetMachineIDFromFSPublicTestSuite))
 }
@@ -182,7 +184,9 @@ func (suite *GetDarwinMachineIDPublicTestSuite) TestGetDarwinMachineID() {
 	}
 }
 
-func TestGetDarwinMachineIDPublicTestSuite(t *testing.T) {
+func TestGetDarwinMachineIDPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(GetDarwinMachineIDPublicTestSuite))
 }
@@ -263,7 +267,9 @@ func (suite *GetIdentityPublicTestSuite) TestGetIdentity() {
 	}
 }
 
-func TestGetIdentityPublicTestSuite(t *testing.T) {
+func TestGetIdentityPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(GetIdentityPublicTestSuite))
 }
@@ -392,6 +398,8 @@ func (suite *PlatformPublicTestSuite) TestDefaultGetMachineID() {
 	}
 }
 
-func TestPlatformPublicTestSuite(t *testing.T) {
+func TestPlatformPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PlatformPublicTestSuite))
 }
