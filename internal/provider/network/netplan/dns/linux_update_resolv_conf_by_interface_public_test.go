@@ -39,33 +39,53 @@ func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) SetupTest() {
 func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvConfByInterface() {
-	suite.Run("returns not implemented error", func() {
-		linux := dns.NewLinuxProvider()
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "returns not implemented error",
+		},
+	}
 
-		servers := []string{}
-		searchDomains := []string{}
-		interfaceName := ""
-		result, err := linux.UpdateResolvConfByInterface(
-			servers,
-			searchDomains,
-			interfaceName,
-			false,
-		)
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			linux := dns.NewLinuxProvider()
 
-		suite.Nil(result)
-		suite.ErrorIs(err, provider.ErrUnsupported)
-	})
+			servers := []string{}
+			searchDomains := []string{}
+			interfaceName := ""
+			result, err := linux.UpdateResolvConfByInterface(
+				servers,
+				searchDomains,
+				interfaceName,
+				false,
+			)
+
+			suite.Nil(result)
+			suite.ErrorIs(err, provider.ErrUnsupported)
+		})
+	}
 }
 
 func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanConfig() {
-	suite.Run("returns ErrUnsupported on generic Linux", func() {
-		linux := dns.NewLinuxProvider()
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "returns ErrUnsupported on generic Linux",
+		},
+	}
 
-		changed, err := linux.DeleteNetplanConfig("eth0")
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			linux := dns.NewLinuxProvider()
 
-		suite.False(changed)
-		suite.ErrorIs(err, provider.ErrUnsupported)
-	})
+			changed, err := linux.DeleteNetplanConfig("eth0")
+
+			suite.False(changed)
+			suite.ErrorIs(err, provider.ErrUnsupported)
+		})
+	}
 }
 
 // In order for `go test` to run this suite, we need to create

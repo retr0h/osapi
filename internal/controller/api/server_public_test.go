@@ -149,95 +149,125 @@ func (s *ServerPublicTestSuite) TestNew() {
 }
 
 func (s *ServerPublicTestSuite) TestStartAndStop() {
-	s.Run("starts and stops gracefully", func() {
-		appConfig := config.Config{
-			Controller: config.Controller{
-				API: config.APIServer{
-					Port: 0,
-					Security: config.ServerSecurity{
-						SigningKey: "test-key",
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "starts and stops gracefully",
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			appConfig := config.Config{
+				Controller: config.Controller{
+					API: config.APIServer{
+						Port: 0,
+						Security: config.ServerSecurity{
+							SigningKey: "test-key",
+						},
 					},
 				},
-			},
-		}
+			}
 
-		server := api.New(appConfig, slog.Default())
-		server.Start()
+			server := api.New(appConfig, slog.Default())
+			server.Start()
 
-		time.Sleep(50 * time.Millisecond)
+			time.Sleep(50 * time.Millisecond)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
 
-		server.Stop(ctx)
-	})
+			server.Stop(ctx)
+		})
+	}
 }
 
 func (s *ServerPublicTestSuite) TestStartErrorPath() {
-	s.Run("logs error when port already in use", func() {
-		ln, err := net.Listen("tcp", ":0")
-		s.Require().NoError(err)
-		defer func() { _ = ln.Close() }()
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "logs error when port already in use",
+		},
+	}
 
-		port := ln.Addr().(*net.TCPAddr).Port
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			ln, err := net.Listen("tcp", ":0")
+			s.Require().NoError(err)
+			defer func() { _ = ln.Close() }()
 
-		appConfig := config.Config{
-			Controller: config.Controller{
-				API: config.APIServer{
-					Port: port,
-					Security: config.ServerSecurity{
-						SigningKey: "test-key",
+			port := ln.Addr().(*net.TCPAddr).Port
+
+			appConfig := config.Config{
+				Controller: config.Controller{
+					API: config.APIServer{
+						Port: port,
+						Security: config.ServerSecurity{
+							SigningKey: "test-key",
+						},
 					},
 				},
-			},
-		}
+			}
 
-		server := api.New(appConfig, slog.Default())
-		server.Start()
+			server := api.New(appConfig, slog.Default())
+			server.Start()
 
-		time.Sleep(100 * time.Millisecond)
-	})
+			time.Sleep(100 * time.Millisecond)
+		})
+	}
 }
 
 func (s *ServerPublicTestSuite) TestStopErrorPath() {
-	s.Run("logs error when shutdown context expired with active connections", func() {
-		ln, err := net.Listen("tcp", ":0")
-		s.Require().NoError(err)
-		port := ln.Addr().(*net.TCPAddr).Port
-		_ = ln.Close()
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "logs error when shutdown context expired with active connections",
+		},
+	}
 
-		appConfig := config.Config{
-			Controller: config.Controller{
-				API: config.APIServer{
-					Port: port,
-					Security: config.ServerSecurity{
-						SigningKey: "test-key",
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			ln, err := net.Listen("tcp", ":0")
+			s.Require().NoError(err)
+			port := ln.Addr().(*net.TCPAddr).Port
+			_ = ln.Close()
+
+			appConfig := config.Config{
+				Controller: config.Controller{
+					API: config.APIServer{
+						Port: port,
+						Security: config.ServerSecurity{
+							SigningKey: "test-key",
+						},
 					},
 				},
-			},
-		}
+			}
 
-		server := api.New(appConfig, slog.Default())
+			server := api.New(appConfig, slog.Default())
 
-		server.Echo.GET("/slow", func(c echo.Context) error {
-			time.Sleep(10 * time.Second)
-			return c.String(http.StatusOK, "done")
+			server.Echo.GET("/slow", func(c echo.Context) error {
+				time.Sleep(10 * time.Second)
+				return c.String(http.StatusOK, "done")
+			})
+
+			server.Start()
+			time.Sleep(50 * time.Millisecond)
+
+			go http.Get(fmt.Sprintf("http://localhost:%d/slow", port)) //nolint:errcheck
+			time.Sleep(50 * time.Millisecond)
+
+			ctx, cancel := context.WithDeadline(
+				context.Background(),
+				time.Now().Add(-time.Second),
+			)
+			defer cancel()
+
+			server.Stop(ctx)
 		})
-
-		server.Start()
-		time.Sleep(50 * time.Millisecond)
-
-		go http.Get(fmt.Sprintf("http://localhost:%d/slow", port)) //nolint:errcheck
-		time.Sleep(50 * time.Millisecond)
-
-		ctx, cancel := context.WithDeadline(
-			context.Background(),
-			time.Now().Add(-time.Second),
-		)
-		defer cancel()
-
-		server.Stop(ctx)
-	})
+	}
 }
 
 func TestServerPublicTestSuite(

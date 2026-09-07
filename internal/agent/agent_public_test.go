@@ -143,15 +143,25 @@ func (s *AgentPublicTestSuite) buildAgent() *agent.Agent {
 }
 
 func (s *AgentPublicTestSuite) TestNew() {
-	s.Run("creates agent with all providers", func() {
-		a := s.buildAgent()
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "creates agent with all providers",
+		},
+	}
 
-		s.NotNil(a)
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			a := s.buildAgent()
 
-		a.SetSubComponents(map[string]job.SubComponentInfo{
-			"agent.heartbeat": {Status: "ok"},
+			s.NotNil(a)
+
+			a.SetSubComponents(map[string]job.SubComponentInfo{
+				"agent.heartbeat": {Status: "ok"},
+			})
 		})
-	})
+	}
 }
 
 func (s *AgentPublicTestSuite) TestStart() {
@@ -496,25 +506,35 @@ func (s *AgentPublicTestSuite) TestIsReady() {
 }
 
 func (s *AgentPublicTestSuite) TestSetMeterProvider() {
-	s.Run("creates OTEL instruments without panic", func() {
-		a := s.buildAgent()
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "creates OTEL instruments without panic",
+		},
+	}
 
-		port := s.getFreePort()
-		srv := metrics.New("127.0.0.1", port, slog.Default())
-		s.Require().NotNil(srv)
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			a := s.buildAgent()
 
-		s.NotPanics(func() {
-			a.SetMeterProvider(srv.MeterProvider())
+			port := s.getFreePort()
+			srv := metrics.New("127.0.0.1", port, slog.Default())
+			s.Require().NotNil(srv)
+
+			s.NotPanics(func() {
+				a.SetMeterProvider(srv.MeterProvider())
+			})
+
+			ctx, cancel := context.WithTimeout(
+				context.Background(),
+				5*time.Second,
+			)
+			defer cancel()
+
+			srv.Stop(ctx)
 		})
-
-		ctx, cancel := context.WithTimeout(
-			context.Background(),
-			5*time.Second,
-		)
-		defer cancel()
-
-		srv.Stop(ctx)
-	})
+	}
 }
 
 func (s *AgentPublicTestSuite) TestLastHeartbeatTime() {

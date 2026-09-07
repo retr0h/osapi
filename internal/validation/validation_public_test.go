@@ -619,10 +619,20 @@ func (s *ValidationPublicTestSuite) TestAtLeastOneField() {
 }
 
 func (s *ValidationPublicTestSuite) TestInstance() {
-	s.Run("when returns shared validator instance", func() {
-		v := validation.Instance()
-		s.NotNil(v)
-	})
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "when returns shared validator instance",
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			v := validation.Instance()
+			s.NotNil(v)
+		})
+	}
 }
 
 func TestValidationPublicTestSuite(

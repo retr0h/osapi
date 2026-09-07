@@ -62,16 +62,26 @@ func (suite *DarwinPublicTestSuite) TestQuery() {
 }
 
 func (suite *DarwinPublicTestSuite) TestQueryUnit() {
-	suite.Run("returns not implemented error", func() {
-		got, err := suite.provider.QueryUnit(
-			context.Background(),
-			"nginx.service",
-			oslog.QueryOpts{},
-		)
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "returns not implemented error",
+		},
+	}
 
-		suite.Nil(got)
-		suite.ErrorIs(err, provider.ErrUnsupported)
-	})
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			got, err := suite.provider.QueryUnit(
+				context.Background(),
+				"nginx.service",
+				oslog.QueryOpts{},
+			)
+
+			suite.Nil(got)
+			suite.ErrorIs(err, provider.ErrUnsupported)
+		})
+	}
 }
 
 func (suite *DarwinPublicTestSuite) TestListSources() {

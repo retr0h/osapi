@@ -73,23 +73,33 @@ func (s *MeterPublicTestSuite) TearDownTest() {
 }
 
 func (s *MeterPublicTestSuite) TestSetMeterProvider() {
-	s.Run("creates OTEL instruments without panic", func() {
-		port := s.getFreePort()
-		srv := metrics.New("127.0.0.1", port, slog.Default())
-		s.Require().NotNil(srv)
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "creates OTEL instruments without panic",
+		},
+	}
 
-		s.NotPanics(func() {
-			s.jobsClient.SetMeterProvider(srv.MeterProvider())
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			port := s.getFreePort()
+			srv := metrics.New("127.0.0.1", port, slog.Default())
+			s.Require().NotNil(srv)
+
+			s.NotPanics(func() {
+				s.jobsClient.SetMeterProvider(srv.MeterProvider())
+			})
+
+			ctx, cancel := context.WithTimeout(
+				context.Background(),
+				5*time.Second,
+			)
+			defer cancel()
+
+			srv.Stop(ctx)
 		})
-
-		ctx, cancel := context.WithTimeout(
-			context.Background(),
-			5*time.Second,
-		)
-		defer cancel()
-
-		srv.Stop(ctx)
-	})
+	}
 }
 
 func TestMeterPublicTestSuite(

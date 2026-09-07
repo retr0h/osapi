@@ -47,18 +47,28 @@ func (s *HostnamePublicTestSuite) TearDownTest() {
 }
 
 func (s *HostnamePublicTestSuite) TestGetAgentHostnameProviderError() {
-	s.Run("falls back to unknown when provider errors", func() {
-		mockProvider := hostnamemocks.NewMockHostnameProvider(s.mockCtrl)
-		mockProvider.EXPECT().Hostname().Return("", errors.New("provider error"))
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "falls back to unknown when provider errors",
+		},
+	}
 
-		job.SetDefaultHostnameProvider(mockProvider)
-		defer job.ResetDefaultHostnameProvider()
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			mockProvider := hostnamemocks.NewMockHostnameProvider(s.mockCtrl)
+			mockProvider.EXPECT().Hostname().Return("", errors.New("provider error"))
 
-		hostname, err := job.GetAgentHostname("")
+			job.SetDefaultHostnameProvider(mockProvider)
+			defer job.ResetDefaultHostnameProvider()
 
-		s.NoError(err)
-		s.Equal("unknown", hostname)
-	})
+			hostname, err := job.GetAgentHostname("")
+
+			s.NoError(err)
+			s.Equal("unknown", hostname)
+		})
+	}
 }
 
 func (s *HostnamePublicTestSuite) TestGetAgentHostname() {
@@ -309,18 +319,28 @@ func (s *HostnamePublicTestSuite) TestHostnameProviderInterface() {
 }
 
 func (s *HostnamePublicTestSuite) TestGopsutilHostnameProviderError() {
-	s.Run("returns error when host.Info fails", func() {
-		job.SetHostInfoFn(func() (*hostpkg.InfoStat, error) {
-			return nil, errors.New("host info failed")
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "returns error when host.Info fails",
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			job.SetHostInfoFn(func() (*hostpkg.InfoStat, error) {
+				return nil, errors.New("host info failed")
+			})
+			defer job.ResetHostInfoFn()
+
+			provider := job.ExportNewGopsutilHostnameProvider()
+			hostname, err := provider.Hostname()
+
+			s.Error(err)
+			s.Empty(hostname)
 		})
-		defer job.ResetHostInfoFn()
-
-		provider := job.ExportNewGopsutilHostnameProvider()
-		hostname, err := provider.Hostname()
-
-		s.Error(err)
-		s.Empty(hostname)
-	})
+	}
 }
 
 func TestHostnamePublicTestSuite(

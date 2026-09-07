@@ -55,34 +55,54 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TearDownTest() {
 }
 
 func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvConfByInterface() {
-	suite.Run("returns ErrUnsupported on Darwin", func() {
-		mock := execMocks.NewPlainMockManager(suite.ctrl)
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "returns ErrUnsupported on Darwin",
+		},
+	}
 
-		darwin := dns.NewDarwinProvider(suite.logger, mock)
-		result, err := darwin.UpdateResolvConfByInterface(
-			[]string{"8.8.8.8"},
-			[]string{"example.com"},
-			"en0",
-			false,
-		)
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			mock := execMocks.NewPlainMockManager(suite.ctrl)
 
-		suite.Error(err)
-		suite.Nil(result)
-		suite.ErrorIs(err, provider.ErrUnsupported)
-	})
+			darwin := dns.NewDarwinProvider(suite.logger, mock)
+			result, err := darwin.UpdateResolvConfByInterface(
+				[]string{"8.8.8.8"},
+				[]string{"example.com"},
+				"en0",
+				false,
+			)
+
+			suite.Error(err)
+			suite.Nil(result)
+			suite.ErrorIs(err, provider.ErrUnsupported)
+		})
+	}
 }
 
 func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanConfig() {
-	suite.Run("returns ErrUnsupported on Darwin", func() {
-		mock := execMocks.NewPlainMockManager(suite.ctrl)
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "returns ErrUnsupported on Darwin",
+		},
+	}
 
-		darwin := dns.NewDarwinProvider(suite.logger, mock)
-		changed, err := darwin.DeleteNetplanConfig("eth0")
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			mock := execMocks.NewPlainMockManager(suite.ctrl)
 
-		suite.Error(err)
-		suite.False(changed)
-		suite.ErrorIs(err, provider.ErrUnsupported)
-	})
+			darwin := dns.NewDarwinProvider(suite.logger, mock)
+			changed, err := darwin.DeleteNetplanConfig("eth0")
+
+			suite.Error(err)
+			suite.False(changed)
+			suite.ErrorIs(err, provider.ErrUnsupported)
+		})
+	}
 }
 
 func TestDarwinUpdateResolvConfByInterfacePublicTestSuite(

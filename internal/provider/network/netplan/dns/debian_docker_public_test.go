@@ -176,30 +176,50 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 }
 
 func (s *DebianDockerPublicTestSuite) TestUpdateResolvConfByInterface() {
-	s.Run("returns ErrUnsupported for container", func() {
-		p := dns.NewDebianDockerProvider(s.logger, s.fs)
-		result, err := p.UpdateResolvConfByInterface(
-			[]string{"8.8.8.8"},
-			[]string{"example.com"},
-			"eth0",
-			false,
-		)
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "returns ErrUnsupported for container",
+		},
+	}
 
-		s.Error(err)
-		s.Nil(result)
-		s.ErrorIs(err, provider.ErrUnsupported)
-	})
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			p := dns.NewDebianDockerProvider(s.logger, s.fs)
+			result, err := p.UpdateResolvConfByInterface(
+				[]string{"8.8.8.8"},
+				[]string{"example.com"},
+				"eth0",
+				false,
+			)
+
+			s.Error(err)
+			s.Nil(result)
+			s.ErrorIs(err, provider.ErrUnsupported)
+		})
+	}
 }
 
 func (s *DebianDockerPublicTestSuite) TestDeleteNetplanConfig() {
-	s.Run("returns ErrUnsupported for container", func() {
-		p := dns.NewDebianDockerProvider(s.logger, s.fs)
-		changed, err := p.DeleteNetplanConfig("eth0")
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "returns ErrUnsupported for container",
+		},
+	}
 
-		s.Error(err)
-		s.False(changed)
-		s.ErrorIs(err, provider.ErrUnsupported)
-	})
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			p := dns.NewDebianDockerProvider(s.logger, s.fs)
+			changed, err := p.DeleteNetplanConfig("eth0")
+
+			s.Error(err)
+			s.False(changed)
+			s.ErrorIs(err, provider.ErrUnsupported)
+		})
+	}
 }
 
 func TestDebianDockerPublicTestSuite(
