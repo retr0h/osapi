@@ -411,8 +411,7 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDHTTP() {
 		name         string
 		jobID        string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:  "when valid uuid with changed field",
@@ -430,11 +429,13 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
-			wantContains: []string{
-				`"id":"550e8400-e29b-41d4-a716-446655440000"`,
-				`"status":"completed"`,
-				`"changed":true`,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "id")
+				s.Contains(rec.Body.String(), "550e8400-e29b-41d4-a716-446655440000")
+				s.Contains(rec.Body.String(), "status")
+				s.Contains(rec.Body.String(), "completed")
+				s.Contains(rec.Body.String(), "changed")
 			},
 		},
 		{
@@ -443,8 +444,11 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"message"`, "Invalid format for parameter id"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), "Invalid format for parameter id")
+			},
 		},
 		{
 			name:  "when job has timeline events",
@@ -475,13 +479,13 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
-			wantContains: []string{
-				`"timeline"`,
-				`"submitted"`,
-				`"failed"`,
-				`"Job submitted to queue"`,
-				`"timeout"`,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "timeline")
+				s.Contains(rec.Body.String(), "submitted")
+				s.Contains(rec.Body.String(), "failed")
+				s.Contains(rec.Body.String(), "Job submitted to queue")
+				s.Contains(rec.Body.String(), "timeout")
 			},
 		},
 	}
@@ -505,10 +509,7 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -522,8 +523,7 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -533,8 +533,10 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -551,8 +553,10 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with job:read returns 200",
@@ -577,8 +581,11 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"id":"550e8400-e29b-41d4-a716-446655440000"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "id")
+				s.Contains(rec.Body.String(), "550e8400-e29b-41d4-a716-446655440000")
+			},
 		},
 	}
 
@@ -615,10 +622,7 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

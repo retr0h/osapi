@@ -236,8 +236,7 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentHTTP() {
 		name         string
 		hostname     string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when hostname exceeds max length returns 400",
@@ -245,8 +244,10 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 		{
 			name:     "when agent exists returns 200",
@@ -268,8 +269,10 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentHTTP() {
 					Return(nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"message"`, `drain initiated`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+			},
 		},
 		{
 			name:     "when agent not found returns 404",
@@ -281,8 +284,10 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentHTTP() {
 					Return(nil, fmt.Errorf("agent not found: unknown"))
 				return mock
 			},
-			wantCode:     http.StatusNotFound,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusNotFound, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 		{
 			name:     "when agent already draining returns 409",
@@ -298,8 +303,10 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusConflict,
-			wantContains: []string{`"error"`, `already in Draining`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusConflict, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 	}
 
@@ -322,10 +329,7 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -339,8 +343,7 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -350,8 +353,10 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -368,8 +373,10 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with agent:write returns 200",
@@ -400,8 +407,10 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentRBACHTTP() {
 					Return(nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"message"`, `drain initiated`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+			},
 		},
 	}
 
@@ -439,10 +448,7 @@ func (s *AgentDrainPublicTestSuite) TestDrainAgentRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

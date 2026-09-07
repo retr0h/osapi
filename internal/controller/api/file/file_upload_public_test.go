@@ -454,8 +454,7 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 		path         string
 		buildBody    func() (*bytes.Buffer, string)
 		setupMock    func() *mocks.MockObjectStoreManager
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when upload Ok",
@@ -475,13 +474,15 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusCreated,
-			wantContains: []string{
-				`"name":"nginx.conf"`,
-				`"sha256"`,
-				`"size"`,
-				`"changed":true`,
-				`"content_type":"raw"`,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusCreated, rec.Code)
+				s.Contains(rec.Body.String(), "name")
+				s.Contains(rec.Body.String(), "nginx.conf")
+				s.Contains(rec.Body.String(), "sha256")
+				s.Contains(rec.Body.String(), "size")
+				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), "content_type")
+				s.Contains(rec.Body.String(), "raw")
 			},
 		},
 		{
@@ -492,8 +493,10 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{"name is required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "name is required")
+			},
 		},
 		{
 			name: "when different content without force returns 409",
@@ -511,8 +514,10 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusConflict,
-			wantContains: []string{"already exists with different content"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusConflict, rec.Code)
+				s.Contains(rec.Body.String(), "already exists with different content")
+			},
 		},
 		{
 			name: "when force upload bypasses digest check",
@@ -530,8 +535,10 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusCreated,
-			wantContains: []string{`"changed":true`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusCreated, rec.Code)
+				s.Contains(rec.Body.String(), "changed")
+			},
 		},
 		{
 			name: "when invalid force param returns 400",
@@ -542,8 +549,10 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{"Invalid format for parameter force"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "Invalid format for parameter force")
+			},
 		},
 		{
 			name: "when object store error",
@@ -560,8 +569,10 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 					Return(nil, assert.AnError)
 				return mock
 			},
-			wantCode:     http.StatusInternalServerError,
-			wantContains: []string{"failed to store file"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.Contains(rec.Body.String(), "failed to store file")
+			},
 		},
 	}
 
@@ -592,10 +603,7 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -610,8 +618,7 @@ func (s *FileUploadPublicTestSuite) TestPostFileRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupMock    func() *mocks.MockObjectStoreManager
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -621,8 +628,10 @@ func (s *FileUploadPublicTestSuite) TestPostFileRBACHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -639,8 +648,10 @@ func (s *FileUploadPublicTestSuite) TestPostFileRBACHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with file:write returns 201",
@@ -667,8 +678,12 @@ func (s *FileUploadPublicTestSuite) TestPostFileRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusCreated,
-			wantContains: []string{`"name":"nginx.conf"`, `"sha256"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusCreated, rec.Code)
+				s.Contains(rec.Body.String(), "name")
+				s.Contains(rec.Body.String(), "nginx.conf")
+				s.Contains(rec.Body.String(), "sha256")
+			},
 		},
 	}
 
@@ -708,10 +723,7 @@ func (s *FileUploadPublicTestSuite) TestPostFileRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

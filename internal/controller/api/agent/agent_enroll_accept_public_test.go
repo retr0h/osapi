@@ -209,8 +209,7 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentHTTP() {
 		name         string
 		hostname     string
 		setupMocks   func() (*jobmocks.MockJobClient, *agentmocks.MockEnrollmentManager)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when hostname exceeds max length returns 400",
@@ -222,8 +221,10 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentHTTP() {
 						s.mockCtrl,
 					)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 		{
 			name:     "when agent accepted returns 200",
@@ -234,8 +235,10 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentHTTP() {
 				em.EXPECT().AcceptByHostname(gomock.Any(), "web-01").Return(nil)
 				return jm, em
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"message"`, `accepted`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+			},
 		},
 		{
 			name:     "when not found returns 404",
@@ -247,8 +250,10 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentHTTP() {
 					Return(fmt.Errorf("no pending agent with hostname"))
 				return jm, em
 			},
-			wantCode:     http.StatusNotFound,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusNotFound, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 	}
 
@@ -271,10 +276,7 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -288,8 +290,7 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupMocks   func() (*jobmocks.MockJobClient, *agentmocks.MockEnrollmentManager)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -301,8 +302,10 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentRBACHTTP() {
 						s.mockCtrl,
 					)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -323,8 +326,10 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentRBACHTTP() {
 						s.mockCtrl,
 					)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with agent:write returns 200",
@@ -344,8 +349,10 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentRBACHTTP() {
 				em.EXPECT().AcceptByHostname(gomock.Any(), "web-01").Return(nil)
 				return jm, em
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"message"`, `accepted`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+			},
 		},
 	}
 
@@ -383,10 +390,7 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

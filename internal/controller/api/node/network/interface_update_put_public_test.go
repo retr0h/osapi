@@ -308,8 +308,7 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceValida
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -325,8 +324,11 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceValida
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`, `"server1"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), "server1")
+			},
 		},
 		{
 			name: "when empty body",
@@ -335,8 +337,11 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceValida
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "at least one"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), "at least one")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -345,8 +350,11 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceValida
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), "valid_target")
+			},
 		},
 	}
 
@@ -370,10 +378,7 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceValida
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -388,8 +393,7 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceRBACHT
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -398,8 +402,10 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceRBACHT
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -416,8 +422,10 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceRBACHT
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with network:write returns 200",
@@ -441,8 +449,11 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceRBACHT
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`, `"changed":true`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), "changed")
+			},
 		},
 	}
 
@@ -480,10 +491,7 @@ func (s *NetworkInterfaceUpdatePutPublicTestSuite) TestPutNetworkInterfaceRBACHT
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

@@ -292,8 +292,7 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadValidationHTTP() {
 		name         string
 		path         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when get Ok",
@@ -314,7 +313,9 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadValidationHTTP() {
 					)
 				return mock
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+			},
 		},
 		{
 			name: "when empty hostname returns 400",
@@ -322,8 +323,10 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{"error"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 		{
 			name: "when job client errors",
@@ -335,7 +338,9 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadValidationHTTP() {
 					Return("", nil, assert.AnError)
 				return mock
 			},
-			wantCode: http.StatusInternalServerError,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+			},
 		},
 	}
 
@@ -354,10 +359,7 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -371,8 +373,7 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -382,8 +383,10 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -400,8 +403,10 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with node:read returns 200",
@@ -431,8 +436,10 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadRBACHTTP() {
 					)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "job_id")
+			},
 		},
 	}
 
@@ -465,10 +472,7 @@ func (s *NodeLoadGetPublicTestSuite) TestGetNodeLoadRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

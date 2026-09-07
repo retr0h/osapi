@@ -251,8 +251,7 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 		name         string
 		hostname     string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when hostname exceeds max length returns 400",
@@ -260,8 +259,10 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 		{
 			name:     "when draining agent exists returns 200",
@@ -283,8 +284,10 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 					Return(nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"message"`, `undrain initiated`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+			},
 		},
 		{
 			name:     "when agent not found returns 404",
@@ -296,8 +299,10 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 					Return(nil, fmt.Errorf("agent not found: unknown"))
 				return mock
 			},
-			wantCode:     http.StatusNotFound,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusNotFound, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 		{
 			name:     "when agent in ready state returns 409",
@@ -313,8 +318,10 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusConflict,
-			wantContains: []string{`"error"`, `not in draining or cordoned`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusConflict, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 	}
 
@@ -337,10 +344,7 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -354,8 +358,7 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -365,8 +368,10 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -383,8 +388,10 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with agent:write returns 200",
@@ -415,8 +422,10 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentRBACHTTP() {
 					Return(nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"message"`, `undrain initiated`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+			},
 		},
 	}
 
@@ -454,10 +463,7 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

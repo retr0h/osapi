@@ -161,8 +161,7 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameValidationHTTP() {
 		name         string
 		path         string
 		setupMock    func() *mocks.MockObjectStoreManager
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when name too long returns 400",
@@ -170,8 +169,10 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameValidationHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 		{
 			name: "when get Ok",
@@ -192,12 +193,18 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
-			wantContains: []string{
-				`"name":"nginx.conf"`,
-				`"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"`,
-				`"size":1024`,
-				`"content_type":"raw"`,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "name")
+				s.Contains(rec.Body.String(), "nginx.conf")
+				s.Contains(rec.Body.String(), "sha256")
+				s.Contains(
+					rec.Body.String(),
+					"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+				)
+				s.Contains(rec.Body.String(), "size")
+				s.Contains(rec.Body.String(), "content_type")
+				s.Contains(rec.Body.String(), "raw")
 			},
 		},
 		{
@@ -210,8 +217,10 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameValidationHTTP() {
 					Return(nil, jetstream.ErrObjectNotFound)
 				return mock
 			},
-			wantCode:     http.StatusNotFound,
-			wantContains: []string{"file not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusNotFound, rec.Code)
+				s.Contains(rec.Body.String(), "file not found")
+			},
 		},
 		{
 			name: "when object store error",
@@ -223,8 +232,10 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameValidationHTTP() {
 					Return(nil, assert.AnError)
 				return mock
 			},
-			wantCode:     http.StatusInternalServerError,
-			wantContains: []string{"failed to get file info"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.Contains(rec.Body.String(), "failed to get file info")
+			},
 		},
 	}
 
@@ -243,10 +254,7 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -260,8 +268,7 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupMock    func() *mocks.MockObjectStoreManager
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -271,8 +278,10 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameRBACHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -289,8 +298,10 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameRBACHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with file:read returns 200",
@@ -320,8 +331,12 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"name":"nginx.conf"`, `"sha256"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "name")
+				s.Contains(rec.Body.String(), "nginx.conf")
+				s.Contains(rec.Body.String(), "sha256")
+			},
 		},
 	}
 
@@ -355,10 +370,7 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

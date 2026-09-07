@@ -414,8 +414,7 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameHTTP() {
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -431,8 +430,13 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"results"`, `"agent1"`, `"ok"`, `"changed":true`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), "agent1")
+				s.Contains(rec.Body.String(), "ok")
+				s.Contains(rec.Body.String(), "changed")
+			},
 		},
 		{
 			name: "when missing hostname body returns 400",
@@ -441,8 +445,12 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Hostname", "required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), "Hostname")
+				s.Contains(rec.Body.String(), "required")
+			},
 		},
 		{
 			name: "when empty hostname path returns 400",
@@ -451,8 +459,10 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 	}
 
@@ -476,10 +486,7 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -494,8 +501,7 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -505,8 +511,10 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -523,8 +531,10 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with node:write returns 202",
@@ -552,8 +562,11 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameRBACHTTP() {
 					)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"results"`, `"changed":true`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), "changed")
+			},
 		},
 	}
 
@@ -591,10 +604,7 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

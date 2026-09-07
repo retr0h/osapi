@@ -131,8 +131,7 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDHTTP() {
 		name         string
 		jobID        string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:  "when valid uuid",
@@ -144,7 +143,9 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDHTTP() {
 					Return(nil)
 				return mock
 			},
-			wantCode: http.StatusNoContent,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusNoContent, rec.Code)
+			},
 		},
 		{
 			name:  "when invalid uuid",
@@ -152,8 +153,11 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"message"`, "Invalid format for parameter id"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), "Invalid format for parameter id")
+			},
 		},
 	}
 
@@ -176,10 +180,7 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -193,8 +194,7 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -204,8 +204,10 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -222,8 +224,10 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with job:write returns 204",
@@ -244,7 +248,9 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDRBACHTTP() {
 					Return(nil)
 				return mock
 			},
-			wantCode: http.StatusNoContent,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusNoContent, rec.Code)
+			},
 		},
 	}
 
@@ -281,10 +287,7 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

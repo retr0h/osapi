@@ -214,8 +214,7 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 		jobID        string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:  "when valid request with target",
@@ -233,10 +232,12 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusCreated,
-			wantContains: []string{
-				`"job_id":"660e8400-e29b-41d4-a716-446655440000"`,
-				`"status":"created"`,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusCreated, rec.Code)
+				s.Contains(rec.Body.String(), "job_id")
+				s.Contains(rec.Body.String(), "660e8400-e29b-41d4-a716-446655440000")
+				s.Contains(rec.Body.String(), "status")
+				s.Contains(rec.Body.String(), "created")
 			},
 		},
 		{
@@ -255,8 +256,11 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusCreated,
-			wantContains: []string{`"job_id":"770e8400-e29b-41d4-a716-446655440000"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusCreated, rec.Code)
+				s.Contains(rec.Body.String(), "job_id")
+				s.Contains(rec.Body.String(), "770e8400-e29b-41d4-a716-446655440000")
+			},
 		},
 		{
 			name:  "when invalid uuid",
@@ -265,8 +269,11 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"message"`, "Invalid format for parameter id"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), "Invalid format for parameter id")
+			},
 		},
 		{
 			name:  "when empty target hostname in body",
@@ -275,8 +282,11 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "TargetHostname"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), "TargetHostname")
+			},
 		},
 	}
 
@@ -300,10 +310,7 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -317,8 +324,7 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -328,8 +334,10 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -346,8 +354,10 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with job:write returns 201",
@@ -373,8 +383,11 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusCreated,
-			wantContains: []string{`"job_id":"660e8400-e29b-41d4-a716-446655440000"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusCreated, rec.Code)
+				s.Contains(rec.Body.String(), "job_id")
+				s.Contains(rec.Body.String(), "660e8400-e29b-41d4-a716-446655440000")
+			},
 		},
 	}
 
@@ -412,10 +425,7 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

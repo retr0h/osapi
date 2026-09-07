@@ -183,8 +183,7 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameValidationHTTP() {
 		name         string
 		path         string
 		setupMock    func() *mocks.MockObjectStoreManager
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when name too long returns 400",
@@ -192,8 +191,10 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameValidationHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 		{
 			name: "when delete Ok",
@@ -211,8 +212,12 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameValidationHTTP() {
 					Return(nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"name":"nginx.conf"`, `"deleted":true`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "name")
+				s.Contains(rec.Body.String(), "nginx.conf")
+				s.Contains(rec.Body.String(), "deleted")
+			},
 		},
 		{
 			name: "when not found",
@@ -224,8 +229,10 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameValidationHTTP() {
 					Return(nil, jetstream.ErrObjectNotFound)
 				return mock
 			},
-			wantCode:     http.StatusNotFound,
-			wantContains: []string{"file not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusNotFound, rec.Code)
+				s.Contains(rec.Body.String(), "file not found")
+			},
 		},
 		{
 			name: "when delete error",
@@ -243,8 +250,10 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameValidationHTTP() {
 					Return(assert.AnError)
 				return mock
 			},
-			wantCode:     http.StatusInternalServerError,
-			wantContains: []string{"failed to delete file"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.Contains(rec.Body.String(), "failed to delete file")
+			},
 		},
 	}
 
@@ -263,10 +272,7 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -280,8 +286,7 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupMock    func() *mocks.MockObjectStoreManager
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -291,8 +296,10 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameRBACHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -309,8 +316,10 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameRBACHTTP() {
 			setupMock: func() *mocks.MockObjectStoreManager {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with file:write returns 200",
@@ -337,8 +346,12 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameRBACHTTP() {
 					Return(nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"name":"nginx.conf"`, `"deleted":true`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "name")
+				s.Contains(rec.Body.String(), "nginx.conf")
+				s.Contains(rec.Body.String(), "deleted")
+			},
 		},
 	}
 
@@ -372,10 +385,7 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }

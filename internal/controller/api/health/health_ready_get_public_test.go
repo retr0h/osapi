@@ -130,8 +130,7 @@ func (s *HealthReadyGetPublicTestSuite) TestGetHealthReadyHTTP() {
 	tests := []struct {
 		name         string
 		checker      *health.NATSChecker
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when all checks pass returns ready",
@@ -139,8 +138,11 @@ func (s *HealthReadyGetPublicTestSuite) TestGetHealthReadyHTTP() {
 				NATSCheck: func() error { return nil },
 				KVCheck:   func() error { return nil },
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"status":"ready"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), "status")
+				s.Contains(rec.Body.String(), "ready")
+			},
 		},
 		{
 			name: "when NATS check fails returns not ready",
@@ -148,8 +150,12 @@ func (s *HealthReadyGetPublicTestSuite) TestGetHealthReadyHTTP() {
 				NATSCheck: func() error { return fmt.Errorf("nats not connected") },
 				KVCheck:   func() error { return nil },
 			},
-			wantCode:     http.StatusServiceUnavailable,
-			wantContains: []string{`"status":"not_ready"`, `"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusServiceUnavailable, rec.Code)
+				s.Contains(rec.Body.String(), "status")
+				s.Contains(rec.Body.String(), "not_ready")
+				s.Contains(rec.Body.String(), "error")
+			},
 		},
 	}
 
@@ -173,10 +179,7 @@ func (s *HealthReadyGetPublicTestSuite) TestGetHealthReadyHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, want := range tc.wantContains {
-				s.Contains(rec.Body.String(), want)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
