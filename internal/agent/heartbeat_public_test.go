@@ -378,10 +378,18 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistration() {
 
 func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistrationStoresHeartbeatTime() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(time.Time, time.Time, time.Time)
 	}{
 		{
 			name: "when Put succeeds stores last heartbeat time",
+			validateFunc: func(got, before, after time.Time) {
+				s.False(got.IsZero(), "expected non-zero heartbeat time after successful Put")
+				s.True(
+					!got.Before(before) && !got.After(after),
+					"heartbeat time should be between before and after write",
+				)
+			},
 		},
 	}
 
@@ -401,11 +409,7 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistrationStoresHeartbeatT
 			after := time.Now()
 
 			got := s.testAgent.LastHeartbeatTime()
-			s.False(got.IsZero(), "expected non-zero heartbeat time after successful Put")
-			s.True(
-				!got.Before(before) && !got.After(after),
-				"heartbeat time should be between before and after write",
-			)
+			tt.validateFunc(got, before, after)
 		})
 	}
 }

@@ -69,10 +69,14 @@ func (s *HandlerPublicTestSuite) TearDownTest() {
 
 func (s *HandlerPublicTestSuite) TestRegisterHandlers() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, any)
 	}{
 		{
 			name: "registers handlers with Echo",
+			validateFunc: func(routesAfter any, routesBefore any) {
+				s.Greater(routesAfter, routesBefore)
+			},
 		},
 	}
 
@@ -111,8 +115,7 @@ func (s *HandlerPublicTestSuite) TestRegisterHandlers() {
 			routesBefore := len(s.server.Echo.Routes())
 			s.server.RegisterHandlers(handlers)
 			routesAfter := len(s.server.Echo.Routes())
-
-			s.Greater(routesAfter, routesBefore)
+			tt.validateFunc(routesAfter, routesBefore)
 		})
 	}
 }

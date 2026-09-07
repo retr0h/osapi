@@ -90,18 +90,41 @@ func (s *SigningPublicTestSuite) TestWrapInSignedEnvelope() {
 		name         string
 		payload      []byte
 		setupFn      func()
-		expectError  bool
-		wantContains string
+		validateFunc func([]byte, error, ed25519.PublicKey)
 	}{
 		{
-			name:        "when wrapping valid payload",
-			payload:     []byte(`{"id":"test-job","operation":{"type":"node.hostname.get"}}`),
-			expectError: false,
+			name:    "when wrapping valid payload",
+			payload: []byte(`{"id":"test-job","operation":{"type":"node.hostname.get"}}`),
+			validateFunc: func(result []byte, err error, pubKey ed25519.PublicKey) {
+				s.NoError(err)
+
+				payload := []byte(`{"id":"test-job","operation":{"type":"node.hostname.get"}}`)
+
+				var envelope job.SignedEnvelope
+				s.NoError(json.Unmarshal(result, &envelope))
+				s.Equal(payload, envelope.Payload)
+				s.NotEmpty(envelope.Signature)
+				s.Equal("SHA256:test-fingerprint", envelope.Fingerprint)
+
+				s.True(ed25519.Verify(pubKey, payload, envelope.Signature))
+			},
 		},
 		{
-			name:        "when wrapping empty payload",
-			payload:     []byte{},
-			expectError: false,
+			name:    "when wrapping empty payload",
+			payload: []byte{},
+			validateFunc: func(result []byte, err error, pubKey ed25519.PublicKey) {
+				s.NoError(err)
+
+				payload := []byte{}
+
+				var envelope job.SignedEnvelope
+				s.NoError(json.Unmarshal(result, &envelope))
+				s.Equal(payload, envelope.Payload)
+				s.NotEmpty(envelope.Signature)
+				s.Equal("SHA256:test-fingerprint", envelope.Fingerprint)
+
+				s.True(ed25519.Verify(pubKey, payload, envelope.Signature))
+			},
 		},
 		{
 			name:    "when marshal fails returns error",
@@ -111,8 +134,10 @@ func (s *SigningPublicTestSuite) TestWrapInSignedEnvelope() {
 					return nil, errors.New("marshal error")
 				})
 			},
-			expectError:  true,
-			wantContains: "marshal signed envelope",
+			validateFunc: func(_ []byte, err error, _ ed25519.PublicKey) {
+				s.Error(err)
+				s.Contains(err.Error(), "marshal signed envelope")
+			},
 		},
 	}
 
@@ -126,25 +151,7 @@ func (s *SigningPublicTestSuite) TestWrapInSignedEnvelope() {
 
 			result, err := client.ExportWrapInSignedEnvelope(signer, tt.payload)
 
-			if tt.expectError {
-				s.Error(err)
-				if tt.wantContains != "" {
-					s.Contains(err.Error(), tt.wantContains)
-				}
-				return
-			}
-
-			s.NoError(err)
-
-			// Verify the result is a valid SignedEnvelope.
-			var envelope job.SignedEnvelope
-			s.NoError(json.Unmarshal(result, &envelope))
-			s.Equal(tt.payload, envelope.Payload)
-			s.NotEmpty(envelope.Signature)
-			s.Equal("SHA256:test-fingerprint", envelope.Fingerprint)
-
-			// Verify signature is valid.
-			s.True(ed25519.Verify(pubKey, tt.payload, envelope.Signature))
+			tt.validateFunc(result, err, pubKey)
 		})
 	}
 }
