@@ -57,29 +57,19 @@ func (s *LinuxPublicTestSuite) TestGetResolvConfByInterface() {
 }
 
 func (s *LinuxPublicTestSuite) TestUpdateResolvConfByInterface() {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "returns error for linux stub",
-		},
-	}
+	s.Run("returns error for linux stub", func() {
+		l := &dns.Linux{}
+		result, err := l.UpdateResolvConfByInterface(
+			[]string{"8.8.8.8"},
+			[]string{"example.com"},
+			"eth0",
+			false,
+		)
 
-	for _, tt := range tests {
-		s.Run(tt.name, func() {
-			l := &dns.Linux{}
-			result, err := l.UpdateResolvConfByInterface(
-				[]string{"8.8.8.8"},
-				[]string{"example.com"},
-				"eth0",
-				false,
-			)
-
-			s.Error(err)
-			s.Nil(result)
-			s.ErrorIs(err, provider.ErrUnsupported)
-		})
-	}
+		s.Error(err)
+		s.Nil(result)
+		s.ErrorIs(err, provider.ErrUnsupported)
+	})
 }
 
 func TestLinuxPublicTestSuite(

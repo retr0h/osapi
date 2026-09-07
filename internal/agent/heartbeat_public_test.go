@@ -377,37 +377,27 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistration() {
 }
 
 func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistrationStoresHeartbeatTime() {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "when Put succeeds stores last heartbeat time",
-		},
-	}
+	s.Run("when Put succeeds stores last heartbeat time", func() {
+		s.mockKV.EXPECT().
+			Put(gomock.Any(), "agents.test_machine_id", gomock.Any()).
+			Return(uint64(1), nil)
 
-	for _, tt := range tests {
-		s.Run(tt.name, func() {
-			s.mockKV.EXPECT().
-				Put(gomock.Any(), "agents.test_machine_id", gomock.Any()).
-				Return(uint64(1), nil)
+		before := time.Now()
+		agent.ExportWriteRegistration(
+			context.Background(),
+			s.testAgent,
+			"test-machine-id",
+			"test-agent",
+		)
+		after := time.Now()
 
-			before := time.Now()
-			agent.ExportWriteRegistration(
-				context.Background(),
-				s.testAgent,
-				"test-machine-id",
-				"test-agent",
-			)
-			after := time.Now()
-
-			got := s.testAgent.LastHeartbeatTime()
-			s.False(got.IsZero(), "expected non-zero heartbeat time after successful Put")
-			s.True(
-				!got.Before(before) && !got.After(after),
-				"heartbeat time should be between before and after write",
-			)
-		})
-	}
+		got := s.testAgent.LastHeartbeatTime()
+		s.False(got.IsZero(), "expected non-zero heartbeat time after successful Put")
+		s.True(
+			!got.Before(before) && !got.After(after),
+			"heartbeat time should be between before and after write",
+		)
+	})
 }
 
 func (s *HeartbeatLowLevelPublicTestSuite) TestDeregister() {

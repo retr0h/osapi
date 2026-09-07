@@ -87,25 +87,15 @@ func (suite *DarwinPublicTestSuite) TestGetUser() {
 }
 
 func (suite *DarwinPublicTestSuite) TestCreateUser() {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "returns ErrUnsupported",
-		},
-	}
-
-	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			result, err := suite.provider.CreateUser(suite.ctx, user.CreateUserOpts{
-				Name: "testuser",
-			})
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+	suite.Run("returns ErrUnsupported", func() {
+		result, err := suite.provider.CreateUser(suite.ctx, user.CreateUserOpts{
+			Name: "testuser",
 		})
-	}
+
+		suite.Error(err)
+		suite.Nil(result)
+		suite.ErrorIs(err, provider.ErrUnsupported)
+	})
 }
 
 func (suite *DarwinPublicTestSuite) TestUpdateUser() {
@@ -219,49 +209,29 @@ func (suite *DarwinPublicTestSuite) TestGetGroup() {
 }
 
 func (suite *DarwinPublicTestSuite) TestCreateGroup() {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "returns ErrUnsupported",
-		},
-	}
-
-	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			result, err := suite.provider.CreateGroup(suite.ctx, user.CreateGroupOpts{
-				Name: "testgroup",
-			})
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+	suite.Run("returns ErrUnsupported", func() {
+		result, err := suite.provider.CreateGroup(suite.ctx, user.CreateGroupOpts{
+			Name: "testgroup",
 		})
-	}
+
+		suite.Error(err)
+		suite.Nil(result)
+		suite.ErrorIs(err, provider.ErrUnsupported)
+	})
 }
 
 func (suite *DarwinPublicTestSuite) TestUpdateGroup() {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "returns ErrUnsupported",
-		},
-	}
+	suite.Run("returns ErrUnsupported", func() {
+		result, err := suite.provider.UpdateGroup(
+			suite.ctx,
+			"testgroup",
+			user.UpdateGroupOpts{},
+		)
 
-	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			result, err := suite.provider.UpdateGroup(
-				suite.ctx,
-				"testgroup",
-				user.UpdateGroupOpts{},
-			)
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
-		})
-	}
+		suite.Error(err)
+		suite.Nil(result)
+		suite.ErrorIs(err, provider.ErrUnsupported)
+	})
 }
 
 func (suite *DarwinPublicTestSuite) TestDeleteGroup() {
@@ -309,25 +279,15 @@ func (suite *DarwinPublicTestSuite) TestListKeys() {
 }
 
 func (suite *DarwinPublicTestSuite) TestAddKey() {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "returns ErrUnsupported",
-		},
-	}
-
-	for _, tc := range tests {
-		suite.Run(tc.name, func() {
-			result, err := suite.provider.AddKey(suite.ctx, "testuser", user.SSHKey{
-				RawLine: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI test@example",
-			})
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+	suite.Run("returns ErrUnsupported", func() {
+		result, err := suite.provider.AddKey(suite.ctx, "testuser", user.SSHKey{
+			RawLine: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI test@example",
 		})
-	}
+
+		suite.Error(err)
+		suite.Nil(result)
+		suite.ErrorIs(err, provider.ErrUnsupported)
+	})
 }
 
 func (suite *DarwinPublicTestSuite) TestRemoveKey() {

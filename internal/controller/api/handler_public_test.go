@@ -68,53 +68,43 @@ func (s *HandlerPublicTestSuite) TearDownTest() {
 }
 
 func (s *HandlerPublicTestSuite) TestRegisterHandlers() {
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "registers handlers with Echo",
-		},
-	}
+	s.Run("registers handlers with Echo", func() {
+		signingKey := "test-signing-key"
 
-	for _, tt := range tests {
-		s.Run(tt.name, func() {
-			signingKey := "test-signing-key"
+		handlers := make([]func(e *echo.Echo), 0, 5)
+		handlers = append(
+			handlers,
+			agentAPI.Handler(slog.Default(), s.mockJobClient, signingKey, nil, nil)...,
+		)
+		handlers = append(
+			handlers,
+			nodeAPI.Handler(slog.Default(), s.mockJobClient, signingKey, nil)...,
+		)
+		handlers = append(
+			handlers,
+			jobAPI.Handler(slog.Default(), s.mockJobClient, signingKey, nil)...,
+		)
+		checker := &health.NATSChecker{}
+		handlers = append(
+			handlers,
+			health.Handler(
+				slog.Default(),
+				checker,
+				time.Now(),
+				"0.1.0",
+				nil,
+				nil,
+				signingKey,
+				nil,
+			)...,
+		)
 
-			handlers := make([]func(e *echo.Echo), 0, 5)
-			handlers = append(
-				handlers,
-				agentAPI.Handler(slog.Default(), s.mockJobClient, signingKey, nil, nil)...,
-			)
-			handlers = append(
-				handlers,
-				nodeAPI.Handler(slog.Default(), s.mockJobClient, signingKey, nil)...,
-			)
-			handlers = append(
-				handlers,
-				jobAPI.Handler(slog.Default(), s.mockJobClient, signingKey, nil)...,
-			)
-			checker := &health.NATSChecker{}
-			handlers = append(
-				handlers,
-				health.Handler(
-					slog.Default(),
-					checker,
-					time.Now(),
-					"0.1.0",
-					nil,
-					nil,
-					signingKey,
-					nil,
-				)...,
-			)
+		routesBefore := len(s.server.Echo.Routes())
+		s.server.RegisterHandlers(handlers)
+		routesAfter := len(s.server.Echo.Routes())
 
-			routesBefore := len(s.server.Echo.Routes())
-			s.server.RegisterHandlers(handlers)
-			routesAfter := len(s.server.Echo.Routes())
-
-			s.Greater(routesAfter, routesBefore)
-		})
-	}
+		s.Greater(routesAfter, routesBefore)
+	})
 }
 
 func TestHandlerPublicTestSuite(
