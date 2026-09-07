@@ -293,28 +293,38 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPassword() {
 
 func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordValidationHTTP() {
 	tests := []struct {
-		name     string
-		path     string
-		body     string
-		wantCode int
+		name         string
+		path         string
+		body         string
+		wantCode     int
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when valid request",
 			path:     "/api/node/server1/user/testuser/password",
 			body:     `{"password":"newpass123"}`,
 			wantCode: http.StatusOK,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+			},
 		},
 		{
 			name:     "when missing password",
 			path:     "/api/node/server1/user/testuser/password",
 			body:     `{}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 		{
 			name:     "when invalid hostname",
 			path:     "/api/node/nonexistent/user/testuser/password",
 			body:     `{"password":"newpass123"}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 	}
 
@@ -345,7 +355,7 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordValidationHTTP() {
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec)
 		})
 	}
 }

@@ -309,19 +309,26 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUser() {
 
 func (s *UserCreatePublicTestSuite) TestPostNodeUserValidationHTTP() {
 	tests := []struct {
-		name     string
-		body     string
-		wantCode int
+		name         string
+		body         string
+		wantCode     int
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when valid request",
 			body:     `{"name":"newuser"}`,
 			wantCode: http.StatusOK,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+			},
 		},
 		{
 			name:     "when missing name",
 			body:     `{}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 	}
 
@@ -352,7 +359,7 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserValidationHTTP() {
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec)
 		})
 	}
 }

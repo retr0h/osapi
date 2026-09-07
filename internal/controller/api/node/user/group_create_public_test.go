@@ -294,28 +294,38 @@ func (s *GroupCreatePublicTestSuite) TestPostNodeGroup() {
 
 func (s *GroupCreatePublicTestSuite) TestPostNodeGroupValidationHTTP() {
 	tests := []struct {
-		name     string
-		path     string
-		body     string
-		wantCode int
+		name         string
+		path         string
+		body         string
+		wantCode     int
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when valid request",
 			path:     "/api/node/server1/group",
 			body:     `{"name":"devops"}`,
 			wantCode: http.StatusOK,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+			},
 		},
 		{
 			name:     "when missing name",
 			path:     "/api/node/server1/group",
 			body:     `{}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 		{
 			name:     "when invalid hostname",
 			path:     "/api/node/nonexistent/group",
 			body:     `{"name":"devops"}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 	}
 
@@ -346,7 +356,7 @@ func (s *GroupCreatePublicTestSuite) TestPostNodeGroupValidationHTTP() {
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec)
 		})
 	}
 }

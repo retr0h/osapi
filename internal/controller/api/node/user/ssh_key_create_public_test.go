@@ -335,19 +335,26 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKey() {
 
 func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyValidationHTTP() {
 	tests := []struct {
-		name     string
-		body     string
-		wantCode int
+		name         string
+		body         string
+		wantCode     int
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when valid request",
 			body:     `{"key":"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITest user@host"}`,
 			wantCode: http.StatusOK,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+			},
 		},
 		{
 			name:     "when missing key",
 			body:     `{}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 	}
 
@@ -384,7 +391,7 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyValidationHTTP() {
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec)
 		})
 	}
 }

@@ -502,18 +502,25 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestStartHeartbeatHostnameChange() {
 		initialHostname string
 		hostnameReply   string
 		expectChanged   bool
+		validateFunc    func(any)
 	}{
 		{
 			name:            "when hostname changes updates cached hostname",
 			initialHostname: "old-host",
 			hostnameReply:   "new-host",
 			expectChanged:   true,
+			validateFunc: func(got any) {
+				s.Equal("new-host", got)
+			},
 		},
 		{
 			name:            "when hostname unchanged does not resubscribe",
 			initialHostname: "same-host",
 			hostnameReply:   "same-host",
 			expectChanged:   false,
+			validateFunc: func(got any) {
+				s.Equal("same-host", got)
+			},
 		},
 	}
 
@@ -591,8 +598,7 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestStartHeartbeatHostnameChange() {
 			// Wait for goroutine to finish
 			agent.WaitAgentWG(testAgent)
 
-			got := agent.GetAgentHostname(testAgent)
-			s.Equal(tt.hostnameReply, got)
+			tt.validateFunc(agent.GetAgentHostname(testAgent))
 		})
 	}
 }

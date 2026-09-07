@@ -86,14 +86,15 @@ func (s *HealthGetPublicTestSuite) TestGetHealth() {
 
 func (s *HealthGetPublicTestSuite) TestGetHealthHTTP() {
 	tests := []struct {
-		name     string
-		wantCode int
-		wantBody string
+		name         string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
-			name:     "when liveness probe returns ok",
-			wantCode: http.StatusOK,
-			wantBody: `{"status":"ok"}`,
+			name: "when liveness probe returns ok",
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.JSONEq(`{"status":"ok"}`, rec.Body.String())
+			},
 		},
 	}
 
@@ -118,8 +119,7 @@ func (s *HealthGetPublicTestSuite) TestGetHealthHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			s.JSONEq(tc.wantBody, rec.Body.String())
+			tc.validateFunc(rec)
 		})
 	}
 }
