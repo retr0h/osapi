@@ -922,43 +922,45 @@ func (suite *UIPublicTestSuite) TestHandleError() {
 
 func (suite *UIPublicTestSuite) TestPrintKV() {
 	tests := []struct {
-		name       string
-		pairs      []string
-		wantOutput bool
+		name         string
+		pairs        []string
+		validateFunc func(any)
 	}{
 		{
-			name:       "when valid pairs prints output",
-			pairs:      []string{"Key", "Value"},
-			wantOutput: true,
+			name:  "when valid pairs prints output",
+			pairs: []string{"Key", "Value"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+			},
 		},
 		{
-			name:       "when multiple pairs prints all",
-			pairs:      []string{"Name", "test", "Status", "ok"},
-			wantOutput: true,
+			name:  "when multiple pairs prints all",
+			pairs: []string{"Name", "test", "Status", "ok"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+			},
 		},
 		{
-			name:       "when odd number of pairs prints nothing",
-			pairs:      []string{"Key"},
-			wantOutput: false,
+			name:  "when odd number of pairs prints nothing",
+			pairs: []string{"Key"},
+			validateFunc: func(output any) {
+				assert.Empty(suite.T(), output)
+			},
 		},
 		{
-			name:       "when empty prints nothing",
-			pairs:      []string{},
-			wantOutput: false,
+			name:  "when empty prints nothing",
+			pairs: []string{},
+			validateFunc: func(output any) {
+				assert.Empty(suite.T(), output)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			output := captureStdout(func() {
+			tc.validateFunc(captureStdout(func() {
 				cli.PrintKV(tc.pairs...)
-			})
-
-			if tc.wantOutput {
-				assert.NotEmpty(suite.T(), output)
-			} else {
-				assert.Empty(suite.T(), output)
-			}
+			}))
 		})
 	}
 }
@@ -1184,13 +1186,17 @@ func (suite *UIPublicTestSuite) TestFormatBytes() {
 
 func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 	tests := []struct {
-		name string
-		resp *client.JobDetail
+		name         string
+		resp         *client.JobDetail
+		validateFunc func(any)
 	}{
 		{
 			name: "when minimal response displays job info",
 			resp: &client.JobDetail{
 				Status: "completed",
+			},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
 			},
 		},
 		{
@@ -1225,6 +1231,9 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					},
 				},
 			},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+			},
 		},
 		{
 			name: "when agent states with multiple agents shows summary",
@@ -1235,6 +1244,9 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					"web-02": {Status: "failed", Duration: "1s", Error: "error"},
 					"web-03": {Status: "started", Duration: "1s"},
 				},
+			},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
 			},
 		},
 		{
@@ -1248,6 +1260,9 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					},
 				},
 			},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+			},
 		},
 		{
 			name: "when response has error shows error message",
@@ -1259,6 +1274,9 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 						Error:  "timeout",
 					},
 				},
+			},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
 			},
 		},
 		{
@@ -1273,6 +1291,9 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					},
 				},
 			},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+			},
 		},
 		{
 			name: "when agent states contain skipped status",
@@ -1283,6 +1304,9 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					"web-02": {Status: "skipped", Duration: "0s"},
 					"web-03": {Status: "completed", Duration: "2s"},
 				},
+			},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
 			},
 		},
 		{
@@ -1295,16 +1319,17 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					"web-03": {Status: "completed", Duration: "1s"},
 				},
 			},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			output := captureStdout(func() {
+			tc.validateFunc(captureStdout(func() {
 				cli.DisplayJobDetail(tc.resp)
-			})
-
-			assert.NotEmpty(suite.T(), output)
+			}))
 		})
 	}
 }

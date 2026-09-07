@@ -57,8 +57,9 @@ func (suite *NATSPublicTestSuite) TearDownTest() {
 
 func (suite *NATSPublicTestSuite) TestCloseNATSClient() {
 	tests := []struct {
-		name    string
-		setupFn func() func()
+		name         string
+		setupFn      func() func()
+		validateFunc func(assert.PanicTestFunc)
 	}{
 		{
 			name: "when real client with nil NC does not panic",
@@ -68,6 +69,9 @@ func (suite *NATSPublicTestSuite) TestCloseNATSClient() {
 				return func() {
 					cli.CloseNATSClient(client)
 				}
+			},
+			validateFunc: func(closeFn assert.PanicTestFunc) {
+				assert.NotPanics(suite.T(), closeFn)
 			},
 		},
 		{
@@ -81,14 +85,15 @@ func (suite *NATSPublicTestSuite) TestCloseNATSClient() {
 					cli.CloseNATSClient(client)
 				}
 			},
+			validateFunc: func(closeFn assert.PanicTestFunc) {
+				assert.NotPanics(suite.T(), closeFn)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			closeFn := tc.setupFn()
-
-			assert.NotPanics(suite.T(), closeFn)
+			tc.validateFunc(tc.setupFn())
 		})
 	}
 }

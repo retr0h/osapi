@@ -203,14 +203,10 @@ func (suite *GetIdentityPublicTestSuite) TearDownSubTest() {
 
 func (suite *GetIdentityPublicTestSuite) TestGetIdentity() {
 	tests := []struct {
-		name            string
-		configHostname  string
-		machineIDFn     func(avfs.VFS) (string, error)
-		wantMachineID   string
-		wantHostname    string
-		wantErr         bool
-		wantContains    string
-		hostnameNonZero bool
+		name           string
+		configHostname string
+		machineIDFn    func(avfs.VFS) (string, error)
+		validateFunc   func(*identity.Identity, error)
 	}{
 		{
 			name:           "when config hostname is provided and machine-id succeeds",
@@ -218,8 +214,12 @@ func (suite *GetIdentityPublicTestSuite) TestGetIdentity() {
 			machineIDFn: func(_ avfs.VFS) (string, error) {
 				return "abc123", nil
 			},
-			wantMachineID: "abc123",
-			wantHostname:  "my-host",
+			validateFunc: func(got *identity.Identity, err error) {
+				require.NoError(suite.T(), err)
+				require.NotNil(suite.T(), got)
+				assert.Equal(suite.T(), "abc123", got.MachineID)
+				assert.Equal(suite.T(), "my-host", got.Hostname)
+			},
 		},
 		{
 			name:           "when config hostname is empty falls back to system hostname",
@@ -227,8 +227,12 @@ func (suite *GetIdentityPublicTestSuite) TestGetIdentity() {
 			machineIDFn: func(_ avfs.VFS) (string, error) {
 				return "abc123", nil
 			},
-			wantMachineID:   "abc123",
-			hostnameNonZero: true,
+			validateFunc: func(got *identity.Identity, err error) {
+				require.NoError(suite.T(), err)
+				require.NotNil(suite.T(), got)
+				assert.Equal(suite.T(), "abc123", got.MachineID)
+				assert.NotEmpty(suite.T(), got.Hostname)
+			},
 		},
 		{
 			name:           "when machine-id resolution fails",
@@ -236,8 +240,11 @@ func (suite *GetIdentityPublicTestSuite) TestGetIdentity() {
 			machineIDFn: func(_ avfs.VFS) (string, error) {
 				return "", fmt.Errorf("read machine-id: file not found")
 			},
-			wantErr:      true,
-			wantContains: "machine-id",
+			validateFunc: func(got *identity.Identity, err error) {
+				require.Error(suite.T(), err)
+				assert.Contains(suite.T(), err.Error(), "machine-id")
+				assert.Nil(suite.T(), got)
+			},
 		},
 	}
 
@@ -249,22 +256,7 @@ func (suite *GetIdentityPublicTestSuite) TestGetIdentity() {
 				identity.SetGetMachineIDFn(tc.machineIDFn)
 			}
 
-			got, err := identity.GetIdentity(fs, tc.configHostname)
-
-			if tc.wantErr {
-				require.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantContains)
-				assert.Nil(suite.T(), got)
-			} else {
-				require.NoError(suite.T(), err)
-				require.NotNil(suite.T(), got)
-				assert.Equal(suite.T(), tc.wantMachineID, got.MachineID)
-				if tc.hostnameNonZero {
-					assert.NotEmpty(suite.T(), got.Hostname)
-				} else {
-					assert.Equal(suite.T(), tc.wantHostname, got.Hostname)
-				}
-			}
+			tc.validateFunc(identity.GetIdentity(fs, tc.configHostname))
 		})
 	}
 }
