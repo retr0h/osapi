@@ -45,7 +45,7 @@ func (suite *ConfigPublicTestSuite) TestGetJobsStreamConfig() {
 	tests := []struct {
 		name         string
 		streamConfig *config.NATSStream
-		wantCheck    func(config *jetstream.StreamConfig)
+		validateFunc func(config *jetstream.StreamConfig)
 	}{
 		{
 			name: "when using file storage and old discard policy",
@@ -58,7 +58,8 @@ func (suite *ConfigPublicTestSuite) TestGetJobsStreamConfig() {
 				Replicas: 1,
 				Discard:  "old",
 			},
-			wantCheck: func(config *jetstream.StreamConfig) {
+			validateFunc: func(config *jetstream.StreamConfig) {
+				suite.NotNil(config)
 				suite.Equal("JOBS", config.Name)
 				suite.Equal("Stream for job request and processing", config.Description)
 				suite.Equal([]string{"job.>"}, config.Subjects)
@@ -80,7 +81,8 @@ func (suite *ConfigPublicTestSuite) TestGetJobsStreamConfig() {
 				Replicas: 3,
 				Discard:  "new",
 			},
-			wantCheck: func(config *jetstream.StreamConfig) {
+			validateFunc: func(config *jetstream.StreamConfig) {
+				suite.NotNil(config)
 				suite.Equal("JOBS_MEMORY", config.Name)
 				suite.Equal("Stream for job request and processing", config.Description)
 				suite.Equal([]string{"job.memory.>"}, config.Subjects)
@@ -102,7 +104,8 @@ func (suite *ConfigPublicTestSuite) TestGetJobsStreamConfig() {
 				Replicas: 1,
 				Discard:  "old",
 			},
-			wantCheck: func(config *jetstream.StreamConfig) {
+			validateFunc: func(config *jetstream.StreamConfig) {
+				suite.NotNil(config)
 				suite.Equal(jetstream.FileStorage, config.Storage)
 			},
 		},
@@ -117,7 +120,8 @@ func (suite *ConfigPublicTestSuite) TestGetJobsStreamConfig() {
 				Replicas: 1,
 				Discard:  "unknown",
 			},
-			wantCheck: func(config *jetstream.StreamConfig) {
+			validateFunc: func(config *jetstream.StreamConfig) {
+				suite.NotNil(config)
 				suite.Equal(jetstream.DiscardOld, config.Discard)
 			},
 		},
@@ -125,9 +129,7 @@ func (suite *ConfigPublicTestSuite) TestGetJobsStreamConfig() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			streamConfig := job.GetJobsStreamConfig(tt.streamConfig)
-			suite.NotNil(streamConfig)
-			tt.wantCheck(streamConfig)
+			tt.validateFunc(job.GetJobsStreamConfig(tt.streamConfig))
 		})
 	}
 }
@@ -137,7 +139,7 @@ func (suite *ConfigPublicTestSuite) TestGetJobsConsumerConfig() {
 		name           string
 		consumerConfig *config.AgentConsumer
 		streamSubjects string
-		wantCheck      func(config jetstream.ConsumerConfig)
+		validateFunc   func(config jetstream.ConsumerConfig)
 	}{
 		{
 			name: "when using instant replay policy",
@@ -149,7 +151,7 @@ func (suite *ConfigPublicTestSuite) TestGetJobsConsumerConfig() {
 				ReplayPolicy:  "instant",
 			},
 			streamSubjects: "job.>",
-			wantCheck: func(config jetstream.ConsumerConfig) {
+			validateFunc: func(config jetstream.ConsumerConfig) {
 				suite.Equal("jobs-agent", config.Name)
 				suite.Equal("Consumer for processing job requests", config.Description)
 				suite.Equal("jobs-agent", config.Durable)
@@ -171,7 +173,7 @@ func (suite *ConfigPublicTestSuite) TestGetJobsConsumerConfig() {
 				ReplayPolicy:  "original",
 			},
 			streamSubjects: "job.test.>",
-			wantCheck: func(config jetstream.ConsumerConfig) {
+			validateFunc: func(config jetstream.ConsumerConfig) {
 				suite.Equal("test-consumer", config.Name)
 				suite.Equal("test-consumer", config.Durable)
 				suite.Equal(3, config.MaxDeliver)
@@ -191,7 +193,7 @@ func (suite *ConfigPublicTestSuite) TestGetJobsConsumerConfig() {
 				ReplayPolicy:  "unknown",
 			},
 			streamSubjects: "job.unknown.>",
-			wantCheck: func(config jetstream.ConsumerConfig) {
+			validateFunc: func(config jetstream.ConsumerConfig) {
 				suite.Equal(jetstream.ReplayInstantPolicy, config.ReplayPolicy)
 			},
 		},
@@ -199,17 +201,18 @@ func (suite *ConfigPublicTestSuite) TestGetJobsConsumerConfig() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			consumerConfig := job.GetJobsConsumerConfig(tt.consumerConfig, tt.streamSubjects)
-			tt.wantCheck(consumerConfig)
+			tt.validateFunc(
+				job.GetJobsConsumerConfig(tt.consumerConfig, tt.streamSubjects),
+			)
 		})
 	}
 }
 
 func (suite *ConfigPublicTestSuite) TestGetKVBucketConfig() {
 	tests := []struct {
-		name      string
-		kvConfig  *config.NATSKV
-		wantCheck func(config jetstream.KeyValueConfig)
+		name         string
+		kvConfig     *config.NATSKV
+		validateFunc func(config jetstream.KeyValueConfig)
 	}{
 		{
 			name: "when using file storage",
@@ -220,7 +223,8 @@ func (suite *ConfigPublicTestSuite) TestGetKVBucketConfig() {
 				Storage:        "file",
 				Replicas:       1,
 			},
-			wantCheck: func(config jetstream.KeyValueConfig) {
+			validateFunc: func(config jetstream.KeyValueConfig) {
+				suite.NotNil(config)
 				suite.Equal("job-responses", config.Bucket)
 				suite.Equal("Storage for job responses indexed by request ID", config.Description)
 				suite.Equal(1*time.Hour, config.TTL)
@@ -238,7 +242,8 @@ func (suite *ConfigPublicTestSuite) TestGetKVBucketConfig() {
 				Storage:        "memory",
 				Replicas:       3,
 			},
-			wantCheck: func(config jetstream.KeyValueConfig) {
+			validateFunc: func(config jetstream.KeyValueConfig) {
+				suite.NotNil(config)
 				suite.Equal("job-memory", config.Bucket)
 				suite.Equal("Storage for job responses indexed by request ID", config.Description)
 				suite.Equal(30*time.Minute, config.TTL)
@@ -256,7 +261,8 @@ func (suite *ConfigPublicTestSuite) TestGetKVBucketConfig() {
 				Storage:        "unknown",
 				Replicas:       1,
 			},
-			wantCheck: func(config jetstream.KeyValueConfig) {
+			validateFunc: func(config jetstream.KeyValueConfig) {
+				suite.NotNil(config)
 				suite.Equal(jetstream.FileStorage, config.Storage)
 			},
 		},
@@ -264,9 +270,7 @@ func (suite *ConfigPublicTestSuite) TestGetKVBucketConfig() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			kvConfig := job.GetKVBucketConfig(tt.kvConfig)
-			suite.NotNil(kvConfig)
-			tt.wantCheck(kvConfig)
+			tt.validateFunc(job.GetKVBucketConfig(tt.kvConfig))
 		})
 	}
 }

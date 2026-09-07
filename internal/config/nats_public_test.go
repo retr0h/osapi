@@ -34,10 +34,9 @@ type NATSPublicTestSuite struct {
 
 func (s *NATSPublicTestSuite) TestAllKVBuckets() {
 	tests := []struct {
-		name            string
-		nats            config.NATS
-		expectedNames   []string
-		expectedBuckets []string
+		name         string
+		nats         config.NATS
+		validateFunc func([]config.KVBucketInfo)
 	}{
 		{
 			name: "all buckets populated",
@@ -52,38 +51,64 @@ func (s *NATSPublicTestSuite) TestAllKVBuckets() {
 				FileState:  config.NATSFileState{Bucket: "file-state"},
 				Enrollment: config.NATSEnrollment{Bucket: "agent-enrollment"},
 			},
-			expectedNames: []string{
-				"job-queue",
-				"job-responses",
-				"registry",
-				"facts",
-				"state",
-				"file-state",
-				"enrollment",
-			},
-			expectedBuckets: []string{
-				"job-queue",
-				"job-responses",
-				"agent-registry",
-				"agent-facts",
-				"agent-state",
-				"file-state",
-				"agent-enrollment",
+			validateFunc: func(got []config.KVBucketInfo) {
+				s.Len(got, len([]string{
+					"job-queue",
+					"job-responses",
+					"registry",
+					"facts",
+					"state",
+					"file-state",
+					"enrollment",
+				}))
+				for i, info := range got {
+					s.Equal([]string{
+						"job-queue",
+						"job-responses",
+						"registry",
+						"facts",
+						"state",
+						"file-state",
+						"enrollment",
+					}[i], info.Name)
+					s.Equal([]string{
+						"job-queue",
+						"job-responses",
+						"agent-registry",
+						"agent-facts",
+						"agent-state",
+						"file-state",
+						"agent-enrollment",
+					}[i], info.Bucket)
+				}
 			},
 		},
 		{
 			name: "empty config returns slice with empty bucket fields",
 			nats: config.NATS{},
-			expectedNames: []string{
-				"job-queue",
-				"job-responses",
-				"registry",
-				"facts",
-				"state",
-				"file-state",
-				"enrollment",
+			validateFunc: func(got []config.KVBucketInfo) {
+				s.Len(got, len([]string{
+					"job-queue",
+					"job-responses",
+					"registry",
+					"facts",
+					"state",
+					"file-state",
+					"enrollment",
+				}))
+				for i, info := range got {
+					s.Equal([]string{
+						"job-queue",
+						"job-responses",
+						"registry",
+						"facts",
+						"state",
+						"file-state",
+						"enrollment",
+					}[i], info.Name)
+					s.Equal([]string{"", "", "", "", "", "", ""}[i], info.Bucket)
+				}
 			},
-			expectedBuckets: []string{"", "", "", "", "", "", ""},
 		},
 		{
 			name: "partial config — only KV buckets set",
@@ -93,72 +118,82 @@ func (s *NATSPublicTestSuite) TestAllKVBuckets() {
 					ResponseBucket: "job-responses",
 				},
 			},
-			expectedNames: []string{
-				"job-queue",
-				"job-responses",
-				"registry",
-				"facts",
-				"state",
-				"file-state",
-				"enrollment",
-			},
-			expectedBuckets: []string{
-				"job-queue",
-				"job-responses",
-				"",
-				"",
-				"",
-				"",
-				"",
+			validateFunc: func(got []config.KVBucketInfo) {
+				s.Len(got, len([]string{
+					"job-queue",
+					"job-responses",
+					"registry",
+					"facts",
+					"state",
+					"file-state",
+					"enrollment",
+				}))
+				for i, info := range got {
+					s.Equal([]string{
+						"job-queue",
+						"job-responses",
+						"registry",
+						"facts",
+						"state",
+						"file-state",
+						"enrollment",
+					}[i], info.Name)
+					s.Equal([]string{
+						"job-queue",
+						"job-responses",
+						"",
+						"",
+						"",
+						"",
+						"",
+					}[i], info.Bucket)
+				}
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			got := tt.nats.AllKVBuckets()
-
-			s.Len(got, len(tt.expectedNames))
-			for i, info := range got {
-				s.Equal(tt.expectedNames[i], info.Name)
-				s.Equal(tt.expectedBuckets[i], info.Bucket)
-			}
+			tt.validateFunc(tt.nats.AllKVBuckets())
 		})
 	}
 }
 
 func (s *NATSPublicTestSuite) TestAllObjectStoreBuckets() {
 	tests := []struct {
-		name            string
-		nats            config.NATS
-		expectedNames   []string
-		expectedBuckets []string
+		name         string
+		nats         config.NATS
+		validateFunc func([]config.ObjectStoreBucketInfo)
 	}{
 		{
 			name: "objects bucket populated",
 			nats: config.NATS{
 				Objects: config.NATSObjects{Bucket: "file-objects"},
 			},
-			expectedNames:   []string{"file-objects"},
-			expectedBuckets: []string{"file-objects"},
+			validateFunc: func(got []config.ObjectStoreBucketInfo) {
+				s.Len(got, len([]string{"file-objects"}))
+				for i, info := range got {
+					s.Equal([]string{"file-objects"}[i], info.Name)
+					s.Equal([]string{"file-objects"}[i], info.Bucket)
+				}
+			},
 		},
 		{
-			name:            "empty config returns slice with empty bucket field",
-			nats:            config.NATS{},
-			expectedNames:   []string{"file-objects"},
-			expectedBuckets: []string{""},
+			name: "empty config returns slice with empty bucket field",
+			nats: config.NATS{},
+			validateFunc: func(got []config.ObjectStoreBucketInfo) {
+				s.Len(got, len([]string{"file-objects"}))
+				for i, info := range got {
+					s.Equal([]string{"file-objects"}[i], info.Name)
+					s.Equal([]string{""}[i], info.Bucket)
+				}
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			got := tt.nats.AllObjectStoreBuckets()
-
-			s.Len(got, len(tt.expectedNames))
-			for i, info := range got {
-				s.Equal(tt.expectedNames[i], info.Name)
-				s.Equal(tt.expectedBuckets[i], info.Bucket)
-			}
+			tt.validateFunc(tt.nats.AllObjectStoreBuckets())
 		})
 	}
 }

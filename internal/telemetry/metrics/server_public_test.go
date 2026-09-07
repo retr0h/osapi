@@ -151,22 +151,34 @@ func (s *ServerPublicTestSuite) TestComponentUpGauge() {
 	tests := []struct {
 		name          string
 		readinessFunc func() error
-		wantContains  []string
+		validateFunc  func(any)
 	}{
 		{
 			name:          "reports 0 when no readiness func set",
 			readinessFunc: nil,
-			wantContains:  []string{"osapi_component_up", "} 0"},
+			validateFunc: func(body any) {
+				for _, want := range []string{"osapi_component_up", "} 0"} {
+					s.Contains(body, want)
+				}
+			},
 		},
 		{
 			name:          "reports 1 when readiness func returns nil",
 			readinessFunc: func() error { return nil },
-			wantContains:  []string{"osapi_component_up", "} 1"},
+			validateFunc: func(body any) {
+				for _, want := range []string{"osapi_component_up", "} 1"} {
+					s.Contains(body, want)
+				}
+			},
 		},
 		{
 			name:          "reports 0 when readiness func returns error",
 			readinessFunc: func() error { return errors.New("fail") },
-			wantContains:  []string{"osapi_component_up", "} 0"},
+			validateFunc: func(body any) {
+				for _, want := range []string{"osapi_component_up", "} 0"} {
+					s.Contains(body, want)
+				}
+			},
 		},
 	}
 
@@ -182,10 +194,7 @@ func (s *ServerPublicTestSuite) TestComponentUpGauge() {
 			srv.Start()
 			time.Sleep(100 * time.Millisecond)
 
-			body := scrapeMetrics(port)
-			for _, want := range tc.wantContains {
-				s.Contains(body, want)
-			}
+			tc.validateFunc(scrapeMetrics(port))
 
 			ctx, cancel := context.WithTimeout(
 				context.Background(),
@@ -274,19 +283,27 @@ func (s *ServerPublicTestSuite) TestRegisterHeartbeatAge() {
 	tests := []struct {
 		name         string
 		timeFn       func() time.Time
-		wantContains []string
+		validateFunc func(any)
 	}{
 		{
-			name:         "reports 0 when heartbeat time is zero",
-			timeFn:       func() time.Time { return time.Time{} },
-			wantContains: []string{"osapi_heartbeat_age_seconds", "} 0"},
+			name:   "reports 0 when heartbeat time is zero",
+			timeFn: func() time.Time { return time.Time{} },
+			validateFunc: func(body any) {
+				for _, want := range []string{"osapi_heartbeat_age_seconds", "} 0"} {
+					s.Contains(body, want)
+				}
+			},
 		},
 		{
 			name: "reports positive age when heartbeat time is in the past",
 			timeFn: func() time.Time {
 				return time.Now().Add(-5 * time.Second)
 			},
-			wantContains: []string{"osapi_heartbeat_age_seconds"},
+			validateFunc: func(body any) {
+				for _, want := range []string{"osapi_heartbeat_age_seconds"} {
+					s.Contains(body, want)
+				}
+			},
 		},
 	}
 
@@ -299,10 +316,7 @@ func (s *ServerPublicTestSuite) TestRegisterHeartbeatAge() {
 			srv.Start()
 			time.Sleep(100 * time.Millisecond)
 
-			body := scrapeMetrics(port)
-			for _, want := range tc.wantContains {
-				s.Contains(body, want)
-			}
+			tc.validateFunc(scrapeMetrics(port))
 
 			ctx, cancel := context.WithTimeout(
 				context.Background(),
