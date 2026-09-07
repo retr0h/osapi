@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -92,7 +94,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_any",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -139,8 +141,8 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_any",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Cwd:     strPtr("/tmp"),
-					Timeout: intPtr(30),
+					Cwd:     ptr.To("/tmp"),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -210,7 +212,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_any",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -235,7 +237,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "server1",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -269,7 +271,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -302,7 +304,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -349,7 +351,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -389,7 +391,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -429,7 +431,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {

@@ -29,6 +29,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -114,7 +116,7 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnit() {
 				Hostname: "server1",
 				Name:     "nginx.service",
 				Params: gen.GetNodeLogUnitParams{
-					Lines:    intPtr(25),
+					Lines:    ptr.To(25),
 					Since:    stringPtr("2026-03-31"),
 					Priority: stringPtr("warning"),
 				},

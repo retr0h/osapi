@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -97,7 +99,7 @@ func (s *GroupUpdatePublicTestSuite) TestPutNodeGroup() {
 				s.mockJobClient.EXPECT().
 					Modify(gomock.Any(), "server1", "group", job.OperationGroupUpdate, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						Hostname: "agent1", Changed: boolPtr(true),
+						Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"devops","changed":true}`),
 					}, nil)
 			},
@@ -206,7 +208,7 @@ func (s *GroupUpdatePublicTestSuite) TestPutNodeGroup() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"devops","changed":true}`),
 							},
 						}, nil)
@@ -232,7 +234,7 @@ func (s *GroupUpdatePublicTestSuite) TestPutNodeGroup() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"devops","changed":true}`),
 							},
 							"server2": {
@@ -327,7 +329,7 @@ func (s *GroupUpdatePublicTestSuite) TestPutNodeGroupValidationHTTP() {
 					Modify(gomock.Any(), "server1", "group", job.OperationGroupUpdate, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"name":"devops","changed":true}`),
 					}, nil)
 			}
@@ -388,7 +390,7 @@ func (s *GroupUpdatePublicTestSuite) TestPutNodeGroupRBACHTTP() {
 				mock.EXPECT().
 					Modify(gomock.Any(), "server1", "group", job.OperationGroupUpdate, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						Hostname: "agent1", Changed: boolPtr(true),
+						Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"devops","changed":true}`),
 					}, nil)
 				return mock

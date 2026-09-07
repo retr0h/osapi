@@ -185,6 +185,11 @@ A test file is named for the production file it tests. Where tests grow too
 large to read, split the production file first so each test file keeps a
 counterpart, rather than splitting tests away from the file they cover.
 
+A test file that holds no tests is named for what it holds, not for the fact
+that other tests use it. `support`, `fixture` and `helper` describe where the
+code was put; `sha256_public_test.go` and `test_agent_public_test.go` say what
+is in them. Where only one test file needs the code, it belongs in that file.
+
 ### Go patterns
 
 - Error wrapping: `fmt.Errorf("context: %w", err)`, so the chain names each

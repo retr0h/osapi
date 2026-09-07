@@ -30,6 +30,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -142,7 +144,7 @@ func (s *ContainerListPublicTestSuite) TestGetNodeContainerDocker() {
 			request: gen.GetNodeContainerDockerRequestObject{
 				Hostname: "server1",
 				Params: gen.GetNodeContainerDockerParams{
-					Limit: intPtr(0),
+					Limit: ptr.To(0),
 				},
 			},
 			setupMock: func() {},
@@ -159,7 +161,7 @@ func (s *ContainerListPublicTestSuite) TestGetNodeContainerDocker() {
 				Hostname: "server1",
 				Params: gen.GetNodeContainerDockerParams{
 					State: &stateAll,
-					Limit: intPtr(5),
+					Limit: ptr.To(5),
 				},
 			},
 			setupMock: func() {

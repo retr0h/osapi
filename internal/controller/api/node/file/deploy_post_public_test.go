@@ -30,6 +30,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -94,9 +96,9 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeploy() {
 					ObjectName:  "nginx.conf",
 					Path:        "/etc/nginx/nginx.conf",
 					ContentType: gen.Raw,
-					Mode:        strPtr("0644"),
-					Owner:       strPtr("root"),
-					Group:       strPtr("root"),
+					Mode:        ptr.To("0644"),
+					Owner:       ptr.To("root"),
+					Group:       ptr.To("root"),
 				},
 			},
 			setupMock: func() {

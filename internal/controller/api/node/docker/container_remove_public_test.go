@@ -29,6 +29,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -101,7 +103,7 @@ func (s *ContainerRemovePublicTestSuite) TestDeleteNodeContainerDockerByID() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 			},
 			validateFunc: func(resp gen.DeleteNodeContainerDockerByIDResponseObject) {
@@ -122,7 +124,7 @@ func (s *ContainerRemovePublicTestSuite) TestDeleteNodeContainerDockerByID() {
 			request: gen.DeleteNodeContainerDockerByIDRequestObject{
 				Hostname: "server1",
 				Id:       "abc123",
-				Params:   gen.DeleteNodeContainerDockerByIDParams{Force: boolPtr(true)},
+				Params:   gen.DeleteNodeContainerDockerByIDParams{Force: ptr.To(true)},
 			},
 			setupMock: func() {
 				s.mockJobClient.EXPECT().
@@ -135,7 +137,7 @@ func (s *ContainerRemovePublicTestSuite) TestDeleteNodeContainerDockerByID() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 			},
 			validateFunc: func(resp gen.DeleteNodeContainerDockerByIDResponseObject) {
@@ -247,12 +249,12 @@ func (s *ContainerRemovePublicTestSuite) TestDeleteNodeContainerDockerByID() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 					}, nil)
 			},
@@ -283,7 +285,7 @@ func (s *ContainerRemovePublicTestSuite) TestDeleteNodeContainerDockerByID() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 						"server2": {
 							Status:   job.StatusFailed,
@@ -385,7 +387,7 @@ func (s *ContainerRemovePublicTestSuite) TestDeleteNodeContainerDockerByIDValida
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerRemove, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 				return mock
 			},
@@ -493,7 +495,7 @@ func (s *ContainerRemovePublicTestSuite) TestDeleteNodeContainerDockerByIDRBACHT
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerRemove, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 				return mock
 			},

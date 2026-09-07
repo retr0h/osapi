@@ -31,6 +31,8 @@ import (
 	"net"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/avfs/avfs/vfs/memfs"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/stretchr/testify/suite"
@@ -915,14 +917,14 @@ func (s *HandlerPublicTestSuite) TestExtractChanged() {
 			name: "when changed is true returns true",
 			data: json.RawMessage(`{"changed":true}`),
 			validateFunc: func(got *bool) {
-				s.Equal(boolPtr(true), got)
+				s.Equal(ptr.To(true), got)
 			},
 		},
 		{
 			name: "when changed is false returns false",
 			data: json.RawMessage(`{"changed":false}`),
 			validateFunc: func(got *bool) {
-				s.Equal(boolPtr(false), got)
+				s.Equal(ptr.To(false), got)
 			},
 		},
 	}
@@ -1207,8 +1209,6 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageWithSignedEnvelope() {
 		})
 	}
 }
-
-func boolPtr(b bool) *bool { return &b }
 
 func TestHandlerPublicTestSuite(
 	t *testing.T,

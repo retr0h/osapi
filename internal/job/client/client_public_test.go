@@ -1628,3 +1628,244 @@ func TestClientPublicTestSuite(
 ) {
 	suite.Run(t, new(ClientPublicTestSuite))
 }
+
+// publishAndWaitErrorMode controls which step of the publishAndWait flow fails.
+type publishAndWaitErrorMode int
+
+const (
+	// errorOnKVPut makes kv.Put return the error.
+	errorOnKVPut publishAndWaitErrorMode = iota
+	// errorOnPublish makes natsClient.Publish return the error.
+	errorOnPublish
+	// errorOnWatch makes kv.Watch return the error.
+	errorOnWatch
+	// errorOnTimeout simulates a timeout by providing a channel that never sends.
+	errorOnTimeout
+	// errorOnTimeoutWithPartialResponse sends one valid response then blocks,
+	// simulating a timeout after partial collection. Only valid for
+	// publishAndCollect (broadcast) flows.
+	errorOnTimeoutWithPartialResponse
+)
+
+// publishAndWaitMockOpts configures the mock behavior for publishAndWait tests.
+type publishAndWaitMockOpts struct {
+	// responseData is the JSON response to return from the watcher entry.
+	responseData string
+	// mockError is the error to inject (used with errorMode).
+	mockError error
+	// errorMode controls which step fails when mockError is set.
+	errorMode publishAndWaitErrorMode
+	// sendNilFirst sends a nil entry before the real entry on the watcher channel.
+	sendNilFirst bool
+}
+
+// setupPublishAndWaitMocks configures mocks for the publishAndWait flow.
+func setupPublishAndWaitMocks(
+	ctrl *gomock.Controller,
+	mockKV *jobmocks.MockKeyValue,
+	mockNATSClient *jobmocks.MockNATSClient,
+	subject string,
+	responseData string,
+	mockError error,
+) {
+	setupPublishAndWaitMocksWithOpts(ctrl, mockKV, mockNATSClient, subject, &publishAndWaitMockOpts{
+		responseData: responseData,
+		mockError:    mockError,
+		errorMode:    errorOnKVPut,
+	})
+}
+
+// publishAndCollectMockOpts configures mock behavior for publishAndCollect tests.
+type publishAndCollectMockOpts struct {
+	// responseEntries is a list of JSON response strings to send on the watcher.
+	responseEntries []string
+	// mockError is the error to inject (used with errorMode).
+	mockError error
+	// errorMode controls which step fails when mockError is set.
+	errorMode publishAndWaitErrorMode
+	// sendNilFirst sends a nil entry before the response entries on the watcher channel.
+	sendNilFirst bool
+}
+
+// setupPublishAndCollectMocks configures mocks for the publishAndCollect flow.
+func setupPublishAndCollectMocks(
+	ctrl *gomock.Controller,
+	mockKV *jobmocks.MockKeyValue,
+	mockNATSClient *jobmocks.MockNATSClient,
+	subject string,
+	opts *publishAndCollectMockOpts,
+) {
+	if opts.mockError != nil && opts.errorMode == errorOnKVPut {
+		mockKV.EXPECT().
+			Put(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(uint64(0), opts.mockError)
+		return
+	}
+
+	// kv.Put succeeds
+	mockKV.EXPECT().
+		Put(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(uint64(1), nil)
+
+	if opts.mockError != nil && opts.errorMode == errorOnPublish {
+		mockNATSClient.EXPECT().
+			Publish(gomock.Any(), subject, gomock.Any()).
+			Return(opts.mockError)
+		return
+	}
+
+	// natsClient.Publish succeeds
+	mockNATSClient.EXPECT().
+		Publish(gomock.Any(), subject, gomock.Any()).
+		Return(nil)
+
+	if opts.mockError != nil && opts.errorMode == errorOnWatch {
+		mockKV.EXPECT().
+			Watch(gomock.Any(), gomock.Any()).
+			Return(nil, opts.mockError)
+		return
+	}
+
+	if opts.mockError != nil && opts.errorMode == errorOnTimeout {
+		// Return a channel that never sends anything, causing timeout with 0 responses
+		ch := make(chan jetstream.KeyValueEntry)
+
+		mockWatcher := jobmocks.NewMockKeyWatcher(ctrl)
+		mockWatcher.EXPECT().Updates().Return(ch).AnyTimes()
+		mockWatcher.EXPECT().Stop().Return(nil)
+
+		mockKV.EXPECT().
+			Watch(gomock.Any(), gomock.Any()).
+			Return(mockWatcher, nil)
+		return
+	}
+
+	if opts.mockError != nil && opts.errorMode == errorOnTimeoutWithPartialResponse {
+		// Send one valid response then block so the timeout fires with partial results.
+		// The first responseEntry provides the partial response data.
+		ch := make(chan jetstream.KeyValueEntry, 1)
+		mockEntry := jobmocks.NewMockKeyValueEntry(ctrl)
+		responseData := ""
+		if len(opts.responseEntries) > 0 {
+			responseData = opts.responseEntries[0]
+		}
+		mockEntry.EXPECT().Value().Return([]byte(responseData))
+		ch <- mockEntry
+
+		mockWatcher := jobmocks.NewMockKeyWatcher(ctrl)
+		mockWatcher.EXPECT().Updates().Return(ch).AnyTimes()
+		mockWatcher.EXPECT().Stop().Return(nil)
+
+		mockKV.EXPECT().
+			Watch(gomock.Any(), gomock.Any()).
+			Return(mockWatcher, nil)
+		return
+	}
+
+	// Create buffered channel with all response entries
+	bufSize := len(opts.responseEntries)
+	if opts.sendNilFirst {
+		bufSize++
+	}
+	ch := make(chan jetstream.KeyValueEntry, bufSize)
+	if opts.sendNilFirst {
+		ch <- nil
+	}
+	for _, data := range opts.responseEntries {
+		if data == "" {
+			continue
+		}
+		mockEntry := jobmocks.NewMockKeyValueEntry(ctrl)
+		mockEntry.EXPECT().Value().Return([]byte(data))
+		ch <- mockEntry
+	}
+
+	// Create mock watcher
+	mockWatcher := jobmocks.NewMockKeyWatcher(ctrl)
+	mockWatcher.EXPECT().Updates().Return(ch).AnyTimes()
+	mockWatcher.EXPECT().Stop().Return(nil)
+
+	// kv.Watch returns the mock watcher
+	mockKV.EXPECT().
+		Watch(gomock.Any(), gomock.Any()).
+		Return(mockWatcher, nil)
+}
+
+// setupPublishAndWaitMocksWithOpts configures mocks with fine-grained control.
+func setupPublishAndWaitMocksWithOpts(
+	ctrl *gomock.Controller,
+	mockKV *jobmocks.MockKeyValue,
+	mockNATSClient *jobmocks.MockNATSClient,
+	subject string,
+	opts *publishAndWaitMockOpts,
+) {
+	if opts.mockError != nil && opts.errorMode == errorOnKVPut {
+		mockKV.EXPECT().
+			Put(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(uint64(0), opts.mockError)
+		return
+	}
+
+	// kv.Put succeeds
+	mockKV.EXPECT().
+		Put(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(uint64(1), nil)
+
+	if opts.mockError != nil && opts.errorMode == errorOnPublish {
+		mockNATSClient.EXPECT().
+			Publish(gomock.Any(), subject, gomock.Any()).
+			Return(opts.mockError)
+		return
+	}
+
+	// natsClient.Publish succeeds
+	mockNATSClient.EXPECT().
+		Publish(gomock.Any(), subject, gomock.Any()).
+		Return(nil)
+
+	if opts.mockError != nil && opts.errorMode == errorOnWatch {
+		mockKV.EXPECT().
+			Watch(gomock.Any(), gomock.Any()).
+			Return(nil, opts.mockError)
+		return
+	}
+
+	if opts.mockError != nil && opts.errorMode == errorOnTimeout {
+		// Return a channel that never sends anything, causing timeout
+		ch := make(chan jetstream.KeyValueEntry)
+
+		mockWatcher := jobmocks.NewMockKeyWatcher(ctrl)
+		mockWatcher.EXPECT().Updates().Return(ch).AnyTimes()
+		mockWatcher.EXPECT().Stop().Return(nil)
+
+		mockKV.EXPECT().
+			Watch(gomock.Any(), gomock.Any()).
+			Return(mockWatcher, nil)
+		return
+	}
+
+	// Create mock entry with response data
+	mockEntry := jobmocks.NewMockKeyValueEntry(ctrl)
+	mockEntry.EXPECT().Value().Return([]byte(opts.responseData))
+
+	// Create buffered channel and optionally send nil first
+	bufSize := 1
+	if opts.sendNilFirst {
+		bufSize = 2
+	}
+	ch := make(chan jetstream.KeyValueEntry, bufSize)
+	if opts.sendNilFirst {
+		ch <- nil
+	}
+	ch <- mockEntry
+
+	// Create mock watcher
+	mockWatcher := jobmocks.NewMockKeyWatcher(ctrl)
+	mockWatcher.EXPECT().Updates().Return(ch).AnyTimes()
+	mockWatcher.EXPECT().Stop().Return(nil)
+
+	// kv.Watch returns the mock watcher
+	mockKV.EXPECT().
+		Watch(gomock.Any(), gomock.Any()).
+		Return(mockWatcher, nil)
+}

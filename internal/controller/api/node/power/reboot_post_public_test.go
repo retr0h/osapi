@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -93,8 +95,8 @@ func (s *RebootPostPublicTestSuite) TestPostNodePowerReboot() {
 			request: gen.PostNodePowerRebootRequestObject{
 				Hostname: "server1",
 				Body: &gen.PowerRequest{
-					Delay:   intPtr(5),
-					Message: strPtr("maintenance reboot"),
+					Delay:   ptr.To(5),
+					Message: ptr.To("maintenance reboot"),
 				},
 			},
 			setupMock: func() {
@@ -560,6 +562,3 @@ func TestRebootPostPublicTestSuite(
 ) {
 	suite.Run(t, new(RebootPostPublicTestSuite))
 }
-
-func intPtr(v int) *int       { return &v }
-func strPtr(v string) *string { return &v }

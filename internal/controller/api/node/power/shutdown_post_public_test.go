@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -93,8 +95,8 @@ func (s *ShutdownPostPublicTestSuite) TestPostNodePowerShutdown() {
 			request: gen.PostNodePowerShutdownRequestObject{
 				Hostname: "server1",
 				Body: &gen.PowerRequest{
-					Delay:   intPtr(10),
-					Message: strPtr("planned shutdown"),
+					Delay:   ptr.To(10),
+					Message: ptr.To("planned shutdown"),
 				},
 			},
 			setupMock: func() {

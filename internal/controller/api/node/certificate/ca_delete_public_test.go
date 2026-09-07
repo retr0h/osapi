@@ -30,6 +30,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -104,7 +106,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						nil,
@@ -141,7 +143,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     nil,
 						},
 						nil,
@@ -247,13 +249,13 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 					}, nil)
@@ -284,7 +286,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     nil,
 						},
 					}, nil)
@@ -316,7 +318,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						"server2": {
@@ -420,7 +422,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaValidationHTTP() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						nil,
@@ -532,7 +534,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaRBACHTTP() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						nil,

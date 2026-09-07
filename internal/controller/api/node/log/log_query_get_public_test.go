@@ -30,6 +30,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -124,7 +126,7 @@ func (s *LogQueryPublicTestSuite) TestGetNodeLog() {
 			request: gen.GetNodeLogRequestObject{
 				Hostname: "server1",
 				Params: gen.GetNodeLogParams{
-					Lines:    intPtr(50),
+					Lines:    ptr.To(50),
 					Since:    stringPtr("1 hour ago"),
 					Priority: stringPtr("err"),
 				},
@@ -553,7 +555,6 @@ func (s *LogQueryPublicTestSuite) TestGetNodeLogRBACHTTP() {
 	}
 }
 
-func intPtr(i int) *int          { return &i }
 func stringPtr(s string) *string { return &s }
 
 func TestLogQueryPublicTestSuite(

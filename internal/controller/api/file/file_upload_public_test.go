@@ -33,6 +33,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/stretchr/testify/assert"
@@ -70,11 +72,6 @@ func (s *FileUploadPublicTestSuite) SetupTest() {
 func (s *FileUploadPublicTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
 }
-
-// makeMultipartReader builds a multipart.Reader for testing. Pass empty
-// contentType to omit the content_type field. Pass nil data to omit the
-// file part entirely.
-func boolPtr(v bool) *bool { return &v }
 
 func makeMultipartReader(
 	name string,
@@ -299,7 +296,7 @@ func (s *FileUploadPublicTestSuite) TestPostFile() {
 		{
 			name: "when force upload bypasses digest check",
 			request: gen.PostFileRequestObject{
-				Params: gen.PostFileParams{Force: boolPtr(true)},
+				Params: gen.PostFileParams{Force: ptr.To(true)},
 				Body:   makeMultipartReader("nginx.conf", "raw", fileContent),
 			},
 			setupMock: func() {
@@ -320,7 +317,7 @@ func (s *FileUploadPublicTestSuite) TestPostFile() {
 		{
 			name: "when force upload same content still writes",
 			request: gen.PostFileRequestObject{
-				Params: gen.PostFileParams{Force: boolPtr(true)},
+				Params: gen.PostFileParams{Force: ptr.To(true)},
 				Body:   makeMultipartReader("nginx.conf", "raw", fileContent),
 			},
 			setupMock: func() {

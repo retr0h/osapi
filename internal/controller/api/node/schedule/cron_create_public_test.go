@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -91,10 +93,10 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:        "backup",
-					Schedule:    strPtr("0 2 * * *"),
+					Schedule:    ptr.To("0 2 * * *"),
 					Object:      "backup-script",
-					User:        strPtr("root"),
-					ContentType: (*gen.CronCreateRequestContentType)(strPtr("template")),
+					User:        ptr.To("root"),
+					ContentType: (*gen.CronCreateRequestContentType)(ptr.To("template")),
 					Vars:        &map[string]interface{}{"region": "us-east"},
 				},
 			},
@@ -112,7 +114,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						nil,
@@ -135,7 +137,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -153,7 +155,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						nil,
@@ -173,7 +175,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "daily-backup",
-					Interval: intervalPtr(gen.CronCreateRequestIntervalDaily),
+					Interval: ptr.To(gen.CronCreateRequestIntervalDaily),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -191,7 +193,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"daily-backup","changed":true}`),
 						},
 						nil,
@@ -211,7 +213,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -229,7 +231,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     nil,
 						},
 						nil,
@@ -249,7 +251,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "_all",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "backup-script",
 				},
 			},
@@ -266,13 +268,13 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 					}, nil)
@@ -290,7 +292,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "_all",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "backup-script",
 				},
 			},
@@ -307,7 +309,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						"server2": {
@@ -330,7 +332,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "_all",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "backup-script",
 				},
 			},
@@ -367,7 +369,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "_all",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "backup-script",
 				},
 			},
@@ -393,7 +395,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -411,7 +413,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -445,8 +447,8 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
-					Interval: intervalPtr(gen.CronCreateRequestIntervalDaily),
+					Schedule: ptr.To("0 2 * * *"),
+					Interval: ptr.To(gen.CronCreateRequestIntervalDaily),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -463,7 +465,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("not-a-cron"),
+					Schedule: ptr.To("not-a-cron"),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -481,7 +483,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "",
 				},
 			},
@@ -498,7 +500,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -538,7 +540,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCron() {
 				Hostname: "server1",
 				Body: &gen.PostNodeScheduleCronJSONRequestBody{
 					Name:     "backup",
-					Schedule: strPtr("0 2 * * *"),
+					Schedule: ptr.To("0 2 * * *"),
 					Object:   "/usr/bin/backup.sh",
 				},
 			},
@@ -592,7 +594,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCronValidationHTTP() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						nil,
@@ -724,7 +726,7 @@ func (s *CronCreatePublicTestSuite) TestPostNodeScheduleCronRBACHTTP() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						nil,

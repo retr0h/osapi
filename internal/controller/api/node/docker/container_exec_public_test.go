@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -105,7 +107,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"stdout":"file1\nfile2","stderr":"","exit_code":0}`,
 						),
@@ -180,7 +182,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 				Id:       "abc123",
 				Body: &gen.PostNodeContainerDockerExecJSONRequestBody{
 					Command:    []string{"ls", "-la"},
-					WorkingDir: strPtr("/app"),
+					WorkingDir: ptr.To("/app"),
 				},
 			},
 			setupMock: func() {
@@ -194,7 +196,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"stdout":"app files","stderr":"","exit_code":0}`,
 						),
@@ -233,7 +235,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     nil,
 					}, nil)
 			},
@@ -332,7 +334,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"stdout":"file1\n","stderr":"","exit_code":0}`,
 							),
@@ -340,7 +342,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"stdout":"file2\n","stderr":"","exit_code":0}`,
 							),
@@ -376,7 +378,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"stdout":"file1\n","stderr":"","exit_code":0}`,
 							),
@@ -487,7 +489,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecValidation
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerExec, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"stdout":"output","stderr":"","exit_code":0}`),
 					}, nil)
 				return mock
@@ -616,7 +618,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecRBACHTTP()
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerExec, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"stdout":"output","stderr":"","exit_code":0}`),
 					}, nil)
 				return mock

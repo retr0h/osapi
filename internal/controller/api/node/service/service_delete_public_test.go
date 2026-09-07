@@ -30,6 +30,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -94,7 +96,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeService() {
 				s.mockJobClient.EXPECT().
 					Modify(gomock.Any(), "server1", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: boolPtr(true),
+						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"my-app.service","changed":true}`),
 					}, nil)
 			},
@@ -118,7 +120,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeService() {
 				s.mockJobClient.EXPECT().
 					Modify(gomock.Any(), "server1", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: boolPtr(true), Data: nil,
+						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: ptr.To(true), Data: nil,
 					}, nil)
 			},
 			validateFunc: func(resp gen.DeleteNodeServiceResponseObject) {
@@ -183,12 +185,12 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeService() {
 					Return("550e8400-e29b-41d4-a716-446655440000", map[string]*job.Response{
 						"server1": {
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-app.service","changed":true}`),
 						},
 						"server2": {
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-app.service","changed":true}`),
 						},
 					}, nil)
@@ -206,7 +208,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeService() {
 				s.mockJobClient.EXPECT().
 					ModifyBroadcast(gomock.Any(), "_all", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", map[string]*job.Response{
-						"server1": {Hostname: "server1", Changed: boolPtr(true), Data: nil},
+						"server1": {Hostname: "server1", Changed: ptr.To(true), Data: nil},
 					}, nil)
 			},
 			validateFunc: func(resp gen.DeleteNodeServiceResponseObject) {
@@ -300,7 +302,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceValidationHTTP() {
 				mock.EXPECT().
 					Modify(gomock.Any(), "server1", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: boolPtr(true),
+						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"my-app.service","changed":true}`),
 					}, nil)
 				return mock
@@ -394,7 +396,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceRBACHTTP() {
 				mock.EXPECT().
 					Modify(gomock.Any(), "server1", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: boolPtr(true),
+						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"my-app.service","changed":true}`),
 					}, nil)
 				return mock

@@ -30,6 +30,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -102,7 +104,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 			},
 			validateFunc: func(resp gen.PostNodeContainerDockerStopResponseObject) {
@@ -124,7 +126,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 				Hostname: "server1",
 				Id:       "abc123",
 				Body: &gen.PostNodeContainerDockerStopJSONRequestBody{
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -138,7 +140,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 			},
 			validateFunc: func(resp gen.PostNodeContainerDockerStopResponseObject) {
@@ -154,7 +156,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 				Hostname: "server1",
 				Id:       "abc123",
 				Body: &gen.PostNodeContainerDockerStopJSONRequestBody{
-					Timeout: intPtr(999),
+					Timeout: ptr.To(999),
 				},
 			},
 			setupMock: func() {},
@@ -265,12 +267,12 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 					}, nil)
 			},
@@ -301,7 +303,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 						"server2": {
 							Status:   job.StatusFailed,
@@ -405,7 +407,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopValidation
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerStop, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 				return mock
 			},
@@ -532,7 +534,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopRBACHTTP()
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerStop, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 				return mock
 			},

@@ -30,6 +30,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -94,7 +96,7 @@ func (s *GroupDeletePublicTestSuite) TestDeleteNodeGroup() {
 				s.mockJobClient.EXPECT().
 					Modify(gomock.Any(), "server1", "group", job.OperationGroupDelete, map[string]string{"name": "devops"}).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						Hostname: "agent1", Changed: boolPtr(true),
+						Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"devops","changed":true}`),
 					}, nil)
 			},
@@ -183,7 +185,7 @@ func (s *GroupDeletePublicTestSuite) TestDeleteNodeGroup() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"devops","changed":true}`),
 							},
 						}, nil)
@@ -208,7 +210,7 @@ func (s *GroupDeletePublicTestSuite) TestDeleteNodeGroup() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"devops","changed":true}`),
 							},
 							"server2": {
@@ -304,7 +306,7 @@ func (s *GroupDeletePublicTestSuite) TestDeleteNodeGroupRBACHTTP() {
 				mock.EXPECT().
 					Modify(gomock.Any(), "server1", "group", job.OperationGroupDelete, map[string]string{"name": "devops"}).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						Hostname: "agent1", Changed: boolPtr(true),
+						Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"devops","changed":true}`),
 					}, nil)
 				return mock

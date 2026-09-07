@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -104,7 +106,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPull() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"image_id":"sha256:abc123","tag":"latest","size":12345}`,
 						),
@@ -233,7 +235,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPull() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"image_id":"sha256:abc","tag":"latest","size":2048}`,
 							),
@@ -241,7 +243,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPull() {
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"image_id":"sha256:def","tag":"latest","size":2048}`,
 							),
@@ -276,7 +278,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPull() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"image_id":"sha256:abc","tag":"latest","size":2048}`,
 							),
@@ -385,7 +387,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullValidation
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerPull, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"image_id":"sha256:abc123","tag":"latest","size":12345}`,
 						),
@@ -516,7 +518,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullRBACHTTP()
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerPull, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"image_id":"sha256:abc123","tag":"latest","size":12345}`,
 						),

@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -91,7 +93,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 				Hostname: "server1",
 				Body: &gen.PostNodeContainerDockerJSONRequestBody{
 					Image: "nginx:latest",
-					Name:  strPtr("my-nginx"),
+					Name:  ptr.To("my-nginx"),
 				},
 			},
 			setupMock: func() {
@@ -106,7 +108,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"id":"abc123"}`),
 					}, nil)
 			},
@@ -158,7 +160,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 				Hostname: "server1",
 				Body: &gen.PostNodeContainerDockerJSONRequestBody{
 					Image:    "nginx:latest",
-					Hostname: strPtr("web-01"),
+					Hostname: ptr.To("web-01"),
 					Dns:      &[]string{"8.8.8.8", "8.8.4.4"},
 				},
 			},
@@ -185,7 +187,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 						return "550e8400-e29b-41d4-a716-446655440000", &job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"id":"abc123"}`),
 						}, nil
 					})
@@ -205,7 +207,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 				Hostname: "server1",
 				Body: &gen.PostNodeContainerDockerJSONRequestBody{
 					Image:     "nginx:latest",
-					AutoStart: boolPtr(false),
+					AutoStart: ptr.To(false),
 				},
 			},
 			setupMock: func() {
@@ -220,7 +222,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"id":"xyz789"}`),
 					}, nil)
 			},
@@ -255,7 +257,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     nil,
 					}, nil)
 			},
@@ -346,13 +348,13 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"id":"abc123"}`),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"id":"def456"}`),
 						},
 					}, nil)
@@ -385,7 +387,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"id":"abc123"}`),
 						},
 						"server2": {
@@ -493,7 +495,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"id":"abc123"}`),
 					}, nil)
 				return mock
@@ -651,7 +653,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerRBACHTTP() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"id":"abc123"}`),
 					}, nil)
 				return mock

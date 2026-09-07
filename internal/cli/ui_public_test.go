@@ -30,6 +30,8 @@ import (
 	"testing"
 	"time"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/google/uuid"
 	"github.com/osapi-io/osapi/pkg/sdk/client"
 	"github.com/stretchr/testify/assert"
@@ -64,8 +66,6 @@ func captureStdout(
 	return string(out)
 }
 
-func boolPtr(b bool) *bool { return &b }
-
 func (suite *UIPublicTestSuite) TestBoolToSafeString() {
 	tests := []struct {
 		name         string
@@ -74,14 +74,14 @@ func (suite *UIPublicTestSuite) TestBoolToSafeString() {
 	}{
 		{
 			name: "when true returns true",
-			b:    boolPtr(true),
+			b:    ptr.To(true),
 			validateFunc: func(got string) {
 				assert.Equal(suite.T(), "true", got)
 			},
 		},
 		{
 			name: "when false returns false",
-			b:    boolPtr(false),
+			b:    ptr.To(false),
 			validateFunc: func(got string) {
 				assert.Equal(suite.T(), "false", got)
 			},
@@ -214,8 +214,8 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 		{
 			name: "when changed is true shows changed status",
 			results: []cli.ResultRow{
-				{Hostname: "web-01", Changed: boolPtr(true), Fields: []string{"val1"}},
-				{Hostname: "web-02", Changed: boolPtr(false), Fields: []string{"val2"}},
+				{Hostname: "web-01", Changed: ptr.To(true), Fields: []string{"val1"}},
+				{Hostname: "web-02", Changed: ptr.To(false), Fields: []string{"val2"}},
 			},
 			fieldHeaders: []string{"DATA"},
 			wantHeaders:  []string{"HOSTNAME", "STATUS", "DATA"},
@@ -232,13 +232,13 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 				{
 					Hostname: "web-01",
 					Status:   "ok",
-					Changed:  boolPtr(true),
+					Changed:  ptr.To(true),
 					Fields:   []string{"val1"},
 				},
 				{
 					Hostname: "web-02",
 					Status:   "failed",
-					Changed:  boolPtr(false),
+					Changed:  ptr.To(false),
 					Error:    &errMsg,
 					Fields:   []string{""},
 				},
@@ -255,7 +255,7 @@ func (suite *UIPublicTestSuite) TestBuildBroadcastTable() {
 		{
 			name: "when no field headers shows only hostname and status",
 			results: []cli.ResultRow{
-				{Hostname: "web-01", Changed: boolPtr(true)},
+				{Hostname: "web-01", Changed: ptr.To(true)},
 				{Hostname: "web-02"},
 			},
 			fieldHeaders: nil,
@@ -388,8 +388,8 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 		{
 			name: "when changed is true shows changed status",
 			results: []cli.ResultRow{
-				{Hostname: "web-01", Status: "ok", Changed: boolPtr(true)},
-				{Hostname: "web-02", Status: "ok", Changed: boolPtr(true)},
+				{Hostname: "web-01", Status: "ok", Changed: ptr.To(true)},
+				{Hostname: "web-02", Status: "ok", Changed: ptr.To(true)},
 			},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
@@ -403,8 +403,8 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 		{
 			name: "when changed is false shows ok status",
 			results: []cli.ResultRow{
-				{Hostname: "web-01", Status: "ok", Changed: boolPtr(false)},
-				{Hostname: "web-02", Status: "ok", Changed: boolPtr(false)},
+				{Hostname: "web-01", Status: "ok", Changed: ptr.To(false)},
+				{Hostname: "web-02", Status: "ok", Changed: ptr.To(false)},
 			},
 			fieldHeaders: nil,
 			wantHeaders:  []string{"HOSTNAME", "STATUS"},
@@ -418,7 +418,7 @@ func (suite *UIPublicTestSuite) TestBuildMutationTable() {
 		{
 			name: "when field headers provided includes them after status",
 			results: []cli.ResultRow{
-				{Hostname: "web-01", Changed: boolPtr(true), Fields: []string{"val1"}},
+				{Hostname: "web-01", Changed: ptr.To(true), Fields: []string{"val1"}},
 				{Hostname: "web-02", Fields: []string{"val2"}},
 			},
 			fieldHeaders: []string{"DATA"},
@@ -554,7 +554,7 @@ func (suite *UIPublicTestSuite) TestBuildMutationTableResult() {
 		{
 			name: "when mutation errors exist they appear in errors field",
 			results: []cli.ResultRow{
-				{Hostname: "web-01", Changed: boolPtr(true)},
+				{Hostname: "web-01", Changed: ptr.To(true)},
 				{Hostname: "web-02", Error: &errMsg},
 			},
 			fieldHdrs:   nil,
@@ -572,8 +572,8 @@ func (suite *UIPublicTestSuite) TestBuildMutationTableResult() {
 		{
 			name: "when no mutation errors the errors field is nil",
 			results: []cli.ResultRow{
-				{Hostname: "web-01", Changed: boolPtr(true)},
-				{Hostname: "web-02", Changed: boolPtr(false)},
+				{Hostname: "web-01", Changed: ptr.To(true)},
+				{Hostname: "web-02", Changed: ptr.To(false)},
 			},
 			fieldHdrs:   nil,
 			wantHeaders: []string{"HOSTNAME", "STATUS"},
@@ -1384,14 +1384,14 @@ func (suite *UIPublicTestSuite) TestResolveStatus() {
 		},
 		{
 			name: "when changed true returns changed",
-			row:  cli.ResultRow{Hostname: "h1", Changed: boolPtr(true)},
+			row:  cli.ResultRow{Hostname: "h1", Changed: ptr.To(true)},
 			validateFunc: func(got string) {
 				assert.Equal(suite.T(), "changed", got)
 			},
 		},
 		{
 			name: "when changed false returns ok",
-			row:  cli.ResultRow{Hostname: "h1", Changed: boolPtr(false)},
+			row:  cli.ResultRow{Hostname: "h1", Changed: ptr.To(false)},
 			validateFunc: func(got string) {
 				assert.Equal(suite.T(), "ok", got)
 			},

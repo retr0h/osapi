@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -79,18 +81,6 @@ func (s *CommandExecPostPublicTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
 }
 
-func intPtr(
-	i int,
-) *int {
-	return &i
-}
-
-func strPtr(
-	s string,
-) *string {
-	return &s
-}
-
 func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 	tests := []struct {
 		name         string
@@ -105,7 +95,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -153,8 +143,8 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Cwd:     strPtr("/tmp"),
-					Timeout: intPtr(30),
+					Cwd:     ptr.To("/tmp"),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -225,7 +215,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -251,7 +241,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -286,7 +276,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -320,7 +310,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -368,7 +358,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -409,7 +399,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -450,7 +440,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostNodeCommandExec() {
 				Body: &gen.PostNodeCommandExecJSONRequestBody{
 					Command: "ls",
 					Args:    &[]string{"-la"},
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
