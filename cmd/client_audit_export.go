@@ -23,6 +23,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/osapi-io/osapi/pkg/sdk/client"
@@ -81,7 +82,7 @@ func writeExport(
 
 	defer func() {
 		if closeErr := exporter.Close(ctx); closeErr != nil {
-			logger.Error("closing exporter", "error", closeErr)
+			logger.Error("closing exporter", slog.Any("error", closeErr))
 		}
 	}()
 
