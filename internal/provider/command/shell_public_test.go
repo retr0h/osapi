@@ -53,13 +53,11 @@ func (s *ShellPublicTestSuite) TearDownTest() {
 
 func (s *ShellPublicTestSuite) TestShell() {
 	tests := []struct {
-		name          string
-		params        command.ShellParams
-		mockResult    *exec.CmdResult
-		mockError     error
-		expectError   bool
-		errorContains string
-		validate      func(*command.Result)
+		name         string
+		params       command.ShellParams
+		mockResult   *exec.CmdResult
+		mockError    error
+		validateFunc func(*command.Result, error)
 	}{
 		{
 			name: "successful shell command",
@@ -74,11 +72,13 @@ func (s *ShellPublicTestSuite) TestShell() {
 				ExitCode:   0,
 				DurationMs: 15,
 			},
-			validate: func(r *command.Result) {
-				s.Equal("HELLO\n", r.Stdout)
-				s.Empty(r.Stderr)
-				s.Equal(0, r.ExitCode)
-				s.Equal(int64(15), r.DurationMs)
+			validateFunc: func(result *command.Result, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Equal("HELLO\n", result.Stdout)
+				s.Empty(result.Stderr)
+				s.Equal(0, result.ExitCode)
+				s.Equal(int64(15), result.DurationMs)
 			},
 		},
 		{
@@ -92,8 +92,10 @@ func (s *ShellPublicTestSuite) TestShell() {
 				ExitCode:   2,
 				DurationMs: 3,
 			},
-			validate: func(r *command.Result) {
-				s.Equal(2, r.ExitCode)
+			validateFunc: func(result *command.Result, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Equal(2, result.ExitCode)
 			},
 		},
 		{
@@ -101,9 +103,12 @@ func (s *ShellPublicTestSuite) TestShell() {
 			params: command.ShellParams{
 				Command: "bad command",
 			},
-			mockError:     errors.New("shell failed"),
-			expectError:   true,
-			errorContains: "shell execution failed",
+			mockError: errors.New("shell failed"),
+			validateFunc: func(result *command.Result, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "shell execution failed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -118,19 +123,7 @@ func (s *ShellPublicTestSuite) TestShell() {
 				).
 				Return(tt.mockResult, tt.mockError)
 
-			result, err := s.sut.Shell(tt.params)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorContains)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(s.sut.Shell(tt.params))
 		})
 	}
 }

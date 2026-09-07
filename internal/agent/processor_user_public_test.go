@@ -68,11 +68,10 @@ func (s *ProcessorUserPublicTestSuite) newProcessor(
 
 func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(any, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -82,9 +81,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 				Operation: "user.list",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "user provider not available",
+			setupMock: nil,
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "user provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid user operation missing sub-operation",
@@ -97,8 +99,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid user operation: user",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid user operation: user")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported user sub-operation",
@@ -111,8 +116,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported user operation: user.unknown",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported user operation: user.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -124,28 +132,17 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 			}
 
 			processor := s.newProcessor(userProvider)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessUserList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful user list",
@@ -163,10 +160,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var users []user.User
-				err := json.Unmarshal(result, &users)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var users []user.User
+				decodeErr := json.Unmarshal(result, &users)
+				s.NoError(decodeErr)
 				s.Len(users, 2)
 				s.Equal("root", users[0].Name)
 				s.Equal("john", users[1].Name)
@@ -185,39 +184,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserList() {
 				m.EXPECT().ListUsers(gomock.Any()).Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessUserGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful user get",
@@ -235,10 +223,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var u user.User
-				err := json.Unmarshal(result, &u)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var u user.User
+				decodeErr := json.Unmarshal(result, &u)
+				s.NoError(decodeErr)
 				s.Equal("john", u.Name)
 				s.Equal(1000, u.UID)
 			},
@@ -254,8 +244,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserGet() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal user get data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal user get data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "user get provider error",
@@ -270,39 +263,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserGet() {
 				m.EXPECT().GetUser(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessUserCreate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful user create",
@@ -323,10 +305,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserCreate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("newuser", r.Name)
 				s.True(r.Changed)
 			},
@@ -342,8 +326,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserCreate() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal user create data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal user create data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "user create provider error",
@@ -360,39 +347,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserCreate() {
 					Return(nil, errors.New("user already exists"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "user already exists",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "user already exists")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessUserUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful user update",
@@ -412,10 +388,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserUpdate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("john", r.Name)
 				s.True(r.Changed)
 			},
@@ -431,8 +409,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserUpdate() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal user update data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal user update data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "user update provider error",
@@ -449,39 +430,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserUpdate() {
 					Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessUserDelete() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful user delete",
@@ -499,10 +469,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserDelete() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("olduser", r.Name)
 				s.True(r.Changed)
 			},
@@ -518,8 +490,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserDelete() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal user delete data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal user delete data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "user delete provider error",
@@ -534,39 +509,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserDelete() {
 				m.EXPECT().DeleteUser(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessUserPassword() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful password change",
@@ -586,10 +550,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserPassword() {
 					}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("john", r.Name)
 				s.True(r.Changed)
 			},
@@ -605,8 +571,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserPassword() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal user password data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal user password data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "password change provider error",
@@ -623,38 +592,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserPassword() {
 					Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(any, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -664,9 +623,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 				Operation: "group.list",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "user provider not available",
+			setupMock: nil,
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "user provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid group operation missing sub-operation",
@@ -679,8 +641,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid group operation: group",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid group operation: group")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported group sub-operation",
@@ -693,8 +658,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported group operation: group.unknown",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported group operation: group.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -706,28 +674,17 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 			}
 
 			processor := s.newProcessor(userProvider)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessGroupList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful group list",
@@ -745,10 +702,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var groups []user.Group
-				err := json.Unmarshal(result, &groups)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var groups []user.Group
+				decodeErr := json.Unmarshal(result, &groups)
+				s.NoError(decodeErr)
 				s.Len(groups, 2)
 				s.Equal("root", groups[0].Name)
 				s.Equal("sudo", groups[1].Name)
@@ -767,39 +726,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupList() {
 				m.EXPECT().ListGroups(gomock.Any()).Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessGroupGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful group get",
@@ -816,10 +764,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var g user.Group
-				err := json.Unmarshal(result, &g)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var g user.Group
+				decodeErr := json.Unmarshal(result, &g)
+				s.NoError(decodeErr)
 				s.Equal("sudo", g.Name)
 				s.Equal(27, g.GID)
 			},
@@ -835,8 +785,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupGet() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal group get data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal group get data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "group get provider error",
@@ -851,39 +804,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupGet() {
 				m.EXPECT().GetGroup(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessGroupCreate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful group create",
@@ -903,10 +845,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupCreate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.GroupResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.GroupResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("developers", r.Name)
 				s.True(r.Changed)
 			},
@@ -922,8 +866,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupCreate() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal group create data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal group create data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "group create provider error",
@@ -940,39 +887,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupCreate() {
 					Return(nil, errors.New("group already exists"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "group already exists",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "group already exists")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessGroupUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful group update",
@@ -994,10 +930,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupUpdate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.GroupResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.GroupResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("developers", r.Name)
 				s.True(r.Changed)
 			},
@@ -1013,8 +951,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupUpdate() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal group update data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal group update data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "group update provider error",
@@ -1031,39 +972,28 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupUpdate() {
 					Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorUserPublicTestSuite) TestProcessGroupDelete() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful group delete",
@@ -1081,10 +1011,12 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupDelete() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.GroupResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.GroupResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("oldgroup", r.Name)
 				s.True(r.Changed)
 			},
@@ -1100,8 +1032,11 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupDelete() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal group delete data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal group delete data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "group delete provider error",
@@ -1116,27 +1051,18 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupDelete() {
 				m.EXPECT().DeleteGroup(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }

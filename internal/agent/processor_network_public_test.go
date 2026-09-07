@@ -54,12 +54,10 @@ func (s *ProcessorNetworkPublicTestSuite) TearDownTest() {
 
 func (s *ProcessorNetworkPublicTestSuite) TestProcessDNSDelete() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() *dnsMocks.MockProvider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() *dnsMocks.MockProvider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful DNS delete",
@@ -76,10 +74,12 @@ func (s *ProcessorNetworkPublicTestSuite) TestProcessDNSDelete() {
 					Return(true, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(true, response["success"])
 				s.Equal(true, response["changed"])
 				s.Equal("DNS configuration deleted", response["message"])
@@ -100,10 +100,12 @@ func (s *ProcessorNetworkPublicTestSuite) TestProcessDNSDelete() {
 					Return(false, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(true, response["success"])
 				s.Equal(false, response["changed"])
 			},
@@ -123,8 +125,11 @@ func (s *ProcessorNetworkPublicTestSuite) TestProcessDNSDelete() {
 					Return(false, errors.New("netplan remove failed"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "netplan remove failed",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "netplan remove failed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -138,19 +143,7 @@ func (s *ProcessorNetworkPublicTestSuite) TestProcessDNSDelete() {
 				nil,
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }

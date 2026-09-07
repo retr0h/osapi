@@ -145,11 +145,9 @@ func (s *ProcessorPublicTestSuite) TearDownTest() {
 
 func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful node hostname operation",
@@ -159,11 +157,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "hostname.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "hostname")
 				s.IsType("", response["hostname"])
 				s.Equal(false, response["changed"])
@@ -177,11 +176,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "status.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "hostname")
 				s.Equal(false, response["changed"])
 			},
@@ -194,11 +194,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "uptime.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "uptime_seconds")
 				s.Contains(response, "uptime")
 				s.Equal(false, response["changed"])
@@ -212,11 +213,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "osinfo.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(false, response["changed"])
 			},
 		},
@@ -228,11 +230,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "disk.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "disks")
 				s.Equal(false, response["changed"])
 			},
@@ -245,11 +248,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "memory.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(false, response["changed"])
 			},
 		},
@@ -261,11 +265,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "load.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(false, response["changed"])
 			},
 		},
@@ -277,11 +282,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "dns.get",
 				Data:      json.RawMessage(`{"interface": "eth0"}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(false, response["changed"])
 			},
 		},
@@ -295,11 +301,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 					`{"servers": ["8.8.8.8"], "search_domains": ["example.com"], "interface": "eth0"}`,
 				),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "success")
 				s.Contains(response, "message")
 				s.Equal(true, response["changed"])
@@ -313,11 +320,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "ping.do",
 				Data:      json.RawMessage(`{"address": "8.8.8.8"}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(false, response["changed"])
 			},
 		},
@@ -329,11 +337,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "exec.execute",
 				Data:      json.RawMessage(`{"command":"ls","args":["-la"]}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "stdout")
 			},
 		},
@@ -345,11 +354,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "shell.execute",
 				Data:      json.RawMessage(`{"command":"echo hello"}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "stdout")
 			},
 		},
@@ -363,11 +373,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 					`{"object_name":"app.conf","path":"/etc/mock/file.conf","content_type":"raw"}`,
 				),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(true, response["changed"])
 			},
 		},
@@ -379,11 +390,12 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "status.get",
 				Data:      json.RawMessage(`{"path":"/etc/mock/file.conf"}`),
 			},
-			expectError: false,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal("in-sync", response["status"])
 			},
 		},
@@ -395,8 +407,11 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "create.execute",
 				Data:      json.RawMessage(`{"image":"nginx:latest"}`),
 			},
-			expectError: true,
-			errorMsg:    "docker runtime not available",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "docker runtime not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported job category",
@@ -406,8 +421,11 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "test.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: true,
-			errorMsg:    "unsupported job category: unsupported",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported job category: unsupported")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported node operation",
@@ -417,8 +435,11 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "unsupported.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: true,
-			errorMsg:    "unsupported node operation: unsupported.get",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported node operation: unsupported.get")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported network operation",
@@ -428,8 +449,11 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "unsupported.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: true,
-			errorMsg:    "unsupported network operation: unsupported.get",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported network operation: unsupported.get")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "network ping missing address",
@@ -439,8 +463,11 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "ping.do",
 				Data:      json.RawMessage(`{}`),
 			},
-			expectError: true,
-			errorMsg:    "missing ping address",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "missing ping address")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "network ping invalid data format",
@@ -450,8 +477,11 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "ping.do",
 				Data:      json.RawMessage(`invalid json`),
 			},
-			expectError: true,
-			errorMsg:    "failed to parse ping data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to parse ping data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "network DNS invalid data format",
@@ -461,26 +491,17 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 				Operation: "dns.get",
 				Data:      json.RawMessage(`invalid json`),
 			},
-			expectError: true,
-			errorMsg:    "failed to parse DNS data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to parse DNS data")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			result, err := agent.ExportProcessJobOperation(s.testAgent, tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(agent.ExportProcessJobOperation(s.testAgent, tt.jobRequest))
 		})
 	}
 }
@@ -635,21 +656,21 @@ func (s *ProcessorPublicTestSuite) TestSystemOperations() {
 
 func (s *ProcessorPublicTestSuite) TestNetworkOperations() {
 	tests := []struct {
-		name        string
-		operation   string
-		data        string
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		operation    string
+		data         string
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name:      "DNS query with interface",
 			operation: "dns.get",
 			data:      `{"interface": "eth0"}`,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(false, response["changed"])
 			},
 		},
@@ -657,10 +678,12 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperations() {
 			name:      "DNS query without interface",
 			operation: "dns.get",
 			data:      `{}`,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(false, response["changed"])
 			},
 		},
@@ -668,26 +691,32 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperations() {
 			name:      "ping with valid address",
 			operation: "ping.do",
 			data:      `{"address": "127.0.0.1"}`,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal(false, response["changed"])
 			},
 		},
 		{
-			name:        "ping without address",
-			operation:   "ping.execute",
-			data:        `{}`,
-			expectError: true,
-			errorMsg:    "missing ping address",
+			name:      "ping without address",
+			operation: "ping.execute",
+			data:      `{}`,
+			validateFunc: func(_ json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "missing ping address")
+			},
 		},
 		{
-			name:        "unsupported network operation",
-			operation:   "unknown.get",
-			data:        `{}`,
-			expectError: true,
-			errorMsg:    "unsupported network operation",
+			name:      "unsupported network operation",
+			operation: "unknown.get",
+			data:      `{}`,
+			validateFunc: func(_ json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported network operation")
+			},
 		},
 	}
 
@@ -700,18 +729,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperations() {
 				Data:      json.RawMessage(tt.data),
 			}
 
-			result, err := agent.ExportProcessNetworkOperation(s.testAgent, request)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(agent.ExportProcessNetworkOperation(s.testAgent, request))
 		})
 	}
 }

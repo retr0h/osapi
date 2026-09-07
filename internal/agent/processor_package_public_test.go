@@ -68,12 +68,10 @@ func (s *ProcessorPackagePublicTestSuite) newProcessor(
 
 func (s *ProcessorPackagePublicTestSuite) TestProcessPackageOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() apt.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() apt.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -82,9 +80,12 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageOperation() {
 				Category:  "node",
 				Operation: "package.list",
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "package provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "package provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid operation format (no sub-operation)",
@@ -96,8 +97,11 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageOperation() {
 			setupMock: func() apt.Provider {
 				return aptMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid package operation: package",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid package operation: package")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported package sub-operation",
@@ -109,8 +113,11 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageOperation() {
 			setupMock: func() apt.Provider {
 				return aptMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported package operation: package.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported package operation: package.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -122,31 +129,17 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageOperation() {
 			}
 
 			processor := s.newProcessor(packageProvider)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorPackagePublicTestSuite) TestProcessPackageList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() apt.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() apt.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful list",
@@ -171,10 +164,12 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var pkgs []apt.Package
-				err := json.Unmarshal(result, &pkgs)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var pkgs []apt.Package
+				decodeErr := json.Unmarshal(result, &pkgs)
+				s.NoError(decodeErr)
 				s.Len(pkgs, 2)
 				s.Equal("curl", pkgs[0].Name)
 				s.Equal("vim", pkgs[1].Name)
@@ -192,39 +187,28 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageList() {
 				m.EXPECT().List(gomock.Any()).Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorPackagePublicTestSuite) TestProcessPackageGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() apt.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() apt.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful get",
@@ -243,10 +227,12 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var pkg apt.Package
-				err := json.Unmarshal(result, &pkg)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var pkg apt.Package
+				decodeErr := json.Unmarshal(result, &pkg)
+				s.NoError(decodeErr)
 				s.Equal("curl", pkg.Name)
 				s.Equal("installed", pkg.Status)
 			},
@@ -262,8 +248,11 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageGet() {
 			setupMock: func() apt.Provider {
 				return aptMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal package get data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal package get data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "get provider error",
@@ -280,39 +269,28 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageGet() {
 					Return(nil, errors.New("package not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "package not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "package not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorPackagePublicTestSuite) TestProcessPackageInstall() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() apt.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() apt.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful install",
@@ -330,10 +308,12 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageInstall() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r apt.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r apt.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("nginx", r.Name)
 				s.True(r.Changed)
 			},
@@ -349,8 +329,11 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageInstall() {
 			setupMock: func() apt.Provider {
 				return aptMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal package install data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal package install data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "install provider error",
@@ -367,39 +350,28 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageInstall() {
 					Return(nil, errors.New("package not found in repository"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "package not found in repository",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "package not found in repository")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorPackagePublicTestSuite) TestProcessPackageRemove() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() apt.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() apt.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful remove",
@@ -417,10 +389,12 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageRemove() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r apt.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r apt.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("nginx", r.Name)
 				s.True(r.Changed)
 			},
@@ -436,8 +410,11 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageRemove() {
 			setupMock: func() apt.Provider {
 				return aptMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal package remove data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal package remove data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "remove provider error",
@@ -454,39 +431,28 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageRemove() {
 					Return(nil, errors.New("cannot remove essential package"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "cannot remove essential package",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "cannot remove essential package")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorPackagePublicTestSuite) TestProcessPackageUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() apt.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() apt.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful update",
@@ -502,10 +468,12 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageUpdate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r apt.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r apt.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.True(r.Changed)
 			},
 		},
@@ -521,39 +489,28 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageUpdate() {
 				m.EXPECT().Update(gomock.Any()).Return(nil, errors.New("network unreachable"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "network unreachable",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "network unreachable")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorPackagePublicTestSuite) TestProcessPackageListUpdates() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() apt.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() apt.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful list updates",
@@ -573,10 +530,12 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageListUpdates() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var updates []apt.Update
-				err := json.Unmarshal(result, &updates)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var updates []apt.Update
+				decodeErr := json.Unmarshal(result, &updates)
+				s.NoError(decodeErr)
 				s.Len(updates, 1)
 				s.Equal("curl", updates[0].Name)
 				s.Equal("7.88.1-10+deb12u5", updates[0].NewVersion)
@@ -594,27 +553,18 @@ func (s *ProcessorPackagePublicTestSuite) TestProcessPackageListUpdates() {
 				m.EXPECT().ListUpdates(gomock.Any()).Return(nil, errors.New("apt cache stale"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "apt cache stale",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "apt cache stale")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }

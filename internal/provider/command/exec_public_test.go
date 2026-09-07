@@ -53,13 +53,11 @@ func (s *ExecPublicTestSuite) TearDownTest() {
 
 func (s *ExecPublicTestSuite) TestExec() {
 	tests := []struct {
-		name          string
-		params        command.ExecParams
-		mockResult    *exec.CmdResult
-		mockError     error
-		expectError   bool
-		errorContains string
-		validate      func(*command.Result)
+		name         string
+		params       command.ExecParams
+		mockResult   *exec.CmdResult
+		mockError    error
+		validateFunc func(*command.Result, error)
 	}{
 		{
 			name: "successful execution",
@@ -75,11 +73,13 @@ func (s *ExecPublicTestSuite) TestExec() {
 				ExitCode:   0,
 				DurationMs: 12,
 			},
-			validate: func(r *command.Result) {
-				s.Equal("total 0\n", r.Stdout)
-				s.Empty(r.Stderr)
-				s.Equal(0, r.ExitCode)
-				s.Equal(int64(12), r.DurationMs)
+			validateFunc: func(result *command.Result, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Equal("total 0\n", result.Stdout)
+				s.Empty(result.Stderr)
+				s.Equal(0, result.ExitCode)
+				s.Equal(int64(12), result.DurationMs)
 			},
 		},
 		{
@@ -93,9 +93,11 @@ func (s *ExecPublicTestSuite) TestExec() {
 				ExitCode:   1,
 				DurationMs: 5,
 			},
-			validate: func(r *command.Result) {
-				s.Equal(1, r.ExitCode)
-				s.Equal("error occurred\n", r.Stderr)
+			validateFunc: func(result *command.Result, err error) {
+				s.NoError(err)
+				s.NotNil(result)
+				s.Equal(1, result.ExitCode)
+				s.Equal("error occurred\n", result.Stderr)
 			},
 		},
 		{
@@ -103,9 +105,12 @@ func (s *ExecPublicTestSuite) TestExec() {
 			params: command.ExecParams{
 				Command: "nonexistent",
 			},
-			mockError:     errors.New("command not found"),
-			expectError:   true,
-			errorContains: "command execution failed",
+			mockError: errors.New("command not found"),
+			validateFunc: func(result *command.Result, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "command execution failed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -120,19 +125,7 @@ func (s *ExecPublicTestSuite) TestExec() {
 				).
 				Return(tt.mockResult, tt.mockError)
 
-			result, err := s.sut.Exec(tt.params)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorContains)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(s.sut.Exec(tt.params))
 		})
 	}
 }

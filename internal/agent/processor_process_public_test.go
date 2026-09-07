@@ -52,12 +52,10 @@ func (s *ProcessorProcessPublicTestSuite) TearDownTest() {
 
 func (s *ProcessorProcessPublicTestSuite) TestProcessProcessOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() process.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() process.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -66,9 +64,12 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessOperation() {
 				Category:  "node",
 				Operation: "process.list",
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "process provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "process provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid operation format (no sub-operation)",
@@ -80,8 +81,11 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessOperation() {
 			setupMock: func() process.Provider {
 				return processMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid process operation: process",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid process operation: process")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported process sub-operation",
@@ -93,8 +97,11 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessOperation() {
 			setupMock: func() process.Provider {
 				return processMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported process operation: process.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported process operation: process.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -116,31 +123,17 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessOperation() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorProcessPublicTestSuite) TestProcessProcessList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() process.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() process.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful list",
@@ -169,10 +162,12 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var infos []process.Info
-				err := json.Unmarshal(result, &infos)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var infos []process.Info
+				decodeErr := json.Unmarshal(result, &infos)
+				s.NoError(decodeErr)
 				s.Len(infos, 2)
 				s.Equal(1, infos[0].PID)
 				s.Equal("systemd", infos[0].Name)
@@ -191,8 +186,11 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessList() {
 				m.EXPECT().List(gomock.Any()).Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -209,31 +207,17 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessList() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorProcessPublicTestSuite) TestProcessProcessGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() process.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() process.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful get",
@@ -254,10 +238,12 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var info process.Info
-				err := json.Unmarshal(result, &info)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var info process.Info
+				decodeErr := json.Unmarshal(result, &info)
+				s.NoError(decodeErr)
 				s.Equal(1234, info.PID)
 				s.Equal("nginx", info.Name)
 				s.Equal("www-data", info.User)
@@ -274,8 +260,11 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessGet() {
 			setupMock: func() process.Provider {
 				return processMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal process get data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal process get data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "get provider error",
@@ -290,8 +279,11 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessGet() {
 				m.EXPECT().Get(gomock.Any(), 9999).Return(nil, errors.New("process not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "process not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "process not found")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -308,31 +300,17 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessGet() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorProcessPublicTestSuite) TestProcessProcessSignal() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() process.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() process.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful signal",
@@ -351,10 +329,12 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessSignal() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r process.SignalResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r process.SignalResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal(1234, r.PID)
 				s.Equal("TERM", r.Signal)
 				s.True(r.Changed)
@@ -371,8 +351,11 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessSignal() {
 			setupMock: func() process.Provider {
 				return processMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal process signal data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal process signal data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "signal provider error",
@@ -389,8 +372,11 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessSignal() {
 					Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -407,19 +393,7 @@ func (s *ProcessorProcessPublicTestSuite) TestProcessProcessSignal() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }

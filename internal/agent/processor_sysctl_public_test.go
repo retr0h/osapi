@@ -52,12 +52,10 @@ func (s *ProcessorSysctlPublicTestSuite) TearDownTest() {
 
 func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() sysctl.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() sysctl.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -67,9 +65,12 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlOperation() {
 				Operation: "sysctl.list",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "sysctl provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "sysctl provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid sysctl operation missing sub-operation",
@@ -82,8 +83,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlOperation() {
 			setupMock: func() sysctl.Provider {
 				return sysctlMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid sysctl operation: sysctl",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid sysctl operation: sysctl")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported sysctl sub-operation",
@@ -96,8 +100,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlOperation() {
 			setupMock: func() sysctl.Provider {
 				return sysctlMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported sysctl operation: sysctl.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported sysctl operation: sysctl.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -120,31 +127,17 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlOperation() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() sysctl.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() sysctl.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful sysctl list",
@@ -162,10 +155,12 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entries []sysctl.Entry
-				err := json.Unmarshal(result, &entries)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entries []sysctl.Entry
+				decodeErr := json.Unmarshal(result, &entries)
+				s.NoError(decodeErr)
 				s.Len(entries, 2)
 				s.Equal("net.ipv4.ip_forward", entries[0].Key)
 				s.Equal("1", entries[0].Value)
@@ -184,8 +179,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlList() {
 				m.EXPECT().List(gomock.Any()).Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -203,31 +201,17 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlList() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() sysctl.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() sysctl.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful sysctl get",
@@ -245,10 +229,12 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entry sysctl.Entry
-				err := json.Unmarshal(result, &entry)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entry sysctl.Entry
+				decodeErr := json.Unmarshal(result, &entry)
+				s.NoError(decodeErr)
 				s.Equal("net.ipv4.ip_forward", entry.Key)
 				s.Equal("1", entry.Value)
 			},
@@ -264,8 +250,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlGet() {
 			setupMock: func() sysctl.Provider {
 				return sysctlMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal sysctl get data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal sysctl get data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "sysctl get provider error",
@@ -280,8 +269,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlGet() {
 				m.EXPECT().Get(gomock.Any(), "missing.key").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -299,31 +291,17 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlGet() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlCreate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() sysctl.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() sysctl.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful sysctl create",
@@ -344,10 +322,12 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlCreate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r sysctl.CreateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r sysctl.CreateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("net.ipv4.ip_forward", r.Key)
 				s.True(r.Changed)
 			},
@@ -363,8 +343,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlCreate() {
 			setupMock: func() sysctl.Provider {
 				return sysctlMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal sysctl create data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal sysctl create data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "sysctl create provider error",
@@ -381,8 +364,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlCreate() {
 					Return(nil, errors.New("invalid parameter"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "invalid parameter",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid parameter")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -400,31 +386,17 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlCreate() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() sysctl.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() sysctl.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful sysctl update",
@@ -445,10 +417,12 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlUpdate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r sysctl.UpdateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r sysctl.UpdateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("net.ipv4.ip_forward", r.Key)
 				s.True(r.Changed)
 			},
@@ -464,8 +438,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlUpdate() {
 			setupMock: func() sysctl.Provider {
 				return sysctlMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal sysctl update data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal sysctl update data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "sysctl update provider error",
@@ -482,8 +459,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlUpdate() {
 					Return(nil, errors.New("not managed"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not managed",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not managed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -501,31 +481,17 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlUpdate() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlDelete() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() sysctl.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() sysctl.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful sysctl delete",
@@ -543,10 +509,12 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlDelete() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r sysctl.DeleteResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r sysctl.DeleteResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("net.ipv4.ip_forward", r.Key)
 				s.True(r.Changed)
 			},
@@ -562,8 +530,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlDelete() {
 			setupMock: func() sysctl.Provider {
 				return sysctlMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal sysctl delete data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal sysctl delete data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "sysctl delete provider error",
@@ -578,8 +549,11 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlDelete() {
 				m.EXPECT().Delete(gomock.Any(), "missing.key").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -597,19 +571,7 @@ func (s *ProcessorSysctlPublicTestSuite) TestProcessSysctlDelete() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
