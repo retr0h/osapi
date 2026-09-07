@@ -160,6 +160,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -179,6 +180,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -197,6 +199,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -216,6 +219,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -233,6 +237,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -251,6 +256,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -268,6 +274,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -285,6 +292,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -304,6 +312,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -323,6 +332,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -340,6 +350,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -357,6 +368,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -376,6 +388,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -393,6 +406,7 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -508,19 +522,21 @@ func (s *ProcessorPublicTestSuite) TestProcessJobOperation() {
 
 func (s *ProcessorPublicTestSuite) TestSystemOperations() {
 	tests := []struct {
-		name        string
-		operation   string
-		labels      map[string]string
-		expectError bool
-		validate    func(json.RawMessage)
+		name         string
+		operation    string
+		labels       map[string]string
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name:      "get hostname",
 			operation: "hostname.get",
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "hostname")
 				s.Equal(false, response["changed"])
 			},
@@ -529,10 +545,13 @@ func (s *ProcessorPublicTestSuite) TestSystemOperations() {
 			name:      "get hostname with labels",
 			operation: "hostname.get",
 			labels:    map[string]string{"group": "web.dev.us-east"},
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "hostname")
 				s.Contains(response, "labels")
 				labels, ok := response["labels"].(map[string]interface{})
@@ -544,10 +563,13 @@ func (s *ProcessorPublicTestSuite) TestSystemOperations() {
 		{
 			name:      "get node status",
 			operation: "status.get",
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "hostname")
 				s.Equal(false, response["changed"])
 			},
@@ -555,10 +577,13 @@ func (s *ProcessorPublicTestSuite) TestSystemOperations() {
 		{
 			name:      "get uptime",
 			operation: "uptime.get",
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Contains(response, "uptime_seconds")
 				s.Equal(false, response["changed"])
 			},
@@ -567,38 +592,43 @@ func (s *ProcessorPublicTestSuite) TestSystemOperations() {
 
 	// Hostname update tests (TypeModify).
 	modifyTests := []struct {
-		name        string
-		operation   string
-		data        string
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		operation    string
+		data         string
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
-			name:        "update hostname returns unsupported",
-			operation:   "hostname.update",
-			data:        `{"hostname": "new-host"}`,
-			expectError: true,
-			errorMsg:    "operation not supported",
+			name:      "update hostname returns unsupported",
+			operation: "hostname.update",
+			data:      `{"hostname": "new-host"}`,
+			validateFunc: func(_ json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "operation not supported")
+			},
 		},
 		{
 			name:      "update hostname succeeds",
 			operation: "hostname.update",
 			data:      `{"hostname": "success-host"}`,
-			validate: func(result json.RawMessage) {
-				var response map[string]interface{}
-				err := json.Unmarshal(result, &response)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+
+				var response map[string]interface{}
+				decodeErr := json.Unmarshal(result, &response)
+				s.NoError(decodeErr)
 				s.Equal("success-host", response["hostname"])
 				s.Equal(true, response["changed"])
 			},
 		},
 		{
-			name:        "update hostname with invalid data",
-			operation:   "hostname.update",
-			data:        `invalid json`,
-			expectError: true,
-			errorMsg:    "invalid hostname update data",
+			name:      "update hostname with invalid data",
+			operation: "hostname.update",
+			data:      `invalid json`,
+			validateFunc: func(_ json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid hostname update data")
+			},
 		},
 	}
 
@@ -611,18 +641,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperations() {
 				Data:      json.RawMessage(tt.data),
 			}
 
-			result, err := agent.ExportProcessNodeOperation(s.testAgent, request)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(agent.ExportProcessNodeOperation(s.testAgent, request))
 		})
 	}
 
@@ -639,17 +658,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperations() {
 				Data:      json.RawMessage(`{}`),
 			}
 
-			result, err := agent.ExportProcessNodeOperation(s.testAgent, request)
-
-			if tt.expectError {
-				s.Error(err)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(agent.ExportProcessNodeOperation(s.testAgent, request))
 		})
 	}
 }
@@ -668,6 +677,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperations() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -681,6 +691,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperations() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)
@@ -694,6 +705,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperations() {
 			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
 				s.NotNil(result)
+
 				var response map[string]interface{}
 				decodeErr := json.Unmarshal(result, &response)
 				s.NoError(decodeErr)

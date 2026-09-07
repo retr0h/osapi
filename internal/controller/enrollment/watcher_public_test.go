@@ -990,10 +990,10 @@ func (s *WatcherPublicTestSuite) TestAcceptByFingerprint() {
 
 func (s *WatcherPublicTestSuite) TestStart() {
 	tests := []struct {
-		name       string
-		setupMock  func()
-		wantErr    bool
-		wantErrMsg string
+		name         string
+		setupMock    func()
+		wantErr      bool
+		validateFunc func(error)
 	}{
 		{
 			name: "subscribes and blocks until context cancelled",
@@ -1008,6 +1008,9 @@ func (s *WatcherPublicTestSuite) TestStart() {
 						return &nats.Subscription{}, nil
 					})
 			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
+			},
 		},
 		{
 			name: "returns error on subscribe failure",
@@ -1016,8 +1019,11 @@ func (s *WatcherPublicTestSuite) TestStart() {
 					Subscribe("osapi.enroll.request", gomock.Any()).
 					Return(nil, errors.New("subscribe error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "subscribe to enrollment requests",
+			wantErr: true,
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "subscribe to enrollment requests")
+			},
 		},
 	}
 
@@ -1026,9 +1032,7 @@ func (s *WatcherPublicTestSuite) TestStart() {
 			tc.setupMock()
 
 			if tc.wantErr {
-				err := s.watcher.Start(s.ctx)
-				s.Require().Error(err)
-				s.Contains(err.Error(), tc.wantErrMsg)
+				tc.validateFunc(s.watcher.Start(s.ctx))
 			} else {
 				ctx, cancel := context.WithCancel(s.ctx)
 				errCh := make(chan error, 1)
@@ -1039,8 +1043,7 @@ func (s *WatcherPublicTestSuite) TestStart() {
 
 				cancel()
 
-				err := <-errCh
-				s.Require().NoError(err)
+				tc.validateFunc(<-errCh)
 			}
 		})
 	}

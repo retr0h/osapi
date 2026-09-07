@@ -801,22 +801,26 @@ func (suite *DebianPublicTestSuite) TestGenerateContent() {
 
 func (suite *DebianPublicTestSuite) TestComputeSHA256() {
 	tests := []struct {
-		name string
-		data []byte
+		name         string
+		data         []byte
+		validateFunc func(string, string)
 	}{
 		{
 			name: "when given data returns consistent hash",
 			data: []byte("server 0.pool.ntp.org iburst\n"),
+			validateFunc: func(got1, got2 string) {
+				suite.Equal(got1, got2)
+				suite.Len(got1, 64)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got1 := ntp.ComputeSHA256(tc.data)
-			got2 := ntp.ComputeSHA256(tc.data)
-
-			suite.Equal(got1, got2)
-			suite.Len(got1, 64)
+			tc.validateFunc(
+				ntp.ComputeSHA256(tc.data),
+				ntp.ComputeSHA256(tc.data),
+			)
 		})
 	}
 }
