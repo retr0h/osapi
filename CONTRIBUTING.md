@@ -302,6 +302,10 @@ just go-unit-cov-check   # Report coverage and fail below the target
 The target is declared in `.github/codecov.yml` and in the shared `go` justfile
 module. Change both together.
 
+What the figure covers is narrowed by `.coverignore`, which excludes `/cmd/`,
+`/gen/`, `/mocks/`, `/ui/` and `main.go`. A percentage read without that file in
+mind will not match what the gate measures.
+
 ### Test file conventions
 
 - Public tests: `*_public_test.go` in the package's `_test` package, exercising
