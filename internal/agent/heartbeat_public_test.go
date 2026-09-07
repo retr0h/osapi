@@ -30,6 +30,7 @@ import (
 
 	"github.com/avfs/avfs"
 	"github.com/avfs/avfs/vfs/memfs"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
@@ -416,8 +417,9 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistrationStoresHeartbeatT
 
 func (s *HeartbeatLowLevelPublicTestSuite) TestDeregister() {
 	tests := []struct {
-		name      string
-		setupMock func()
+		name         string
+		setupMock    func()
+		validateFunc func(assert.PanicTestFunc)
 	}{
 		{
 			name: "when Delete fails logs warning",
@@ -425,6 +427,9 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestDeregister() {
 				s.mockKV.EXPECT().
 					Delete(gomock.Any(), "agents.test_machine_id").
 					Return(errors.New("delete failed"))
+			},
+			validateFunc: func(deregister assert.PanicTestFunc) {
+				s.NotPanics(deregister)
 			},
 		},
 		{
@@ -434,18 +439,22 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestDeregister() {
 					Delete(gomock.Any(), "agents.test_machine_id").
 					Return(nil)
 			},
+			validateFunc: func(deregister assert.PanicTestFunc) {
+				s.NotPanics(deregister)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			tt.setupMock()
+
 			// Deregister is best-effort (fire-and-forget). It deletes a
 			// KV key and logs the outcome but does not mutate agent state.
 			// The gomock expectations above verify the correct KV call was
 			// made; beyond that, we only verify the function completes
 			// without panicking.
-			s.NotPanics(func() {
+			tt.validateFunc(func() {
 				agent.ExportDeregister(s.testAgent, "test-machine-id")
 			})
 		})

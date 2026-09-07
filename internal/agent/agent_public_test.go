@@ -505,10 +505,18 @@ func (s *AgentPublicTestSuite) TestIsReady() {
 
 func (s *AgentPublicTestSuite) TestSetMeterProvider() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*metrics.Server, *agent.Agent)
 	}{
 		{
 			name: "creates OTEL instruments without panic",
+			validateFunc: func(srv *metrics.Server, a *agent.Agent) {
+				s.Require().NotNil(srv)
+
+				s.NotPanics(func() {
+					a.SetMeterProvider(srv.MeterProvider())
+				})
+			},
 		},
 	}
 
@@ -518,11 +526,7 @@ func (s *AgentPublicTestSuite) TestSetMeterProvider() {
 
 			port := s.getFreePort()
 			srv := metrics.New("127.0.0.1", port, slog.Default())
-			s.Require().NotNil(srv)
-
-			s.NotPanics(func() {
-				a.SetMeterProvider(srv.MeterProvider())
-			})
+			tt.validateFunc(srv, a)
 
 			ctx, cancel := context.WithTimeout(
 				context.Background(),
