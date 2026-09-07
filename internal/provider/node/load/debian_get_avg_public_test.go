@@ -40,11 +40,9 @@ func (suite *DebianGetAverageStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *DebianGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 	tests := []struct {
-		name        string
-		setupMock   func() func() (*sysLoad.AvgStat, error)
-		want        *load.Result
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() func() (*sysLoad.AvgStat, error)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetAverageStats Ok",
@@ -57,12 +55,15 @@ func (suite *DebianGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 					}, nil
 				}
 			},
-			want: &load.Result{
-				Load1:  1.0,
-				Load5:  0.5,
-				Load15: 0.2,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(&load.Result{
+					Load1:  1.0,
+					Load5:  0.5,
+					Load15: 0.2,
+				}, got)
 			},
-			wantErr: false,
 		},
 		{
 			name: "when load.Avg errors",
@@ -71,9 +72,11 @@ func (suite *DebianGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 					return nil, assert.AnError
 				}
 			},
-			want:        nil,
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 	}
 
@@ -85,17 +88,7 @@ func (suite *DebianGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 				debian.AvgFn = tc.setupMock()
 			}
 
-			got, err := debian.GetAverageStats()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Nil(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.GetAverageStats())
 		})
 	}
 }

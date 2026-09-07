@@ -38,10 +38,9 @@ func (suite *DarwinGetCPUCountPublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetCPUCountPublicTestSuite) TestGetCPUCount() {
 	tests := []struct {
-		name      string
-		setupMock func(d *host.Darwin)
-		want      interface{}
-		wantErr   bool
+		name         string
+		setupMock    func(d *host.Darwin)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetCPUCount Ok",
@@ -50,8 +49,10 @@ func (suite *DarwinGetCPUCountPublicTestSuite) TestGetCPUCount() {
 					return 10
 				}
 			},
-			want:    10,
-			wantErr: false,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal(10, got)
+			},
 		},
 		{
 			name: "when NumCPU returns 1",
@@ -60,8 +61,10 @@ func (suite *DarwinGetCPUCountPublicTestSuite) TestGetCPUCount() {
 					return 1
 				}
 			},
-			want:    1,
-			wantErr: false,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal(1, got)
+			},
 		},
 	}
 
@@ -73,15 +76,7 @@ func (suite *DarwinGetCPUCountPublicTestSuite) TestGetCPUCount() {
 				tc.setupMock(darwin)
 			}
 
-			got, err := darwin.GetCPUCount()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.Equal(0, got)
-			} else {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetCPUCount())
 		})
 	}
 }

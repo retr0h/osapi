@@ -39,11 +39,9 @@ func (suite *DebianGetFQDNPublicTestSuite) TearDownTest() {}
 
 func (suite *DebianGetFQDNPublicTestSuite) TestGetFQDN() {
 	tests := []struct {
-		name        string
-		setupMock   func(u *host.Debian)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func(u *host.Debian)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetFQDN Ok",
@@ -52,8 +50,11 @@ func (suite *DebianGetFQDNPublicTestSuite) TestGetFQDN() {
 					return "node-01.example.com", nil
 				}
 			},
-			want:    "node-01.example.com",
-			wantErr: false,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal("node-01.example.com", got)
+			},
 		},
 		{
 			name: "when os.Hostname errors",
@@ -62,8 +63,11 @@ func (suite *DebianGetFQDNPublicTestSuite) TestGetFQDN() {
 					return "", assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Empty(got)
+			},
 		},
 	}
 
@@ -75,17 +79,7 @@ func (suite *DebianGetFQDNPublicTestSuite) TestGetFQDN() {
 				tc.setupMock(debian)
 			}
 
-			got, err := debian.GetFQDN()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.GetFQDN())
 		})
 	}
 }

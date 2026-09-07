@@ -57,9 +57,7 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 		setupFS       func(fs avfs.VFS)
 		overrideFS    func() avfs.VFS
 		interfaceName string
-		want          *dns.GetResult
-		wantErr       bool
-		errContains   string
+		validateFunc  func(any, error)
 	}{
 		{
 			name: "when resolv.conf has servers search domains and noise",
@@ -76,9 +74,12 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				), 0o644)
 			},
 			interfaceName: "eth0",
-			want: &dns.GetResult{
-				DNSServers:    []string{"127.0.0.11", "8.8.8.8"},
-				SearchDomains: []string{"example.com", "local.lan"},
+			validateFunc: func(got any, err error) {
+				s.NoError(err)
+				s.Equal(&dns.GetResult{
+					DNSServers:    []string{"127.0.0.11", "8.8.8.8"},
+					SearchDomains: []string{"example.com", "local.lan"},
+				}, got)
 			},
 		},
 		{
@@ -90,9 +91,12 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				), 0o644)
 			},
 			interfaceName: "eth0",
-			want: &dns.GetResult{
-				DNSServers:    []string{"8.8.8.8"},
-				SearchDomains: []string{"."},
+			validateFunc: func(got any, err error) {
+				s.NoError(err)
+				s.Equal(&dns.GetResult{
+					DNSServers:    []string{"8.8.8.8"},
+					SearchDomains: []string{"."},
+				}, got)
 			},
 		},
 		{
@@ -106,9 +110,12 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				), 0o644)
 			},
 			interfaceName: "eth0",
-			want: &dns.GetResult{
-				DNSServers:    []string{"8.8.8.8"},
-				SearchDomains: []string{"second.com", "third.com"},
+			validateFunc: func(got any, err error) {
+				s.NoError(err)
+				s.Equal(&dns.GetResult{
+					DNSServers:    []string{"8.8.8.8"},
+					SearchDomains: []string{"second.com", "third.com"},
+				}, got)
 			},
 		},
 		{
@@ -117,8 +124,10 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				// Don't create the file
 			},
 			interfaceName: "eth0",
-			wantErr:       true,
-			errContains:   "failed to read /etc/resolv.conf",
+			validateFunc: func(_ any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to read /etc/resolv.conf")
+			},
 		},
 		{
 			name: "when read error during scan",
@@ -144,8 +153,10 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				return ffs
 			},
 			interfaceName: "eth0",
-			wantErr:       true,
-			errContains:   "failed to parse /etc/resolv.conf",
+			validateFunc: func(_ any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to parse /etc/resolv.conf")
+			},
 		},
 	}
 
@@ -159,15 +170,7 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 			}
 
 			p := dns.NewDebianDockerProvider(s.logger, fs)
-			got, err := p.GetResolvConfByInterface(tc.interfaceName)
-
-			if tc.wantErr {
-				s.Error(err)
-				s.Contains(err.Error(), tc.errContains)
-			} else {
-				s.NoError(err)
-				s.Equal(tc.want, got)
-			}
+			tc.validateFunc(p.GetResolvConfByInterface(tc.interfaceName))
 		})
 	}
 }

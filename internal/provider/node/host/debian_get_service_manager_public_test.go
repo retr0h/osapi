@@ -39,10 +39,9 @@ func (suite *DebianGetServiceManagerPublicTestSuite) TearDownTest() {}
 
 func (suite *DebianGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 	tests := []struct {
-		name      string
-		setupMock func(u *host.Debian)
-		want      interface{}
-		wantErr   bool
+		name         string
+		setupMock    func(u *host.Debian)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when systemd detected",
@@ -51,8 +50,10 @@ func (suite *DebianGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 					return nil, nil
 				}
 			},
-			want:    "systemd",
-			wantErr: false,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal("systemd", got)
+			},
 		},
 		{
 			name: "when systemd not detected",
@@ -61,8 +62,10 @@ func (suite *DebianGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 					return nil, os.ErrNotExist
 				}
 			},
-			want:    "unknown",
-			wantErr: false,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal("unknown", got)
+			},
 		},
 	}
 
@@ -74,15 +77,7 @@ func (suite *DebianGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 				tc.setupMock(debian)
 			}
 
-			got, err := debian.GetServiceManager()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.GetServiceManager())
 		})
 	}
 }

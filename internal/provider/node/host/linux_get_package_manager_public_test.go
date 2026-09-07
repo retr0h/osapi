@@ -39,10 +39,15 @@ func (suite *LinuxGetPackageManagerPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,10 +55,7 @@ func (suite *LinuxGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetPackageManager()
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetPackageManager())
 		})
 	}
 }

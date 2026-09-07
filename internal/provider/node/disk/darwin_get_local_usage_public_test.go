@@ -50,11 +50,9 @@ func (suite *DarwinGetLocalUsageStatsPublicTestSuite) TearDownTest() {
 
 func (suite *DarwinGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {
-		name        string
-		setupMock   func(*disk.Darwin)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func(*disk.Darwin)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetLocalUsageStats Ok",
@@ -116,22 +114,24 @@ func (suite *DarwinGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					}
 				}
 			},
-			want: []disk.Result{
-				{
-					Name:  "/",
-					Total: 500000000000,
-					Used:  250000000000,
-					Free:  250000000000,
-				},
-				{
-					Name:  "/Volumes/Data",
-					Total: 1000000000000,
-					Used:  750000000000,
-					Free:  250000000000,
-				},
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal([]disk.Result{
+					{
+						Name:  "/",
+						Total: 500000000000,
+						Used:  250000000000,
+						Free:  250000000000,
+					},
+					{
+						Name:  "/Volumes/Data",
+						Total: 1000000000000,
+						Used:  750000000000,
+						Free:  250000000000,
+					},
+				}, got)
 			},
-
-			wantErr: false,
 		},
 		{
 			name: "when disk.Usage returns EACCES PathError",
@@ -170,15 +170,18 @@ func (suite *DarwinGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					}
 				}
 			},
-			want: []disk.Result{
-				{
-					Name:  "/",
-					Total: 500000000000,
-					Used:  250000000000,
-					Free:  250000000000,
-				},
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal([]disk.Result{
+					{
+						Name:  "/",
+						Total: 500000000000,
+						Used:  250000000000,
+						Free:  250000000000,
+					},
+				}, got)
 			},
-			wantErr: false,
 		},
 		{
 			name: "when disk.Partitions errors",
@@ -187,8 +190,11 @@ func (suite *DarwinGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 		{
 			name: "when disk.Usage errors",
@@ -206,8 +212,11 @@ func (suite *DarwinGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 	}
 
@@ -219,17 +228,7 @@ func (suite *DarwinGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 				tc.setupMock(darwin)
 			}
 
-			got, err := darwin.GetLocalUsageStats()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Nil(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetLocalUsageStats())
 		})
 	}
 }

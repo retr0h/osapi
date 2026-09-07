@@ -39,10 +39,15 @@ func (suite *LinuxGetKernelVersionPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,10 +55,7 @@ func (suite *LinuxGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetKernelVersion()
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetKernelVersion())
 		})
 	}
 }

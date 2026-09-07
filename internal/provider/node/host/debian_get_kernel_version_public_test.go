@@ -40,11 +40,9 @@ func (suite *DebianGetKernelVersionPublicTestSuite) TearDownTest() {}
 
 func (suite *DebianGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 	tests := []struct {
-		name        string
-		setupMock   func() func() (*sysHost.InfoStat, error)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() func() (*sysHost.InfoStat, error)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetKernelVersion Ok",
@@ -53,8 +51,11 @@ func (suite *DebianGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 					return &sysHost.InfoStat{KernelVersion: "5.15.0-91-generic"}, nil
 				}
 			},
-			want:    "5.15.0-91-generic",
-			wantErr: false,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal("5.15.0-91-generic", got)
+			},
 		},
 		{
 			name: "when host.Info errors",
@@ -63,8 +64,11 @@ func (suite *DebianGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Empty(got)
+			},
 		},
 	}
 
@@ -76,17 +80,7 @@ func (suite *DebianGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 				debian.InfoFn = tc.setupMock()
 			}
 
-			got, err := debian.GetKernelVersion()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.GetKernelVersion())
 		})
 	}
 }

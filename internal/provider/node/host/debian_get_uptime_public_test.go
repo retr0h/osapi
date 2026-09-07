@@ -41,11 +41,9 @@ func (suite *DebianGetUptimePublicTestSuite) TearDownTest() {}
 
 func (suite *DebianGetUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {
-		name        string
-		setupMock   func() func() (*sysHost.InfoStat, error)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() func() (*sysHost.InfoStat, error)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetUptime Ok",
@@ -54,8 +52,11 @@ func (suite *DebianGetUptimePublicTestSuite) TestGetUptime() {
 					return &sysHost.InfoStat{Uptime: 5 * 3600}, nil
 				}
 			},
-			want:    time.Hour * 5,
-			wantErr: false,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(time.Hour*5, got)
+			},
 		},
 		{
 			name: "when host.Info errors",
@@ -64,8 +65,11 @@ func (suite *DebianGetUptimePublicTestSuite) TestGetUptime() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Equal(time.Duration(0), got)
+			},
 		},
 	}
 
@@ -77,17 +81,7 @@ func (suite *DebianGetUptimePublicTestSuite) TestGetUptime() {
 				debian.InfoFn = tc.setupMock()
 			}
 
-			got, err := debian.GetUptime()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Equal(time.Duration(0), got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.GetUptime())
 		})
 	}
 }

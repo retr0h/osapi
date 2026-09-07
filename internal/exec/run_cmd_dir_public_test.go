@@ -44,40 +44,50 @@ func (suite *RunCmdDirPublicTestSuite) TearDownTest() {}
 
 func (suite *RunCmdDirPublicTestSuite) TestRunCmd() {
 	tests := []struct {
-		name          string
-		command       string
-		args          []string
-		cwd           string
-		expectError   bool
-		errorContains string
+		name         string
+		command      string
+		args         []string
+		cwd          string
+		validateFunc func(any, error)
 	}{
 		{
-			name:        "Valid command with no arguments",
-			command:     "ls",
-			args:        []string{},
-			expectError: false,
+			name:    "Valid command with no arguments",
+			command: "ls",
+			args:    []string{},
+			validateFunc: func(output any, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(output)
+			},
 		},
 		{
-			name:        "Valid command with no arguments and working dir",
-			command:     "ls",
-			args:        []string{},
-			cwd:         "/tmp",
-			expectError: false,
+			name:    "Valid command with no arguments and working dir",
+			command: "ls",
+			args:    []string{},
+			cwd:     "/tmp",
+			validateFunc: func(output any, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(output)
+			},
 		},
 		{
-			name:        "Valid command with output",
-			command:     "echo",
-			args:        []string{"-n", "foo"},
-			cwd:         "/tmp",
-			expectError: false,
+			name:    "Valid command with output",
+			command: "echo",
+			args:    []string{"-n", "foo"},
+			cwd:     "/tmp",
+			validateFunc: func(output any, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(output)
+			},
 		},
 		{
-			name:          "Invalid command",
-			command:       "invalid",
-			args:          []string{"foo"},
-			cwd:           "/tmp",
-			expectError:   true,
-			errorContains: "not found",
+			name:    "Invalid command",
+			command: "invalid",
+			args:    []string{"foo"},
+			cwd:     "/tmp",
+			validateFunc: func(_ any, err error) {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), "not found")
+			},
 		},
 	}
 
@@ -85,15 +95,7 @@ func (suite *RunCmdDirPublicTestSuite) TestRunCmd() {
 		suite.Run(tc.name, func() {
 			em := exec.New(suite.logger, false)
 
-			output, err := em.RunCmdInDir(tc.command, tc.args, tc.cwd)
-
-			if tc.expectError {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.errorContains)
-			} else {
-				suite.Require().NoError(err)
-				suite.Require().NotEmpty(output)
-			}
+			tc.validateFunc(em.RunCmdInDir(tc.command, tc.args, tc.cwd))
 		})
 	}
 }

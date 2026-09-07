@@ -40,11 +40,9 @@ func (suite *DarwinGetStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetStatsPublicTestSuite) TestGetStats() {
 	tests := []struct {
-		name        string
-		setupMock   func() func() (*sysMem.VirtualMemoryStat, error)
-		want        *mem.Result
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() func() (*sysMem.VirtualMemoryStat, error)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetStats Ok",
@@ -57,12 +55,15 @@ func (suite *DarwinGetStatsPublicTestSuite) TestGetStats() {
 					}, nil
 				}
 			},
-			want: &mem.Result{
-				Total:  1024,
-				Free:   512,
-				Cached: 256,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(&mem.Result{
+					Total:  1024,
+					Free:   512,
+					Cached: 256,
+				}, got)
 			},
-			wantErr: false,
 		},
 		{
 			name: "when mem.VirtualMemory errors",
@@ -71,9 +72,11 @@ func (suite *DarwinGetStatsPublicTestSuite) TestGetStats() {
 					return nil, assert.AnError
 				}
 			},
-			want:        nil,
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 	}
 
@@ -85,17 +88,7 @@ func (suite *DarwinGetStatsPublicTestSuite) TestGetStats() {
 				darwin.VirtualMemoryFn = tc.setupMock()
 			}
 
-			got, err := darwin.GetStats()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Nil(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetStats())
 		})
 	}
 }

@@ -38,14 +38,15 @@ func (suite *DarwinGetServiceManagerPublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 	tests := []struct {
-		name    string
-		want    interface{}
-		wantErr bool
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
-			name:    "when GetServiceManager returns launchd",
-			want:    "launchd",
-			wantErr: false,
+			name: "when GetServiceManager returns launchd",
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal("launchd", got)
+			},
 		},
 	}
 
@@ -53,15 +54,7 @@ func (suite *DarwinGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 		suite.Run(tc.name, func() {
 			darwin := host.NewDarwinProvider()
 
-			got, err := darwin.GetServiceManager()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetServiceManager())
 		})
 	}
 }

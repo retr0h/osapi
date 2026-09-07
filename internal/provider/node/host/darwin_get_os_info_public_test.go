@@ -40,11 +40,9 @@ func (suite *DarwinGetOSInfoPublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetOSInfoPublicTestSuite) TestGetOSInfo() {
 	tests := []struct {
-		name        string
-		setupMock   func() func() (*sysHost.InfoStat, error)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() func() (*sysHost.InfoStat, error)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetOSInfo Ok",
@@ -56,11 +54,14 @@ func (suite *DarwinGetOSInfoPublicTestSuite) TestGetOSInfo() {
 					}, nil
 				}
 			},
-			want: &host.Result{
-				Distribution: "darwin",
-				Version:      "15.3",
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(&host.Result{
+					Distribution: "darwin",
+					Version:      "15.3",
+				}, got)
 			},
-			wantErr: false,
 		},
 		{
 			name: "when host.Info errors",
@@ -69,8 +70,11 @@ func (suite *DarwinGetOSInfoPublicTestSuite) TestGetOSInfo() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 	}
 
@@ -82,17 +86,7 @@ func (suite *DarwinGetOSInfoPublicTestSuite) TestGetOSInfo() {
 				darwin.InfoFn = tc.setupMock()
 			}
 
-			got, err := darwin.GetOSInfo()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Nil(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetOSInfo())
 		})
 	}
 }

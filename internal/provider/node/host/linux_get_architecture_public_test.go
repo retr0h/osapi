@@ -39,10 +39,15 @@ func (suite *LinuxGetArchitecturePublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetArchitecturePublicTestSuite) TestGetArchitecture() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,10 +55,7 @@ func (suite *LinuxGetArchitecturePublicTestSuite) TestGetArchitecture() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetArchitecture()
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetArchitecture())
 		})
 	}
 }

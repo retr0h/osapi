@@ -45,10 +45,15 @@ func (suite *LinuxDoStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxDoStatsPublicTestSuite) TestDo() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -56,10 +61,7 @@ func (suite *LinuxDoStatsPublicTestSuite) TestDo() {
 		suite.Run(tc.name, func() {
 			linux := ping.NewLinuxProvider()
 
-			got, err := linux.Do("1.1.1.1")
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.Do("1.1.1.1"))
 		})
 	}
 }

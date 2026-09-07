@@ -51,11 +51,10 @@ func (s *ProcessorInterfacePublicTestSuite) TearDownTest() {
 
 func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() iface.Provider
-		expectError bool
-		errorMsg    string
+		name         string
+		jobRequest   job.Request
+		setupMock    func() iface.Provider
+		validateFunc func(any, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -65,9 +64,12 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 				Operation: "interface.list",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "interface provider not available",
+			setupMock: nil,
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "interface provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid interface operation missing sub-operation",
@@ -80,8 +82,11 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 			setupMock: func() iface.Provider {
 				return netifMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid interface operation: interface",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid interface operation: interface")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported interface sub-operation",
@@ -94,8 +99,11 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 			setupMock: func() iface.Provider {
 				return netifMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported interface operation: interface.unknown",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported interface operation: interface.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -112,16 +120,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 				nil,
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }

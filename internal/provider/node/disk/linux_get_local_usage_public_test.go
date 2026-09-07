@@ -40,10 +40,15 @@ func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -51,10 +56,7 @@ func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 		suite.Run(tc.name, func() {
 			linux := disk.NewLinuxProvider()
 
-			got, err := linux.GetLocalUsageStats()
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetLocalUsageStats())
 		})
 	}
 }

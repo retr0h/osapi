@@ -40,11 +40,9 @@ func (suite *DebianGetArchitecturePublicTestSuite) TearDownTest() {}
 
 func (suite *DebianGetArchitecturePublicTestSuite) TestGetArchitecture() {
 	tests := []struct {
-		name        string
-		setupMock   func() func() (*sysHost.InfoStat, error)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() func() (*sysHost.InfoStat, error)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when GetArchitecture Ok",
@@ -53,8 +51,11 @@ func (suite *DebianGetArchitecturePublicTestSuite) TestGetArchitecture() {
 					return &sysHost.InfoStat{KernelArch: "x86_64"}, nil
 				}
 			},
-			want:    "x86_64",
-			wantErr: false,
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal("x86_64", got)
+			},
 		},
 		{
 			name: "when host.Info errors",
@@ -63,8 +64,11 @@ func (suite *DebianGetArchitecturePublicTestSuite) TestGetArchitecture() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got any, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Empty(got)
+			},
 		},
 	}
 
@@ -76,17 +80,7 @@ func (suite *DebianGetArchitecturePublicTestSuite) TestGetArchitecture() {
 				debian.InfoFn = tc.setupMock()
 			}
 
-			got, err := debian.GetArchitecture()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.GetArchitecture())
 		})
 	}
 }
