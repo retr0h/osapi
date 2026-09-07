@@ -63,44 +63,48 @@ func (suite *LinuxPublicTestSuite) TestList() {
 
 func (suite *LinuxPublicTestSuite) TestCreate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(got any, err error) {
+				suite.Nil(got)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Create(
+			tc.validateFunc(suite.provider.Create(
 				context.Background(),
 				certificate.Entry{Name: "test"},
-			)
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestUpdate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(got any, err error) {
+				suite.Nil(got)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Update(
+			tc.validateFunc(suite.provider.Update(
 				context.Background(),
 				certificate.Entry{Name: "test"},
-			)
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }

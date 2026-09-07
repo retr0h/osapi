@@ -84,44 +84,48 @@ func (suite *DarwinPublicTestSuite) TestGet() {
 
 func (suite *DarwinPublicTestSuite) TestCreate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(got any, err error) {
+				suite.Nil(got)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Create(
+			tc.validateFunc(suite.provider.Create(
 				context.Background(),
 				service.Entry{Name: "test"},
-			)
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestUpdate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(got any, err error) {
+				suite.Nil(got)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Update(
+			tc.validateFunc(suite.provider.Update(
 				context.Background(),
 				service.Entry{Name: "test"},
-			)
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }

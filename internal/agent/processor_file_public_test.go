@@ -268,28 +268,28 @@ func (s *ProcessorFilePublicTestSuite) TestProcessFileOperation() {
 
 func (s *ProcessorFilePublicTestSuite) TestProcessFileOperationNilProvider() {
 	tests := []struct {
-		name     string
-		errorMsg string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
-			name:     "returns error when file provider is nil",
-			errorMsg: "file provider not configured",
+			name: "returns error when file provider is nil",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "file provider not configured")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := agent.NewFileProcessor(nil, slog.Default())
-			result, err := processor(job.Request{
+			tt.validateFunc(processor(job.Request{
 				Type:      job.TypeModify,
 				Category:  "file",
 				Operation: "deploy.execute",
 				Data:      json.RawMessage(`{}`),
-			})
-
-			s.Error(err)
-			s.Contains(err.Error(), tt.errorMsg)
-			s.Nil(result)
+			}))
 		})
 	}
 }

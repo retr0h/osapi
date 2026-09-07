@@ -177,26 +177,28 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 
 func (s *DebianDockerPublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported for container",
+			validateFunc: func(result any, err error) {
+				s.Error(err)
+				s.Nil(result)
+				s.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			p := dns.NewDebianDockerProvider(s.logger, s.fs)
-			result, err := p.UpdateResolvConfByInterface(
+			tt.validateFunc(p.UpdateResolvConfByInterface(
 				[]string{"8.8.8.8"},
 				[]string{"example.com"},
 				"eth0",
 				false,
-			)
-
-			s.Error(err)
-			s.Nil(result)
-			s.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }

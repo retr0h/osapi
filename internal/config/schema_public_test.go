@@ -36,10 +36,9 @@ type ConfigPublicTestSuite struct {
 
 func (s *ConfigPublicTestSuite) TestValidate() {
 	tests := []struct {
-		name        string
-		config      config.Config
-		expectError bool
-		errContains string
+		name         string
+		config       config.Config
+		validateFunc func(error)
 	}{
 		{
 			name: "valid config",
@@ -73,7 +72,9 @@ func (s *ConfigPublicTestSuite) TestValidate() {
 					},
 				},
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "missing signing key",
@@ -91,8 +92,10 @@ func (s *ConfigPublicTestSuite) TestValidate() {
 					},
 				},
 			},
-			expectError: true,
-			errContains: "SigningKey",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "SigningKey")
+			},
 		},
 		{
 			name: "missing bearer token",
@@ -110,28 +113,23 @@ func (s *ConfigPublicTestSuite) TestValidate() {
 					},
 				},
 			},
-			expectError: true,
-			errContains: "BearerToken",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "BearerToken")
+			},
 		},
 		{
-			name:        "missing both required fields",
-			config:      config.Config{},
-			expectError: true,
+			name:   "missing both required fields",
+			config: config.Config{},
+			validateFunc: func(err error) {
+				s.Error(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			err := config.Validate(&tt.config)
-
-			if tt.expectError {
-				s.Error(err)
-				if tt.errContains != "" {
-					s.Contains(err.Error(), tt.errContains)
-				}
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(config.Validate(&tt.config))
 		})
 	}
 }

@@ -88,22 +88,24 @@ func (suite *LinuxPublicTestSuite) TestGetUser() {
 
 func (suite *LinuxPublicTestSuite) TestCreateUser() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.CreateUser(suite.ctx, user.CreateUserOpts{
+			tc.validateFunc(suite.provider.CreateUser(suite.ctx, user.CreateUserOpts{
 				Name: "testuser",
-			})
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			}))
 		})
 	}
 }
@@ -220,46 +222,50 @@ func (suite *LinuxPublicTestSuite) TestGetGroup() {
 
 func (suite *LinuxPublicTestSuite) TestCreateGroup() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.CreateGroup(suite.ctx, user.CreateGroupOpts{
+			tc.validateFunc(suite.provider.CreateGroup(suite.ctx, user.CreateGroupOpts{
 				Name: "testgroup",
-			})
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			}))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestUpdateGroup() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.UpdateGroup(
+			tc.validateFunc(suite.provider.UpdateGroup(
 				suite.ctx,
 				"testgroup",
 				user.UpdateGroupOpts{},
-			)
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
@@ -310,22 +316,24 @@ func (suite *LinuxPublicTestSuite) TestListKeys() {
 
 func (suite *LinuxPublicTestSuite) TestAddKey() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			result, err := suite.provider.AddKey(suite.ctx, "testuser", user.SSHKey{
+			tc.validateFunc(suite.provider.AddKey(suite.ctx, "testuser", user.SSHKey{
 				RawLine: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI test@example",
-			})
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			}))
 		})
 	}
 }

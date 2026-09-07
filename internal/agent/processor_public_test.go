@@ -736,47 +736,71 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperations() {
 
 func (s *ProcessorPublicTestSuite) TestProviderFactoryMethods() {
 	tests := []struct {
-		name        string
-		getProvider func() interface{}
+		name         string
+		getProvider  func() interface{}
+		validateFunc func(any)
 	}{
 		{
 			name:        "getHostProvider",
 			getProvider: func() interface{} { return agent.ExportGetHostProvider(s.testAgent) },
+			validateFunc: func(provider any) {
+				s.NotNil(provider)
+			},
 		},
 		{
 			name:        "getDiskProvider",
 			getProvider: func() interface{} { return agent.ExportGetDiskProvider(s.testAgent) },
+			validateFunc: func(provider any) {
+				s.NotNil(provider)
+			},
 		},
 		{
 			name:        "getMemProvider",
 			getProvider: func() interface{} { return agent.ExportGetMemProvider(s.testAgent) },
+			validateFunc: func(provider any) {
+				s.NotNil(provider)
+			},
 		},
 		{
 			name:        "getLoadProvider",
 			getProvider: func() interface{} { return agent.ExportGetLoadProvider(s.testAgent) },
+			validateFunc: func(provider any) {
+				s.NotNil(provider)
+			},
 		},
 		{
 			name:        "getDNSProvider",
 			getProvider: func() interface{} { return agent.ExportGetDNSProvider(s.testAgent) },
+			validateFunc: func(provider any) {
+				s.NotNil(provider)
+			},
 		},
 		{
 			name:        "getPingProvider",
 			getProvider: func() interface{} { return agent.ExportGetPingProvider(s.testAgent) },
+			validateFunc: func(provider any) {
+				s.NotNil(provider)
+			},
 		},
 		{
 			name:        "getCommandProvider",
 			getProvider: func() interface{} { return agent.ExportGetCommandProvider(s.testAgent) },
+			validateFunc: func(provider any) {
+				s.NotNil(provider)
+			},
 		},
 		{
 			name:        "getFileProvider",
 			getProvider: func() interface{} { return agent.ExportGetFileProvider(s.testAgent) },
+			validateFunc: func(provider any) {
+				s.NotNil(provider)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			provider := tt.getProvider()
-			s.NotNil(provider)
+			tt.validateFunc(tt.getProvider())
 		})
 	}
 }

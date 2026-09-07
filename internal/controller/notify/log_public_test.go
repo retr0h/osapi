@@ -43,8 +43,9 @@ func (s *LogNotifierPublicTestSuite) SetupTest() {
 
 func (s *LogNotifierPublicTestSuite) TestNotify() {
 	tests := []struct {
-		name  string
-		event notify.ConditionEvent
+		name         string
+		event        notify.ConditionEvent
+		validateFunc func(error)
 	}{
 		{
 			name: "logs fired event",
@@ -55,6 +56,9 @@ func (s *LogNotifierPublicTestSuite) TestNotify() {
 				Active:        true,
 				Reason:        "memory usage above threshold",
 				Timestamp:     time.Now(),
+			},
+			validateFunc: func(err error) {
+				s.NoError(err)
 			},
 		},
 		{
@@ -67,13 +71,15 @@ func (s *LogNotifierPublicTestSuite) TestNotify() {
 				Reason:        "memory usage returned to normal",
 				Timestamp:     time.Now(),
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			err := s.notifier.Notify(context.Background(), tt.event)
-			s.NoError(err)
+			tt.validateFunc(s.notifier.Notify(context.Background(), tt.event))
 		})
 	}
 }

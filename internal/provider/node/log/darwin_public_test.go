@@ -63,23 +63,25 @@ func (suite *DarwinPublicTestSuite) TestQuery() {
 
 func (suite *DarwinPublicTestSuite) TestQueryUnit() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(got any, err error) {
+				suite.Nil(got)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.QueryUnit(
+			tc.validateFunc(suite.provider.QueryUnit(
 				context.Background(),
 				"nginx.service",
 				oslog.QueryOpts{},
-			)
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }

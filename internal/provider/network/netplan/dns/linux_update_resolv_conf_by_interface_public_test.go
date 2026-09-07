@@ -40,10 +40,15 @@ func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -54,15 +59,12 @@ func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvCo
 			servers := []string{}
 			searchDomains := []string{}
 			interfaceName := ""
-			result, err := linux.UpdateResolvConfByInterface(
+			tc.validateFunc(linux.UpdateResolvConfByInterface(
 				servers,
 				searchDomains,
 				interfaceName,
 				false,
-			)
-
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }

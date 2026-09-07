@@ -479,9 +479,8 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 	tests := []struct {
 		name         string
 		jobKey       string
-		expectedErr  string
 		setupMocks   func()
-		expectedData []byte
+		validateFunc func(any, error)
 	}{
 		{
 			name:   "successful get job data",
@@ -491,16 +490,22 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 				mockEntry.EXPECT().Value().Return([]byte(`{"test": "data"}`))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-123").Return(mockEntry, nil)
 			},
-			expectedData: []byte(`{"test": "data"}`),
+			validateFunc: func(data any, err error) {
+				s.NoError(err)
+				s.Equal([]byte(`{"test": "data"}`), data)
+			},
 		},
 		{
-			name:        "job not found error",
-			jobKey:      "jobs.nonexistent",
-			expectedErr: "failed to get job data for key jobs.nonexistent",
+			name:   "job not found error",
+			jobKey: "jobs.nonexistent",
 			setupMocks: func() {
 				s.mockKV.EXPECT().
 					Get(gomock.Any(), "jobs.nonexistent").
 					Return(nil, errors.New("key not found"))
+			},
+			validateFunc: func(_ any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to get job data for key jobs.nonexistent")
 			},
 		},
 	}
@@ -509,15 +514,7 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			data, err := s.jobsClient.GetJobData(s.ctx, tt.jobKey)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-				s.Equal(tt.expectedData, data)
-			}
+			tt.validateFunc(s.jobsClient.GetJobData(s.ctx, tt.jobKey))
 		})
 	}
 }
@@ -527,8 +524,8 @@ func (s *AgentPublicTestSuite) TestCreateOrUpdateConsumer() {
 		name           string
 		streamName     string
 		consumerConfig jetstream.ConsumerConfig
-		expectedErr    string
 		setupMocks     func()
+		validateFunc   func(error)
 	}{
 		{
 			name:           "successful consumer creation",
@@ -539,16 +536,22 @@ func (s *AgentPublicTestSuite) TestCreateOrUpdateConsumer() {
 					CreateOrUpdateConsumerWithConfig(gomock.Any(), "test-stream", jetstream.ConsumerConfig{Name: "test-consumer"}).
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:           "consumer creation error",
 			streamName:     "test-stream",
 			consumerConfig: jetstream.ConsumerConfig{Name: "test-consumer"},
-			expectedErr:    "consumer creation failed",
 			setupMocks: func() {
 				s.mockNATSClient.EXPECT().
 					CreateOrUpdateConsumerWithConfig(gomock.Any(), "test-stream", jetstream.ConsumerConfig{Name: "test-consumer"}).
 					Return(errors.New("consumer creation failed"))
+			},
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "consumer creation failed")
 			},
 		},
 	}
@@ -557,14 +560,9 @@ func (s *AgentPublicTestSuite) TestCreateOrUpdateConsumer() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			err := s.jobsClient.CreateOrUpdateConsumer(s.ctx, tt.streamName, tt.consumerConfig)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(
+				s.jobsClient.CreateOrUpdateConsumer(s.ctx, tt.streamName, tt.consumerConfig),
+			)
 		})
 	}
 }

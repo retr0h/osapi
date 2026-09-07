@@ -56,10 +56,16 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TearDownTest() {
 
 func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns ErrUnsupported on Darwin",
+			validateFunc: func(result any, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -68,16 +74,12 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 			mock := execMocks.NewPlainMockManager(suite.ctrl)
 
 			darwin := dns.NewDarwinProvider(suite.logger, mock)
-			result, err := darwin.UpdateResolvConfByInterface(
+			tt.validateFunc(darwin.UpdateResolvConfByInterface(
 				[]string{"8.8.8.8"},
 				[]string{"example.com"},
 				"en0",
 				false,
-			)
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }

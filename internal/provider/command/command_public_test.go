@@ -47,10 +47,14 @@ func (s *CommandPublicTestSuite) TearDownTest() {
 
 func (s *CommandPublicTestSuite) TestNew() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any)
 	}{
 		{
 			name: "creates executor with logger and exec manager",
+			validateFunc: func(executor any) {
+				s.NotNil(executor)
+			},
 		},
 	}
 
@@ -58,9 +62,7 @@ func (s *CommandPublicTestSuite) TestNew() {
 		s.Run(tt.name, func() {
 			mockExecMgr := execMocks.NewMockManager(s.mockCtrl)
 
-			executor := command.New(slog.Default(), mockExecMgr)
-
-			s.NotNil(executor)
+			tt.validateFunc(command.New(slog.Default(), mockExecMgr))
 		})
 	}
 }

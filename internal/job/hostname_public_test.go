@@ -48,10 +48,15 @@ func (s *HostnamePublicTestSuite) TearDownTest() {
 
 func (s *HostnamePublicTestSuite) TestGetAgentHostnameProviderError() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "falls back to unknown when provider errors",
+			validateFunc: func(hostname any, err error) {
+				s.NoError(err)
+				s.Equal("unknown", hostname)
+			},
 		},
 	}
 
@@ -63,10 +68,7 @@ func (s *HostnamePublicTestSuite) TestGetAgentHostnameProviderError() {
 			job.SetDefaultHostnameProvider(mockProvider)
 			defer job.ResetDefaultHostnameProvider()
 
-			hostname, err := job.GetAgentHostname("")
-
-			s.NoError(err)
-			s.Equal("unknown", hostname)
+			tt.validateFunc(job.GetAgentHostname(""))
 		})
 	}
 }
@@ -318,10 +320,15 @@ func (s *HostnamePublicTestSuite) TestHostnameProviderInterface() {
 
 func (s *HostnamePublicTestSuite) TestGopsutilHostnameProviderError() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns error when host.Info fails",
+			validateFunc: func(hostname any, err error) {
+				s.Error(err)
+				s.Empty(hostname)
+			},
 		},
 	}
 
@@ -333,10 +340,7 @@ func (s *HostnamePublicTestSuite) TestGopsutilHostnameProviderError() {
 			defer job.ResetHostInfoFn()
 
 			provider := job.ExportNewGopsutilHostnameProvider()
-			hostname, err := provider.Hostname()
-
-			s.Error(err)
-			s.Empty(hostname)
+			tt.validateFunc(provider.Hostname())
 		})
 	}
 }
