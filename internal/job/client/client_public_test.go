@@ -1276,9 +1276,9 @@ func (s *ClientPublicTestSuite) TestQueryWithPKISignerSignError() {
 	signer, _ := newSigner(gomock.NewController(s.T()))
 
 	tests := []struct {
-		name        string
-		setupFn     func()
-		expectedErr string
+		name         string
+		setupFn      func()
+		validateFunc func(any, any, error)
 	}{
 		{
 			name: "when signing marshal fails returns sign error",
@@ -1287,7 +1287,10 @@ func (s *ClientPublicTestSuite) TestQueryWithPKISignerSignError() {
 					return nil, errors.New("marshal boom")
 				})
 			},
-			expectedErr: "failed to sign job data",
+			validateFunc: func(_ any, _ any, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to sign job data")
+			},
 		},
 	}
 
@@ -1304,9 +1307,7 @@ func (s *ClientPublicTestSuite) TestQueryWithPKISignerSignError() {
 			c, err := client.New(slog.Default(), s.mockNATSClient, opts)
 			s.Require().NoError(err)
 
-			_, _, err = c.Query(s.ctx, target, category, operation, nil)
-			s.Error(err)
-			s.Contains(err.Error(), tt.expectedErr)
+			tt.validateFunc(c.Query(s.ctx, target, category, operation, nil))
 		})
 	}
 }

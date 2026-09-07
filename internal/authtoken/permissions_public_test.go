@@ -38,79 +38,108 @@ func (s *PermissionsPublicTestSuite) TestResolvePermissions() {
 		roles             []string
 		directPermissions []string
 		customRoles       map[string][]string
-		expectPerms       []string
-		expectMissing     []string
+		validateFunc      func(map[string]bool)
 	}{
 		{
-			name:          "admin role gets all permissions",
-			roles:         []string{"admin"},
-			expectPerms:   authtoken.AllPermissions,
-			expectMissing: nil,
+			name:  "admin role gets all permissions",
+			roles: []string{"admin"},
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range authtoken.AllPermissions {
+					s.True(resolved[p], "expected permission %s to be present", p)
+				}
+			},
 		},
 		{
 			name:  "write role gets write permissions but not audit",
 			roles: []string{"write"},
-			expectPerms: []string{
-				authtoken.PermNodeRead,
-				authtoken.PermNetworkRead,
-				authtoken.PermNetworkWrite,
-				authtoken.PermJobRead,
-				authtoken.PermJobWrite,
-				authtoken.PermHealthRead,
-				authtoken.PermFileRead,
-				authtoken.PermFileWrite,
-			},
-			expectMissing: []string{
-				authtoken.PermAuditRead,
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range []string{
+					authtoken.PermNodeRead,
+					authtoken.PermNetworkRead,
+					authtoken.PermNetworkWrite,
+					authtoken.PermJobRead,
+					authtoken.PermJobWrite,
+					authtoken.PermHealthRead,
+					authtoken.PermFileRead,
+					authtoken.PermFileWrite,
+				} {
+					s.True(resolved[p], "expected permission %s to be present", p)
+				}
+				for _, p := range []string{
+					authtoken.PermAuditRead,
+				} {
+					s.False(resolved[p], "expected permission %s to be absent", p)
+				}
 			},
 		},
 		{
 			name:  "read role gets read-only permissions",
 			roles: []string{"read"},
-			expectPerms: []string{
-				authtoken.PermNodeRead,
-				authtoken.PermNetworkRead,
-				authtoken.PermJobRead,
-				authtoken.PermHealthRead,
-				authtoken.PermFileRead,
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range []string{
+					authtoken.PermNodeRead,
+					authtoken.PermNetworkRead,
+					authtoken.PermJobRead,
+					authtoken.PermHealthRead,
+					authtoken.PermFileRead,
+				} {
+					s.True(resolved[p], "expected permission %s to be present", p)
+				}
+				for _, p := range []string{
+					authtoken.PermNetworkWrite,
+					authtoken.PermJobWrite,
+					authtoken.PermAuditRead,
+					authtoken.PermFileWrite,
+				} {
+					s.False(resolved[p], "expected permission %s to be absent", p)
+				}
 			},
-			expectMissing: []string{
-				authtoken.PermNetworkWrite,
-				authtoken.PermJobWrite,
-				authtoken.PermAuditRead,
-				authtoken.PermFileWrite,
+		},
+		{
+			name:  "unknown role gets no permissions",
+			roles: []string{"unknown"},
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range authtoken.AllPermissions {
+					s.False(resolved[p], "expected permission %s to be absent", p)
+				}
 			},
 		},
 		{
-			name:          "unknown role gets no permissions",
-			roles:         []string{"unknown"},
-			expectPerms:   nil,
-			expectMissing: authtoken.AllPermissions,
+			name:  "empty roles gets no permissions",
+			roles: []string{},
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range authtoken.AllPermissions {
+					s.False(resolved[p], "expected permission %s to be absent", p)
+				}
+			},
 		},
 		{
-			name:          "empty roles gets no permissions",
-			roles:         []string{},
-			expectPerms:   nil,
-			expectMissing: authtoken.AllPermissions,
-		},
-		{
-			name:          "nil roles gets no permissions",
-			roles:         nil,
-			expectPerms:   nil,
-			expectMissing: authtoken.AllPermissions,
+			name:  "nil roles gets no permissions",
+			roles: nil,
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range authtoken.AllPermissions {
+					s.False(resolved[p], "expected permission %s to be absent", p)
+				}
+			},
 		},
 		{
 			name:              "direct permissions override roles",
 			roles:             []string{"admin"},
 			directPermissions: []string{authtoken.PermNodeRead},
-			expectPerms:       []string{authtoken.PermNodeRead},
-			expectMissing: []string{
-				authtoken.PermNetworkRead,
-				authtoken.PermNetworkWrite,
-				authtoken.PermJobRead,
-				authtoken.PermJobWrite,
-				authtoken.PermHealthRead,
-				authtoken.PermAuditRead,
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range []string{authtoken.PermNodeRead} {
+					s.True(resolved[p], "expected permission %s to be present", p)
+				}
+				for _, p := range []string{
+					authtoken.PermNetworkRead,
+					authtoken.PermNetworkWrite,
+					authtoken.PermJobRead,
+					authtoken.PermJobWrite,
+					authtoken.PermHealthRead,
+					authtoken.PermAuditRead,
+				} {
+					s.False(resolved[p], "expected permission %s to be absent", p)
+				}
 			},
 		},
 		{
@@ -119,15 +148,21 @@ func (s *PermissionsPublicTestSuite) TestResolvePermissions() {
 			customRoles: map[string][]string{
 				"ops": {authtoken.PermNodeRead, authtoken.PermHealthRead},
 			},
-			expectPerms: []string{
-				authtoken.PermNodeRead,
-				authtoken.PermHealthRead,
-			},
-			expectMissing: []string{
-				authtoken.PermNetworkRead,
-				authtoken.PermNetworkWrite,
-				authtoken.PermJobRead,
-				authtoken.PermJobWrite,
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range []string{
+					authtoken.PermNodeRead,
+					authtoken.PermHealthRead,
+				} {
+					s.True(resolved[p], "expected permission %s to be present", p)
+				}
+				for _, p := range []string{
+					authtoken.PermNetworkRead,
+					authtoken.PermNetworkWrite,
+					authtoken.PermJobRead,
+					authtoken.PermJobWrite,
+				} {
+					s.False(resolved[p], "expected permission %s to be absent", p)
+				}
 			},
 		},
 		{
@@ -136,40 +171,43 @@ func (s *PermissionsPublicTestSuite) TestResolvePermissions() {
 			customRoles: map[string][]string{
 				"read": {authtoken.PermHealthRead},
 			},
-			expectPerms: []string{authtoken.PermHealthRead},
-			expectMissing: []string{
-				authtoken.PermNodeRead,
-				authtoken.PermNetworkRead,
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range []string{authtoken.PermHealthRead} {
+					s.True(resolved[p], "expected permission %s to be present", p)
+				}
+				for _, p := range []string{
+					authtoken.PermNodeRead,
+					authtoken.PermNetworkRead,
+				} {
+					s.False(resolved[p], "expected permission %s to be absent", p)
+				}
 			},
 		},
 		{
 			name:  "multiple roles merge permissions",
 			roles: []string{"read", "write"},
-			expectPerms: []string{
-				authtoken.PermNodeRead,
-				authtoken.PermNetworkRead,
-				authtoken.PermNetworkWrite,
-				authtoken.PermJobRead,
-				authtoken.PermJobWrite,
-				authtoken.PermHealthRead,
+			validateFunc: func(resolved map[string]bool) {
+				for _, p := range []string{
+					authtoken.PermNodeRead,
+					authtoken.PermNetworkRead,
+					authtoken.PermNetworkWrite,
+					authtoken.PermJobRead,
+					authtoken.PermJobWrite,
+					authtoken.PermHealthRead,
+				} {
+					s.True(resolved[p], "expected permission %s to be present", p)
+				}
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			resolved := authtoken.ResolvePermissions(
+			tt.validateFunc(authtoken.ResolvePermissions(
 				tt.roles,
 				tt.directPermissions,
 				tt.customRoles,
-			)
-
-			for _, p := range tt.expectPerms {
-				s.True(resolved[p], "expected permission %s to be present", p)
-			}
-			for _, p := range tt.expectMissing {
-				s.False(resolved[p], "expected permission %s to be absent", p)
-			}
+			))
 		})
 	}
 }
