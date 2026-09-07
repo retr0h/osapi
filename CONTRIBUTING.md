@@ -339,6 +339,8 @@ runs read-only tests by default; `OSAPI_INTEGRATION_WRITES=1` enables writes.
 
 - Use `export_test.go` to expose an unexported variable or function to the
   `_test` package, rather than writing an internal test or a hand-rolled stub.
+- The setter form is `SetXFn(fn)` with a matching `ResetXFn()`: the setter swaps
+  the dependency, the reset puts the original back.
 - Use `suite.TearDownSubTest()` to reset swapped variables between table-driven
   sub-tests, not `defer` inside the loop.
 - Platform stubs: test that the Darwin and Linux stubs return `ErrUnsupported`
