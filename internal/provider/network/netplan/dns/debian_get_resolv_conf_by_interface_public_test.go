@@ -61,9 +61,7 @@ func (suite *DebianGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 		name          string
 		setupMock     func() *mocks.MockManager
 		interfaceName string
-		want          *dns.GetResult
-		wantErr       bool
-		wantErrType   error
+		validateFunc  func(any, error)
 	}{
 		{
 			name: "when GetResolvConf Ok",
@@ -73,20 +71,22 @@ func (suite *DebianGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 				return mock
 			},
 			interfaceName: "wlp0s20f3",
-			want: &dns.GetResult{
-				DNSServers: []string{
-					"192.168.1.1",
-					"8.8.8.8",
-					"8.8.4.4",
-					"2001:4860:4860::8888",
-					"2001:4860:4860::8844",
-				},
-				SearchDomains: []string{
-					"example.com",
-					"local.lan",
-				},
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal(&dns.GetResult{
+					DNSServers: []string{
+						"192.168.1.1",
+						"8.8.8.8",
+						"8.8.4.4",
+						"2001:4860:4860::8888",
+						"2001:4860:4860::8844",
+					},
+					SearchDomains: []string{
+						"example.com",
+						"local.lan",
+					},
+				}, got)
 			},
-			wantErr: false,
 		},
 		{
 			name: "when default DNS Domain",
@@ -96,19 +96,21 @@ func (suite *DebianGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 				return mock
 			},
 			interfaceName: "wlp0s20f3",
-			want: &dns.GetResult{
-				DNSServers: []string{
-					"192.168.1.1",
-					"8.8.8.8",
-					"8.8.4.4",
-					"2001:4860:4860::8888",
-					"2001:4860:4860::8844",
-				},
-				SearchDomains: []string{
-					".",
-				},
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal(&dns.GetResult{
+					DNSServers: []string{
+						"192.168.1.1",
+						"8.8.8.8",
+						"8.8.4.4",
+						"2001:4860:4860::8888",
+						"2001:4860:4860::8844",
+					},
+					SearchDomains: []string{
+						".",
+					},
+				}, got)
 			},
-			wantErr: false,
 		},
 		{
 			name: "when Interface Name is invalid",
@@ -124,8 +126,13 @@ func (suite *DebianGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 				return mock
 			},
 			interfaceName: "eth!",
-			wantErr:       true,
-			wantErrType:   fmt.Errorf("interface %q does not exist", "eth!"),
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(
+					err.Error(),
+					fmt.Errorf("interface %q does not exist", "eth!").Error(),
+				)
+			},
 		},
 		{
 			name: "when exec.RunCmd errors",
@@ -140,8 +147,10 @@ func (suite *DebianGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 				return mock
 			},
 			interfaceName: "wlp0s20f3",
-			wantErr:       true,
-			wantErrType:   assert.AnError,
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), assert.AnError.Error())
+			},
 		},
 	}
 
@@ -150,15 +159,7 @@ func (suite *DebianGetResolvConfPublicTestSuite) TestGetResolvConfByInterface() 
 			mock := tc.setupMock()
 
 			net := dns.NewDebianProvider(suite.logger, memfs.New(), nil, mock, "test-host")
-			got, err := net.GetResolvConfByInterface(tc.interfaceName)
-
-			if !tc.wantErr {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			} else {
-				suite.Error(err)
-				suite.Contains(err.Error(), tc.wantErrType.Error())
-			}
+			tc.validateFunc(net.GetResolvConfByInterface(tc.interfaceName))
 		})
 	}
 }

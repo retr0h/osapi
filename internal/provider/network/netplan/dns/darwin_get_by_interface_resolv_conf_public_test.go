@@ -21,7 +21,6 @@
 package dns_test
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 	"testing"
@@ -60,9 +59,7 @@ func (suite *DarwinGetResolvConfByInterfacePublicTestSuite) TestGetResolvConfByI
 		name          string
 		setupMock     func() *execMocks.MockManager
 		interfaceName string
-		want          *dns.GetResult
-		wantErr       bool
-		wantErrType   error
+		validateFunc  func(any, error)
 	}{
 		{
 			name: "when matching interface found",
@@ -90,9 +87,12 @@ resolver #2
 				return mock
 			},
 			interfaceName: "en0",
-			want: &dns.GetResult{
-				DNSServers:    []string{"192.168.1.1", "8.8.8.8"},
-				SearchDomains: []string{"example.com", "local.lan"},
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal(&dns.GetResult{
+					DNSServers:    []string{"192.168.1.1", "8.8.8.8"},
+					SearchDomains: []string{"example.com", "local.lan"},
+				}, got)
 			},
 		},
 		{
@@ -118,8 +118,10 @@ resolver #2
 				return mock
 			},
 			interfaceName: "en5",
-			wantErr:       true,
-			wantErrType:   fmt.Errorf("does not exist"),
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "does not exist")
+			},
 		},
 		{
 			name: "when scutil command errors",
@@ -133,8 +135,10 @@ resolver #2
 				return mock
 			},
 			interfaceName: "en0",
-			wantErr:       true,
-			wantErrType:   assert.AnError,
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), assert.AnError.Error())
+			},
 		},
 		{
 			name: "when no nameservers in output",
@@ -154,8 +158,10 @@ resolver #1
 				return mock
 			},
 			interfaceName: "en0",
-			wantErr:       true,
-			wantErrType:   fmt.Errorf("no resolver blocks found"),
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "no resolver blocks found")
+			},
 		},
 		{
 			name: "when empty output",
@@ -169,8 +175,10 @@ resolver #1
 				return mock
 			},
 			interfaceName: "en0",
-			wantErr:       true,
-			wantErrType:   fmt.Errorf("no resolver blocks found"),
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "no resolver blocks found")
+			},
 		},
 		{
 			name: "when resolver has no search domains",
@@ -191,8 +199,11 @@ resolver #1
 				return mock
 			},
 			interfaceName: "en0",
-			want: &dns.GetResult{
-				DNSServers: []string{"8.8.8.8", "8.8.4.4"},
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal(&dns.GetResult{
+					DNSServers: []string{"8.8.8.8", "8.8.4.4"},
+				}, got)
 			},
 		},
 	}
@@ -202,15 +213,7 @@ resolver #1
 			mock := tc.setupMock()
 
 			darwin := dns.NewDarwinProvider(suite.logger, mock)
-			got, err := darwin.GetResolvConfByInterface(tc.interfaceName)
-
-			if !tc.wantErr {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			} else {
-				suite.Error(err)
-				suite.Contains(err.Error(), tc.wantErrType.Error())
-			}
+			tc.validateFunc(darwin.GetResolvConfByInterface(tc.interfaceName))
 		})
 	}
 }

@@ -21,7 +21,6 @@
 package ping_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -53,43 +52,44 @@ func (suite *DebianDoPublicTestSuite) TearDownTest() {
 
 func (suite *DebianDoPublicTestSuite) TestDo() {
 	tests := []struct {
-		name        string
-		setupMock   func() *mocks.MockPinger
-		address     string
-		want        *ping.Result
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() *mocks.MockPinger
+		address      string
+		validateFunc func(any, error)
 	}{
 		{
-			name:    "when Do Ok",
-			address: "1.1.1.1",
+			name: "when Do Ok",
 			setupMock: func() *mocks.MockPinger {
 				mock := mocks.NewDefaultMockPinger(suite.ctrl)
 
 				return mock
 			},
-			want: &ping.Result{
-				PacketsSent:     3,
-				PacketsReceived: 3,
-				PacketLoss:      0,
-				MinRTT:          10 * time.Millisecond,
-				AvgRTT:          15 * time.Millisecond,
-				MaxRTT:          20 * time.Millisecond,
+			address: "1.1.1.1",
+			validateFunc: func(got any, err error) {
+				suite.NoError(err)
+				suite.Equal(&ping.Result{
+					PacketsSent:     3,
+					PacketsReceived: 3,
+					PacketLoss:      0,
+					MinRTT:          10 * time.Millisecond,
+					AvgRTT:          15 * time.Millisecond,
+					MaxRTT:          20 * time.Millisecond,
+				}, got)
 			},
-			wantErr: false,
 		},
 		{
-			name:    "when NewPingerFn errors",
-			address: "invalid-address",
+			name: "when NewPingerFn errors",
 			setupMock: func() *mocks.MockPinger {
 				return nil
 			},
-			wantErr:     true,
-			wantErrType: fmt.Errorf("failed to initialize pinger"),
+			address: "invalid-address",
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "failed to initialize pinger")
+			},
 		},
 		{
-			name:    "when pinger.Run errors",
-			address: "1.1.1.1",
+			name: "when pinger.Run errors",
 			setupMock: func() *mocks.MockPinger {
 				mock := mocks.NewPlainMockPinger(suite.ctrl)
 
@@ -98,12 +98,14 @@ func (suite *DebianDoPublicTestSuite) TestDo() {
 
 				return mock
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			address: "1.1.1.1",
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), assert.AnError.Error())
+			},
 		},
 		{
-			name:    "when ping operation times out",
-			address: "1.1.1.1",
+			name: "when ping operation times out",
 			setupMock: func() *mocks.MockPinger {
 				mock := mocks.NewMockPinger(suite.ctrl)
 
@@ -115,8 +117,11 @@ func (suite *DebianDoPublicTestSuite) TestDo() {
 
 				return mock
 			},
-			wantErr:     true,
-			wantErrType: fmt.Errorf("ping operation timed out after 5s"),
+			address: "1.1.1.1",
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "ping operation timed out after 5s")
+			},
 		},
 	}
 
@@ -131,15 +136,7 @@ func (suite *DebianDoPublicTestSuite) TestDo() {
 				}
 			}
 
-			got, err := debian.Do(tc.address)
-
-			if !tc.wantErr {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			} else {
-				suite.Error(err)
-				suite.Contains(err.Error(), tc.wantErrType.Error())
-			}
+			tc.validateFunc(debian.Do(tc.address))
 		})
 	}
 }
