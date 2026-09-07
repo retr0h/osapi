@@ -967,9 +967,9 @@ func (suite *UIPublicTestSuite) TestPrintKV() {
 
 func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 	tests := []struct {
-		name        string
-		sections    []cli.Section
-		wantHeaders []string
+		name         string
+		sections     []cli.Section
+		validateFunc func(any)
 	}{
 		{
 			name: "when section with title renders table",
@@ -980,7 +980,12 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					Rows:    [][]string{{"a", "b"}},
 				},
 			},
-			wantHeaders: []string{"COL1", "COL2"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+				for _, h := range []string{"COL1", "COL2"} {
+					assert.Contains(suite.T(), output, h)
+				}
+			},
 		},
 		{
 			name: "when section without title renders table",
@@ -990,7 +995,12 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					Rows:    [][]string{{"a"}},
 				},
 			},
-			wantHeaders: []string{"COL1"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+				for _, h := range []string{"COL1"} {
+					assert.Contains(suite.T(), output, h)
+				}
+			},
 		},
 		{
 			name: "when wide data aligns columns",
@@ -1007,7 +1017,12 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					}},
 				},
 			},
-			wantHeaders: []string{"A", "B", "C", "D", "E"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+				for _, h := range []string{"A", "B", "C", "D", "E"} {
+					assert.Contains(suite.T(), output, h)
+				}
+			},
 		},
 		{
 			name: "when many columns renders all headers",
@@ -1023,7 +1038,12 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					}},
 				},
 			},
-			wantHeaders: []string{"X", "Y", "Z", "LONG-HEADER-1", "LONG-HEADER-2"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+				for _, h := range []string{"X", "Y", "Z", "LONG-HEADER-1", "LONG-HEADER-2"} {
+					assert.Contains(suite.T(), output, h)
+				}
+			},
 		},
 		{
 			name: "when multiple rows alternates colors",
@@ -1037,7 +1057,12 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					},
 				},
 			},
-			wantHeaders: []string{"NAME", "VALUE"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+				for _, h := range []string{"NAME", "VALUE"} {
+					assert.Contains(suite.T(), output, h)
+				}
+			},
 		},
 		{
 			name: "when column exceeds max width truncates to cap",
@@ -1050,7 +1075,12 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					}},
 				},
 			},
-			wantHeaders: []string{"A", "B"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+				for _, h := range []string{"A", "B"} {
+					assert.Contains(suite.T(), output, h)
+				}
+			},
 		},
 		{
 			name: "when cell exceeds column width shows ellipsis",
@@ -1062,20 +1092,20 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					},
 				},
 			},
-			wantHeaders: []string{"A"},
+			validateFunc: func(output any) {
+				assert.NotEmpty(suite.T(), output)
+				for _, h := range []string{"A"} {
+					assert.Contains(suite.T(), output, h)
+				}
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			output := captureStdout(func() {
+			tc.validateFunc(captureStdout(func() {
 				cli.PrintCompactTable(tc.sections)
-			})
-
-			assert.NotEmpty(suite.T(), output)
-			for _, h := range tc.wantHeaders {
-				assert.Contains(suite.T(), output, h)
-			}
+			}))
 		})
 	}
 }

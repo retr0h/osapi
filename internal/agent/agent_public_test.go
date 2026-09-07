@@ -144,22 +144,24 @@ func (s *AgentPublicTestSuite) buildAgent() *agent.Agent {
 
 func (s *AgentPublicTestSuite) TestNew() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*agent.Agent)
 	}{
 		{
 			name: "creates agent with all providers",
+			validateFunc: func(a *agent.Agent) {
+				s.NotNil(a)
+
+				a.SetSubComponents(map[string]job.SubComponentInfo{
+					"agent.heartbeat": {Status: "ok"},
+				})
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			a := s.buildAgent()
-
-			s.NotNil(a)
-
-			a.SetSubComponents(map[string]job.SubComponentInfo{
-				"agent.heartbeat": {Status: "ok"},
-			})
+			tt.validateFunc(s.buildAgent())
 		})
 	}
 }
@@ -535,12 +537,14 @@ func (s *AgentPublicTestSuite) TestSetMeterProvider() {
 
 func (s *AgentPublicTestSuite) TestLastHeartbeatTime() {
 	tests := []struct {
-		name     string
-		wantZero bool
+		name         string
+		validateFunc func(time.Time)
 	}{
 		{
-			name:     "returns zero time before any heartbeat",
-			wantZero: true,
+			name: "returns zero time before any heartbeat",
+			validateFunc: func(got time.Time) {
+				s.True(got.IsZero())
+			},
 		},
 	}
 
@@ -548,10 +552,7 @@ func (s *AgentPublicTestSuite) TestLastHeartbeatTime() {
 		s.Run(tt.name, func() {
 			a := s.buildAgent()
 
-			got := a.LastHeartbeatTime()
-			if tt.wantZero {
-				s.True(got.IsZero())
-			}
+			tt.validateFunc(a.LastHeartbeatTime())
 		})
 	}
 }
