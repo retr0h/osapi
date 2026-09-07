@@ -39,10 +39,9 @@ func (s *ValidationPublicTestSuite) TestStruct() {
 	}
 
 	tests := []struct {
-		name     string
-		input    any
-		wantOK   bool
-		contains []string
+		name         string
+		input        any
+		validateFunc func(string, bool)
 	}{
 		{
 			name: "when valid struct",
@@ -50,15 +49,20 @@ func (s *ValidationPublicTestSuite) TestStruct() {
 				Name:  "test",
 				Email: "test@example.com",
 			},
-			wantOK: true,
+			validateFunc: func(_ string, ok bool) {
+				s.Equal(true, ok)
+			},
 		},
 		{
 			name: "when missing required field",
 			input: testStruct{
 				Email: "test@example.com",
 			},
-			wantOK:   false,
-			contains: []string{"Name", "required"},
+			validateFunc: func(errMsg string, ok bool) {
+				s.Equal(false, ok)
+				s.Contains(errMsg, "Name")
+				s.Contains(errMsg, "required")
+			},
 		},
 		{
 			name: "when invalid email",
@@ -66,65 +70,59 @@ func (s *ValidationPublicTestSuite) TestStruct() {
 				Name:  "test",
 				Email: "not-an-email",
 			},
-			wantOK:   false,
-			contains: []string{"Email", "email"},
+			validateFunc: func(errMsg string, ok bool) {
+				s.Equal(false, ok)
+				s.Contains(errMsg, "Email")
+				s.Contains(errMsg, "email")
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			errMsg, ok := validation.Struct(tt.input)
-			s.Equal(tt.wantOK, ok)
-
-			if !ok {
-				for _, c := range tt.contains {
-					s.Contains(errMsg, c)
-				}
-			}
+			tt.validateFunc(validation.Struct(tt.input))
 		})
 	}
 }
 
 func (s *ValidationPublicTestSuite) TestVar() {
 	tests := []struct {
-		name     string
-		field    any
-		tag      string
-		wantOK   bool
-		contains []string
+		name         string
+		field        any
+		tag          string
+		validateFunc func(string, bool)
 	}{
 		{
-			name:   "when valid field",
-			field:  "hello",
-			tag:    "required",
-			wantOK: true,
+			name:  "when valid field",
+			field: "hello",
+			tag:   "required",
+			validateFunc: func(_ string, ok bool) {
+				s.Equal(true, ok)
+			},
 		},
 		{
-			name:     "when empty required field",
-			field:    "",
-			tag:      "required",
-			wantOK:   false,
-			contains: []string{"required"},
+			name:  "when empty required field",
+			field: "",
+			tag:   "required",
+			validateFunc: func(errMsg string, ok bool) {
+				s.Equal(false, ok)
+				s.Contains(errMsg, "required")
+			},
 		},
 		{
-			name:     "when invalid email",
-			field:    "not-an-email",
-			tag:      "email",
-			wantOK:   false,
-			contains: []string{"email"},
+			name:  "when invalid email",
+			field: "not-an-email",
+			tag:   "email",
+			validateFunc: func(errMsg string, ok bool) {
+				s.Equal(false, ok)
+				s.Contains(errMsg, "email")
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			errMsg, ok := validation.Var(tt.field, tt.tag)
-			s.Equal(tt.wantOK, ok)
-
-			if !ok {
-				for _, c := range tt.contains {
-					s.Contains(errMsg, c)
-				}
-			}
+			tt.validateFunc(validation.Var(tt.field, tt.tag))
 		})
 	}
 }

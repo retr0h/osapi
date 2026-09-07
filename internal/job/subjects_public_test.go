@@ -539,66 +539,80 @@ func (suite *SubjectsPublicTestSuite) TestIsSpecialHostname() {
 
 func (suite *SubjectsPublicTestSuite) TestValidateLabel() {
 	tests := []struct {
-		name    string
-		key     string
-		value   string
-		wantErr bool
+		name         string
+		key          string
+		value        string
+		validateFunc func(error)
 	}{
 		{
 			name:  "when key and value are simple alphanumeric",
 			key:   "role",
 			value: "web",
+			validateFunc: func(err error) {
+				suite.NoError(err)
+			},
 		},
 		{
 			name:  "when value has hyphens and underscores",
 			key:   "env",
 			value: "us-east_1",
+			validateFunc: func(err error) {
+				suite.NoError(err)
+			},
 		},
 		{
 			name:  "when value is hierarchical with dots",
 			key:   "group",
 			value: "web.dev.us-east",
+			validateFunc: func(err error) {
+				suite.NoError(err)
+			},
 		},
 		{
-			name:    "when key contains dots",
-			key:     "my.key",
-			value:   "web",
-			wantErr: true,
+			name:  "when key contains dots",
+			key:   "my.key",
+			value: "web",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 		{
-			name:    "when key contains colon",
-			key:     "my:key",
-			value:   "web",
-			wantErr: true,
+			name:  "when key contains colon",
+			key:   "my:key",
+			value: "web",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 		{
-			name:    "when value segment contains spaces",
-			key:     "group",
-			value:   "web.dev server",
-			wantErr: true,
+			name:  "when value segment contains spaces",
+			key:   "group",
+			value: "web.dev server",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 		{
-			name:    "when value has empty segment",
-			key:     "group",
-			value:   "web..dev",
-			wantErr: true,
+			name:  "when value has empty segment",
+			key:   "group",
+			value: "web..dev",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 		{
-			name:    "when key is empty",
-			key:     "",
-			value:   "web",
-			wantErr: true,
+			name:  "when key is empty",
+			key:   "",
+			value: "web",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			err := job.ValidateLabel(tt.key, tt.value)
-			if tt.wantErr {
-				suite.Error(err)
-			} else {
-				suite.NoError(err)
-			}
+			tt.validateFunc(job.ValidateLabel(tt.key, tt.value))
 		})
 	}
 }
