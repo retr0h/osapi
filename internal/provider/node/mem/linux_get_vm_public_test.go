@@ -39,10 +39,15 @@ func (suite *LinuxGetStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetStatsPublicTestSuite) TestGetStats() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,10 +55,7 @@ func (suite *LinuxGetStatsPublicTestSuite) TestGetStats() {
 		suite.Run(tc.name, func() {
 			linux := mem.NewLinuxProvider()
 
-			got, err := linux.GetStats()
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetStats())
 		})
 	}
 }

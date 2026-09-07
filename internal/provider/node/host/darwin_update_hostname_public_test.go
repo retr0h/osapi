@@ -39,10 +39,15 @@ func (suite *DarwinUpdateHostnamePublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,10 +55,7 @@ func (suite *DarwinUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 		suite.Run(tc.name, func() {
 			darwin := host.NewDarwinProvider()
 
-			got, err := darwin.UpdateHostname("new-host")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(darwin.UpdateHostname("new-host"))
 		})
 	}
 }

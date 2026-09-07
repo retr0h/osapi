@@ -39,10 +39,15 @@ func (suite *LinuxUpdateHostnamePublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(any, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result any, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,10 +55,7 @@ func (suite *LinuxUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.UpdateHostname("new-host")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.UpdateHostname("new-host"))
 		})
 	}
 }
