@@ -501,8 +501,7 @@ func (s *HostnameGetPublicTestSuite) TestGetNodeHostnameRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "hostname")
-				s.Contains(rec.Body.String(), "test-host")
+				s.Contains(rec.Body.String(), `"hostname":"test-host"`)
 			},
 		},
 	}

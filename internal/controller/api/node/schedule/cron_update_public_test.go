@@ -527,8 +527,8 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 		{
@@ -540,7 +540,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "at least one field")
 			},
 		},
@@ -553,7 +553,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Schedule")
 			},
 		},
@@ -566,7 +566,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 			},
 		},
@@ -671,8 +671,8 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 	}

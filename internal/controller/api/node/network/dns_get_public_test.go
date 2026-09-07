@@ -380,11 +380,11 @@ func (s *NetworkDNSGetByInterfacePublicTestSuite) TestGetNetworkDNSByInterfaceVa
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "servers")
-				s.Contains(rec.Body.String(), "8.8.8.8")
-				s.Contains(rec.Body.String(), "search_domains")
-				s.Contains(rec.Body.String(), "example.com")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"servers"`)
+				s.Contains(rec.Body.String(), `"8.8.8.8"`)
+				s.Contains(rec.Body.String(), `"search_domains"`)
+				s.Contains(rec.Body.String(), `"example.com"`)
 			},
 		},
 		{
@@ -406,8 +406,8 @@ func (s *NetworkDNSGetByInterfacePublicTestSuite) TestGetNetworkDNSByInterfaceVa
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "8.8.8.8")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"8.8.8.8"`)
 			},
 		},
 		{
@@ -418,7 +418,7 @@ func (s *NetworkDNSGetByInterfacePublicTestSuite) TestGetNetworkDNSByInterfaceVa
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "alphanum_or_fact")
 			},
 		},
@@ -430,7 +430,7 @@ func (s *NetworkDNSGetByInterfacePublicTestSuite) TestGetNetworkDNSByInterfaceVa
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "alphanum_or_fact")
 			},
 		},
@@ -442,7 +442,7 @@ func (s *NetworkDNSGetByInterfacePublicTestSuite) TestGetNetworkDNSByInterfaceVa
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "alphanum_or_fact")
 			},
 		},
@@ -465,8 +465,8 @@ func (s *NetworkDNSGetByInterfacePublicTestSuite) TestGetNetworkDNSByInterfaceVa
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "8.8.8.8")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"8.8.8.8"`)
 			},
 		},
 	}
@@ -568,8 +568,8 @@ func (s *NetworkDNSGetByInterfacePublicTestSuite) TestGetNetworkDNSByInterfaceRB
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "8.8.8.8")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"8.8.8.8"`)
 			},
 		},
 	}

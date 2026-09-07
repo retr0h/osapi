@@ -502,9 +502,9 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "agent1")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
 			},
 		},
 		{
@@ -516,7 +516,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Image")
 				s.Contains(rec.Body.String(), "required")
 			},
@@ -530,7 +530,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Hostname")
 				s.Contains(rec.Body.String(), "max")
 			},
@@ -544,7 +544,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Dns")
 				s.Contains(rec.Body.String(), "ip")
 			},
@@ -558,7 +558,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 				s.Contains(rec.Body.String(), "not found")
 			},
@@ -660,8 +660,8 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 	}

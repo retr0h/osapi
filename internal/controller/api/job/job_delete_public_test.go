@@ -155,7 +155,7 @@ func (s *JobDeletePublicTestSuite) TestDeleteJobByIDHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), `"message"`)
 				s.Contains(rec.Body.String(), "Invalid format for parameter id")
 			},
 		},

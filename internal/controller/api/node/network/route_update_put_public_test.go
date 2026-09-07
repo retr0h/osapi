@@ -299,7 +299,7 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteValidationHTTP
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 		{
@@ -311,7 +311,7 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteValidationHTTP
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 	}
@@ -396,7 +396,7 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 	}

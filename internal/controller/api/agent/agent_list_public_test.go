@@ -354,11 +354,10 @@ func (s *AgentListPublicTestSuite) TestListAgentsHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total")
-				s.Contains(rec.Body.String(), "server1")
-				s.Contains(rec.Body.String(), "server2")
-				s.Contains(rec.Body.String(), "status")
-				s.Contains(rec.Body.String(), "Ready")
+				s.Contains(rec.Body.String(), `"total":2`)
+				s.Contains(rec.Body.String(), `"server1"`)
+				s.Contains(rec.Body.String(), `"server2"`)
+				s.Contains(rec.Body.String(), `"status":"Ready"`)
 			},
 		},
 		{
@@ -372,7 +371,7 @@ func (s *AgentListPublicTestSuite) TestListAgentsHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total")
+				s.Contains(rec.Body.String(), `"total":0`)
 			},
 		},
 		{
@@ -386,7 +385,7 @@ func (s *AgentListPublicTestSuite) TestListAgentsHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusInternalServerError, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 	}
@@ -479,8 +478,8 @@ func (s *AgentListPublicTestSuite) TestListAgentsRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total")
-				s.Contains(rec.Body.String(), "server1")
+				s.Contains(rec.Body.String(), `"total":2`)
+				s.Contains(rec.Body.String(), `"server1"`)
 			},
 		},
 	}

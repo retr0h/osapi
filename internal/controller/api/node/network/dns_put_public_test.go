@@ -523,10 +523,10 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "agent1")
-				s.Contains(rec.Body.String(), "ok")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+				s.Contains(rec.Body.String(), `"ok"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 		{
@@ -538,7 +538,7 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "InterfaceName")
 				s.Contains(rec.Body.String(), "required")
 			},
@@ -559,8 +559,8 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "agent1")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
 			},
 		},
 		{
@@ -572,7 +572,7 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "InterfaceName")
 				s.Contains(rec.Body.String(), "alphanum_or_fact")
 			},
@@ -586,7 +586,7 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "InterfaceName")
 				s.Contains(rec.Body.String(), "alphanum_or_fact")
 			},
@@ -600,7 +600,7 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Servers")
 				s.Contains(rec.Body.String(), "ip")
 			},
@@ -614,7 +614,7 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "SearchDomains")
 				s.Contains(rec.Body.String(), "hostname")
 			},
@@ -628,7 +628,7 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "InterfaceName")
 				s.Contains(rec.Body.String(), "alphanum_or_fact")
 			},
@@ -642,7 +642,7 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 				s.Contains(rec.Body.String(), "not found")
 			},
@@ -663,9 +663,9 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "agent1")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 		{
@@ -683,9 +683,9 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSValidationHTT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "server1")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"server1"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 	}
@@ -788,8 +788,8 @@ func (s *NetworkDNSPutByInterfacePublicTestSuite) TestPutNetworkDNSRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 	}

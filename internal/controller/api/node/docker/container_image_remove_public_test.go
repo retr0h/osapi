@@ -422,9 +422,9 @@ func (s *ContainerImageRemovePublicTestSuite) TestDeleteNodeContainerDockerImage
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "image removed")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"image removed"`)
 			},
 		},
 		{
@@ -445,7 +445,7 @@ func (s *ContainerImageRemovePublicTestSuite) TestDeleteNodeContainerDockerImage
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 				s.Contains(rec.Body.String(), "not found")
 			},
@@ -544,8 +544,8 @@ func (s *ContainerImageRemovePublicTestSuite) TestDeleteNodeContainerDockerImage
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 	}

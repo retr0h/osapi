@@ -334,8 +334,8 @@ func (s *LogSourcePublicTestSuite) TestGetNodeLogSourceHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 		{
@@ -346,7 +346,7 @@ func (s *LogSourcePublicTestSuite) TestGetNodeLogSourceHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 				s.Contains(rec.Body.String(), "not found")
 			},
@@ -442,8 +442,8 @@ func (s *LogSourcePublicTestSuite) TestGetNodeLogSourceRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 	}

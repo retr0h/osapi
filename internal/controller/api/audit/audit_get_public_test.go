@@ -168,8 +168,7 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "user")
-				s.Contains(rec.Body.String(), "user@example.com")
+				s.Contains(rec.Body.String(), `"user":"user@example.com"`)
 			},
 		},
 		{
@@ -279,8 +278,7 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "user")
-				s.Contains(rec.Body.String(), "user@example.com")
+				s.Contains(rec.Body.String(), `"user":"user@example.com"`)
 			},
 		},
 	}

@@ -326,7 +326,7 @@ func (s *JobListPublicTestSuite) TestListJobsValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total_items")
+				s.Contains(rec.Body.String(), `"total_items":1`)
 			},
 		},
 		{
@@ -344,7 +344,7 @@ func (s *JobListPublicTestSuite) TestListJobsValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total_items")
+				s.Contains(rec.Body.String(), `"total_items":0`)
 			},
 		},
 		{
@@ -355,7 +355,7 @@ func (s *JobListPublicTestSuite) TestListJobsValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "'oneof'")
 			},
 		},
@@ -367,7 +367,7 @@ func (s *JobListPublicTestSuite) TestListJobsValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -378,7 +378,7 @@ func (s *JobListPublicTestSuite) TestListJobsValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -389,7 +389,7 @@ func (s *JobListPublicTestSuite) TestListJobsValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -400,7 +400,7 @@ func (s *JobListPublicTestSuite) TestListJobsValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -418,7 +418,7 @@ func (s *JobListPublicTestSuite) TestListJobsValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total_items")
+				s.Contains(rec.Body.String(), `"total_items":50`)
 			},
 		},
 	}
@@ -517,7 +517,7 @@ func (s *JobListPublicTestSuite) TestListJobsRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total_items")
+				s.Contains(rec.Body.String(), `"total_items":1`)
 			},
 		},
 	}

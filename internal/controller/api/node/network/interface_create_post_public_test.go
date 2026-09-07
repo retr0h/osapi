@@ -406,8 +406,8 @@ func (s *NetworkInterfaceCreatePostPublicTestSuite) TestPostNetworkInterfaceVali
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "server1")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"server1"`)
 			},
 		},
 		{
@@ -419,7 +419,7 @@ func (s *NetworkInterfaceCreatePostPublicTestSuite) TestPostNetworkInterfaceVali
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Addresses")
 				s.Contains(rec.Body.String(), "cidr")
 			},
@@ -433,7 +433,7 @@ func (s *NetworkInterfaceCreatePostPublicTestSuite) TestPostNetworkInterfaceVali
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 			},
 		},
@@ -532,8 +532,8 @@ func (s *NetworkInterfaceCreatePostPublicTestSuite) TestPostNetworkInterfaceRBAC
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 	}

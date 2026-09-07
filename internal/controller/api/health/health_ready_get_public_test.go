@@ -140,8 +140,7 @@ func (s *HealthReadyGetPublicTestSuite) TestGetHealthReadyHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "status")
-				s.Contains(rec.Body.String(), "ready")
+				s.Contains(rec.Body.String(), `"status":"ready"`)
 			},
 		},
 		{
@@ -152,9 +151,8 @@ func (s *HealthReadyGetPublicTestSuite) TestGetHealthReadyHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusServiceUnavailable, rec.Code)
-				s.Contains(rec.Body.String(), "status")
-				s.Contains(rec.Body.String(), "not_ready")
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"status":"not_ready"`)
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 	}

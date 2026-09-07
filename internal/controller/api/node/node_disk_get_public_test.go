@@ -458,7 +458,7 @@ func (s *NodeDiskGetPublicTestSuite) TestGetNodeDiskRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
+				s.Contains(rec.Body.String(), `"job_id"`)
 			},
 		},
 	}

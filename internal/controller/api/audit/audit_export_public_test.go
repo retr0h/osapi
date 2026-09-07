@@ -192,7 +192,7 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total_items")
+				s.Contains(rec.Body.String(), `"total_items":1`)
 			},
 		},
 	}
@@ -284,7 +284,7 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "total_items")
+				s.Contains(rec.Body.String(), `"total_items":0`)
 			},
 		},
 	}

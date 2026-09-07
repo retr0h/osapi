@@ -473,13 +473,11 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusCreated, rec.Code)
-				s.Contains(rec.Body.String(), "name")
-				s.Contains(rec.Body.String(), "nginx.conf")
-				s.Contains(rec.Body.String(), "sha256")
-				s.Contains(rec.Body.String(), "size")
-				s.Contains(rec.Body.String(), "changed")
-				s.Contains(rec.Body.String(), "content_type")
-				s.Contains(rec.Body.String(), "raw")
+				s.Contains(rec.Body.String(), `"name":"nginx.conf"`)
+				s.Contains(rec.Body.String(), `"sha256"`)
+				s.Contains(rec.Body.String(), `"size"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
+				s.Contains(rec.Body.String(), `"content_type":"raw"`)
 			},
 		},
 		{
@@ -534,7 +532,7 @@ func (s *FileUploadPublicTestSuite) TestPostFileValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusCreated, rec.Code)
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 		{
@@ -677,9 +675,8 @@ func (s *FileUploadPublicTestSuite) TestPostFileRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusCreated, rec.Code)
-				s.Contains(rec.Body.String(), "name")
-				s.Contains(rec.Body.String(), "nginx.conf")
-				s.Contains(rec.Body.String(), "sha256")
+				s.Contains(rec.Body.String(), `"name":"nginx.conf"`)
+				s.Contains(rec.Body.String(), `"sha256"`)
 			},
 		},
 	}

@@ -316,9 +316,7 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusValidationHTTP() {
 		name         string
 		path         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantBody     string
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when empty hostname returns 400",
@@ -326,8 +324,12 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				for _, str := range []string{`"error"`} {
+					s.Contains(rec.Body.String(), str)
+				}
+			},
 		},
 		{
 			name: "when get Ok",
@@ -373,8 +375,9 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusValidationHTTP() {
 					)
 				return mock
 			},
-			wantCode: http.StatusOK,
-			wantBody: `
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.JSONEq(`
 {
   "job_id": "550e8400-e29b-41d4-a716-446655440000",
   "results": [
@@ -408,7 +411,8 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusValidationHTTP() {
     }
   ]
 }
-`,
+`, rec.Body.String())
+			},
 		},
 		{
 			name: "when job client errors",
@@ -420,8 +424,13 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusValidationHTTP() {
 					Return("", nil, assert.AnError)
 				return mock
 			},
-			wantCode: http.StatusInternalServerError,
-			wantBody: `{"error":"assert.AnError general error for testing"}`,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.JSONEq(
+					`{"error":"assert.AnError general error for testing"}`,
+					rec.Body.String(),
+				)
+			},
 		},
 		{
 			name: "when broadcast all",
@@ -440,8 +449,12 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`, `"server1"`, `"server2"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				for _, str := range []string{`"results"`, `"server1"`, `"server2"`} {
+					s.Contains(rec.Body.String(), str)
+				}
+			},
 		},
 	}
 
@@ -460,13 +473,7 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			if tc.wantBody != "" {
-				s.JSONEq(tc.wantBody, rec.Body.String())
-			}
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -570,9 +577,8 @@ func (s *NodeStatusGetPublicTestSuite) TestGetNodeStatusRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "hostname")
-				s.Contains(rec.Body.String(), "default-hostname")
-				s.Contains(rec.Body.String(), "job_id")
+				s.Contains(rec.Body.String(), `"hostname":"default-hostname"`)
+				s.Contains(rec.Body.String(), `"job_id"`)
 			},
 		},
 	}

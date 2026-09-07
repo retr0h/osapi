@@ -414,9 +414,9 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "packets_sent")
-				s.Contains(rec.Body.String(), "packets_received")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"packets_sent":3`)
+				s.Contains(rec.Body.String(), `"packets_received":3`)
 			},
 		},
 		{
@@ -428,7 +428,7 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Address")
 				s.Contains(rec.Body.String(), "required")
 			},
@@ -442,7 +442,7 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Address")
 				s.Contains(rec.Body.String(), "ip_or_fact")
 			},
@@ -472,8 +472,8 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "packets_sent")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"packets_sent":3`)
 			},
 		},
 		{
@@ -485,7 +485,7 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "ip_or_fact")
 			},
 		},
@@ -498,7 +498,7 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "ip_or_fact")
 			},
 		},
@@ -526,8 +526,8 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "packets_sent")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"packets_sent":3`)
 			},
 		},
 	}
@@ -638,8 +638,8 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "packets_sent")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"packets_sent":3`)
 			},
 		},
 	}

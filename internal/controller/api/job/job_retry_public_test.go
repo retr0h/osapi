@@ -234,10 +234,8 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusCreated, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "660e8400-e29b-41d4-a716-446655440000")
-				s.Contains(rec.Body.String(), "status")
-				s.Contains(rec.Body.String(), "created")
+				s.Contains(rec.Body.String(), `"job_id":"660e8400-e29b-41d4-a716-446655440000"`)
+				s.Contains(rec.Body.String(), `"status":"created"`)
 			},
 		},
 		{
@@ -258,8 +256,7 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusCreated, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "770e8400-e29b-41d4-a716-446655440000")
+				s.Contains(rec.Body.String(), `"job_id":"770e8400-e29b-41d4-a716-446655440000"`)
 			},
 		},
 		{
@@ -271,7 +268,7 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), `"message"`)
 				s.Contains(rec.Body.String(), "Invalid format for parameter id")
 			},
 		},
@@ -284,7 +281,7 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "TargetHostname")
 			},
 		},
@@ -385,8 +382,7 @@ func (s *JobRetryPublicTestSuite) TestRetryJobByIDRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusCreated, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "660e8400-e29b-41d4-a716-446655440000")
+				s.Contains(rec.Body.String(), `"job_id":"660e8400-e29b-41d4-a716-446655440000"`)
 			},
 		},
 	}

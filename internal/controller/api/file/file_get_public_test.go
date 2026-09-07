@@ -171,7 +171,7 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -195,16 +195,13 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "name")
-				s.Contains(rec.Body.String(), "nginx.conf")
-				s.Contains(rec.Body.String(), "sha256")
+				s.Contains(rec.Body.String(), `"name":"nginx.conf"`)
 				s.Contains(
 					rec.Body.String(),
-					"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					`"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"`,
 				)
-				s.Contains(rec.Body.String(), "size")
-				s.Contains(rec.Body.String(), "content_type")
-				s.Contains(rec.Body.String(), "raw")
+				s.Contains(rec.Body.String(), `"size":1024`)
+				s.Contains(rec.Body.String(), `"content_type":"raw"`)
 			},
 		},
 		{
@@ -333,9 +330,8 @@ func (s *FileGetPublicTestSuite) TestGetFileByNameRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "name")
-				s.Contains(rec.Body.String(), "nginx.conf")
-				s.Contains(rec.Body.String(), "sha256")
+				s.Contains(rec.Body.String(), `"name":"nginx.conf"`)
+				s.Contains(rec.Body.String(), `"sha256"`)
 			},
 		},
 	}

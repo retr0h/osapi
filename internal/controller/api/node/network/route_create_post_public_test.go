@@ -342,7 +342,7 @@ func (s *NetworkRouteCreatePostPublicTestSuite) TestPostNetworkRouteValidationHT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 		{
@@ -354,7 +354,7 @@ func (s *NetworkRouteCreatePostPublicTestSuite) TestPostNetworkRouteValidationHT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "cidr")
 			},
 		},
@@ -367,7 +367,7 @@ func (s *NetworkRouteCreatePostPublicTestSuite) TestPostNetworkRouteValidationHT
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 			},
 		},
@@ -453,7 +453,7 @@ func (s *NetworkRouteCreatePostPublicTestSuite) TestPostNetworkRouteRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 	}

@@ -232,11 +232,10 @@ func (s *FileListPublicTestSuite) TestGetFilesHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "files")
-				s.Contains(rec.Body.String(), "nginx.conf")
-				s.Contains(rec.Body.String(), "total")
-				s.Contains(rec.Body.String(), "content_type")
-				s.Contains(rec.Body.String(), "raw")
+				s.Contains(rec.Body.String(), `"files"`)
+				s.Contains(rec.Body.String(), `"nginx.conf"`)
+				s.Contains(rec.Body.String(), `"total":1`)
+				s.Contains(rec.Body.String(), `"content_type":"raw"`)
 			},
 		},
 		{
@@ -340,8 +339,8 @@ func (s *FileListPublicTestSuite) TestGetFilesRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "files")
-				s.Contains(rec.Body.String(), "total")
+				s.Contains(rec.Body.String(), `"files"`)
+				s.Contains(rec.Body.String(), `"total":0`)
 			},
 		},
 	}

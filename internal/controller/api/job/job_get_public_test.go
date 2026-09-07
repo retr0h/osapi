@@ -431,11 +431,9 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "id")
-				s.Contains(rec.Body.String(), "550e8400-e29b-41d4-a716-446655440000")
-				s.Contains(rec.Body.String(), "status")
-				s.Contains(rec.Body.String(), "completed")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"id":"550e8400-e29b-41d4-a716-446655440000"`)
+				s.Contains(rec.Body.String(), `"status":"completed"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 		{
@@ -446,7 +444,7 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), `"message"`)
 				s.Contains(rec.Body.String(), "Invalid format for parameter id")
 			},
 		},
@@ -481,11 +479,11 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "timeline")
-				s.Contains(rec.Body.String(), "submitted")
-				s.Contains(rec.Body.String(), "failed")
-				s.Contains(rec.Body.String(), "Job submitted to queue")
-				s.Contains(rec.Body.String(), "timeout")
+				s.Contains(rec.Body.String(), `"timeline"`)
+				s.Contains(rec.Body.String(), `"submitted"`)
+				s.Contains(rec.Body.String(), `"failed"`)
+				s.Contains(rec.Body.String(), `"Job submitted to queue"`)
+				s.Contains(rec.Body.String(), `"timeout"`)
 			},
 		},
 	}
@@ -583,8 +581,7 @@ func (s *JobGetPublicTestSuite) TestGetJobByIDRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "id")
-				s.Contains(rec.Body.String(), "550e8400-e29b-41d4-a716-446655440000")
+				s.Contains(rec.Body.String(), `"id":"550e8400-e29b-41d4-a716-446655440000"`)
 			},
 		},
 	}

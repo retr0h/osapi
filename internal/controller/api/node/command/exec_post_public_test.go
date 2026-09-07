@@ -503,9 +503,9 @@ func (s *CommandExecPostPublicTestSuite) TestPostCommandExecValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "agent1")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 		{
@@ -517,7 +517,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostCommandExecValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Command")
 				s.Contains(rec.Body.String(), "required")
 			},
@@ -531,7 +531,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostCommandExecValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Timeout")
 				s.Contains(rec.Body.String(), "max")
 			},
@@ -545,7 +545,7 @@ func (s *CommandExecPostPublicTestSuite) TestPostCommandExecValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 				s.Contains(rec.Body.String(), "not found")
 			},
@@ -656,8 +656,8 @@ func (s *CommandExecPostPublicTestSuite) TestPostCommandExecRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 	}

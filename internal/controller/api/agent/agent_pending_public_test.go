@@ -174,9 +174,9 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "agents")
-				s.Contains(rec.Body.String(), "web-01")
-				s.Contains(rec.Body.String(), "total")
+				s.Contains(rec.Body.String(), `"agents"`)
+				s.Contains(rec.Body.String(), `"web-01"`)
+				s.Contains(rec.Body.String(), `"total"`)
 			},
 		},
 		{
@@ -191,7 +191,7 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusInternalServerError, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 	}
@@ -286,8 +286,8 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "agents")
-				s.Contains(rec.Body.String(), "total")
+				s.Contains(rec.Body.String(), `"agents"`)
+				s.Contains(rec.Body.String(), `"total"`)
 			},
 		},
 	}

@@ -261,7 +261,7 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -286,7 +286,8 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), `"message"`)
+				s.Contains(rec.Body.String(), `undrain initiated`)
 			},
 		},
 		{
@@ -301,7 +302,7 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusNotFound, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -320,7 +321,8 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusConflict, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), `not in draining or cordoned`)
 			},
 		},
 	}
@@ -424,7 +426,8 @@ func (s *AgentUndrainPublicTestSuite) TestUndrainAgentRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), `"message"`)
+				s.Contains(rec.Body.String(), `undrain initiated`)
 			},
 		},
 	}

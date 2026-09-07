@@ -432,10 +432,10 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "agent1")
-				s.Contains(rec.Body.String(), "ok")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+				s.Contains(rec.Body.String(), `"ok"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 		{
@@ -447,7 +447,7 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Hostname")
 				s.Contains(rec.Body.String(), "required")
 			},
@@ -461,7 +461,7 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 	}
@@ -564,8 +564,8 @@ func (s *HostnamePutPublicTestSuite) TestPutNodeHostnameRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "results")
-				s.Contains(rec.Body.String(), "changed")
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
 			},
 		},
 	}

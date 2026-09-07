@@ -433,10 +433,10 @@ func (s *FileUndeployPostPublicTestSuite) TestPostNodeFileUndeployValidationHTTP
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "agent1")
-				s.Contains(rec.Body.String(), "changed")
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 		{
@@ -448,7 +448,7 @@ func (s *FileUndeployPostPublicTestSuite) TestPostNodeFileUndeployValidationHTTP
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "Path")
 				s.Contains(rec.Body.String(), "required")
 			},
@@ -466,7 +466,7 @@ func (s *FileUndeployPostPublicTestSuite) TestPostNodeFileUndeployValidationHTTP
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusInternalServerError, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -478,7 +478,7 @@ func (s *FileUndeployPostPublicTestSuite) TestPostNodeFileUndeployValidationHTTP
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 				s.Contains(rec.Body.String(), "valid_target")
 				s.Contains(rec.Body.String(), "not found")
 			},
@@ -583,9 +583,9 @@ func (s *FileUndeployPostPublicTestSuite) TestPostNodeFileUndeployRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusAccepted, rec.Code)
-				s.Contains(rec.Body.String(), "job_id")
-				s.Contains(rec.Body.String(), "changed")
-				s.Contains(rec.Body.String(), "results")
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
+				s.Contains(rec.Body.String(), `"results"`)
 			},
 		},
 	}

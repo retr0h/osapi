@@ -737,24 +737,22 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "status")
-				s.Contains(rec.Body.String(), "ok")
-				s.Contains(rec.Body.String(), "version")
-				s.Contains(rec.Body.String(), "0.1.0")
-				s.Contains(rec.Body.String(), "uptime")
-				s.Contains(rec.Body.String(), "nats")
-				s.Contains(rec.Body.String(), "streams")
-				s.Contains(rec.Body.String(), "kv_buckets")
-				s.Contains(rec.Body.String(), "object_stores")
-				s.Contains(rec.Body.String(), "consumers")
-				s.Contains(rec.Body.String(), "jobs")
-				s.Contains(rec.Body.String(), "agents")
-				s.Contains(rec.Body.String(), "web-01")
-				s.Contains(rec.Body.String(), "group=web.prod")
-				s.Contains(rec.Body.String(), "total")
-				s.Contains(rec.Body.String(), "file-objects")
-				s.Contains(rec.Body.String(), "registry")
-				s.Contains(rec.Body.String(), "api-server-01")
+				s.Contains(rec.Body.String(), `"status":"ok"`)
+				s.Contains(rec.Body.String(), `"version":"0.1.0"`)
+				s.Contains(rec.Body.String(), `"uptime"`)
+				s.Contains(rec.Body.String(), `"nats"`)
+				s.Contains(rec.Body.String(), `"streams"`)
+				s.Contains(rec.Body.String(), `"kv_buckets"`)
+				s.Contains(rec.Body.String(), `"object_stores"`)
+				s.Contains(rec.Body.String(), `"consumers"`)
+				s.Contains(rec.Body.String(), `"jobs"`)
+				s.Contains(rec.Body.String(), `"agents"`)
+				s.Contains(rec.Body.String(), `"web-01"`)
+				s.Contains(rec.Body.String(), `"group=web.prod"`)
+				s.Contains(rec.Body.String(), `"total":1`)
+				s.Contains(rec.Body.String(), `"file-objects"`)
+				s.Contains(rec.Body.String(), `"registry"`)
+				s.Contains(rec.Body.String(), `"api-server-01"`)
 			},
 		},
 		{
@@ -766,10 +764,8 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusHTTP() {
 			metrics: nil,
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "status")
-				s.Contains(rec.Body.String(), "ok")
-				s.Contains(rec.Body.String(), "version")
-				s.Contains(rec.Body.String(), "0.1.0")
+				s.Contains(rec.Body.String(), `"status":"ok"`)
+				s.Contains(rec.Body.String(), `"version":"0.1.0"`)
 			},
 		},
 	}
@@ -848,9 +844,8 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "status")
-				s.Contains(rec.Body.String(), "ok")
-				s.Contains(rec.Body.String(), "version")
+				s.Contains(rec.Body.String(), `"status":"ok"`)
+				s.Contains(rec.Body.String(), `"version"`)
 			},
 		},
 	}

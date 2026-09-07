@@ -193,7 +193,7 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -214,9 +214,8 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameValidationHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "name")
-				s.Contains(rec.Body.String(), "nginx.conf")
-				s.Contains(rec.Body.String(), "deleted")
+				s.Contains(rec.Body.String(), `"name":"nginx.conf"`)
+				s.Contains(rec.Body.String(), `"deleted":true`)
 			},
 		},
 		{
@@ -348,9 +347,8 @@ func (s *FileDeletePublicTestSuite) TestDeleteFileByNameRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "name")
-				s.Contains(rec.Body.String(), "nginx.conf")
-				s.Contains(rec.Body.String(), "deleted")
+				s.Contains(rec.Body.String(), `"name":"nginx.conf"`)
+				s.Contains(rec.Body.String(), `"deleted":true`)
 			},
 		},
 	}

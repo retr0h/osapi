@@ -501,8 +501,8 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "stale")
-				s.Contains(rec.Body.String(), "total")
+				s.Contains(rec.Body.String(), `"stale":[]`)
+				s.Contains(rec.Body.String(), `"total":0`)
 			},
 		},
 		{
@@ -611,8 +611,8 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "stale")
-				s.Contains(rec.Body.String(), "total")
+				s.Contains(rec.Body.String(), `"stale"`)
+				s.Contains(rec.Body.String(), `"total":0`)
 			},
 		},
 	}

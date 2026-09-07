@@ -224,7 +224,7 @@ func (s *ServerPublicTestSuite) TestRegisterSubsystems() {
 	tests := []struct {
 		name         string
 		subsystems   []metrics.SubsystemStatus
-		wantContains []string
+		validateFunc func(any)
 	}{
 		{
 			name: "registers gauges for each subsystem",
@@ -233,10 +233,14 @@ func (s *ServerPublicTestSuite) TestRegisterSubsystems() {
 				{Name: "heartbeat", StatusFn: func() string { return "ok" }},
 				{Name: "notifier", StatusFn: func() string { return "disabled" }},
 			},
-			wantContains: []string{
-				`subsystem="api"} 1`,
-				`subsystem="heartbeat"} 1`,
-				`subsystem="notifier"} 0`,
+			validateFunc: func(body any) {
+				for _, want := range []string{
+					`subsystem="api"} 1`,
+					`subsystem="heartbeat"} 1`,
+					`subsystem="notifier"} 0`,
+				} {
+					s.Contains(body, want)
+				}
 			},
 		},
 	}
@@ -250,10 +254,7 @@ func (s *ServerPublicTestSuite) TestRegisterSubsystems() {
 			srv.Start()
 			time.Sleep(100 * time.Millisecond)
 
-			body := scrapeMetrics(port)
-			for _, want := range tc.wantContains {
-				s.Contains(body, want)
-			}
+			tc.validateFunc(scrapeMetrics(port))
 
 			ctx, cancel := context.WithTimeout(
 				context.Background(),

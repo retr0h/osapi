@@ -175,7 +175,7 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -199,9 +199,9 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "server1")
-				s.Contains(rec.Body.String(), "Ready")
-				s.Contains(rec.Body.String(), "Ubuntu")
+				s.Contains(rec.Body.String(), `"server1"`)
+				s.Contains(rec.Body.String(), `"Ready"`)
+				s.Contains(rec.Body.String(), `"Ubuntu"`)
 			},
 		},
 		{
@@ -216,7 +216,7 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusNotFound, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -231,7 +231,7 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusInternalServerError, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 	}
@@ -327,8 +327,8 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "server1")
-				s.Contains(rec.Body.String(), "Ready")
+				s.Contains(rec.Body.String(), `"server1"`)
+				s.Contains(rec.Body.String(), `"Ready"`)
 			},
 		},
 	}

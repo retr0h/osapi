@@ -223,7 +223,7 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusBadRequest, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 		{
@@ -237,7 +237,8 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), `"message"`)
+				s.Contains(rec.Body.String(), `accepted`)
 			},
 		},
 		{
@@ -252,7 +253,7 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusNotFound, rec.Code)
-				s.Contains(rec.Body.String(), "error")
+				s.Contains(rec.Body.String(), `"error"`)
 			},
 		},
 	}
@@ -351,7 +352,8 @@ func (s *AgentEnrollAcceptPublicTestSuite) TestAcceptAgentRBACHTTP() {
 			},
 			validateFunc: func(rec *httptest.ResponseRecorder) {
 				s.Equal(http.StatusOK, rec.Code)
-				s.Contains(rec.Body.String(), "message")
+				s.Contains(rec.Body.String(), `"message"`)
+				s.Contains(rec.Body.String(), `accepted`)
 			},
 		},
 	}
