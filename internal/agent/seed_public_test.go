@@ -84,10 +84,7 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 		name         string
 		setupFunc    func()
 		setupMock    func(ctrl *gomock.Controller, mockObj *filemocks.MockObjectStore, putNames *[]string)
-		wantErr      bool
-		errContains  string
-		wantPutCalls int
-		wantPutName  string
+		validateFunc func(error, *[]string)
 	}{
 		{
 			name: "when WalkDir callback receives error",
@@ -100,8 +97,12 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 				_ *[]string,
 			) {
 			},
-			wantErr:     true,
-			errContains: "walk error",
+			validateFunc: func(err error, putNames *[]string) {
+				s.Error(err)
+				s.Contains(err.Error(), "walk error")
+
+				s.Len(*putNames, 0)
+			},
 		},
 		{
 			name: "when directory contains only .gitkeep skips it",
@@ -117,8 +118,11 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 			) {
 				// No GetBytes or PutBytes calls expected — .gitkeep is skipped.
 			},
-			wantErr:      false,
-			wantPutCalls: 0,
+			validateFunc: func(err error, putNames *[]string) {
+				s.NoError(err)
+
+				s.Len(*putNames, 0)
+			},
 		},
 		{
 			name: "when ReadFile fails returns error",
@@ -134,8 +138,12 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 				_ *[]string,
 			) {
 			},
-			wantErr:     true,
-			errContains: "read embedded template",
+			validateFunc: func(err error, putNames *[]string) {
+				s.Error(err)
+				s.Contains(err.Error(), "read embedded template")
+
+				s.Len(*putNames, 0)
+			},
 		},
 		{
 			name: "when template not found in store uploads it",
@@ -163,9 +171,13 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 						return &jetstream.ObjectInfo{}, nil
 					})
 			},
-			wantErr:      false,
-			wantPutCalls: 1,
-			wantPutName:  "osapi/test.tmpl",
+			validateFunc: func(err error, putNames *[]string) {
+				s.NoError(err)
+
+				s.Len(*putNames, 1)
+
+				s.Equal("osapi/test.tmpl", (*putNames)[0])
+			},
 		},
 		{
 			name: "when template unchanged in store skips upload",
@@ -182,8 +194,11 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 					GetBytes(gomock.Any(), gomock.Any()).
 					Return(templateData, nil)
 			},
-			wantErr:      false,
-			wantPutCalls: 0,
+			validateFunc: func(err error, putNames *[]string) {
+				s.NoError(err)
+
+				s.Len(*putNames, 0)
+			},
 		},
 		{
 			name: "when template changed in store overwrites it",
@@ -212,9 +227,13 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 						return &jetstream.ObjectInfo{}, nil
 					})
 			},
-			wantErr:      false,
-			wantPutCalls: 1,
-			wantPutName:  "osapi/test.tmpl",
+			validateFunc: func(err error, putNames *[]string) {
+				s.NoError(err)
+
+				s.Len(*putNames, 1)
+
+				s.Equal("osapi/test.tmpl", (*putNames)[0])
+			},
 		},
 		{
 			name: "when PutBytes fails returns wrapped error",
@@ -242,9 +261,12 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 						return nil, errors.New("object store unavailable")
 					})
 			},
-			wantErr:      true,
-			errContains:  "upload osapi template",
-			wantPutCalls: 1,
+			validateFunc: func(err error, putNames *[]string) {
+				s.Error(err)
+				s.Contains(err.Error(), "upload osapi template")
+
+				s.Len(*putNames, 1)
+			},
 		},
 	}
 
@@ -265,19 +287,7 @@ func (s *SeedPublicTestSuite) TestSeedSystemTemplates() {
 			}
 
 			err := agent.SeedSystemTemplates(s.ctx, s.logger, mockObj)
-
-			if tt.wantErr {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errContains)
-			} else {
-				s.NoError(err)
-			}
-
-			s.Len(*putNames, tt.wantPutCalls)
-
-			if tt.wantPutCalls > 0 && tt.wantPutName != "" {
-				s.Equal(tt.wantPutName, (*putNames)[0])
-			}
+			tt.validateFunc(err, putNames)
 		})
 	}
 }

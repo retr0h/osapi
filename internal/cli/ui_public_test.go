@@ -863,42 +863,57 @@ func (suite *UIPublicTestSuite) TestIntToSafeString() {
 
 func (suite *UIPublicTestSuite) TestHandleError() {
 	tests := []struct {
-		name      string
-		err       error
-		wantInLog string
+		name         string
+		err          error
+		validateFunc func(string, int)
 	}{
 		{
 			name: "when auth error logs api error with status code",
 			err: &client.AuthError{
 				APIError: client.APIError{StatusCode: 403, Message: "insufficient permissions"},
 			},
-			wantInLog: "insufficient permissions",
+			validateFunc: func(log string, exitCode int) {
+				assert.Contains(suite.T(), log, "insufficient permissions")
+				assert.Equal(suite.T(), 1, exitCode)
+			},
 		},
 		{
 			name: "when not found error logs api error with status code",
 			err: &client.NotFoundError{
 				APIError: client.APIError{StatusCode: 404, Message: "job not found"},
 			},
-			wantInLog: "job not found",
+			validateFunc: func(log string, exitCode int) {
+				assert.Contains(suite.T(), log, "job not found")
+				assert.Equal(suite.T(), 1, exitCode)
+			},
 		},
 		{
 			name: "when validation error logs api error with status code",
 			err: &client.ValidationError{
 				APIError: client.APIError{StatusCode: 400, Message: "invalid input"},
 			},
-			wantInLog: "invalid input",
+			validateFunc: func(log string, exitCode int) {
+				assert.Contains(suite.T(), log, "invalid input")
+				assert.Equal(suite.T(), 1, exitCode)
+			},
 		},
 		{
 			name: "when server error logs api error with status code",
 			err: &client.ServerError{
 				APIError: client.APIError{StatusCode: 500, Message: "internal server error"},
 			},
-			wantInLog: "internal server error",
+			validateFunc: func(log string, exitCode int) {
+				assert.Contains(suite.T(), log, "internal server error")
+				assert.Equal(suite.T(), 1, exitCode)
+			},
 		},
 		{
-			name:      "when generic error logs error message",
-			err:       fmt.Errorf("connection refused"),
-			wantInLog: "connection refused",
+			name: "when generic error logs error message",
+			err:  fmt.Errorf("connection refused"),
+			validateFunc: func(log string, exitCode int) {
+				assert.Contains(suite.T(), log, "connection refused")
+				assert.Equal(suite.T(), 1, exitCode)
+			},
 		},
 	}
 
@@ -914,8 +929,7 @@ func (suite *UIPublicTestSuite) TestHandleError() {
 
 			cli.HandleError(tc.err, logger)
 
-			assert.Contains(suite.T(), buf.String(), tc.wantInLog)
-			assert.Equal(suite.T(), 1, exitCode)
+			tc.validateFunc(buf.String(), exitCode)
 		})
 	}
 }
