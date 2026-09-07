@@ -90,19 +90,27 @@ func (s *JobsPublicTestSuite) TearDownSubTest() {
 
 func (s *JobsPublicTestSuite) TestNew() {
 	tests := []struct {
-		name        string
-		opts        *client.Options
-		expectedErr string
+		name         string
+		opts         *client.Options
+		validateFunc func(*client.Client, error)
 	}{
 		{
-			name:        "nil options",
-			opts:        nil,
-			expectedErr: "options cannot be nil",
+			name: "nil options",
+			opts: nil,
+			validateFunc: func(c *client.Client, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "options cannot be nil")
+				s.Nil(c)
+			},
 		},
 		{
-			name:        "nil KV bucket",
-			opts:        &client.Options{},
-			expectedErr: "kvBucket cannot be nil",
+			name: "nil KV bucket",
+			opts: &client.Options{},
+			validateFunc: func(c *client.Client, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "kvBucket cannot be nil")
+				s.Nil(c)
+			},
 		},
 		{
 			name: "valid options",
@@ -110,21 +118,16 @@ func (s *JobsPublicTestSuite) TestNew() {
 				KVBucket: s.mockKV,
 				Timeout:  30 * time.Second,
 			},
+			validateFunc: func(c *client.Client, err error) {
+				s.NoError(err)
+				s.NotNil(c)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			c, err := client.New(slog.Default(), s.mockNATSClient, tt.opts)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-				s.Nil(c)
-			} else {
-				s.NoError(err)
-				s.NotNil(c)
-			}
+			tt.validateFunc(client.New(slog.Default(), s.mockNATSClient, tt.opts))
 		})
 	}
 }
@@ -1480,20 +1483,23 @@ func (s *JobsPublicTestSuite) TestRetriedEventInTimeline() {
 
 func (s *JobsPublicTestSuite) TestCreateJob() {
 	tests := []struct {
-		name        string
-		opData      map[string]interface{}
-		target      string
-		expectedErr string
-		setupMocks  func()
+		name         string
+		opData       map[string]interface{}
+		target       string
+		setupMocks   func()
+		validateFunc func(*client.CreateJobResult, error)
 	}{
 		{
 			name: "missing type field returns error",
 			opData: map[string]interface{}{
 				"data": "no-type",
 			},
-			target:      "_any",
-			expectedErr: "invalid operation format: missing type field",
-			setupMocks:  func() {},
+			target:     "_any",
+			setupMocks: func() {},
+			validateFunc: func(_ *client.CreateJobResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid operation format: missing type field")
+			},
 		},
 		{
 			name: "marshal failure returns error",
@@ -1501,10 +1507,13 @@ func (s *JobsPublicTestSuite) TestCreateJob() {
 				"type":          "node.hostname.get",
 				"unmarshalable": make(chan int),
 			},
-			target:      "_any",
-			expectedErr: "failed to marshal job with status",
+			target: "_any",
 			setupMocks: func() {
 				s.mockKV.EXPECT().Bucket().Return("test-bucket").AnyTimes()
+			},
+			validateFunc: func(_ *client.CreateJobResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to marshal job with status")
 			},
 		},
 		{
@@ -1523,6 +1532,11 @@ func (s *JobsPublicTestSuite) TestCreateJob() {
 				s.mockNATSClient.EXPECT().
 					Publish(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil)
+			},
+			validateFunc: func(result *client.CreateJobResult, err error) {
+				s.NoError(err)
+				s.NotEmpty(result.JobID)
+				s.Equal("created", result.Status)
 			},
 		},
 		{
@@ -1546,6 +1560,11 @@ func (s *JobsPublicTestSuite) TestCreateJob() {
 					Publish(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
+			validateFunc: func(result *client.CreateJobResult, err error) {
+				s.NoError(err)
+				s.NotEmpty(result.JobID)
+				s.Equal("created", result.Status)
+			},
 		},
 		{
 			name: "publish failure returns error",
@@ -1564,7 +1583,10 @@ func (s *JobsPublicTestSuite) TestCreateJob() {
 					Publish(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(errors.New("publish failed"))
 			},
-			expectedErr: "failed to send notification",
+			validateFunc: func(_ *client.CreateJobResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to send notification")
+			},
 		},
 	}
 
@@ -1572,27 +1594,18 @@ func (s *JobsPublicTestSuite) TestCreateJob() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			result, err := s.jobsClient.CreateJob(s.ctx, tt.opData, tt.target)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-				s.NotEmpty(result.JobID)
-				s.Equal("created", result.Status)
-			}
+			tt.validateFunc(s.jobsClient.CreateJob(s.ctx, tt.opData, tt.target))
 		})
 	}
 }
 
 func (s *JobsPublicTestSuite) TestRetryJob() {
 	tests := []struct {
-		name        string
-		jobID       string
-		target      string
-		expectedErr string
-		setupMocks  func()
+		name         string
+		jobID        string
+		target       string
+		setupMocks   func()
+		validateFunc func(*client.CreateJobResult, error)
 	}{
 		{
 			name:   "successful retry",
@@ -1621,34 +1634,44 @@ func (s *JobsPublicTestSuite) TestRetryJob() {
 					Put(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(uint64(2), nil)
 			},
+			validateFunc: func(result *client.CreateJobResult, err error) {
+				s.NoError(err)
+				s.NotEmpty(result.JobID)
+				s.Equal("created", result.Status)
+			},
 		},
 		{
-			name:        "job not found",
-			jobID:       "nonexistent",
-			target:      "_any",
-			expectedErr: "job not found: nonexistent",
+			name:   "job not found",
+			jobID:  "nonexistent",
+			target: "_any",
 			setupMocks: func() {
 				s.mockKV.EXPECT().
 					Get(gomock.Any(), "jobs.nonexistent").
 					Return(nil, errors.New("key not found"))
 			},
+			validateFunc: func(_ *client.CreateJobResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "job not found: nonexistent")
+			},
 		},
 		{
-			name:        "invalid job JSON",
-			jobID:       "job-bad",
-			target:      "_any",
-			expectedErr: "failed to parse job data",
+			name:   "invalid job JSON",
+			jobID:  "job-bad",
+			target: "_any",
 			setupMocks: func() {
 				mockEntry := jobmocks.NewMockKeyValueEntry(s.mockCtrl)
 				mockEntry.EXPECT().Value().Return([]byte(`not json`))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-bad").Return(mockEntry, nil)
 			},
+			validateFunc: func(_ *client.CreateJobResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to parse job data")
+			},
 		},
 		{
-			name:        "missing operation field",
-			jobID:       "job-no-op",
-			target:      "_any",
-			expectedErr: "job has no operation data",
+			name:   "missing operation field",
+			jobID:  "job-no-op",
+			target: "_any",
 			setupMocks: func() {
 				mockEntry := jobmocks.NewMockKeyValueEntry(s.mockCtrl)
 				mockEntry.EXPECT().Value().Return([]byte(
@@ -1656,12 +1679,15 @@ func (s *JobsPublicTestSuite) TestRetryJob() {
 				))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-no-op").Return(mockEntry, nil)
 			},
+			validateFunc: func(_ *client.CreateJobResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "job has no operation data")
+			},
 		},
 		{
-			name:        "create job fails",
-			jobID:       "job-456",
-			target:      "_any",
-			expectedErr: "failed to create retry job",
+			name:   "create job fails",
+			jobID:  "job-456",
+			target: "_any",
 			setupMocks: func() {
 				mockEntry := jobmocks.NewMockKeyValueEntry(s.mockCtrl)
 				mockEntry.EXPECT().Value().Return([]byte(
@@ -1674,6 +1700,10 @@ func (s *JobsPublicTestSuite) TestRetryJob() {
 					Put(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(uint64(0), errors.New("kv error"))
 				s.mockKV.EXPECT().Bucket().Return("test-bucket").AnyTimes()
+			},
+			validateFunc: func(_ *client.CreateJobResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to create retry job")
 			},
 		},
 		{
@@ -1702,6 +1732,11 @@ func (s *JobsPublicTestSuite) TestRetryJob() {
 					Put(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(uint64(0), errors.New("event put failed"))
 			},
+			validateFunc: func(result *client.CreateJobResult, err error) {
+				s.NoError(err)
+				s.NotEmpty(result.JobID)
+				s.Equal("created", result.Status)
+			},
 		},
 		{
 			name:   "empty target defaults to any",
@@ -1728,6 +1763,11 @@ func (s *JobsPublicTestSuite) TestRetryJob() {
 					Put(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(uint64(2), nil)
 			},
+			validateFunc: func(result *client.CreateJobResult, err error) {
+				s.NoError(err)
+				s.NotEmpty(result.JobID)
+				s.Equal("created", result.Status)
+			},
 		},
 	}
 
@@ -1735,16 +1775,7 @@ func (s *JobsPublicTestSuite) TestRetryJob() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			result, err := s.jobsClient.RetryJob(s.ctx, tt.jobID, tt.target)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-				s.NotEmpty(result.JobID)
-				s.Equal("created", result.Status)
-			}
+			tt.validateFunc(s.jobsClient.RetryJob(s.ctx, tt.jobID, tt.target))
 		})
 	}
 }
@@ -2182,12 +2213,12 @@ func (s *JobsPublicTestSuite) TestCreateJobWithPKISigner() {
 	signer, _ := newSigner(gomock.NewController(s.T()))
 
 	tests := []struct {
-		name        string
-		opData      map[string]interface{}
-		target      string
-		setupFn     func()
-		setupMocks  func()
-		expectedErr string
+		name         string
+		opData       map[string]interface{}
+		target       string
+		setupFn      func()
+		setupMocks   func()
+		validateFunc func(*client.CreateJobResult, error)
 	}{
 		{
 			name: "when PKI signs job data successfully",
@@ -2207,6 +2238,11 @@ func (s *JobsPublicTestSuite) TestCreateJobWithPKISigner() {
 					Publish(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
+			validateFunc: func(result *client.CreateJobResult, err error) {
+				s.NoError(err)
+				s.NotEmpty(result.JobID)
+				s.Equal("created", result.Status)
+			},
 		},
 		{
 			name: "when PKI signing marshal fails returns error",
@@ -2223,7 +2259,10 @@ func (s *JobsPublicTestSuite) TestCreateJobWithPKISigner() {
 			setupMocks: func() {
 				s.mockKV.EXPECT().Bucket().Return("test-bucket").AnyTimes()
 			},
-			expectedErr: "failed to sign job data",
+			validateFunc: func(_ *client.CreateJobResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to sign job data")
+			},
 		},
 	}
 
@@ -2241,16 +2280,7 @@ func (s *JobsPublicTestSuite) TestCreateJobWithPKISigner() {
 			c, err := client.New(slog.Default(), s.mockNATSClient, opts)
 			s.Require().NoError(err)
 
-			result, err := c.CreateJob(s.ctx, tt.opData, tt.target)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-				s.NotEmpty(result.JobID)
-				s.Equal("created", result.Status)
-			}
+			tt.validateFunc(c.CreateJob(s.ctx, tt.opData, tt.target))
 		})
 	}
 }

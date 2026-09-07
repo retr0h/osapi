@@ -203,21 +203,23 @@ func (s *DebianDockerPublicTestSuite) TestUpdateResolvConfByInterface() {
 
 func (s *DebianDockerPublicTestSuite) TestDeleteNetplanConfig() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(bool, error)
 	}{
 		{
 			name: "returns ErrUnsupported for container",
+			validateFunc: func(result bool, err error) {
+				s.Error(err)
+				s.False(result)
+				s.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			p := dns.NewDebianDockerProvider(s.logger, s.fs)
-			changed, err := p.DeleteNetplanConfig("eth0")
-
-			s.Error(err)
-			s.False(changed)
-			s.ErrorIs(err, provider.ErrUnsupported)
+			tt.validateFunc(p.DeleteNetplanConfig("eth0"))
 		})
 	}
 }

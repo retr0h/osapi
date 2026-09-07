@@ -86,10 +86,10 @@ func (s *WatcherPublicTestSuite) TearDownSubTest() {
 
 func (s *WatcherPublicTestSuite) TestHandleEnrollmentRequest() {
 	tests := []struct {
-		name       string
-		setupMock  func()
-		msg        *nats.Msg
-		validateFn func()
+		name         string
+		setupMock    func()
+		msg          *nats.Msg
+		validateFunc func()
 	}{
 		{
 			name: "stores pending agent in KV",

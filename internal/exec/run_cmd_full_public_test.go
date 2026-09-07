@@ -42,21 +42,21 @@ func (suite *RunCmdFullPublicTestSuite) SetupTest() {
 
 func (suite *RunCmdFullPublicTestSuite) TestRunCmdFull() {
 	tests := []struct {
-		name           string
-		command        string
-		args           []string
-		cwd            string
-		timeout        int
-		expectError    bool
-		errorContains  string
-		validateResult func(*exec.CmdResult)
+		name          string
+		command       string
+		args          []string
+		cwd           string
+		timeout       int
+		expectError   bool
+		errorContains string
+		validateFunc  func(*exec.CmdResult)
 	}{
 		{
 			name:    "successful command with stdout",
 			command: "echo",
 			args:    []string{"hello"},
 			timeout: 5,
-			validateResult: func(r *exec.CmdResult) {
+			validateFunc: func(r *exec.CmdResult) {
 				suite.Equal("hello\n", r.Stdout)
 				suite.Empty(r.Stderr)
 				suite.Equal(0, r.ExitCode)
@@ -68,7 +68,7 @@ func (suite *RunCmdFullPublicTestSuite) TestRunCmdFull() {
 			command: "/bin/sh",
 			args:    []string{"-c", "echo error >&2"},
 			timeout: 5,
-			validateResult: func(r *exec.CmdResult) {
+			validateFunc: func(r *exec.CmdResult) {
 				suite.Equal("error\n", r.Stderr)
 				suite.Equal(0, r.ExitCode)
 			},
@@ -78,7 +78,7 @@ func (suite *RunCmdFullPublicTestSuite) TestRunCmdFull() {
 			command: "/bin/sh",
 			args:    []string{"-c", "exit 42"},
 			timeout: 5,
-			validateResult: func(r *exec.CmdResult) {
+			validateFunc: func(r *exec.CmdResult) {
 				suite.Equal(42, r.ExitCode)
 			},
 		},
@@ -88,7 +88,7 @@ func (suite *RunCmdFullPublicTestSuite) TestRunCmdFull() {
 			args:    []string{},
 			cwd:     "/tmp",
 			timeout: 5,
-			validateResult: func(r *exec.CmdResult) {
+			validateFunc: func(r *exec.CmdResult) {
 				suite.Contains(r.Stdout, "tmp")
 				suite.Equal(0, r.ExitCode)
 			},
@@ -98,7 +98,7 @@ func (suite *RunCmdFullPublicTestSuite) TestRunCmdFull() {
 			command: "echo",
 			args:    []string{"ok"},
 			timeout: 0,
-			validateResult: func(r *exec.CmdResult) {
+			validateFunc: func(r *exec.CmdResult) {
 				suite.Equal("ok\n", r.Stdout)
 				suite.Equal(0, r.ExitCode)
 			},
@@ -133,8 +133,8 @@ func (suite *RunCmdFullPublicTestSuite) TestRunCmdFull() {
 			} else {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(result)
-				if tc.validateResult != nil {
-					tc.validateResult(result)
+				if tc.validateFunc != nil {
+					tc.validateFunc(result)
 				}
 			}
 		})

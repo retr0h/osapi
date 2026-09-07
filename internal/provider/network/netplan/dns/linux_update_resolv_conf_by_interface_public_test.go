@@ -69,10 +69,15 @@ func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvCo
 
 func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanConfig() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(bool, error)
 	}{
 		{
 			name: "returns ErrUnsupported on generic Linux",
+			validateFunc: func(result bool, err error) {
+				suite.False(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -80,10 +85,7 @@ func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanC
 		suite.Run(tc.name, func() {
 			linux := dns.NewLinuxProvider()
 
-			changed, err := linux.DeleteNetplanConfig("eth0")
-
-			suite.False(changed)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.DeleteNetplanConfig("eth0"))
 		})
 	}
 }

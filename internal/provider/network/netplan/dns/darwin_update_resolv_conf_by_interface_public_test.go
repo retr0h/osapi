@@ -84,10 +84,16 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanConfig() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(bool, error)
 	}{
 		{
 			name: "returns ErrUnsupported on Darwin",
+			validateFunc: func(result bool, err error) {
+				suite.Error(err)
+				suite.False(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -96,11 +102,7 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 			mock := execMocks.NewPlainMockManager(suite.ctrl)
 
 			darwin := dns.NewDarwinProvider(suite.logger, mock)
-			changed, err := darwin.DeleteNetplanConfig("eth0")
-
-			suite.Error(err)
-			suite.False(changed)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tt.validateFunc(darwin.DeleteNetplanConfig("eth0"))
 		})
 	}
 }

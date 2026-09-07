@@ -65,9 +65,7 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 		servers       []string
 		searchDomains []string
 		interfaceName string
-		wantChanged   bool
-		wantErr       bool
-		wantErrMsg    string
+		validateFunc  func(*dns.UpdateResult, error)
 	}{
 		{
 			name: "when SetResolvConf Ok",
@@ -87,7 +85,6 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 				return mock, kv
 			},
-			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -96,8 +93,12 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 				"foo.local",
 				"bar.local",
 			},
-			wantChanged: true,
-			wantErr:     false,
+			interfaceName: "wlp0s20f3",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.NoError(err)
+				suite.NotNil(result)
+				suite.Equal(true, result.Changed)
+			},
 		},
 		{
 			name: "when SetResolvConf preserves existing servers Ok",
@@ -115,13 +116,16 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 				return mock, kv
 			},
-			interfaceName: "wlp0s20f3",
 			searchDomains: []string{
 				"foo.local",
 				"bar.local",
 			},
-			wantChanged: true,
-			wantErr:     false,
+			interfaceName: "wlp0s20f3",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.NoError(err)
+				suite.NotNil(result)
+				suite.Equal(true, result.Changed)
+			},
 		},
 		{
 			name: "when SetResolvConf preserves existing search domains Ok",
@@ -139,13 +143,16 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 				return mock, kv
 			},
-			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
 			},
-			wantChanged: true,
-			wantErr:     false,
+			interfaceName: "wlp0s20f3",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.NoError(err)
+				suite.NotNil(result)
+				suite.Equal(true, result.Changed)
+			},
 		},
 		{
 			name: "when SetResolvConf filters root domain Ok",
@@ -163,17 +170,19 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 				return mock, kv
 			},
-			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
 			},
-			wantChanged: true,
-			wantErr:     false,
+			interfaceName: "wlp0s20f3",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.NoError(err)
+				suite.NotNil(result)
+				suite.Equal(true, result.Changed)
+			},
 		},
 		{
-			name:    "when SetResolvConf missing args errors",
-			wantErr: true,
+			name: "when SetResolvConf missing args errors",
 			setupMock: func() (*execmocks.MockManager, *jobmocks.MockKeyValue) {
 				mock := execmocks.NewPlainMockManager(suite.ctrl)
 				kv := jobmocks.NewMockKeyValue(suite.ctrl)
@@ -181,7 +190,14 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 				return mock, kv
 			},
 			interfaceName: "wlp0s20f3",
-			wantErrMsg:    "no DNS servers or search domains provided; nothing to update",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.Contains(
+					err.Error(),
+					"no DNS servers or search domains provided; nothing to update",
+				)
+			},
 		},
 		{
 			name: "when GetResolvConfByInterface errors",
@@ -196,7 +212,6 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 				return mock, kv
 			},
-			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -205,8 +220,12 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 				"foo.local",
 				"bar.local",
 			},
-			wantErr:    true,
-			wantErrMsg: assert.AnError.Error(),
+			interfaceName: "wlp0s20f3",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.Contains(err.Error(), assert.AnError.Error())
+			},
 		},
 		{
 			name: "when netplan generate fails",
@@ -224,7 +243,6 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 				return mock, kv
 			},
-			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -233,8 +251,12 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 				"foo.local",
 				"bar.local",
 			},
-			wantErr:    true,
-			wantErrMsg: "netplan validate failed (file rolled back)",
+			interfaceName: "wlp0s20f3",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.Contains(err.Error(), "netplan validate failed (file rolled back)")
+			},
 		},
 		{
 			name: "when netplan apply fails",
@@ -256,7 +278,6 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 				return mock, kv
 			},
-			interfaceName: "wlp0s20f3",
 			servers: []string{
 				"8.8.8.8",
 				"9.9.9.9",
@@ -265,8 +286,12 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 				"foo.local",
 				"bar.local",
 			},
-			wantErr:    true,
-			wantErrMsg: "netplan apply:",
+			interfaceName: "wlp0s20f3",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.Contains(err.Error(), "netplan apply:")
+			},
 		},
 		{
 			name: "when interface resolved from facts",
@@ -286,12 +311,15 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 
 				return mock, kv
 			},
-			interfaceName: "",
 			servers: []string{
 				"8.8.8.8",
 			},
-			wantErr:    true,
-			wantErrMsg: "failed to get current resolvectl configuration",
+			interfaceName: "",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.Contains(err.Error(), "failed to get current resolvectl configuration")
+			},
 		},
 	}
 
@@ -302,45 +330,25 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 			_ = fs.MkdirAll("/etc/netplan", 0o755)
 
 			net := dns.NewDebianProvider(suite.logger, fs, kv, mock, "test-host")
-			result, err := net.UpdateResolvConfByInterface(
+			tc.validateFunc(net.UpdateResolvConfByInterface(
 				tc.servers,
 				tc.searchDomains,
 				tc.interfaceName,
 				false,
-			)
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.Nil(result)
-				suite.Contains(err.Error(), tc.wantErrMsg)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(result)
-				suite.Equal(tc.wantChanged, result.Changed)
-			}
+			))
 		})
 	}
 }
 
 func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanConfig() {
 	tests := []struct {
-		name        string
-		setupMock   func() (*execmocks.MockManager, *jobmocks.MockKeyValue)
-		setupFS     func(avfs.VFS)
-		wantChanged bool
-		wantErr     bool
-		wantErrMsg  string
+		name         string
+		setupMock    func() (*execmocks.MockManager, *jobmocks.MockKeyValue)
+		setupFS      func(avfs.VFS)
+		validateFunc func(any, error)
 	}{
 		{
 			name: "when file exists and remove succeeds",
-			setupFS: func(fs avfs.VFS) {
-				_ = fs.MkdirAll("/etc/netplan", 0o755)
-				_ = fs.WriteFile(
-					"/etc/netplan/osapi-dns.yaml",
-					[]byte("network:\n  version: 2\n"),
-					0o600,
-				)
-			},
 			setupMock: func() (*execmocks.MockManager, *jobmocks.MockKeyValue) {
 				mock := execmocks.NewPlainMockManager(suite.ctrl)
 				kv := jobmocks.NewMockKeyValue(suite.ctrl)
@@ -357,23 +365,6 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 
 				return mock, kv
 			},
-			wantChanged: true,
-		},
-		{
-			name: "when file does not exist returns not changed",
-			setupFS: func(fs avfs.VFS) {
-				_ = fs.MkdirAll("/etc/netplan", 0o755)
-			},
-			setupMock: func() (*execmocks.MockManager, *jobmocks.MockKeyValue) {
-				mock := execmocks.NewPlainMockManager(suite.ctrl)
-				kv := jobmocks.NewMockKeyValue(suite.ctrl)
-
-				return mock, kv
-			},
-			wantChanged: false,
-		},
-		{
-			name: "when netplan apply fails",
 			setupFS: func(fs avfs.VFS) {
 				_ = fs.MkdirAll("/etc/netplan", 0o755)
 				_ = fs.WriteFile(
@@ -382,6 +373,29 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 					0o600,
 				)
 			},
+			validateFunc: func(changed any, err error) {
+				suite.NoError(err)
+				suite.Equal(true, changed)
+			},
+		},
+		{
+			name: "when file does not exist returns not changed",
+			setupMock: func() (*execmocks.MockManager, *jobmocks.MockKeyValue) {
+				mock := execmocks.NewPlainMockManager(suite.ctrl)
+				kv := jobmocks.NewMockKeyValue(suite.ctrl)
+
+				return mock, kv
+			},
+			setupFS: func(fs avfs.VFS) {
+				_ = fs.MkdirAll("/etc/netplan", 0o755)
+			},
+			validateFunc: func(changed any, err error) {
+				suite.NoError(err)
+				suite.Equal(false, changed)
+			},
+		},
+		{
+			name: "when netplan apply fails",
 			setupMock: func() (*execmocks.MockManager, *jobmocks.MockKeyValue) {
 				mock := execmocks.NewPlainMockManager(suite.ctrl)
 				kv := jobmocks.NewMockKeyValue(suite.ctrl)
@@ -392,8 +406,18 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 
 				return mock, kv
 			},
-			wantErr:    true,
-			wantErrMsg: "dns delete via netplan:",
+			setupFS: func(fs avfs.VFS) {
+				_ = fs.MkdirAll("/etc/netplan", 0o755)
+				_ = fs.WriteFile(
+					"/etc/netplan/osapi-dns.yaml",
+					[]byte("network:\n  version: 2\n"),
+					0o600,
+				)
+			},
+			validateFunc: func(_ any, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "dns delete via netplan:")
+			},
 		},
 	}
 
@@ -404,15 +428,7 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 			tc.setupFS(fs)
 
 			net := dns.NewDebianProvider(suite.logger, fs, kv, mock, "test-host")
-			changed, err := net.DeleteNetplanConfig("eth0")
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.Contains(err.Error(), tc.wantErrMsg)
-			} else {
-				suite.NoError(err)
-				suite.Equal(tc.wantChanged, changed)
-			}
+			tc.validateFunc(net.DeleteNetplanConfig("eth0"))
 		})
 	}
 }

@@ -449,18 +449,19 @@ func (s *AgentPublicTestSuite) TestStart() {
 
 func (s *AgentPublicTestSuite) TestIsReady() {
 	tests := []struct {
-		name      string
-		setupFunc func() *agent.Agent
-		wantErr   bool
-		errMsg    string
+		name         string
+		setupFunc    func() *agent.Agent
+		validateFunc func(error)
 	}{
 		{
 			name: "returns error when agent not started",
 			setupFunc: func() *agent.Agent {
 				return s.buildAgent()
 			},
-			wantErr: true,
-			errMsg:  "agent not started",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "agent not started")
+			},
 		},
 		{
 			name: "returns nil when agent is started",
@@ -486,21 +487,16 @@ func (s *AgentPublicTestSuite) TestIsReady() {
 
 				return a
 			},
-			wantErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			a := tt.setupFunc()
-			err := a.IsReady()
-
-			if tt.wantErr {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errMsg)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(a.IsReady())
 		})
 	}
 }

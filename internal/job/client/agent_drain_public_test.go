@@ -146,12 +146,11 @@ func (s *AgentDrainPublicTestSuite) TestCheckDrainFlag() {
 
 func (s *AgentDrainPublicTestSuite) TestSetDrainFlag() {
 	tests := []struct {
-		name        string
-		hostname    string
-		useState    bool
-		setupMocks  func(*jobmocks.MockKeyValue)
-		expectError bool
-		errorMsg    string
+		name         string
+		hostname     string
+		useState     bool
+		setupMocks   func(*jobmocks.MockKeyValue)
+		validateFunc func(error)
 	}{
 		{
 			name:     "when write succeeds sets drain flag",
@@ -161,6 +160,9 @@ func (s *AgentDrainPublicTestSuite) TestSetDrainFlag() {
 				kv.EXPECT().
 					Put(gomock.Any(), "drain.server1", []byte("1")).
 					Return(uint64(1), nil)
+			},
+			validateFunc: func(err error) {
+				s.NoError(err)
 			},
 		},
 		{
@@ -172,15 +174,19 @@ func (s *AgentDrainPublicTestSuite) TestSetDrainFlag() {
 					Put(gomock.Any(), "drain.server1", []byte("1")).
 					Return(uint64(0), errors.New("kv connection failed"))
 			},
-			expectError: true,
-			errorMsg:    "set drain flag",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "set drain flag")
+			},
 		},
 		{
-			name:        "when stateKV is nil returns error",
-			hostname:    "server1",
-			useState:    false,
-			expectError: true,
-			errorMsg:    "agent state bucket not configured",
+			name:     "when stateKV is nil returns error",
+			hostname: "server1",
+			useState: false,
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "agent state bucket not configured")
+			},
 		},
 	}
 
@@ -197,26 +203,18 @@ func (s *AgentDrainPublicTestSuite) TestSetDrainFlag() {
 				jobsClient = s.newClientWithoutState()
 			}
 
-			err := jobsClient.SetDrainFlag(s.ctx, tt.hostname)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(jobsClient.SetDrainFlag(s.ctx, tt.hostname))
 		})
 	}
 }
 
 func (s *AgentDrainPublicTestSuite) TestDeleteDrainFlag() {
 	tests := []struct {
-		name        string
-		hostname    string
-		useState    bool
-		setupMocks  func(*jobmocks.MockKeyValue)
-		expectError bool
-		errorMsg    string
+		name         string
+		hostname     string
+		useState     bool
+		setupMocks   func(*jobmocks.MockKeyValue)
+		validateFunc func(error)
 	}{
 		{
 			name:     "when delete succeeds removes drain flag",
@@ -226,6 +224,9 @@ func (s *AgentDrainPublicTestSuite) TestDeleteDrainFlag() {
 				kv.EXPECT().
 					Delete(gomock.Any(), "drain.server1").
 					Return(nil)
+			},
+			validateFunc: func(err error) {
+				s.NoError(err)
 			},
 		},
 		{
@@ -237,15 +238,19 @@ func (s *AgentDrainPublicTestSuite) TestDeleteDrainFlag() {
 					Delete(gomock.Any(), "drain.server1").
 					Return(errors.New("kv connection failed"))
 			},
-			expectError: true,
-			errorMsg:    "delete drain flag",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "delete drain flag")
+			},
 		},
 		{
-			name:        "when stateKV is nil returns error",
-			hostname:    "server1",
-			useState:    false,
-			expectError: true,
-			errorMsg:    "agent state bucket not configured",
+			name:     "when stateKV is nil returns error",
+			hostname: "server1",
+			useState: false,
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "agent state bucket not configured")
+			},
 		},
 	}
 
@@ -262,14 +267,7 @@ func (s *AgentDrainPublicTestSuite) TestDeleteDrainFlag() {
 				jobsClient = s.newClientWithoutState()
 			}
 
-			err := jobsClient.DeleteDrainFlag(s.ctx, tt.hostname)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(jobsClient.DeleteDrainFlag(s.ctx, tt.hostname))
 		})
 	}
 }

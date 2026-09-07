@@ -158,8 +158,7 @@ func (s *HostnamePublicTestSuite) TestGetAgentHostnameWithProvider() {
 		name               string
 		configuredHostname string
 		setupProvider      func() job.HostnameProvider
-		expectedHostname   string
-		expectError        bool
+		validateFunc       func(any, error)
 	}{
 		{
 			name:               "configured hostname bypasses provider",
@@ -169,8 +168,10 @@ func (s *HostnamePublicTestSuite) TestGetAgentHostnameWithProvider() {
 				// Provider is not called when hostname is pre-configured.
 				return m
 			},
-			expectedHostname: "configured-agent",
-			expectError:      false,
+			validateFunc: func(hostname any, err error) {
+				s.NoError(err)
+				s.Equal("configured-agent", hostname)
+			},
 		},
 		{
 			name:               "empty config uses provider successfully",
@@ -180,8 +181,10 @@ func (s *HostnamePublicTestSuite) TestGetAgentHostnameWithProvider() {
 				m.EXPECT().Hostname().Return("system-host", nil)
 				return m
 			},
-			expectedHostname: "system-host",
-			expectError:      false,
+			validateFunc: func(hostname any, err error) {
+				s.NoError(err)
+				s.Equal("system-host", hostname)
+			},
 		},
 		{
 			name:               "empty config with provider error returns unknown",
@@ -191,8 +194,10 @@ func (s *HostnamePublicTestSuite) TestGetAgentHostnameWithProvider() {
 				m.EXPECT().Hostname().Return("", errors.New("provider error"))
 				return m
 			},
-			expectedHostname: "unknown",
-			expectError:      false,
+			validateFunc: func(hostname any, err error) {
+				s.NoError(err)
+				s.Equal("unknown", hostname)
+			},
 		},
 		{
 			name:               "empty config with empty hostname returns unknown",
@@ -202,34 +207,28 @@ func (s *HostnamePublicTestSuite) TestGetAgentHostnameWithProvider() {
 				m.EXPECT().Hostname().Return("", nil)
 				return m
 			},
-			expectedHostname: "unknown",
-			expectError:      false,
+			validateFunc: func(hostname any, err error) {
+				s.NoError(err)
+				s.Equal("unknown", hostname)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			hostname, err := job.GetAgentHostnameWithProvider(
+			tt.validateFunc(job.GetAgentHostnameWithProvider(
 				tt.configuredHostname,
 				tt.setupProvider(),
-			)
-
-			if tt.expectError {
-				s.Error(err)
-			} else {
-				s.NoError(err)
-				s.Equal(tt.expectedHostname, hostname)
-			}
+			))
 		})
 	}
 }
 
 func (s *HostnamePublicTestSuite) TestGetLocalHostnameWithProvider() {
 	tests := []struct {
-		name             string
-		setupProvider    func() job.HostnameProvider
-		expectedHostname string
-		expectError      bool
+		name          string
+		setupProvider func() job.HostnameProvider
+		validateFunc  func(any, error)
 	}{
 		{
 			name: "successful hostname retrieval",
@@ -238,8 +237,10 @@ func (s *HostnamePublicTestSuite) TestGetLocalHostnameWithProvider() {
 				m.EXPECT().Hostname().Return("test-host", nil)
 				return m
 			},
-			expectedHostname: "test-host",
-			expectError:      false,
+			validateFunc: func(hostname any, err error) {
+				s.NoError(err)
+				s.Equal("test-host", hostname)
+			},
 		},
 		{
 			name: "provider error",
@@ -248,7 +249,9 @@ func (s *HostnamePublicTestSuite) TestGetLocalHostnameWithProvider() {
 				m.EXPECT().Hostname().Return("", errors.New("hostname error"))
 				return m
 			},
-			expectError: true,
+			validateFunc: func(_ any, err error) {
+				s.Error(err)
+			},
 		},
 		{
 			name: "empty hostname from provider",
@@ -257,21 +260,16 @@ func (s *HostnamePublicTestSuite) TestGetLocalHostnameWithProvider() {
 				m.EXPECT().Hostname().Return("", nil)
 				return m
 			},
-			expectedHostname: "",
-			expectError:      false,
+			validateFunc: func(hostname any, err error) {
+				s.NoError(err)
+				s.Equal("", hostname)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			hostname, err := job.GetLocalHostnameWithProvider(tt.setupProvider())
-
-			if tt.expectError {
-				s.Error(err)
-			} else {
-				s.NoError(err)
-				s.Equal(tt.expectedHostname, hostname)
-			}
+			tt.validateFunc(job.GetLocalHostnameWithProvider(tt.setupProvider()))
 		})
 	}
 }
