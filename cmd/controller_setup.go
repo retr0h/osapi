@@ -32,7 +32,7 @@ import (
 	"time"
 
 	"github.com/avfs/avfs/vfs/osfs"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	natsclient "github.com/osapi-io/nats-client/pkg/client"

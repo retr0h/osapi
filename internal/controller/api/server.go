@@ -22,18 +22,23 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	slogecho "github.com/samber/slog-echo"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
+	echootel "github.com/labstack/echo-opentelemetry"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"go.opentelemetry.io/otel"
 
 	"github.com/osapi-io/osapi/internal/config"
+	"github.com/osapi-io/osapi/internal/telemetry/httplog"
 )
+
+// shutdownGracePeriod bounds how long Stop waits for in-flight requests.
+const shutdownGracePeriod = 10 * time.Second
 
 // New initialize a new Server and configure an Echo server.
 func New(
@@ -42,15 +47,8 @@ func New(
 	opts ...Option,
 ) *Server {
 	e := echo.New()
-	e.HideBanner = true
-
-	// Initialize CORS configuration
-	corsConfig := middleware.CORSConfig{}
 
 	allowOrigins := appConfig.Controller.API.Security.CORS.AllowOrigins
-	if len(allowOrigins) > 0 {
-		corsConfig.AllowOrigins = allowOrigins
-	}
 
 	s := &Server{
 		Echo:      e,
@@ -63,21 +61,45 @@ func New(
 	}
 
 	// Register middleware after options so MeterProvider is available.
-	otelOpts := []otelecho.Option{
-		otelecho.WithTracerProvider(otel.GetTracerProvider()),
+	otelConfig := echootel.Config{
+		ServerName:     "osapi-api",
+		TracerProvider: otel.GetTracerProvider(),
 	}
 	if s.meterProvider != nil {
-		otelOpts = append(
-			otelOpts,
-			otelecho.WithMeterProvider(s.meterProvider),
-		)
+		otelConfig.MeterProvider = s.meterProvider
 	}
 
-	e.Use(otelecho.Middleware("osapi-api", otelOpts...))
-	e.Use(slogecho.New(logger))
+	e.Use(echootel.NewMiddlewareWithConfig(otelConfig))
+	e.Use(httplog.New(logger))
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(middleware.CORSWithConfig(corsConfig))
+	// CORS is registered only when origins are configured.
+	//
+	// v4 defaulted an empty AllowOrigins to "*", which sends
+	// Access-Control-Allow-Origin: * from an authenticated API without anyone
+	// choosing it. v5 panics instead, and this package does not panic, so
+	// leaving the middleware off is the remaining option. No header means the
+	// browser applies same-origin policy, which is what an operator who has
+	// not configured CORS should get.
+	if len(allowOrigins) > 0 {
+		e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: allowOrigins,
+		}))
+		s.logger.Info(
+			"CORS enabled",
+			slog.Any("allow_origins", allowOrigins),
+		)
+	} else {
+		// Say so rather than leaving the operator to infer it from a browser
+		// error with no server-side counterpart.
+		s.logger.Info(
+			"CORS not configured, cross-origin browser requests will be refused",
+			slog.String(
+				"configure",
+				"controller.api.security.cors.allow_origins",
+			),
+		)
+	}
 
 	// Register audit middleware if an audit store is configured.
 	if s.auditStore != nil {
@@ -89,10 +111,21 @@ func New(
 
 // Start starts the Echo server with the configured port.
 func (s *Server) Start() {
+	// v5 drives the listener from a context rather than a Shutdown method,
+	// so Stop cancels this one.
+	ctx, cancel := context.WithCancel(context.Background())
+	s.stop = cancel
+
 	go func() {
 		s.logger.Info("starting server")
-		listenAddr := fmt.Sprintf(":%d", s.appConfig.Controller.API.Port)
-		if err := s.Echo.Start(listenAddr); err != nil && err != http.ErrServerClosed {
+
+		sc := echo.StartConfig{
+			Address:         fmt.Sprintf(":%d", s.appConfig.Controller.API.Port),
+			HideBanner:      true,
+			GracefulTimeout: shutdownGracePeriod,
+		}
+		if err := sc.Start(ctx, s.Echo); err != nil &&
+			!errors.Is(err, http.ErrServerClosed) {
 			s.logger.Error(
 				"failed to start server",
 				slog.String("error", err.Error()),
@@ -103,16 +136,19 @@ func (s *Server) Start() {
 
 // Stop gracefully shuts down the Echo server.
 func (s *Server) Stop(
-	ctx context.Context,
+	_ context.Context,
 ) {
 	s.logger.Info("stopping server")
 
-	if err := s.Echo.Shutdown(ctx); err != nil {
-		s.logger.Error(
-			"server shutdown failed",
-			slog.String("error", err.Error()),
-		)
-	} else {
+	if s.stop == nil {
 		s.logger.Info("server stopped gracefully")
+
+		return
 	}
+
+	// Cancelling is what asks v5 to drain. StartConfig.GracefulTimeout bounds
+	// how long it waits, and the goroutine in Start reports any error.
+	s.stop()
+	s.stop = nil
+	s.logger.Info("server stopped gracefully")
 }

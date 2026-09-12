@@ -23,8 +23,7 @@ package audit
 import (
 	"log/slog"
 
-	"github.com/labstack/echo/v4"
-	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	"github.com/labstack/echo/v5"
 
 	auditstore "github.com/osapi-io/osapi/internal/audit"
 	"github.com/osapi-io/osapi/internal/authtoken"
@@ -46,14 +45,14 @@ func Handler(
 	strictHandler := gen.NewStrictHandler(
 		auditHandler,
 		[]gen.StrictMiddlewareFunc{
-			func(handler strictecho.StrictEchoHandlerFunc, _ string) strictecho.StrictEchoHandlerFunc {
-				return api.ScopeMiddleware(
-					handler,
+			func(handler gen.StrictHandlerFunc, _ string) gen.StrictHandlerFunc {
+				return gen.StrictHandlerFunc(api.ScopeMiddleware(
+					api.StrictHandlerFunc(handler),
 					tokenManager,
 					signingKey,
-					gen.BearerAuthScopes,
+					string(gen.BearerAuthScopes),
 					customRoles,
-				)
+				))
 			},
 		},
 	)

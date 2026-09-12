@@ -21,9 +21,10 @@
 package metrics
 
 import (
+	"context"
 	"log/slog"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
@@ -37,4 +38,9 @@ type Server struct {
 	registry      *prometheus.Registry
 	meterProvider *sdkmetric.MeterProvider
 	readinessFunc func() error
+
+	// stop cancels the context StartConfig.Start is listening on. v5 has no
+	// Shutdown method: cancelling the context is how the server is asked to
+	// drain.
+	stop context.CancelFunc
 }

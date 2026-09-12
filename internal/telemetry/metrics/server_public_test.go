@@ -31,7 +31,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/suite"
 	prometheusExporter "go.opentelemetry.io/otel/exporters/prometheus"
 
@@ -432,9 +432,14 @@ func (s *ServerPublicTestSuite) TestStopErrors() {
 				metrics.ExportServerAddRoute(
 					srv,
 					"/slow",
-					func(c echo.Context) error {
+					func(c *echo.Context) error {
 						c.Response().WriteHeader(http.StatusOK)
-						c.Response().Flush()
+						// v5's Response() is a bare http.ResponseWriter, so
+						// Flush comes from the interface rather than a method
+						// on Echo's wrapper.
+						if f, ok := c.Response().(http.Flusher); ok {
+							f.Flush()
+						}
 
 						time.Sleep(5 * time.Second)
 

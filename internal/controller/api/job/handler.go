@@ -23,8 +23,7 @@ package job
 import (
 	"log/slog"
 
-	"github.com/labstack/echo/v4"
-	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	"github.com/labstack/echo/v5"
 
 	"github.com/osapi-io/osapi/internal/authtoken"
 	"github.com/osapi-io/osapi/internal/controller/api"
@@ -46,14 +45,14 @@ func Handler(
 	strictHandler := gen.NewStrictHandler(
 		jobHandler,
 		[]gen.StrictMiddlewareFunc{
-			func(handler strictecho.StrictEchoHandlerFunc, _ string) strictecho.StrictEchoHandlerFunc {
-				return api.ScopeMiddleware(
-					handler,
+			func(handler gen.StrictHandlerFunc, _ string) gen.StrictHandlerFunc {
+				return gen.StrictHandlerFunc(api.ScopeMiddleware(
+					api.StrictHandlerFunc(handler),
 					tokenManager,
 					signingKey,
-					gen.BearerAuthScopes,
+					string(gen.BearerAuthScopes),
 					customRoles,
-				)
+				))
 			},
 		},
 	)

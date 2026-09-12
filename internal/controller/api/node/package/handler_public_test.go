@@ -26,7 +26,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
@@ -68,7 +68,7 @@ func (s *HandlerPublicTestSuite) TestHandler() {
 				for _, h := range handlers {
 					h(e)
 				}
-				s.NotEmpty(e.Routes())
+				s.NotEmpty(e.Router().Routes())
 
 				req := httptest.NewRequest(http.MethodGet, "/api/node/hostname/package", nil)
 				rec := httptest.NewRecorder()

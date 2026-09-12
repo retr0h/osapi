@@ -22,7 +22,7 @@
 package api
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RegisterHandlers registers a list of handlers with the Echo instance.

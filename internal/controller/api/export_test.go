@@ -23,8 +23,7 @@ package api
 import (
 	"log/slog"
 
-	"github.com/labstack/echo/v4"
-	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	"github.com/labstack/echo/v5"
 
 	"github.com/osapi-io/osapi/internal/audit"
 	"github.com/osapi-io/osapi/internal/authtoken"
@@ -40,11 +39,11 @@ func ExportAuditMiddleware(
 
 // ExportScopeMiddleware exposes ScopeMiddleware for testing.
 func ExportScopeMiddleware(
-	next strictecho.StrictEchoHandlerFunc,
+	next StrictHandlerFunc,
 	tokenManager *authtoken.Token,
 	signingKey string,
 	contextKey string,
 	customRoles map[string][]string,
-) strictecho.StrictEchoHandlerFunc {
+) StrictHandlerFunc {
 	return ScopeMiddleware(next, tokenManager, signingKey, contextKey, customRoles)
 }
