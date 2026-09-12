@@ -87,7 +87,7 @@ func (j *Job) GetJobByID(
 	// Expose per-agent responses for broadcast jobs.
 	if len(qj.Responses) > 0 {
 		respMap := make(map[string]struct {
-			Changed  *bool       `json:"changed"`
+			Changed  *bool       `json:"changed,omitempty"`
 			Data     interface{} `json:"data,omitempty"`
 			Error    *string     `json:"error,omitempty"`
 			Hostname *string     `json:"hostname,omitempty"`
@@ -95,7 +95,7 @@ func (j *Job) GetJobByID(
 		})
 		for hostname, r := range qj.Responses {
 			entry := struct {
-				Changed  *bool       `json:"changed"`
+				Changed  *bool       `json:"changed,omitempty"`
 				Data     interface{} `json:"data,omitempty"`
 				Error    *string     `json:"error,omitempty"`
 				Hostname *string     `json:"hostname,omitempty"`

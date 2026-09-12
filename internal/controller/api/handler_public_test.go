@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
@@ -112,9 +112,9 @@ func (s *HandlerPublicTestSuite) TestRegisterHandlers() {
 				)...,
 			)
 
-			routesBefore := len(s.server.Echo.Routes())
+			routesBefore := len(s.server.Echo.Router().Routes())
 			s.server.RegisterHandlers(handlers)
-			routesAfter := len(s.server.Echo.Routes())
+			routesAfter := len(s.server.Echo.Router().Routes())
 			tt.validateFunc(routesAfter, routesBefore)
 		})
 	}

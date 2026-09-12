@@ -27,7 +27,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/suite"
 
 	uihandler "github.com/osapi-io/osapi/internal/controller/api/ui"
@@ -163,7 +163,7 @@ func (s *HandlerPublicTestSuite) TestRegister() {
 			name:   "does not intercept API routes registered before the handler",
 			distFS: populatedFS(),
 			setupRoute: func(e *echo.Echo) {
-				e.GET("/api/health", func(c echo.Context) error {
+				e.GET("/api/health", func(c *echo.Context) error {
 					return c.String(http.StatusOK, "healthy")
 				})
 			},

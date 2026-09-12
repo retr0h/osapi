@@ -23,12 +23,12 @@ package metrics
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // handleHealth handles GET /health and always returns 200 with {"status":"ok"}.
 func (s *Server) handleHealth(
-	c echo.Context,
+	c *echo.Context,
 ) error {
 	return c.JSON(http.StatusOK, map[string]string{
 		"status": "ok",
@@ -39,7 +39,7 @@ func (s *Server) handleHealth(
 // func is configured or the readiness func returns an error, and 200 when
 // the readiness func returns nil.
 func (s *Server) handleReady(
-	c echo.Context,
+	c *echo.Context,
 ) error {
 	if s.readinessFunc == nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{

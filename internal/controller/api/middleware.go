@@ -25,8 +25,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
-	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	"github.com/labstack/echo/v5"
 
 	"github.com/osapi-io/osapi/internal/authtoken"
 	"github.com/osapi-io/osapi/internal/controller/api/common/gen"
@@ -48,14 +47,14 @@ type TokenValidator interface {
 
 // ScopeMiddleware validates JWT tokens and checks for required permissions.
 func ScopeMiddleware(
-	handler strictecho.StrictEchoHandlerFunc,
+	handler StrictHandlerFunc,
 	tokenManager TokenValidator,
 	signingKey string,
 	contextKey string,
 	customRoles map[string][]string,
-) strictecho.StrictEchoHandlerFunc {
-	return strictecho.StrictEchoHandlerFunc(
-		func(ctx echo.Context, request interface{}) (response interface{}, err error) {
+) StrictHandlerFunc {
+	return StrictHandlerFunc(
+		func(ctx *echo.Context, request interface{}) (response interface{}, err error) {
 			authHeader := ctx.Request().Header.Get("Authorization")
 			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 				errMsg := "Bearer token required"

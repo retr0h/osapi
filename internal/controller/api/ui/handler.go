@@ -26,7 +26,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Handler returns registration functions for the embedded UI. It follows

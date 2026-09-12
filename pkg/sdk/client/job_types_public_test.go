@@ -125,7 +125,7 @@ func (suite *JobTypesPublicTestSuite) TestJobDetailFromGen() {
 				respChanged := true
 				respData := map[string]interface{}{"hostname": "web-01"}
 				responses := map[string]struct {
-					Changed  *bool       `json:"changed"`
+					Changed  *bool       `json:"changed,omitempty"`
 					Data     interface{} `json:"data,omitempty"`
 					Error    *string     `json:"error,omitempty"`
 					Hostname *string     `json:"hostname,omitempty"`

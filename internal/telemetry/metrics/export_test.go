@@ -23,7 +23,7 @@
 package metrics
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	prometheusExporter "go.opentelemetry.io/otel/exporters/prometheus"
 )
 

@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/osapi-io/osapi/internal/audit"
@@ -46,7 +46,7 @@ func auditMiddleware(
 	logger *slog.Logger,
 ) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			path := c.Request().URL.Path
 
 			for _, prefix := range excludedAuditPaths {
@@ -67,6 +67,14 @@ func auditMiddleware(
 
 			roles, _ := c.Get(ContextKeyRoles).([]string)
 
+			// v5 returns the bare http.ResponseWriter from Response().
+			// UnwrapResponse recovers Echo's wrapper, which is what
+			// records the status actually written.
+			responseCode := 0
+			if resp, uerr := echo.UnwrapResponse(c.Response()); uerr == nil {
+				responseCode = resp.Status
+			}
+
 			entry := audit.Entry{
 				ID:           uuid.New().String(),
 				Timestamp:    start,
@@ -75,7 +83,7 @@ func auditMiddleware(
 				Method:       c.Request().Method,
 				Path:         path,
 				SourceIP:     c.RealIP(),
-				ResponseCode: c.Response().Status,
+				ResponseCode: responseCode,
 				DurationMs:   time.Since(start).Milliseconds(),
 			}
 

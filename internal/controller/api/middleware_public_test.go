@@ -26,8 +26,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/osapi-io/osapi/internal/authtoken"
@@ -157,8 +156,8 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddleware() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			handlerCalled := false
-			testHandler := strictecho.StrictEchoHandlerFunc(
-				func(_ echo.Context, _ interface{}) (interface{}, error) {
+			testHandler := api.StrictHandlerFunc(
+				func(_ *echo.Context, _ interface{}) (interface{}, error) {
 					handlerCalled = true
 					return "ok", nil
 				},
@@ -241,8 +240,8 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareCustomRoles() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			handlerCalled := false
-			testHandler := strictecho.StrictEchoHandlerFunc(
-				func(_ echo.Context, _ interface{}) (interface{}, error) {
+			testHandler := api.StrictHandlerFunc(
+				func(_ *echo.Context, _ interface{}) (interface{}, error) {
 					handlerCalled = true
 					return "ok", nil
 				},
@@ -317,8 +316,8 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareDirectPermissions() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			handlerCalled := false
-			testHandler := strictecho.StrictEchoHandlerFunc(
-				func(_ echo.Context, _ interface{}) (interface{}, error) {
+			testHandler := api.StrictHandlerFunc(
+				func(_ *echo.Context, _ interface{}) (interface{}, error) {
 					handlerCalled = true
 					return "ok", nil
 				},
@@ -394,8 +393,8 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareInjectsIdentity() {
 			var capturedSubject string
 			var capturedRoles []string
 
-			testHandler := strictecho.StrictEchoHandlerFunc(
-				func(ctx echo.Context, _ interface{}) (interface{}, error) {
+			testHandler := api.StrictHandlerFunc(
+				func(ctx *echo.Context, _ interface{}) (interface{}, error) {
 					handlerCalled = true
 					capturedSubject, _ = ctx.Get(api.ContextKeySubject).(string)
 					capturedRoles, _ = ctx.Get(api.ContextKeyRoles).([]string)

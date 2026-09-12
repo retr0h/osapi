@@ -23,7 +23,7 @@ package: gen
 output: process.gen.go
 generate:
   models: true
-  echo-server: true
+  echo5-server: true
   strict-server: true
 import-mapping:
   ../../../common/gen/api.yaml: github.com/osapi-io/osapi/internal/controller/api/common/gen

@@ -28,7 +28,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/suite"
 	"go.opentelemetry.io/otel/trace"
 
@@ -153,7 +153,7 @@ func (s *AuditMiddlewarePublicTestSuite) TestAuditMiddleware() {
 
 			e := echo.New()
 			e.Use(api.ExportAuditMiddleware(store, logger))
-			e.GET(tt.path, func(c echo.Context) error {
+			e.GET(tt.path, func(c *echo.Context) error {
 				// Simulate scopeMiddleware setting context values.
 				if tt.subject != "" {
 					c.Set(api.ContextKeySubject, tt.subject)

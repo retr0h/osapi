@@ -24,21 +24,23 @@ package metrics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	slogecho "github.com/samber/slog-echo"
 	"go.opentelemetry.io/otel/attribute"
 	prometheusExporter "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+
+	"github.com/osapi-io/osapi/internal/telemetry/httplog"
 )
 
 // prometheusNewFn is injectable for testing the exporter creation error path.
@@ -98,8 +100,7 @@ func New(
 	)
 
 	e := echo.New()
-	e.HideBanner = true
-	e.Use(slogecho.New(logger))
+	e.Use(httplog.New(logger))
 	e.Use(middleware.Recover())
 
 	e.GET("/metrics", echo.WrapHandler(
@@ -183,16 +184,29 @@ func (s *Server) MeterProvider() *sdkmetric.MeterProvider {
 	return s.meterProvider
 }
 
+// shutdownGracePeriod bounds how long Stop waits for in-flight requests.
+const shutdownGracePeriod = 10 * time.Second
+
 // Start starts the HTTP server in a background goroutine.
 func (s *Server) Start() {
+	// v5 drives the listener from a context rather than a Shutdown method,
+	// so Stop cancels this one.
+	ctx, cancel := context.WithCancel(context.Background())
+	s.stop = cancel
+
 	go func() {
 		s.logger.Info(
 			"metrics server started",
 			slog.String("addr", s.addr),
 		)
 
-		if err := s.echo.Start(s.addr); err != nil &&
-			err != http.ErrServerClosed {
+		sc := echo.StartConfig{
+			Address:         s.addr,
+			HideBanner:      true,
+			GracefulTimeout: shutdownGracePeriod,
+		}
+		if err := sc.Start(ctx, s.echo); err != nil &&
+			!errors.Is(err, http.ErrServerClosed) {
 			s.logger.Error(
 				"metrics server error",
 				slog.String("error", err.Error()),
@@ -212,11 +226,11 @@ func (s *Server) Stop(
 		)
 	}
 
-	if err := s.echo.Shutdown(ctx); err != nil {
-		s.logger.Error(
-			"metrics server shutdown error",
-			slog.String("error", err.Error()),
-		)
+	// Cancelling is what asks v5 to drain. StartConfig.GracefulTimeout bounds
+	// how long it waits, and the goroutine in Start reports any error.
+	if s.stop != nil {
+		s.stop()
+		s.stop = nil
 	}
 
 	s.logger.Info("metrics server stopped")

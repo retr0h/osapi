@@ -26,10 +26,11 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/suite"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/mock/gomock"
@@ -154,7 +155,35 @@ func (s *ServerPublicTestSuite) TestNew() {
 			},
 			validateFunc: func(server *api.Server) {
 				s.NotNil(server)
-				s.NotNil(server.Echo)
+				s.Equal(
+					"http://localhost:3000",
+					s.corsHeaderFor(server),
+					"a configured origin is answered",
+				)
+			},
+		},
+		{
+			// The v4 default was "*", which this package no longer inherits:
+			// v5 panics on an empty AllowOrigins and nothing here panics, so
+			// the middleware is left off and the browser applies same-origin
+			// policy. Statement coverage cannot see this, because the branch
+			// that is skipped has no statements.
+			name: "sends no CORS header when no origins are configured",
+			appConfig: config.Config{
+				Controller: config.Controller{
+					API: config.APIServer{
+						Security: config.ServerSecurity{
+							SigningKey: "test-key",
+						},
+					},
+				},
+			},
+			validateFunc: func(server *api.Server) {
+				s.NotNil(server)
+				s.Empty(
+					s.corsHeaderFor(server),
+					"an unconfigured server allows no origin",
+				)
 			},
 		},
 	}
@@ -166,12 +195,41 @@ func (s *ServerPublicTestSuite) TestNew() {
 	}
 }
 
+// corsHeaderFor issues a cross-origin GET through the server and returns the
+// Access-Control-Allow-Origin header it answered with, empty when absent.
+func (s *ServerPublicTestSuite) corsHeaderFor(
+	server *api.Server,
+) string {
+	s.T().Helper()
+
+	server.Echo.GET("/cors-probe", func(c *echo.Context) error {
+		return c.NoContent(http.StatusNoContent)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/cors-probe", nil)
+	req.Header.Set("Origin", "http://localhost:3000")
+
+	rec := httptest.NewRecorder()
+	server.Echo.ServeHTTP(rec, req)
+
+	return rec.Header().Get("Access-Control-Allow-Origin")
+}
+
 func (s *ServerPublicTestSuite) TestStartAndStop() {
 	tests := []struct {
-		name string
+		name  string
+		start bool
 	}{
 		{
-			name: "starts and stops gracefully",
+			name:  "starts and stops gracefully",
+			start: true,
+		},
+		{
+			// Stop is reachable without Start when startup fails earlier in
+			// the boot sequence. v5 cancels a context to shut down, so there
+			// is nothing to cancel here and Stop must not panic.
+			name:  "stops without having started",
+			start: false,
 		},
 	}
 
@@ -189,14 +247,20 @@ func (s *ServerPublicTestSuite) TestStartAndStop() {
 			}
 
 			server := api.New(appConfig, slog.Default())
-			server.Start()
 
-			time.Sleep(50 * time.Millisecond)
+			if tt.start {
+				server.Start()
+				time.Sleep(50 * time.Millisecond)
+			}
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			server.Stop(ctx)
+			s.NotPanics(func() { server.Stop(ctx) })
+
+			// Stopping twice is idempotent: the second call takes the
+			// nil-stop path the first one left behind.
+			s.NotPanics(func() { server.Stop(ctx) })
 		})
 	}
 }
@@ -266,7 +330,7 @@ func (s *ServerPublicTestSuite) TestStopErrorPath() {
 
 			server := api.New(appConfig, slog.Default())
 
-			server.Echo.GET("/slow", func(c echo.Context) error {
+			server.Echo.GET("/slow", func(c *echo.Context) error {
 				time.Sleep(10 * time.Second)
 				return c.String(http.StatusOK, "done")
 			})

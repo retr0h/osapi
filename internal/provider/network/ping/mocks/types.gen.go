@@ -12,8 +12,8 @@ package mocks
 import (
 	reflect "reflect"
 
-	probing "github.com/prometheus-community/pro-bing"
 	ping "github.com/osapi-io/osapi/internal/provider/network/ping"
+	probing "github.com/prometheus-community/pro-bing"
 	gomock "go.uber.org/mock/gomock"
 )
 

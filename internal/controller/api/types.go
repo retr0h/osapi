@@ -21,9 +21,10 @@
 package api
 
 import (
+	"context"
 	"log/slog"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 
 	"github.com/osapi-io/osapi/internal/audit"
@@ -37,7 +38,20 @@ type Server struct {
 	appConfig     config.Config
 	auditStore    audit.Store
 	meterProvider *sdkmetric.MeterProvider
+
+	// stop cancels the context StartConfig.Start is listening on. v5 has no
+	// Shutdown method: cancelling the context is how the server is asked to
+	// drain.
+	stop context.CancelFunc
 }
+
+// StrictHandlerFunc is the shape oapi-codegen's strict handlers take under
+// Echo v5. Each generated package declares its own identical type, so a helper
+// shared across packages cannot name any one of them. Declaring it once here
+// gives the shared middleware a type to sit on; call sites convert to and from
+// their own package's version, which Go permits because the underlying
+// signatures match.
+type StrictHandlerFunc func(ctx *echo.Context, request any) (any, error)
 
 // Option is a functional option for configuring the Server.
 type Option func(*Server)

@@ -25,8 +25,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
+	"github.com/labstack/echo/v5"
 
 	"github.com/osapi-io/osapi/internal/authtoken"
 	"github.com/osapi-io/osapi/internal/controller/api"
@@ -58,18 +57,18 @@ func Handler(
 	strictHandler := gen.NewStrictHandler(
 		healthHandler,
 		[]gen.StrictMiddlewareFunc{
-			func(handler strictecho.StrictEchoHandlerFunc, operationID string) strictecho.StrictEchoHandlerFunc {
+			func(handler gen.StrictHandlerFunc, operationID string) gen.StrictHandlerFunc {
 				if unauthenticatedOperations[operationID] {
 					return handler
 				}
 
-				return api.ScopeMiddleware(
-					handler,
+				return gen.StrictHandlerFunc(api.ScopeMiddleware(
+					api.StrictHandlerFunc(handler),
 					tokenManager,
 					signingKey,
-					gen.BearerAuthScopes,
+					string(gen.BearerAuthScopes),
 					customRoles,
-				)
+				))
 			},
 		},
 	)
