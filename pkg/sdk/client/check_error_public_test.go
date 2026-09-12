@@ -204,6 +204,8 @@ func (suite *CheckErrorPublicTestSuite) TestCheckErrorMessages() {
 	}
 }
 
-func TestCheckErrorPublicTestSuite(t *testing.T) {
+func TestCheckErrorPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CheckErrorPublicTestSuite))
 }

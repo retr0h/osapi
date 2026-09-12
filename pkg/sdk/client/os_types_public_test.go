@@ -68,6 +68,8 @@ func (suite *OSTypesPublicTestSuite) TestOSInfoFromGen() {
 	}
 }
 
-func TestOSTypesPublicTestSuite(t *testing.T) {
+func TestOSTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(OSTypesPublicTestSuite))
 }

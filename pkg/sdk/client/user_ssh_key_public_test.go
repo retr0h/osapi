@@ -514,7 +514,9 @@ func (suite *UserSSHKeyPublicTestSuite) TestRemoveKey() {
 	}
 }
 
-func TestUserSSHKeyPublicTestSuite(t *testing.T) {
+func TestUserSSHKeyPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(UserSSHKeyPublicTestSuite))
 }

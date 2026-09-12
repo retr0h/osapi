@@ -144,22 +144,24 @@ func (s *AgentPublicTestSuite) buildAgent() *agent.Agent {
 
 func (s *AgentPublicTestSuite) TestNew() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*agent.Agent)
 	}{
 		{
 			name: "creates agent with all providers",
+			validateFunc: func(a *agent.Agent) {
+				s.NotNil(a)
+
+				a.SetSubComponents(map[string]job.SubComponentInfo{
+					"agent.heartbeat": {Status: "ok"},
+				})
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			a := s.buildAgent()
-
-			s.NotNil(a)
-
-			a.SetSubComponents(map[string]job.SubComponentInfo{
-				"agent.heartbeat": {Status: "ok"},
-			})
+			tt.validateFunc(s.buildAgent())
 		})
 	}
 }
@@ -449,18 +451,19 @@ func (s *AgentPublicTestSuite) TestStart() {
 
 func (s *AgentPublicTestSuite) TestIsReady() {
 	tests := []struct {
-		name      string
-		setupFunc func() *agent.Agent
-		wantErr   bool
-		errMsg    string
+		name         string
+		setupFunc    func() *agent.Agent
+		validateFunc func(error)
 	}{
 		{
 			name: "returns error when agent not started",
 			setupFunc: func() *agent.Agent {
 				return s.buildAgent()
 			},
-			wantErr: true,
-			errMsg:  "agent not started",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "agent not started")
+			},
 		},
 		{
 			name: "returns nil when agent is started",
@@ -486,31 +489,34 @@ func (s *AgentPublicTestSuite) TestIsReady() {
 
 				return a
 			},
-			wantErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			a := tt.setupFunc()
-			err := a.IsReady()
-
-			if tt.wantErr {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errMsg)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(a.IsReady())
 		})
 	}
 }
 
 func (s *AgentPublicTestSuite) TestSetMeterProvider() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*metrics.Server, *agent.Agent)
 	}{
 		{
 			name: "creates OTEL instruments without panic",
+			validateFunc: func(srv *metrics.Server, a *agent.Agent) {
+				s.Require().NotNil(srv)
+
+				s.NotPanics(func() {
+					a.SetMeterProvider(srv.MeterProvider())
+				})
+			},
 		},
 	}
 
@@ -520,11 +526,7 @@ func (s *AgentPublicTestSuite) TestSetMeterProvider() {
 
 			port := s.getFreePort()
 			srv := metrics.New("127.0.0.1", port, slog.Default())
-			s.Require().NotNil(srv)
-
-			s.NotPanics(func() {
-				a.SetMeterProvider(srv.MeterProvider())
-			})
+			tt.validateFunc(srv, a)
 
 			ctx, cancel := context.WithTimeout(
 				context.Background(),
@@ -539,12 +541,14 @@ func (s *AgentPublicTestSuite) TestSetMeterProvider() {
 
 func (s *AgentPublicTestSuite) TestLastHeartbeatTime() {
 	tests := []struct {
-		name     string
-		wantZero bool
+		name         string
+		validateFunc func(time.Time)
 	}{
 		{
-			name:     "returns zero time before any heartbeat",
-			wantZero: true,
+			name: "returns zero time before any heartbeat",
+			validateFunc: func(got time.Time) {
+				s.True(got.IsZero())
+			},
 		},
 	}
 
@@ -552,14 +556,13 @@ func (s *AgentPublicTestSuite) TestLastHeartbeatTime() {
 		s.Run(tt.name, func() {
 			a := s.buildAgent()
 
-			got := a.LastHeartbeatTime()
-			if tt.wantZero {
-				s.True(got.IsZero())
-			}
+			tt.validateFunc(a.LastHeartbeatTime())
 		})
 	}
 }
 
-func TestAgentPublicTestSuite(t *testing.T) {
+func TestAgentPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentPublicTestSuite))
 }

@@ -39,10 +39,15 @@ func (suite *LinuxGetAverageStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*load.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *load.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,16 +55,15 @@ func (suite *LinuxGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 		suite.Run(tc.name, func() {
 			linux := load.NewLinuxProvider()
 
-			got, err := linux.GetAverageStats()
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetAverageStats())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetAverageStatsPublicTestSuite(t *testing.T) {
+func TestLinuxGetAverageStatsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetAverageStatsPublicTestSuite))
 }

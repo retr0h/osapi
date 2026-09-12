@@ -32,6 +32,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -92,10 +94,10 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "server1",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule:    strPtr("0 3 * * *"),
-					Object:      strPtr("backup-v2-script"),
-					User:        strPtr("admin"),
-					ContentType: (*gen.CronUpdateRequestContentType)(strPtr("template")),
+					Schedule:    ptr.To("0 3 * * *"),
+					Object:      ptr.To("backup-v2-script"),
+					User:        ptr.To("admin"),
+					ContentType: (*gen.CronUpdateRequestContentType)(ptr.To("template")),
 					Vars:        &map[string]interface{}{"region": "us-east"},
 				},
 			},
@@ -113,7 +115,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						nil,
@@ -151,7 +153,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "server1",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -168,7 +170,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     nil,
 						},
 						nil,
@@ -188,7 +190,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "_all",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -204,13 +206,13 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 					}, nil)
@@ -228,7 +230,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "_all",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -244,7 +246,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						"server2": {
@@ -275,7 +277,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "_all",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -311,7 +313,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "_all",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -336,7 +338,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "server1",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("short"),
+					Schedule: ptr.To("short"),
 				},
 			},
 			setupMock: func() {},
@@ -353,7 +355,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {},
@@ -370,7 +372,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "server1",
 				Name:     "nonexistent",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -397,7 +399,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "server1",
 				Name:     "missing",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -424,7 +426,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "server1",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -463,7 +465,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCron() {
 				Hostname: "server1",
 				Name:     "backup",
 				Body: &gen.PutNodeScheduleCronJSONRequestBody{
-					Schedule: strPtr("0 3 * * *"),
+					Schedule: ptr.To("0 3 * * *"),
 				},
 			},
 			setupMock: func() {
@@ -501,8 +503,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -517,15 +518,18 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						nil,
 					)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when empty body returns 400",
@@ -534,8 +538,11 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "at least one field"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "at least one field")
+			},
 		},
 		{
 			name: "when invalid cron schedule",
@@ -544,8 +551,11 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Schedule"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Schedule")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -554,8 +564,11 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+			},
 		},
 	}
 
@@ -579,10 +592,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -596,8 +606,7 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -607,8 +616,10 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -625,8 +636,10 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -649,15 +662,18 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronRBACHTTP() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"backup","changed":true}`),
 						},
 						nil,
 					)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -695,14 +711,13 @@ func (s *CronUpdatePublicTestSuite) TestPutNodeScheduleCronRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestCronUpdatePublicTestSuite(t *testing.T) {
+func TestCronUpdatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CronUpdatePublicTestSuite))
 }

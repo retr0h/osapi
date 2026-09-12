@@ -43,34 +43,44 @@ func (suite *SubjectsPublicTestSuite) TearDownTest() {}
 
 func (suite *SubjectsPublicTestSuite) TestBuildQuerySubject() {
 	tests := []struct {
-		name     string
-		hostname string
-		want     string
+		name         string
+		hostname     string
+		validateFunc func(string)
 	}{
 		{
 			name:     "when building query subject for specific server",
 			hostname: "server-01",
-			want:     "jobs.query.server-01",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query.server-01", got)
+			},
 		},
 		{
 			name:     "when building query subject for web server",
 			hostname: "web-server",
-			want:     "jobs.query.web-server",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query.web-server", got)
+			},
 		},
 		{
 			name:     "when building with wildcard hostname",
 			hostname: job.AllHosts,
-			want:     "jobs.query.*",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query.*", got)
+			},
 		},
 		{
 			name:     "when building with any hostname",
 			hostname: job.AnyHost,
-			want:     "jobs.query._any",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query._any", got)
+			},
 		},
 		{
 			name:     "when building query subject for all hosts",
 			hostname: "",
-			want:     "jobs.query.*",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query.*", got)
+			},
 		},
 	}
 
@@ -82,41 +92,51 @@ func (suite *SubjectsPublicTestSuite) TestBuildQuerySubject() {
 			} else {
 				got = job.BuildQuerySubject(tt.hostname)
 			}
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestBuildModifySubject() {
 	tests := []struct {
-		name     string
-		hostname string
-		want     string
+		name         string
+		hostname     string
+		validateFunc func(string)
 	}{
 		{
 			name:     "when building modify subject for specific server",
 			hostname: "server-01",
-			want:     "jobs.modify.server-01",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.modify.server-01", got)
+			},
 		},
 		{
 			name:     "when building modify subject for db server",
 			hostname: "db-server",
-			want:     "jobs.modify.db-server",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.modify.db-server", got)
+			},
 		},
 		{
 			name:     "when building with wildcard hostname",
 			hostname: job.AllHosts,
-			want:     "jobs.modify.*",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.modify.*", got)
+			},
 		},
 		{
 			name:     "when building with any hostname",
 			hostname: job.AnyHost,
-			want:     "jobs.modify._any",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.modify._any", got)
+			},
 		},
 		{
 			name:     "when building modify subject for all hosts",
 			hostname: "",
-			want:     "jobs.modify.*",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.modify.*", got)
+			},
 		},
 	}
 
@@ -128,7 +148,7 @@ func (suite *SubjectsPublicTestSuite) TestBuildModifySubject() {
 			} else {
 				got = job.BuildModifySubject(tt.hostname)
 			}
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
@@ -137,88 +157,153 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 	tests := []struct {
 		name         string
 		subject      string
-		wantPrefix   string
-		wantHostname string
-		wantErr      bool
+		validateFunc func(string, string, error)
 	}{
 		{
-			name:         "when parsing valid query subject",
-			subject:      "jobs.query.server-01",
-			wantPrefix:   "jobs.query",
-			wantHostname: "server-01",
-			wantErr:      false,
+			name:    "when parsing valid query subject",
+			subject: "jobs.query.server-01",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("jobs.query", gotPrefix)
+				suite.Equal("server-01", gotHostname)
+			},
 		},
 		{
-			name:         "when parsing valid modify subject",
-			subject:      "jobs.modify.web-01",
-			wantPrefix:   "jobs.modify",
-			wantHostname: "web-01",
-			wantErr:      false,
+			name:    "when parsing valid modify subject",
+			subject: "jobs.modify.web-01",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("jobs.modify", gotPrefix)
+				suite.Equal("web-01", gotHostname)
+			},
 		},
 		{
-			name:         "when parsing subject with wildcard hostname",
-			subject:      "jobs.query.*",
-			wantPrefix:   "jobs.query",
-			wantHostname: "*",
-			wantErr:      false,
+			name:    "when parsing subject with wildcard hostname",
+			subject: "jobs.query.*",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("jobs.query", gotPrefix)
+				suite.Equal("*", gotHostname)
+			},
 		},
 		{
-			name:         "when parsing subject with any hostname",
-			subject:      "jobs.modify._any",
-			wantPrefix:   "jobs.modify",
-			wantHostname: "_any",
-			wantErr:      false,
+			name:    "when parsing subject with any hostname",
+			subject: "jobs.modify._any",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("jobs.modify", gotPrefix)
+				suite.Equal("_any", gotHostname)
+			},
 		},
 		{
 			name:    "when parsing invalid subject with too few parts",
 			subject: "jobs.query",
-			wantErr: true,
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if true {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("", gotPrefix)
+				suite.Equal("", gotHostname)
+			},
 		},
 		{
-			name:         "when parsing host subject",
-			subject:      "jobs.query.host.server-01",
-			wantPrefix:   "jobs.query",
-			wantHostname: "server-01",
-			wantErr:      false,
+			name:    "when parsing host subject",
+			subject: "jobs.query.host.server-01",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("jobs.query", gotPrefix)
+				suite.Equal("server-01", gotHostname)
+			},
 		},
 		{
-			name:         "when parsing label subject",
-			subject:      "jobs.query.label.group.web",
-			wantPrefix:   "jobs.query",
-			wantHostname: "group:web",
-			wantErr:      false,
+			name:    "when parsing label subject",
+			subject: "jobs.query.label.group.web",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("jobs.query", gotPrefix)
+				suite.Equal("group:web", gotHostname)
+			},
 		},
 		{
-			name:         "when parsing hierarchical label subject",
-			subject:      "jobs.query.label.group.web.dev.us-east",
-			wantPrefix:   "jobs.query",
-			wantHostname: "group:web.dev.us-east",
-			wantErr:      false,
+			name:    "when parsing hierarchical label subject",
+			subject: "jobs.query.label.group.web.dev.us-east",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("jobs.query", gotPrefix)
+				suite.Equal("group:web.dev.us-east", gotHostname)
+			},
 		},
 		{
 			name:    "when parsing invalid 4-part subject without host prefix",
 			subject: "jobs.query.invalid.server1",
-			wantErr: true,
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if true {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("", gotPrefix)
+				suite.Equal("", gotHostname)
+			},
 		},
 		{
 			name:    "when parsing empty subject",
 			subject: "",
-			wantErr: true,
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if true {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("", gotPrefix)
+				suite.Equal("", gotHostname)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			gotPrefix, gotHostname, err := job.ParseSubject(tt.subject)
-
-			if tt.wantErr {
-				suite.Error(err)
-				return
-			}
-
-			suite.NoError(err)
-			suite.Equal(tt.wantPrefix, gotPrefix)
-			suite.Equal(tt.wantHostname, gotHostname)
+			tt.validateFunc(job.ParseSubject(tt.subject))
 		})
 	}
 }
@@ -232,121 +317,149 @@ func (suite *SubjectsPublicTestSuite) TestGetLocalHostname() {
 
 func (suite *SubjectsPublicTestSuite) TestSanitizeHostname() {
 	tests := []struct {
-		name     string
-		hostname string
-		want     string
+		name         string
+		hostname     string
+		validateFunc func(string)
 	}{
 		{
 			name:     "when hostname has no special characters",
 			hostname: "server01",
-			want:     "server01",
+			validateFunc: func(got string) {
+				suite.Equal("server01", got)
+			},
 		},
 		{
 			name:     "when hostname has hyphens",
 			hostname: "web-server-01",
-			want:     "web_server_01",
+			validateFunc: func(got string) {
+				suite.Equal("web_server_01", got)
+			},
 		},
 		{
 			name:     "when hostname has dots",
 			hostname: "server.example.com",
-			want:     "server_example_com",
+			validateFunc: func(got string) {
+				suite.Equal("server_example_com", got)
+			},
 		},
 		{
 			name:     "when hostname has hyphens and dots",
 			hostname: "Johns-MacBook-Pro-2.local",
-			want:     "Johns_MacBook_Pro_2_local",
+			validateFunc: func(got string) {
+				suite.Equal("Johns_MacBook_Pro_2_local", got)
+			},
 		},
 		{
 			name:     "when hostname has mixed special characters",
 			hostname: "test@host#123.domain!",
-			want:     "test_host_123_domain_",
+			validateFunc: func(got string) {
+				suite.Equal("test_host_123_domain_", got)
+			},
 		},
 		{
 			name:     "when hostname has underscores (should be preserved)",
 			hostname: "test_server_01",
-			want:     "test_server_01",
+			validateFunc: func(got string) {
+				suite.Equal("test_server_01", got)
+			},
 		},
 		{
 			name:     "when hostname has numbers",
 			hostname: "server123",
-			want:     "server123",
+			validateFunc: func(got string) {
+				suite.Equal("server123", got)
+			},
 		},
 		{
 			name:     "when hostname is empty",
 			hostname: "",
-			want:     "",
+			validateFunc: func(got string) {
+				suite.Equal("", got)
+			},
 		},
 		{
 			name:     "when hostname has spaces",
 			hostname: "my server name",
-			want:     "my_server_name",
+			validateFunc: func(got string) {
+				suite.Equal("my_server_name", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.SanitizeHostname(tt.hostname)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestBuildAgentSubscriptionPattern() {
 	tests := []struct {
-		name     string
-		hostname string
-		labels   map[string]string
-		want     []string
+		name         string
+		hostname     string
+		labels       map[string]string
+		validateFunc func([]string)
 	}{
 		{
 			name:     "when building subscription pattern for specific hostname",
 			hostname: "web-server-01",
-			want: []string{
-				"jobs.*.host.web_server_01",
-				"jobs.*._any",
-				"jobs.*._all",
+			validateFunc: func(got []string) {
+				suite.Equal([]string{
+					"jobs.*.host.web_server_01",
+					"jobs.*._any",
+					"jobs.*._all",
+				}, got)
 			},
 		},
 		{
 			name:     "when building subscription pattern for localhost",
 			hostname: "localhost",
-			want: []string{
-				"jobs.*.host.localhost",
-				"jobs.*._any",
-				"jobs.*._all",
+			validateFunc: func(got []string) {
+				suite.Equal([]string{
+					"jobs.*.host.localhost",
+					"jobs.*._any",
+					"jobs.*._all",
+				}, got)
 			},
 		},
 		{
 			name:     "when building subscription pattern with dotted hostname",
 			hostname: "api.example.com",
-			want: []string{
-				"jobs.*.host.api_example_com",
-				"jobs.*._any",
-				"jobs.*._all",
+			validateFunc: func(got []string) {
+				suite.Equal([]string{
+					"jobs.*.host.api_example_com",
+					"jobs.*._any",
+					"jobs.*._all",
+				}, got)
 			},
 		},
 		{
 			name:     "when building with hierarchical label",
 			hostname: "web-01",
 			labels:   map[string]string{"group": "web.dev.us-east"},
-			want: []string{
-				"jobs.*.host.web_01",
-				"jobs.*._any",
-				"jobs.*._all",
-				"jobs.*.label.group.web",
-				"jobs.*.label.group.web.dev",
-				"jobs.*.label.group.web.dev.us-east",
+			validateFunc: func(got []string) {
+				suite.Equal([]string{
+					"jobs.*.host.web_01",
+					"jobs.*._any",
+					"jobs.*._all",
+					"jobs.*.label.group.web",
+					"jobs.*.label.group.web.dev",
+					"jobs.*.label.group.web.dev.us-east",
+				}, got)
 			},
 		},
 		{
 			name:     "when building with flat label",
 			hostname: "web-01",
 			labels:   map[string]string{"team": "platform"},
-			want: []string{
-				"jobs.*.host.web_01",
-				"jobs.*._any",
-				"jobs.*._all",
-				"jobs.*.label.team.platform",
+			validateFunc: func(got []string) {
+				suite.Equal([]string{
+					"jobs.*.host.web_01",
+					"jobs.*._any",
+					"jobs.*._all",
+					"jobs.*.label.team.platform",
+				}, got)
 			},
 		},
 	}
@@ -354,355 +467,435 @@ func (suite *SubjectsPublicTestSuite) TestBuildAgentSubscriptionPattern() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.BuildAgentSubscriptionPattern(tt.hostname, tt.labels)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestBuildAgentQueueGroup() {
 	tests := []struct {
-		name     string
-		category string
-		want     string
+		name         string
+		category     string
+		validateFunc func(string)
 	}{
 		{
 			name:     "when building queue group for node category",
 			category: "node",
-			want:     "agents.node",
+			validateFunc: func(got string) {
+				suite.Equal("agents.node", got)
+			},
 		},
 		{
 			name:     "when building queue group for network category",
 			category: "network",
-			want:     "agents.network",
+			validateFunc: func(got string) {
+				suite.Equal("agents.network", got)
+			},
 		},
 		{
 			name:     "when building queue group for jobs category",
 			category: "jobs",
-			want:     "agents.jobs",
+			validateFunc: func(got string) {
+				suite.Equal("agents.jobs", got)
+			},
 		},
 		{
 			name:     "when building queue group with empty category",
 			category: "",
-			want:     "agents.",
+			validateFunc: func(got string) {
+				suite.Equal("agents.", got)
+			},
 		},
 		{
 			name:     "when building queue group with complex category",
 			category: "custom-service",
-			want:     "agents.custom-service",
+			validateFunc: func(got string) {
+				suite.Equal("agents.custom-service", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.BuildAgentQueueGroup(tt.category)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestIsSpecialHostname() {
 	tests := []struct {
-		name     string
-		hostname string
-		want     bool
+		name         string
+		hostname     string
+		validateFunc func(bool)
 	}{
 		{
 			name:     "when hostname is AllHosts wildcard",
 			hostname: job.AllHosts,
-			want:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:     "when hostname is AnyHost",
 			hostname: job.AnyHost,
-			want:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:     "when hostname is LocalHost",
 			hostname: job.LocalHost,
-			want:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:     "when hostname is BroadcastHost",
 			hostname: job.BroadcastHost,
-			want:     true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:     "when hostname is regular server name",
 			hostname: "web-server-01",
-			want:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name:     "when hostname is localhost",
 			hostname: "localhost",
-			want:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name:     "when hostname is FQDN",
 			hostname: "api.example.com",
-			want:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name:     "when hostname is empty",
 			hostname: "",
-			want:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name:     "when hostname looks like special but isn't exact",
 			hostname: "_any_server",
-			want:     false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.IsSpecialHostname(tt.hostname)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestValidateLabel() {
 	tests := []struct {
-		name    string
-		key     string
-		value   string
-		wantErr bool
+		name         string
+		key          string
+		value        string
+		validateFunc func(error)
 	}{
 		{
 			name:  "when key and value are simple alphanumeric",
 			key:   "role",
 			value: "web",
+			validateFunc: func(err error) {
+				suite.NoError(err)
+			},
 		},
 		{
 			name:  "when value has hyphens and underscores",
 			key:   "env",
 			value: "us-east_1",
+			validateFunc: func(err error) {
+				suite.NoError(err)
+			},
 		},
 		{
 			name:  "when value is hierarchical with dots",
 			key:   "group",
 			value: "web.dev.us-east",
+			validateFunc: func(err error) {
+				suite.NoError(err)
+			},
 		},
 		{
-			name:    "when key contains dots",
-			key:     "my.key",
-			value:   "web",
-			wantErr: true,
+			name:  "when key contains dots",
+			key:   "my.key",
+			value: "web",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 		{
-			name:    "when key contains colon",
-			key:     "my:key",
-			value:   "web",
-			wantErr: true,
+			name:  "when key contains colon",
+			key:   "my:key",
+			value: "web",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 		{
-			name:    "when value segment contains spaces",
-			key:     "group",
-			value:   "web.dev server",
-			wantErr: true,
+			name:  "when value segment contains spaces",
+			key:   "group",
+			value: "web.dev server",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 		{
-			name:    "when value has empty segment",
-			key:     "group",
-			value:   "web..dev",
-			wantErr: true,
+			name:  "when value has empty segment",
+			key:   "group",
+			value: "web..dev",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 		{
-			name:    "when key is empty",
-			key:     "",
-			value:   "web",
-			wantErr: true,
+			name:  "when key is empty",
+			key:   "",
+			value: "web",
+			validateFunc: func(err error) {
+				suite.Error(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			err := job.ValidateLabel(tt.key, tt.value)
-			if tt.wantErr {
-				suite.Error(err)
-			} else {
-				suite.NoError(err)
-			}
+			tt.validateFunc(job.ValidateLabel(tt.key, tt.value))
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestParseTarget() {
 	tests := []struct {
-		name        string
-		target      string
-		wantRouting string
-		wantKey     string
-		wantValue   string
+		name         string
+		target       string
+		validateFunc func(string, string, string)
 	}{
 		{
-			name:        "when target is _any",
-			target:      "_any",
-			wantRouting: "_any",
+			name:   "when target is _any",
+			target: "_any",
+			validateFunc: func(rt string, key string, value string) {
+				suite.Equal("_any", rt)
+				suite.Equal("", key)
+				suite.Equal("", value)
+			},
 		},
 		{
-			name:        "when target is _all",
-			target:      "_all",
-			wantRouting: "_all",
+			name:   "when target is _all",
+			target: "_all",
+			validateFunc: func(rt string, key string, value string) {
+				suite.Equal("_all", rt)
+				suite.Equal("", key)
+				suite.Equal("", value)
+			},
 		},
 		{
-			name:        "when target is a hostname",
-			target:      "server1",
-			wantRouting: "host",
-			wantKey:     "server1",
+			name:   "when target is a hostname",
+			target: "server1",
+			validateFunc: func(rt string, key string, value string) {
+				suite.Equal("host", rt)
+				suite.Equal("server1", key)
+				suite.Equal("", value)
+			},
 		},
 		{
-			name:        "when target is a flat label",
-			target:      "role:web",
-			wantRouting: "label",
-			wantKey:     "role",
-			wantValue:   "web",
+			name:   "when target is a flat label",
+			target: "role:web",
+			validateFunc: func(rt string, key string, value string) {
+				suite.Equal("label", rt)
+				suite.Equal("role", key)
+				suite.Equal("web", value)
+			},
 		},
 		{
-			name:        "when target is a hierarchical label",
-			target:      "group:web.dev.us-east",
-			wantRouting: "label",
-			wantKey:     "group",
-			wantValue:   "web.dev.us-east",
+			name:   "when target is a hierarchical label",
+			target: "group:web.dev.us-east",
+			validateFunc: func(rt string, key string, value string) {
+				suite.Equal("label", rt)
+				suite.Equal("group", key)
+				suite.Equal("web.dev.us-east", value)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			rt, key, value := job.ParseTarget(tt.target)
-			suite.Equal(tt.wantRouting, rt)
-			suite.Equal(tt.wantKey, key)
-			suite.Equal(tt.wantValue, value)
+			tt.validateFunc(job.ParseTarget(tt.target))
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestBuildSubjectFromTarget() {
 	tests := []struct {
-		name   string
-		prefix string
-		target string
-		want   string
+		name         string
+		prefix       string
+		target       string
+		validateFunc func(string)
 	}{
 		{
 			name:   "when target is _any",
 			prefix: "jobs.query",
 			target: "_any",
-			want:   "jobs.query._any",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query._any", got)
+			},
 		},
 		{
 			name:   "when target is _all",
 			prefix: "jobs.modify",
 			target: "_all",
-			want:   "jobs.modify._all",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.modify._all", got)
+			},
 		},
 		{
 			name:   "when target is a hostname",
 			prefix: "jobs.query",
 			target: "server1",
-			want:   "jobs.query.host.server1",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query.host.server1", got)
+			},
 		},
 		{
 			name:   "when target is a dotted hostname",
 			prefix: "jobs.query",
 			target: "my-server.local",
-			want:   "jobs.query.host.my_server_local",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query.host.my_server_local", got)
+			},
 		},
 		{
 			name:   "when target is a flat label",
 			prefix: "jobs.query",
 			target: "role:web",
-			want:   "jobs.query.label.role.web",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query.label.role.web", got)
+			},
 		},
 		{
 			name:   "when target is a hierarchical label",
 			prefix: "jobs.query",
 			target: "group:web.dev.us-east",
-			want:   "jobs.query.label.group.web.dev.us-east",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.query.label.group.web.dev.us-east", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.BuildSubjectFromTarget(tt.prefix, tt.target)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestIsBroadcastTarget() {
 	tests := []struct {
-		name   string
-		target string
-		want   bool
+		name         string
+		target       string
+		validateFunc func(bool)
 	}{
 		{
 			name:   "when target is _all",
 			target: "_all",
-			want:   true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:   "when target is a label",
 			target: "role:web",
-			want:   true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:   "when target is a hierarchical label",
 			target: "group:web.dev",
-			want:   true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name:   "when target is _any",
 			target: "_any",
-			want:   false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name:   "when target is a hostname",
 			target: "server1",
-			want:   false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.IsBroadcastTarget(tt.target)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestBuildLabelSubjects() {
 	tests := []struct {
-		name  string
-		key   string
-		value string
-		want  []string
+		name         string
+		key          string
+		value        string
+		validateFunc func([]string)
 	}{
 		{
 			name:  "when value is flat",
 			key:   "role",
 			value: "web",
-			want: []string{
-				"jobs.*.label.role.web",
+			validateFunc: func(got []string) {
+				suite.Equal([]string{
+					"jobs.*.label.role.web",
+				}, got)
 			},
 		},
 		{
 			name:  "when value is hierarchical with two levels",
 			key:   "group",
 			value: "web.dev",
-			want: []string{
-				"jobs.*.label.group.web",
-				"jobs.*.label.group.web.dev",
+			validateFunc: func(got []string) {
+				suite.Equal([]string{
+					"jobs.*.label.group.web",
+					"jobs.*.label.group.web.dev",
+				}, got)
 			},
 		},
 		{
 			name:  "when value is hierarchical with three levels",
 			key:   "group",
 			value: "web.dev.us-east",
-			want: []string{
-				"jobs.*.label.group.web",
-				"jobs.*.label.group.web.dev",
-				"jobs.*.label.group.web.dev.us-east",
+			validateFunc: func(got []string) {
+				suite.Equal([]string{
+					"jobs.*.label.group.web",
+					"jobs.*.label.group.web.dev",
+					"jobs.*.label.group.web.dev.us-east",
+				}, got)
 			},
 		},
 	}
@@ -710,7 +903,7 @@ func (suite *SubjectsPublicTestSuite) TestBuildLabelSubjects() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.BuildLabelSubjects(tt.key, tt.value)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
@@ -723,7 +916,7 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 		wantModifyPrefix string
 		wantBuildQuery   string
 		wantSubscription string
-		wantLabelSubject string
+		validateFunc     func([]string)
 	}{
 		{
 			name:             "when namespace is empty",
@@ -732,7 +925,9 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 			wantModifyPrefix: "jobs.modify",
 			wantBuildQuery:   "jobs.query._any",
 			wantSubscription: "jobs.*._any",
-			wantLabelSubject: "jobs.*.label.role.web",
+			validateFunc: func(labels []string) {
+				suite.Equal([]string{"jobs.*.label.role.web"}, labels)
+			},
 		},
 		{
 			name:             "when namespace is set",
@@ -741,7 +936,9 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 			wantModifyPrefix: "osapi.jobs.modify",
 			wantBuildQuery:   "osapi.jobs.query._any",
 			wantSubscription: "osapi.jobs.*._any",
-			wantLabelSubject: "osapi.jobs.*.label.role.web",
+			validateFunc: func(labels []string) {
+				suite.Equal([]string{"osapi.jobs.*.label.role.web"}, labels)
+			},
 		},
 	}
 
@@ -755,8 +952,7 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 			suite.Equal(tt.wantBuildQuery, job.BuildQuerySubject("_any"))
 			subs := job.BuildAgentSubscriptionPattern("web-01", nil)
 			suite.Contains(subs, tt.wantSubscription)
-			labels := job.BuildLabelSubjects("role", "web")
-			suite.Equal([]string{tt.wantLabelSubject}, labels)
+			tt.validateFunc(job.BuildLabelSubjects("role", "web"))
 		})
 	}
 }
@@ -766,42 +962,82 @@ func (suite *SubjectsPublicTestSuite) TestParseSubjectWithNamespace() {
 		name         string
 		namespace    string
 		subject      string
-		wantPrefix   string
-		wantHostname string
-		wantErr      bool
+		validateFunc func(string, string, error)
 	}{
 		{
-			name:         "when parsing namespaced query subject",
-			namespace:    "osapi",
-			subject:      "osapi.jobs.query.host.server-01",
-			wantPrefix:   "osapi.jobs.query",
-			wantHostname: "server-01",
+			name:      "when parsing namespaced query subject",
+			namespace: "osapi",
+			subject:   "osapi.jobs.query.host.server-01",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("osapi.jobs.query", gotPrefix)
+				suite.Equal("server-01", gotHostname)
+			},
 		},
 		{
-			name:         "when parsing namespaced modify subject",
-			namespace:    "osapi",
-			subject:      "osapi.jobs.modify._any",
-			wantPrefix:   "osapi.jobs.modify",
-			wantHostname: "_any",
+			name:      "when parsing namespaced modify subject",
+			namespace: "osapi",
+			subject:   "osapi.jobs.modify._any",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("osapi.jobs.modify", gotPrefix)
+				suite.Equal("_any", gotHostname)
+			},
 		},
 		{
-			name:         "when parsing namespaced label subject",
-			namespace:    "osapi",
-			subject:      "osapi.jobs.query.label.group.web.dev",
-			wantPrefix:   "osapi.jobs.query",
-			wantHostname: "group:web.dev",
+			name:      "when parsing namespaced label subject",
+			namespace: "osapi",
+			subject:   "osapi.jobs.query.label.group.web.dev",
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if false {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("osapi.jobs.query", gotPrefix)
+				suite.Equal("group:web.dev", gotHostname)
+			},
 		},
 		{
 			name:      "when parsing invalid namespaced subject with too few parts",
 			namespace: "osapi",
 			subject:   "osapi.jobs",
-			wantErr:   true,
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if true {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("", gotPrefix)
+				suite.Equal("", gotHostname)
+			},
 		},
 		{
 			name:      "when parsing namespaced subject without jobs token",
 			namespace: "osapi",
 			subject:   "osapi.other.query._any",
-			wantErr:   true,
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
+				if true {
+					suite.Error(err)
+					return
+				}
+
+				suite.NoError(err)
+				suite.Equal("", gotPrefix)
+				suite.Equal("", gotHostname)
+			},
 		},
 	}
 
@@ -810,80 +1046,81 @@ func (suite *SubjectsPublicTestSuite) TestParseSubjectWithNamespace() {
 			job.Init(tt.namespace)
 			defer job.Init("")
 
-			gotPrefix, gotHostname, err := job.ParseSubject(tt.subject)
-
-			if tt.wantErr {
-				suite.Error(err)
-				return
-			}
-
-			suite.NoError(err)
-			suite.Equal(tt.wantPrefix, gotPrefix)
-			suite.Equal(tt.wantHostname, gotHostname)
+			tt.validateFunc(job.ParseSubject(tt.subject))
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestApplyNamespaceToInfraName() {
 	tests := []struct {
-		name      string
-		namespace string
-		infraName string
-		want      string
+		name         string
+		namespace    string
+		infraName    string
+		validateFunc func(string)
 	}{
 		{
 			name:      "when namespace is empty",
 			namespace: "",
 			infraName: "JOBS",
-			want:      "JOBS",
+			validateFunc: func(got string) {
+				suite.Equal("JOBS", got)
+			},
 		},
 		{
 			name:      "when namespace is set",
 			namespace: "osapi",
 			infraName: "JOBS",
-			want:      "osapi-JOBS",
+			validateFunc: func(got string) {
+				suite.Equal("osapi-JOBS", got)
+			},
 		},
 		{
 			name:      "when namespace applied to KV bucket",
 			namespace: "osapi",
 			infraName: "job-queue",
-			want:      "osapi-job-queue",
+			validateFunc: func(got string) {
+				suite.Equal("osapi-job-queue", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.ApplyNamespaceToInfraName(tt.namespace, tt.infraName)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
 func (suite *SubjectsPublicTestSuite) TestApplyNamespaceToSubjects() {
 	tests := []struct {
-		name      string
-		namespace string
-		subjects  string
-		want      string
+		name         string
+		namespace    string
+		subjects     string
+		validateFunc func(string)
 	}{
 		{
 			name:      "when namespace is empty",
 			namespace: "",
 			subjects:  "jobs.>",
-			want:      "jobs.>",
+			validateFunc: func(got string) {
+				suite.Equal("jobs.>", got)
+			},
 		},
 		{
 			name:      "when namespace is set",
 			namespace: "osapi",
 			subjects:  "jobs.>",
-			want:      "osapi.jobs.>",
+			validateFunc: func(got string) {
+				suite.Equal("osapi.jobs.>", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.ApplyNamespaceToSubjects(tt.namespace, tt.subjects)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
@@ -897,64 +1134,82 @@ func (suite *SubjectsPublicTestSuite) TestCountExpectedAgents() {
 	}
 
 	tests := []struct {
-		name   string
-		agents []job.AgentInfo
-		target string
-		want   int
+		name         string
+		agents       []job.AgentInfo
+		target       string
+		validateFunc func(int)
 	}{
 		{
 			name:   "when target is _all returns full count",
 			agents: agents,
 			target: "_all",
-			want:   4,
+			validateFunc: func(got int) {
+				suite.Equal(4, got)
+			},
 		},
 		{
 			name:   "when label exact match",
 			agents: agents,
 			target: "group:web.dev.us-east",
-			want:   1,
+			validateFunc: func(got int) {
+				suite.Equal(1, got)
+			},
 		},
 		{
 			name:   "when label prefix match",
 			agents: agents,
 			target: "group:web",
-			want:   2,
+			validateFunc: func(got int) {
+				suite.Equal(2, got)
+			},
 		},
 		{
 			name:   "when label prefix match at second level",
 			agents: agents,
 			target: "group:web.dev",
-			want:   2,
+			validateFunc: func(got int) {
+				suite.Equal(2, got)
+			},
 		},
 		{
 			name:   "when no agents match label",
 			agents: agents,
 			target: "group:staging",
-			want:   0,
+			validateFunc: func(got int) {
+				suite.Equal(0, got)
+			},
 		},
 		{
 			name:   "when label key does not exist on any agent",
 			agents: agents,
 			target: "region:us-east",
-			want:   0,
+			validateFunc: func(got int) {
+				suite.Equal(0, got)
+			},
 		},
 		{
 			name:   "when agent list is empty",
 			agents: []job.AgentInfo{},
 			target: "_all",
-			want:   0,
+			validateFunc: func(got int) {
+				suite.Equal(0, got)
+			},
 		},
 		{
 			name:   "when target is a hostname returns 0",
 			agents: agents,
 			target: "web-01",
-			want:   0,
+			validateFunc: func(got int) {
+				suite.Equal(0, got)
+			},
 		},
 		{
 			name:   "when target is _any returns 0",
 			agents: agents,
 			target: "_any",
-			want:   0,
+			validateFunc: func(got int) {
+				suite.Equal(0, got)
+			},
 		},
 		{
 			name: "when _all excludes cordoned agents",
@@ -964,7 +1219,9 @@ func (suite *SubjectsPublicTestSuite) TestCountExpectedAgents() {
 				{Hostname: "web-03"},
 			},
 			target: "_all",
-			want:   2,
+			validateFunc: func(got int) {
+				suite.Equal(2, got)
+			},
 		},
 		{
 			name: "when _all excludes draining agents",
@@ -973,7 +1230,9 @@ func (suite *SubjectsPublicTestSuite) TestCountExpectedAgents() {
 				{Hostname: "web-02", State: job.AgentStateDraining},
 			},
 			target: "_all",
-			want:   1,
+			validateFunc: func(got int) {
+				suite.Equal(1, got)
+			},
 		},
 		{
 			name: "when _all excludes pending agents",
@@ -982,7 +1241,9 @@ func (suite *SubjectsPublicTestSuite) TestCountExpectedAgents() {
 				{Hostname: "web-02", State: job.AgentStatePending},
 			},
 			target: "_all",
-			want:   1,
+			validateFunc: func(got int) {
+				suite.Equal(1, got)
+			},
 		},
 		{
 			name: "when label match excludes cordoned agents",
@@ -995,7 +1256,9 @@ func (suite *SubjectsPublicTestSuite) TestCountExpectedAgents() {
 				{Hostname: "web-02", Labels: map[string]string{"group": "web.dev"}},
 			},
 			target: "group:web",
-			want:   1,
+			validateFunc: func(got int) {
+				suite.Equal(1, got)
+			},
 		},
 		{
 			name: "when label match excludes draining agents",
@@ -1008,14 +1271,16 @@ func (suite *SubjectsPublicTestSuite) TestCountExpectedAgents() {
 				{Hostname: "web-02", Labels: map[string]string{"group": "web.dev"}},
 			},
 			target: "group:web",
-			want:   1,
+			validateFunc: func(got int) {
+				suite.Equal(1, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.CountExpectedAgents(tt.agents, tt.target)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
@@ -1029,52 +1294,66 @@ func (suite *SubjectsPublicTestSuite) TestExpectedAgentHostnames() {
 	}
 
 	tests := []struct {
-		name   string
-		agents []job.AgentInfo
-		target string
-		want   []string
+		name         string
+		agents       []job.AgentInfo
+		target       string
+		validateFunc func([]string)
 	}{
 		{
 			name:   "when target is _all returns all hostnames",
 			agents: agents,
 			target: "_all",
-			want:   []string{"web-01", "web-02", "db-01", "plain-01"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"web-01", "web-02", "db-01", "plain-01"}, got)
+			},
 		},
 		{
 			name:   "when label exact match returns matching hostnames",
 			agents: agents,
 			target: "group:web.dev.us-east",
-			want:   []string{"web-01"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"web-01"}, got)
+			},
 		},
 		{
 			name:   "when label prefix match returns matching hostnames",
 			agents: agents,
 			target: "group:web",
-			want:   []string{"web-01", "web-02"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"web-01", "web-02"}, got)
+			},
 		},
 		{
 			name:   "when no agents match label returns nil",
 			agents: agents,
 			target: "group:staging",
-			want:   nil,
+			validateFunc: func(got []string) {
+				suite.Equal([]string(nil), got)
+			},
 		},
 		{
 			name:   "when agent list is empty returns nil",
 			agents: []job.AgentInfo{},
 			target: "_all",
-			want:   nil,
+			validateFunc: func(got []string) {
+				suite.Equal([]string(nil), got)
+			},
 		},
 		{
 			name:   "when target is a hostname returns nil",
 			agents: agents,
 			target: "web-01",
-			want:   nil,
+			validateFunc: func(got []string) {
+				suite.Equal([]string(nil), got)
+			},
 		},
 		{
 			name:   "when target is _any returns nil",
 			agents: agents,
 			target: "_any",
-			want:   nil,
+			validateFunc: func(got []string) {
+				suite.Equal([]string(nil), got)
+			},
 		},
 		{
 			name: "when _all excludes cordoned agents",
@@ -1084,7 +1363,9 @@ func (suite *SubjectsPublicTestSuite) TestExpectedAgentHostnames() {
 				{Hostname: "web-03"},
 			},
 			target: "_all",
-			want:   []string{"web-01", "web-03"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"web-01", "web-03"}, got)
+			},
 		},
 		{
 			name: "when _all excludes draining agents",
@@ -1093,7 +1374,9 @@ func (suite *SubjectsPublicTestSuite) TestExpectedAgentHostnames() {
 				{Hostname: "web-02", State: job.AgentStateDraining},
 			},
 			target: "_all",
-			want:   []string{"web-01"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"web-01"}, got)
+			},
 		},
 		{
 			name: "when _all excludes pending agents",
@@ -1102,7 +1385,9 @@ func (suite *SubjectsPublicTestSuite) TestExpectedAgentHostnames() {
 				{Hostname: "web-02", State: job.AgentStatePending},
 			},
 			target: "_all",
-			want:   []string{"web-01"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"web-01"}, got)
+			},
 		},
 		{
 			name: "when label match excludes cordoned agents",
@@ -1115,18 +1400,22 @@ func (suite *SubjectsPublicTestSuite) TestExpectedAgentHostnames() {
 				{Hostname: "web-02", Labels: map[string]string{"group": "web.dev"}},
 			},
 			target: "group:web",
-			want:   []string{"web-02"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"web-02"}, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			got := job.ExpectedAgentHostnames(tt.agents, tt.target)
-			suite.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
-func TestSubjectsPublicTestSuite(t *testing.T) {
+func TestSubjectsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SubjectsPublicTestSuite))
 }

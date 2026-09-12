@@ -153,8 +153,7 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingHTTP() {
 	tests := []struct {
 		name         string
 		setupMocks   func() (*jobmocks.MockJobClient, *agentmocks.MockEnrollmentManager)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when pending agents exist returns 200",
@@ -173,8 +172,12 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingHTTP() {
 					}, nil)
 				return jm, em
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"agents"`, `"web-01"`, `"total"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"agents"`)
+				s.Contains(rec.Body.String(), `"web-01"`)
+				s.Contains(rec.Body.String(), `"total"`)
+			},
 		},
 		{
 			name: "when list fails returns 500",
@@ -186,8 +189,10 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingHTTP() {
 					Return(nil, fmt.Errorf("kv error"))
 				return jm, em
 			},
-			wantCode:     http.StatusInternalServerError,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+			},
 		},
 	}
 
@@ -206,10 +211,7 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -223,8 +225,7 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupMocks   func() (*jobmocks.MockJobClient, *agentmocks.MockEnrollmentManager)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -236,8 +237,10 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingRBACHTTP() {
 						s.mockCtrl,
 					)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -258,8 +261,10 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingRBACHTTP() {
 						s.mockCtrl,
 					)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with agent:read returns 200",
@@ -279,8 +284,11 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingRBACHTTP() {
 				em.EXPECT().ListPending(gomock.Any()).Return(nil, nil)
 				return jm, em
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"agents"`, `"total"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"agents"`)
+				s.Contains(rec.Body.String(), `"total"`)
+			},
 		},
 	}
 
@@ -314,14 +322,13 @@ func (s *AgentPendingPublicTestSuite) TestGetAgentsPendingRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestAgentPendingPublicTestSuite(t *testing.T) {
+func TestAgentPendingPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentPendingPublicTestSuite))
 }

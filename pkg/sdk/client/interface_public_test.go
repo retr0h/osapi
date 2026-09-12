@@ -794,6 +794,8 @@ func (suite *InterfacePublicTestSuite) TestDelete() {
 	}
 }
 
-func TestInterfacePublicTestSuite(t *testing.T) {
+func TestInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(InterfacePublicTestSuite))
 }

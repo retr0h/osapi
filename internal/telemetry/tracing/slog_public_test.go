@@ -212,6 +212,8 @@ func (s *SlogPublicTestSuite) TestTraceHandlerEnabled() {
 	}
 }
 
-func TestSlogPublicTestSuite(t *testing.T) {
+func TestSlogPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SlogPublicTestSuite))
 }

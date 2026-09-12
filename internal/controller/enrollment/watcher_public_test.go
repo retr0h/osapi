@@ -86,10 +86,10 @@ func (s *WatcherPublicTestSuite) TearDownSubTest() {
 
 func (s *WatcherPublicTestSuite) TestHandleEnrollmentRequest() {
 	tests := []struct {
-		name       string
-		setupMock  func()
-		msg        *nats.Msg
-		validateFn func()
+		name         string
+		setupMock    func()
+		msg          *nats.Msg
+		validateFunc func()
 	}{
 		{
 			name: "stores pending agent in KV",
@@ -239,11 +239,10 @@ func (s *WatcherPublicTestSuite) TestHandleEnrollmentRequestAutoAccept() {
 
 func (s *WatcherPublicTestSuite) TestAcceptAgent() {
 	tests := []struct {
-		name       string
-		machineID  string
-		setupMock  func()
-		wantErr    bool
-		wantErrMsg string
+		name         string
+		machineID    string
+		setupMock    func()
+		validateFunc func(error)
 	}{
 		{
 			name:      "accepts pending agent and publishes response",
@@ -266,6 +265,9 @@ func (s *WatcherPublicTestSuite) TestAcceptAgent() {
 					Delete(gomock.Any(), "enrollment.machine-001").
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
+			},
 		},
 		{
 			name:      "returns error when pending agent not found",
@@ -275,8 +277,10 @@ func (s *WatcherPublicTestSuite) TestAcceptAgent() {
 					Get(gomock.Any(), "enrollment.missing").
 					Return(nil, jetstream.ErrKeyNotFound)
 			},
-			wantErr:    true,
-			wantErrMsg: "get pending agent missing",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "get pending agent missing")
+			},
 		},
 		{
 			name:      "returns error on unmarshal failure",
@@ -288,8 +292,10 @@ func (s *WatcherPublicTestSuite) TestAcceptAgent() {
 					Get(gomock.Any(), "enrollment.machine-001").
 					Return(mockEntry, nil)
 			},
-			wantErr:    true,
-			wantErrMsg: "unmarshal pending agent machine-001",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "unmarshal pending agent machine-001")
+			},
 		},
 		{
 			name:      "returns error on marshal failure",
@@ -309,8 +315,10 @@ func (s *WatcherPublicTestSuite) TestAcceptAgent() {
 					return nil, errors.New("marshal error")
 				})
 			},
-			wantErr:    true,
-			wantErrMsg: "marshal acceptance response",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "marshal acceptance response")
+			},
 		},
 		{
 			name:      "returns error on publish failure",
@@ -329,8 +337,10 @@ func (s *WatcherPublicTestSuite) TestAcceptAgent() {
 					PublishCore("osapi.enroll.response.machine-001", gomock.Any()).
 					Return(errors.New("publish error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "publish acceptance for machine-001",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "publish acceptance for machine-001")
+			},
 		},
 		{
 			name:      "returns error on delete failure",
@@ -353,33 +363,28 @@ func (s *WatcherPublicTestSuite) TestAcceptAgent() {
 					Delete(gomock.Any(), "enrollment.machine-001").
 					Return(errors.New("delete error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "delete pending agent machine-001",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "delete pending agent machine-001")
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			tc.setupMock()
-			err := s.watcher.AcceptAgent(s.ctx, tc.machineID)
-			if tc.wantErr {
-				s.Require().Error(err)
-				s.Contains(err.Error(), tc.wantErrMsg)
-			} else {
-				s.Require().NoError(err)
-			}
+			tc.validateFunc(s.watcher.AcceptAgent(s.ctx, tc.machineID))
 		})
 	}
 }
 
 func (s *WatcherPublicTestSuite) TestRejectAgent() {
 	tests := []struct {
-		name       string
-		machineID  string
-		reason     string
-		setupMock  func()
-		wantErr    bool
-		wantErrMsg string
+		name         string
+		machineID    string
+		reason       string
+		setupMock    func()
+		validateFunc func(error)
 	}{
 		{
 			name:      "rejects pending agent and publishes response",
@@ -408,6 +413,9 @@ func (s *WatcherPublicTestSuite) TestRejectAgent() {
 					Delete(gomock.Any(), "enrollment.machine-001").
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
+			},
 		},
 		{
 			name:      "returns error when pending agent not found",
@@ -418,8 +426,10 @@ func (s *WatcherPublicTestSuite) TestRejectAgent() {
 					Get(gomock.Any(), "enrollment.missing").
 					Return(nil, jetstream.ErrKeyNotFound)
 			},
-			wantErr:    true,
-			wantErrMsg: "get pending agent missing",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "get pending agent missing")
+			},
 		},
 		{
 			name:      "returns error on unmarshal failure",
@@ -432,8 +442,10 @@ func (s *WatcherPublicTestSuite) TestRejectAgent() {
 					Get(gomock.Any(), "enrollment.machine-001").
 					Return(mockEntry, nil)
 			},
-			wantErr:    true,
-			wantErrMsg: "unmarshal pending agent machine-001",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "unmarshal pending agent machine-001")
+			},
 		},
 		{
 			name:      "returns error on marshal failure",
@@ -452,8 +464,10 @@ func (s *WatcherPublicTestSuite) TestRejectAgent() {
 					return nil, errors.New("marshal error")
 				})
 			},
-			wantErr:    true,
-			wantErrMsg: "marshal rejection response",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "marshal rejection response")
+			},
 		},
 		{
 			name:      "returns error on publish failure",
@@ -472,8 +486,10 @@ func (s *WatcherPublicTestSuite) TestRejectAgent() {
 					PublishCore("osapi.enroll.response.machine-001", gomock.Any()).
 					Return(errors.New("publish error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "publish rejection for machine-001",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "publish rejection for machine-001")
+			},
 		},
 		{
 			name:      "returns error on delete failure",
@@ -496,32 +512,26 @@ func (s *WatcherPublicTestSuite) TestRejectAgent() {
 					Delete(gomock.Any(), "enrollment.machine-001").
 					Return(errors.New("delete error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "delete pending agent machine-001",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "delete pending agent machine-001")
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			tc.setupMock()
-			err := s.watcher.RejectAgent(s.ctx, tc.machineID, tc.reason)
-			if tc.wantErr {
-				s.Require().Error(err)
-				s.Contains(err.Error(), tc.wantErrMsg)
-			} else {
-				s.Require().NoError(err)
-			}
+			tc.validateFunc(s.watcher.RejectAgent(s.ctx, tc.machineID, tc.reason))
 		})
 	}
 }
 
 func (s *WatcherPublicTestSuite) TestListPending() {
 	tests := []struct {
-		name       string
-		setupMock  func()
-		wantLen    int
-		wantErr    bool
-		wantErrMsg string
+		name         string
+		setupMock    func()
+		validateFunc func([]enrollment.PendingAgent, error)
 	}{
 		{
 			name: "returns all pending agents",
@@ -554,7 +564,10 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					Get(gomock.Any(), "enrollment.machine-002").
 					Return(entry2, nil)
 			},
-			wantLen: 2,
+			validateFunc: func(pending []enrollment.PendingAgent, err error) {
+				s.Require().NoError(err)
+				s.Len(pending, 2)
+			},
 		},
 		{
 			name: "returns nil when bucket is empty",
@@ -563,7 +576,10 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					ListKeys(gomock.Any()).
 					Return(nil, jetstream.ErrNoKeysFound)
 			},
-			wantLen: 0,
+			validateFunc: func(pending []enrollment.PendingAgent, err error) {
+				s.Require().NoError(err)
+				s.Len(pending, 0)
+			},
 		},
 		{
 			name: "returns error on list failure",
@@ -572,8 +588,10 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					ListKeys(gomock.Any()).
 					Return(nil, errors.New("list error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "list enrollment keys",
+			validateFunc: func(_ []enrollment.PendingAgent, err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "list enrollment keys")
+			},
 		},
 		{
 			name: "skips entries with get errors",
@@ -602,7 +620,10 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					Get(gomock.Any(), "enrollment.machine-002").
 					Return(entry2, nil)
 			},
-			wantLen: 1,
+			validateFunc: func(pending []enrollment.PendingAgent, err error) {
+				s.Require().NoError(err)
+				s.Len(pending, 1)
+			},
 		},
 		{
 			name: "skips entries with unmarshal errors",
@@ -624,32 +645,27 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					Get(gomock.Any(), "enrollment.machine-001").
 					Return(entry, nil)
 			},
-			wantLen: 0,
+			validateFunc: func(pending []enrollment.PendingAgent, err error) {
+				s.Require().NoError(err)
+				s.Len(pending, 0)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			tc.setupMock()
-			pending, err := s.watcher.ListPending(s.ctx)
-			if tc.wantErr {
-				s.Require().Error(err)
-				s.Contains(err.Error(), tc.wantErrMsg)
-			} else {
-				s.Require().NoError(err)
-				s.Len(pending, tc.wantLen)
-			}
+			tc.validateFunc(s.watcher.ListPending(s.ctx))
 		})
 	}
 }
 
 func (s *WatcherPublicTestSuite) TestAcceptByHostname() {
 	tests := []struct {
-		name       string
-		hostname   string
-		setupMock  func()
-		wantErr    bool
-		wantErrMsg string
+		name         string
+		hostname     string
+		setupMock    func()
+		validateFunc func(error)
 	}{
 		{
 			name:     "finds and accepts agent by hostname",
@@ -691,6 +707,9 @@ func (s *WatcherPublicTestSuite) TestAcceptByHostname() {
 					Delete(gomock.Any(), "enrollment.machine-001").
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
+			},
 		},
 		{
 			name:     "returns error when no matching hostname found",
@@ -714,8 +733,10 @@ func (s *WatcherPublicTestSuite) TestAcceptByHostname() {
 					Get(gomock.Any(), "enrollment.machine-001").
 					Return(entry, nil)
 			},
-			wantErr:    true,
-			wantErrMsg: `no pending agent with hostname "nonexistent"`,
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), `no pending agent with hostname "nonexistent"`)
+			},
 		},
 		{
 			name:     "returns error when bucket is empty",
@@ -725,8 +746,10 @@ func (s *WatcherPublicTestSuite) TestAcceptByHostname() {
 					ListKeys(gomock.Any()).
 					Return(nil, jetstream.ErrNoKeysFound)
 			},
-			wantErr:    true,
-			wantErrMsg: `no pending agent with hostname "web-01"`,
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), `no pending agent with hostname "web-01"`)
+			},
 		},
 		{
 			name:     "returns error on list failure",
@@ -736,32 +759,27 @@ func (s *WatcherPublicTestSuite) TestAcceptByHostname() {
 					ListKeys(gomock.Any()).
 					Return(nil, errors.New("list error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "list enrollment keys",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "list enrollment keys")
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			tc.setupMock()
-			err := s.watcher.AcceptByHostname(s.ctx, tc.hostname)
-			if tc.wantErr {
-				s.Require().Error(err)
-				s.Contains(err.Error(), tc.wantErrMsg)
-			} else {
-				s.Require().NoError(err)
-			}
+			tc.validateFunc(s.watcher.AcceptByHostname(s.ctx, tc.hostname))
 		})
 	}
 }
 
 func (s *WatcherPublicTestSuite) TestAcceptByFingerprint() {
 	tests := []struct {
-		name        string
-		fingerprint string
-		setupMock   func()
-		wantErr     bool
-		wantErrMsg  string
+		name         string
+		fingerprint  string
+		setupMock    func()
+		validateFunc func(error)
 	}{
 		{
 			name:        "finds and accepts agent by fingerprint",
@@ -803,6 +821,9 @@ func (s *WatcherPublicTestSuite) TestAcceptByFingerprint() {
 					Delete(gomock.Any(), "enrollment.machine-001").
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
+			},
 		},
 		{
 			name:        "returns error when no matching fingerprint found",
@@ -826,8 +847,10 @@ func (s *WatcherPublicTestSuite) TestAcceptByFingerprint() {
 					Get(gomock.Any(), "enrollment.machine-001").
 					Return(entry, nil)
 			},
-			wantErr:    true,
-			wantErrMsg: `no pending agent with fingerprint "SHA256:unknown"`,
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), `no pending agent with fingerprint "SHA256:unknown"`)
+			},
 		},
 		{
 			name:        "returns error when bucket is empty",
@@ -837,8 +860,10 @@ func (s *WatcherPublicTestSuite) TestAcceptByFingerprint() {
 					ListKeys(gomock.Any()).
 					Return(nil, jetstream.ErrNoKeysFound)
 			},
-			wantErr:    true,
-			wantErrMsg: `no pending agent with fingerprint "SHA256:abc123"`,
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), `no pending agent with fingerprint "SHA256:abc123"`)
+			},
 		},
 		{
 			name:        "returns error on list failure",
@@ -848,8 +873,10 @@ func (s *WatcherPublicTestSuite) TestAcceptByFingerprint() {
 					ListKeys(gomock.Any()).
 					Return(nil, errors.New("list error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "list enrollment keys",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "list enrollment keys")
+			},
 		},
 		{
 			name:        "skips entries with get errors during scan",
@@ -895,6 +922,9 @@ func (s *WatcherPublicTestSuite) TestAcceptByFingerprint() {
 				s.mockKV.EXPECT().
 					Delete(gomock.Any(), "enrollment.machine-002").
 					Return(nil)
+			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
 			},
 		},
 		{
@@ -944,29 +974,26 @@ func (s *WatcherPublicTestSuite) TestAcceptByFingerprint() {
 					Delete(gomock.Any(), "enrollment.machine-002").
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			tc.setupMock()
-			err := s.watcher.AcceptByFingerprint(s.ctx, tc.fingerprint)
-			if tc.wantErr {
-				s.Require().Error(err)
-				s.Contains(err.Error(), tc.wantErrMsg)
-			} else {
-				s.Require().NoError(err)
-			}
+			tc.validateFunc(s.watcher.AcceptByFingerprint(s.ctx, tc.fingerprint))
 		})
 	}
 }
 
 func (s *WatcherPublicTestSuite) TestStart() {
 	tests := []struct {
-		name       string
-		setupMock  func()
-		wantErr    bool
-		wantErrMsg string
+		name         string
+		setupMock    func()
+		wantErr      bool
+		validateFunc func(error)
 	}{
 		{
 			name: "subscribes and blocks until context cancelled",
@@ -981,6 +1008,9 @@ func (s *WatcherPublicTestSuite) TestStart() {
 						return &nats.Subscription{}, nil
 					})
 			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
+			},
 		},
 		{
 			name: "returns error on subscribe failure",
@@ -989,8 +1019,11 @@ func (s *WatcherPublicTestSuite) TestStart() {
 					Subscribe("osapi.enroll.request", gomock.Any()).
 					Return(nil, errors.New("subscribe error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "subscribe to enrollment requests",
+			wantErr: true,
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "subscribe to enrollment requests")
+			},
 		},
 	}
 
@@ -999,9 +1032,7 @@ func (s *WatcherPublicTestSuite) TestStart() {
 			tc.setupMock()
 
 			if tc.wantErr {
-				err := s.watcher.Start(s.ctx)
-				s.Require().Error(err)
-				s.Contains(err.Error(), tc.wantErrMsg)
+				tc.validateFunc(s.watcher.Start(s.ctx))
 			} else {
 				ctx, cancel := context.WithCancel(s.ctx)
 				errCh := make(chan error, 1)
@@ -1012,8 +1043,7 @@ func (s *WatcherPublicTestSuite) TestStart() {
 
 				cancel()
 
-				err := <-errCh
-				s.Require().NoError(err)
+				tc.validateFunc(<-errCh)
 			}
 		})
 	}
@@ -1021,35 +1051,41 @@ func (s *WatcherPublicTestSuite) TestStart() {
 
 func (s *WatcherPublicTestSuite) TestEnrollSubject() {
 	tests := []struct {
-		name      string
-		namespace string
-		suffix    string
-		want      string
+		name         string
+		namespace    string
+		suffix       string
+		validateFunc func(string)
 	}{
 		{
 			name:      "with namespace",
 			namespace: "osapi",
 			suffix:    "enroll.request",
-			want:      "osapi.enroll.request",
+			validateFunc: func(got string) {
+				s.Equal("osapi.enroll.request", got)
+			},
 		},
 		{
 			name:      "without namespace",
 			namespace: "",
 			suffix:    "enroll.request",
-			want:      "enroll.request",
+			validateFunc: func(got string) {
+				s.Equal("enroll.request", got)
+			},
 		},
 		{
 			name:      "response subject with namespace",
 			namespace: "osapi",
 			suffix:    "enroll.response.machine-001",
-			want:      "osapi.enroll.response.machine-001",
+			validateFunc: func(got string) {
+				s.Equal("osapi.enroll.response.machine-001", got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			got := enrollment.EnrollSubject(tc.namespace, tc.suffix)
-			s.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -1081,11 +1117,10 @@ func (s *WatcherPublicTestSuite) makeEnrollmentMsg(
 
 func (s *WatcherPublicTestSuite) TestRejectByHostname() {
 	tests := []struct {
-		name       string
-		hostname   string
-		setupMock  func()
-		wantErr    bool
-		wantErrMsg string
+		name         string
+		hostname     string
+		setupMock    func()
+		validateFunc func(error)
 	}{
 		{
 			name:     "finds and rejects agent by hostname",
@@ -1126,6 +1161,9 @@ func (s *WatcherPublicTestSuite) TestRejectByHostname() {
 					Delete(gomock.Any(), "enrollment.machine-001").
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.Require().NoError(err)
+			},
 		},
 		{
 			name:     "returns error when no matching hostname found",
@@ -1149,8 +1187,10 @@ func (s *WatcherPublicTestSuite) TestRejectByHostname() {
 					Get(gomock.Any(), "enrollment.machine-001").
 					Return(entry, nil)
 			},
-			wantErr:    true,
-			wantErrMsg: `no pending agent with hostname "nonexistent"`,
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), `no pending agent with hostname "nonexistent"`)
+			},
 		},
 		{
 			name:     "returns error when bucket is empty",
@@ -1160,8 +1200,10 @@ func (s *WatcherPublicTestSuite) TestRejectByHostname() {
 					ListKeys(gomock.Any()).
 					Return(nil, jetstream.ErrNoKeysFound)
 			},
-			wantErr:    true,
-			wantErrMsg: `no pending agent with hostname "web-01"`,
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), `no pending agent with hostname "web-01"`)
+			},
 		},
 		{
 			name:     "returns error on list failure",
@@ -1171,21 +1213,17 @@ func (s *WatcherPublicTestSuite) TestRejectByHostname() {
 					ListKeys(gomock.Any()).
 					Return(nil, errors.New("list error"))
 			},
-			wantErr:    true,
-			wantErrMsg: "list enrollment keys",
+			validateFunc: func(err error) {
+				s.Require().Error(err)
+				s.Contains(err.Error(), "list enrollment keys")
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			tc.setupMock()
-			err := s.watcher.RejectByHostname(s.ctx, tc.hostname, "rejected via API")
-			if tc.wantErr {
-				s.Require().Error(err)
-				s.Contains(err.Error(), tc.wantErrMsg)
-			} else {
-				s.Require().NoError(err)
-			}
+			tc.validateFunc(s.watcher.RejectByHostname(s.ctx, tc.hostname, "rejected via API"))
 		})
 	}
 }
@@ -1212,6 +1250,8 @@ func (s *WatcherPublicTestSuite) makePendingJSON(
 	return data
 }
 
-func TestWatcherPublicTestSuite(t *testing.T) {
+func TestWatcherPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(WatcherPublicTestSuite))
 }

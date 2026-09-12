@@ -873,7 +873,9 @@ func (suite *UserPublicTestSuite) TestUserChangePassword() {
 	}
 }
 
-func TestUserPublicTestSuite(t *testing.T) {
+func TestUserPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(UserPublicTestSuite))
 }

@@ -52,12 +52,12 @@ func (s *ProcessorDockerPublicTestSuite) TearDownTest() {
 
 func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func(*dockerMocks.MockProvider)
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func(*dockerMocks.MockProvider)
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "nil provider returns error",
@@ -96,7 +96,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -135,7 +135,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -169,7 +169,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -234,7 +234,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -287,7 +287,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -311,7 +311,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -364,7 +364,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -419,7 +419,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						{ID: "abc123"},
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r []dockerProv.Container
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -471,7 +471,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Container: dockerProv.Container{ID: "abc123"},
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r dockerProv.ContainerDetail
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -526,7 +526,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed:  true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -580,7 +580,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -633,7 +633,7 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 						Changed: true,
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r map[string]interface{}
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -691,14 +691,14 @@ func (s *ProcessorDockerPublicTestSuite) TestProcessDockerOperation() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
 }
 
-func TestProcessorDockerPublicTestSuite(t *testing.T) {
+func TestProcessorDockerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorDockerPublicTestSuite))
 }

@@ -51,11 +51,10 @@ func (s *ProcessorRoutePublicTestSuite) TearDownTest() {
 
 func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() route.Provider
-		expectError bool
-		errorMsg    string
+		name         string
+		jobRequest   job.Request
+		setupMock    func() route.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -65,9 +64,12 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 				Operation: "route.list",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "route provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "route provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid route operation missing sub-operation",
@@ -80,8 +82,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 			setupMock: func() route.Provider {
 				return routeMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid route operation: route",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid route operation: route")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported route sub-operation",
@@ -94,8 +99,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 			setupMock: func() route.Provider {
 				return routeMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported route operation: route.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported route operation: route.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -112,28 +120,17 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 				routeProvider,
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorRoutePublicTestSuite) TestProcessRouteList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() route.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() route.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful route list",
@@ -151,10 +148,12 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entries []route.ListEntry
-				err := json.Unmarshal(result, &entries)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entries []route.ListEntry
+				decodeErr := json.Unmarshal(result, &entries)
+				s.NoError(decodeErr)
 				s.Len(entries, 2)
 				s.Equal("10.0.0.0/24", entries[0].Destination)
 			},
@@ -172,8 +171,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteList() {
 				m.EXPECT().List(gomock.Any()).Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -185,31 +187,17 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteList() {
 				tt.setupMock(),
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorRoutePublicTestSuite) TestProcessRouteGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() route.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() route.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful route get",
@@ -229,10 +217,12 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entry route.Entry
-				err := json.Unmarshal(result, &entry)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entry route.Entry
+				decodeErr := json.Unmarshal(result, &entry)
+				s.NoError(decodeErr)
 				s.Equal("eth0", entry.Interface)
 				s.Len(entry.Routes, 1)
 			},
@@ -248,8 +238,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteGet() {
 			setupMock: func() route.Provider {
 				return routeMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal route get data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal route get data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "route get provider error",
@@ -264,8 +257,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteGet() {
 				m.EXPECT().Get(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -277,31 +273,17 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteGet() {
 				tt.setupMock(),
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorRoutePublicTestSuite) TestProcessRouteCreate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() route.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() route.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful route create",
@@ -326,10 +308,12 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteCreate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r route.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r route.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("eth0", r.Interface)
 				s.True(r.Changed)
 			},
@@ -345,8 +329,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteCreate() {
 			setupMock: func() route.Provider {
 				return routeMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal route create data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal route create data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "route create provider error",
@@ -365,8 +352,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteCreate() {
 					Return(nil, errors.New("deploy failed"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "deploy failed",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "deploy failed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -378,31 +368,17 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteCreate() {
 				tt.setupMock(),
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorRoutePublicTestSuite) TestProcessRouteUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() route.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() route.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful route update",
@@ -427,10 +403,12 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteUpdate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r route.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r route.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("eth0", r.Interface)
 				s.True(r.Changed)
 			},
@@ -446,8 +424,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteUpdate() {
 			setupMock: func() route.Provider {
 				return routeMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal route update data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal route update data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "route update provider error",
@@ -466,8 +447,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteUpdate() {
 					Return(nil, errors.New("not managed"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not managed",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not managed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -479,31 +463,17 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteUpdate() {
 				tt.setupMock(),
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorRoutePublicTestSuite) TestProcessRouteDelete() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() route.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() route.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful route delete",
@@ -521,10 +491,12 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteDelete() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r route.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r route.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("eth0", r.Interface)
 				s.True(r.Changed)
 			},
@@ -540,8 +512,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteDelete() {
 			setupMock: func() route.Provider {
 				return routeMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal route delete data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal route delete data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "route delete provider error",
@@ -556,8 +531,11 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteDelete() {
 				m.EXPECT().Delete(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -569,23 +547,13 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteDelete() {
 				tt.setupMock(),
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
-func TestProcessorRoutePublicTestSuite(t *testing.T) {
+func TestProcessorRoutePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorRoutePublicTestSuite))
 }

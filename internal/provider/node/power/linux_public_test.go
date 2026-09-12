@@ -42,44 +42,50 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 
 func (suite *LinuxPublicTestSuite) TestReboot() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*power.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *power.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Reboot(context.Background(), power.Opts{})
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Reboot(context.Background(), power.Opts{}))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestShutdown() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*power.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *power.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Shutdown(context.Background(), power.Opts{})
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Shutdown(context.Background(), power.Opts{}))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxPublicTestSuite(t *testing.T) {
+func TestLinuxPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxPublicTestSuite))
 }

@@ -40,10 +40,15 @@ func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func([]disk.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result []disk.Result, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -51,16 +56,15 @@ func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 		suite.Run(tc.name, func() {
 			linux := disk.NewLinuxProvider()
 
-			got, err := linux.GetLocalUsageStats()
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetLocalUsageStats())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetLocalUsageStatsPublicTestSuite(t *testing.T) {
+func TestLinuxGetLocalUsageStatsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetLocalUsageStatsPublicTestSuite))
 }

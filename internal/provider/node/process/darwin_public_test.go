@@ -42,63 +42,71 @@ func (suite *DarwinPublicTestSuite) SetupTest() {
 
 func (suite *DarwinPublicTestSuite) TestList() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func([]process.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result []process.Info, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.List(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.List(context.Background()))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestGet() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*process.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *process.Info, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Get(context.Background(), 1)
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Get(context.Background(), 1))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestSignal() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*process.SignalResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *process.SignalResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Signal(context.Background(), 1, "TERM")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Signal(context.Background(), 1, "TERM"))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinPublicTestSuite(t *testing.T) {
+func TestDarwinPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinPublicTestSuite))
 }

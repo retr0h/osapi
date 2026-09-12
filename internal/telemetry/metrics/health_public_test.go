@@ -115,31 +115,43 @@ func (s *HealthPublicTestSuite) TestHandleReady() {
 		name           string
 		readinessFunc  func() error
 		wantStatusCode int
-		wantBodySubstr string
+		validateFunc   func([]byte, error)
 	}{
 		{
 			name:           "returns 503 when no readiness func configured",
 			readinessFunc:  nil,
 			wantStatusCode: http.StatusServiceUnavailable,
-			wantBodySubstr: "not_ready",
+			validateFunc: func(body []byte, err error) {
+				s.Require().NoError(err)
+				s.Contains(string(body), "not_ready")
+			},
 		},
 		{
 			name:           "returns 503 when readiness func returns error",
 			readinessFunc:  func() error { return errors.New("dependency unavailable") },
 			wantStatusCode: http.StatusServiceUnavailable,
-			wantBodySubstr: "dependency unavailable",
+			validateFunc: func(body []byte, err error) {
+				s.Require().NoError(err)
+				s.Contains(string(body), "dependency unavailable")
+			},
 		},
 		{
 			name:           "returns 200 when readiness func returns nil",
 			readinessFunc:  func() error { return nil },
 			wantStatusCode: http.StatusOK,
-			wantBodySubstr: "ready",
+			validateFunc: func(body []byte, err error) {
+				s.Require().NoError(err)
+				s.Contains(string(body), "ready")
+			},
 		},
 		{
 			name:           "returns Content-Type application/json",
 			readinessFunc:  func() error { return nil },
 			wantStatusCode: http.StatusOK,
-			wantBodySubstr: "ready",
+			validateFunc: func(body []byte, err error) {
+				s.Require().NoError(err)
+				s.Contains(string(body), "ready")
+			},
 		},
 	}
 
@@ -171,9 +183,7 @@ func (s *HealthPublicTestSuite) TestHandleReady() {
 			s.Equal(tc.wantStatusCode, resp.StatusCode)
 			s.Equal("application/json", resp.Header.Get("Content-Type"))
 
-			body, err := io.ReadAll(resp.Body)
-			s.Require().NoError(err)
-			s.Contains(string(body), tc.wantBodySubstr)
+			tc.validateFunc(io.ReadAll(resp.Body))
 		})
 	}
 }

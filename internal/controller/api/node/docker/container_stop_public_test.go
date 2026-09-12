@@ -30,6 +30,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -102,7 +104,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 			},
 			validateFunc: func(resp gen.PostNodeContainerDockerStopResponseObject) {
@@ -124,7 +126,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 				Hostname: "server1",
 				Id:       "abc123",
 				Body: &gen.PostNodeContainerDockerStopJSONRequestBody{
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -138,7 +140,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 			},
 			validateFunc: func(resp gen.PostNodeContainerDockerStopResponseObject) {
@@ -154,7 +156,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 				Hostname: "server1",
 				Id:       "abc123",
 				Body: &gen.PostNodeContainerDockerStopJSONRequestBody{
-					Timeout: intPtr(999),
+					Timeout: ptr.To(999),
 				},
 			},
 			setupMock: func() {},
@@ -265,12 +267,12 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 					}, nil)
 			},
@@ -301,7 +303,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStop() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 						},
 						"server2": {
 							Status:   job.StatusFailed,
@@ -393,8 +395,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopValidation
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -406,12 +407,16 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopValidation
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerStop, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"results"`, `"container stopped"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"container stopped"`)
+			},
 		},
 		{
 			name: "when invalid timeout",
@@ -420,8 +425,11 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopValidation
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Timeout"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Timeout")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -430,8 +438,12 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopValidation
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 	}
 
@@ -455,10 +467,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopValidation
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -472,8 +481,7 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopRBACHTTP()
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -483,8 +491,10 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopRBACHTTP()
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -501,8 +511,10 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopRBACHTTP()
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 202",
@@ -522,12 +534,15 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopRBACHTTP()
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerStop, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -565,14 +580,13 @@ func (s *ContainerStopPublicTestSuite) TestPostNodeContainerDockerStopRBACHTTP()
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestContainerStopPublicTestSuite(t *testing.T) {
+func TestContainerStopPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerStopPublicTestSuite))
 }

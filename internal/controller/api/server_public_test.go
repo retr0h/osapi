@@ -55,9 +55,10 @@ func (s *ServerPublicTestSuite) TearDownTest() {
 
 func (s *ServerPublicTestSuite) TestNew() {
 	tests := []struct {
-		name      string
-		appConfig config.Config
-		opts      []api.Option
+		name         string
+		appConfig    config.Config
+		opts         []api.Option
+		validateFunc func(*api.Server)
 	}{
 		{
 			name: "creates server with default config",
@@ -69,6 +70,10 @@ func (s *ServerPublicTestSuite) TestNew() {
 						},
 					},
 				},
+			},
+			validateFunc: func(server *api.Server) {
+				s.NotNil(server)
+				s.NotNil(server.Echo)
 			},
 		},
 		{
@@ -87,6 +92,10 @@ func (s *ServerPublicTestSuite) TestNew() {
 					},
 				},
 			},
+			validateFunc: func(server *api.Server) {
+				s.NotNil(server)
+				s.NotNil(server.Echo)
+			},
 		},
 		{
 			name: "creates server with audit store option",
@@ -102,6 +111,10 @@ func (s *ServerPublicTestSuite) TestNew() {
 			opts: []api.Option{
 				api.WithAuditStore(auditmocks.NewMockStore(s.mockCtrl)),
 			},
+			validateFunc: func(server *api.Server) {
+				s.NotNil(server)
+				s.NotNil(server.Echo)
+			},
 		},
 		{
 			name: "creates server with meter provider option",
@@ -116,6 +129,10 @@ func (s *ServerPublicTestSuite) TestNew() {
 			},
 			opts: []api.Option{
 				api.WithMeterProvider(sdkmetric.NewMeterProvider()),
+			},
+			validateFunc: func(server *api.Server) {
+				s.NotNil(server)
+				s.NotNil(server.Echo)
 			},
 		},
 		{
@@ -135,15 +152,16 @@ func (s *ServerPublicTestSuite) TestNew() {
 					},
 				},
 			},
+			validateFunc: func(server *api.Server) {
+				s.NotNil(server)
+				s.NotNil(server.Echo)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			server := api.New(tt.appConfig, slog.Default(), tt.opts...)
-
-			s.NotNil(server)
-			s.NotNil(server.Echo)
+			tt.validateFunc(api.New(tt.appConfig, slog.Default(), tt.opts...))
 		})
 	}
 }
@@ -270,6 +288,8 @@ func (s *ServerPublicTestSuite) TestStopErrorPath() {
 	}
 }
 
-func TestServerPublicTestSuite(t *testing.T) {
+func TestServerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServerPublicTestSuite))
 }

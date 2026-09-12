@@ -74,10 +74,18 @@ func (s *MeterPublicTestSuite) TearDownTest() {
 
 func (s *MeterPublicTestSuite) TestSetMeterProvider() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*metrics.Server)
 	}{
 		{
 			name: "creates OTEL instruments without panic",
+			validateFunc: func(srv *metrics.Server) {
+				s.Require().NotNil(srv)
+
+				s.NotPanics(func() {
+					s.jobsClient.SetMeterProvider(srv.MeterProvider())
+				})
+			},
 		},
 	}
 
@@ -85,11 +93,7 @@ func (s *MeterPublicTestSuite) TestSetMeterProvider() {
 		s.Run(tt.name, func() {
 			port := s.getFreePort()
 			srv := metrics.New("127.0.0.1", port, slog.Default())
-			s.Require().NotNil(srv)
-
-			s.NotPanics(func() {
-				s.jobsClient.SetMeterProvider(srv.MeterProvider())
-			})
+			tt.validateFunc(srv)
 
 			ctx, cancel := context.WithTimeout(
 				context.Background(),
@@ -102,7 +106,9 @@ func (s *MeterPublicTestSuite) TestSetMeterProvider() {
 	}
 }
 
-func TestMeterPublicTestSuite(t *testing.T) {
+func TestMeterPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(MeterPublicTestSuite))
 }

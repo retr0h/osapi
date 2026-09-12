@@ -70,12 +70,10 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 	driftedSHA := computeTestSHA256(driftedContent)
 
 	tests := []struct {
-		name       string
-		setupMock  func()
-		req        file.StatusRequest
-		want       *file.StatusResult
-		wantErr    bool
-		wantErrMsg string
+		name         string
+		setupMock    func()
+		req          file.StatusRequest
+		validateFunc func(*file.StatusResult, error)
 	}{
 		{
 			name: "when file in sync",
@@ -99,10 +97,14 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			want: &file.StatusResult{
-				Path:   "/etc/nginx/nginx.conf",
-				Status: "in-sync",
-				SHA256: fileSHA,
+			validateFunc: func(got *file.StatusResult, err error) {
+				suite.NoError(err)
+				suite.Require().NotNil(got)
+				suite.Equal(&file.StatusResult{
+					Path:   "/etc/nginx/nginx.conf",
+					Status: "in-sync",
+					SHA256: fileSHA,
+				}, got)
 			},
 		},
 		{
@@ -127,10 +129,14 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			want: &file.StatusResult{
-				Path:   "/etc/nginx/nginx.conf",
-				Status: "drifted",
-				SHA256: driftedSHA,
+			validateFunc: func(got *file.StatusResult, err error) {
+				suite.NoError(err)
+				suite.Require().NotNil(got)
+				suite.Equal(&file.StatusResult{
+					Path:   "/etc/nginx/nginx.conf",
+					Status: "drifted",
+					SHA256: driftedSHA,
+				}, got)
 			},
 		},
 		{
@@ -152,9 +158,13 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			want: &file.StatusResult{
-				Path:   "/etc/nginx/nginx.conf",
-				Status: "missing",
+			validateFunc: func(got *file.StatusResult, err error) {
+				suite.NoError(err)
+				suite.Require().NotNil(got)
+				suite.Equal(&file.StatusResult{
+					Path:   "/etc/nginx/nginx.conf",
+					Status: "missing",
+				}, got)
 			},
 		},
 		{
@@ -170,8 +180,11 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			wantErr:    true,
-			wantErrMsg: "failed to parse file state",
+			validateFunc: func(got *file.StatusResult, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, "failed to parse file state")
+				suite.Nil(got)
+			},
 		},
 		{
 			name: "when no state entry",
@@ -183,9 +196,13 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			want: &file.StatusResult{
-				Path:   "/etc/nginx/nginx.conf",
-				Status: "missing",
+			validateFunc: func(got *file.StatusResult, err error) {
+				suite.NoError(err)
+				suite.Require().NotNil(got)
+				suite.Equal(&file.StatusResult{
+					Path:   "/etc/nginx/nginx.conf",
+					Status: "missing",
+				}, got)
 			},
 		},
 	}
@@ -207,23 +224,15 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 				"test-host",
 			)
 
-			got, err := provider.Status(suite.ctx, tc.req)
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrMsg)
-				suite.Nil(got)
-			} else {
-				suite.NoError(err)
-				suite.Require().NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(provider.Status(suite.ctx, tc.req))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestStatusPublicTestSuite(t *testing.T) {
+func TestStatusPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(StatusPublicTestSuite))
 }

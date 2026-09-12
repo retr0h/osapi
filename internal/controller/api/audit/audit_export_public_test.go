@@ -169,8 +169,7 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportHTTP() {
 	tests := []struct {
 		name         string
 		setupStore   func(mock *auditmocks.MockStore)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request returns entries",
@@ -191,8 +190,10 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportHTTP() {
 						},
 					}, nil)
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"total_items":1`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"total_items":1`)
+			},
 		},
 	}
 
@@ -219,10 +220,7 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -236,17 +234,18 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupStore   func(mock *auditmocks.MockStore)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
 			setupAuth: func(_ *http.Request) {
 				// No auth header set
 			},
-			setupStore:   func(_ *auditmocks.MockStore) {},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			setupStore: func(_ *auditmocks.MockStore) {},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -260,9 +259,11 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportRBACHTTP() {
 				s.Require().NoError(err)
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 			},
-			setupStore:   func(_ *auditmocks.MockStore) {},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			setupStore: func(_ *auditmocks.MockStore) {},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with audit:read returns 200",
@@ -281,8 +282,10 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportRBACHTTP() {
 					ListAll(gomock.Any()).
 					Return([]auditstore.Entry{}, nil)
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"total_items":0`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"total_items":0`)
+			},
 		},
 	}
 
@@ -323,14 +326,13 @@ func (s *AuditExportPublicTestSuite) TestGetAuditExportRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestAuditExportPublicTestSuite(t *testing.T) {
+func TestAuditExportPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuditExportPublicTestSuite))
 }

@@ -85,7 +85,9 @@ func (suite *DebianSSHKeyPublicTestSuite) TearDownTest() {
 	suite.ctrl.Finish()
 }
 
-func (suite *DebianSSHKeyPublicTestSuite) writePasswd(content string) {
+func (suite *DebianSSHKeyPublicTestSuite) writePasswd(
+	content string,
+) {
 	_ = suite.memFs.MkdirAll("/etc", 0o755)
 
 	f, err := suite.memFs.Create("/etc/passwd")
@@ -112,7 +114,9 @@ func (suite *DebianSSHKeyPublicTestSuite) writeAuthorizedKeys(
 	suite.Require().NoError(f.Close())
 }
 
-func (suite *DebianSSHKeyPublicTestSuite) readFile(path string) string {
+func (suite *DebianSSHKeyPublicTestSuite) readFile(
+	path string,
+) string {
 	content, err := suite.memFs.ReadFile(path)
 	suite.Require().NoError(err)
 
@@ -910,6 +914,8 @@ func (suite *DebianSSHKeyPublicTestSuite) TestRemoveKey() {
 	}
 }
 
-func TestDebianSSHKeyPublicTestSuite(t *testing.T) {
+func TestDebianSSHKeyPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianSSHKeyPublicTestSuite))
 }

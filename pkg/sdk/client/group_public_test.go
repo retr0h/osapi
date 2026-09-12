@@ -723,7 +723,9 @@ func (suite *GroupPublicTestSuite) TestGroupDelete() {
 	}
 }
 
-func TestGroupPublicTestSuite(t *testing.T) {
+func TestGroupPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(GroupPublicTestSuite))
 }

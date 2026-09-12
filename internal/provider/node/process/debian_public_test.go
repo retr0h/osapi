@@ -419,9 +419,9 @@ func (suite *DebianPublicTestSuite) TestSignal() {
 
 func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 	tests := []struct {
-		name      string
-		setupMock func() *mocks.MockQuerier
-		wantErr   string
+		name         string
+		setupMock    func() *mocks.MockQuerier
+		validateFunc func(*process.Info, error)
 	}{
 		{
 			name: "when Username errors returns error",
@@ -432,7 +432,10 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			wantErr: "user error",
+			validateFunc: func(_ *process.Info, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "user error")
+			},
 		},
 		{
 			name: "when Status errors returns error",
@@ -444,7 +447,10 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			wantErr: "status error",
+			validateFunc: func(_ *process.Info, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "status error")
+			},
 		},
 		{
 			name: "when CPUPercent errors returns error",
@@ -457,7 +463,10 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			wantErr: "cpu error",
+			validateFunc: func(_ *process.Info, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "cpu error")
+			},
 		},
 		{
 			name: "when MemoryPercent errors returns error",
@@ -471,7 +480,10 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			wantErr: "mem percent error",
+			validateFunc: func(_ *process.Info, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "mem percent error")
+			},
 		},
 		{
 			name: "when MemoryInfo errors returns error",
@@ -486,7 +498,10 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			wantErr: "mem info error",
+			validateFunc: func(_ *process.Info, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "mem info error")
+			},
 		},
 		{
 			name: "when Cmdline errors returns error",
@@ -502,7 +517,10 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			wantErr: "cmdline error",
+			validateFunc: func(_ *process.Info, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "cmdline error")
+			},
 		},
 		{
 			name: "when CreateTime errors returns error",
@@ -519,7 +537,10 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			wantErr: "create time error",
+			validateFunc: func(_ *process.Info, err error) {
+				suite.Error(err)
+				suite.Contains(err.Error(), "create time error")
+			},
 		},
 	}
 
@@ -529,10 +550,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 			suite.mockLister.EXPECT().NewProcess(int32(1)).Return(q, nil)
 
-			_, err := suite.provider.Get(context.Background(), 1)
-
-			suite.Error(err)
-			suite.Contains(err.Error(), tc.wantErr)
+			tc.validateFunc(suite.provider.Get(context.Background(), 1))
 		})
 	}
 }
@@ -611,6 +629,8 @@ func (suite *DebianPublicTestSuite) TestDefaultOSFunctions() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDebianPublicTestSuite(t *testing.T) {
+func TestDebianPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianPublicTestSuite))
 }

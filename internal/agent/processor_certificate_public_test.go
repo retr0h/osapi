@@ -51,12 +51,12 @@ func (s *ProcessorCertificatePublicTestSuite) TearDownTest() {
 
 func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() certificate.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() certificate.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "nil provider returns error",
@@ -83,7 +83,7 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateOperation() 
 				m.EXPECT().List(gomock.Any()).Return([]certificate.Entry{}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var entries []certificate.Entry
 				err := json.Unmarshal(result, &entries)
 				s.NoError(err)
@@ -123,9 +123,7 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateOperation() 
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -133,12 +131,12 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateOperation() 
 
 func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateCAOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() certificate.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() certificate.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "invalid CA operation missing sub-operation",
@@ -172,7 +170,7 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateCAOperation(
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var entries []certificate.Entry
 				err := json.Unmarshal(result, &entries)
 				s.NoError(err)
@@ -218,7 +216,7 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateCAOperation(
 				)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r certificate.CreateResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -279,7 +277,7 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateCAOperation(
 				)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r certificate.UpdateResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -333,7 +331,7 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateCAOperation(
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r certificate.DeleteResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -399,14 +397,14 @@ func (s *ProcessorCertificatePublicTestSuite) TestProcessCertificateCAOperation(
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
 }
 
-func TestProcessorCertificatePublicTestSuite(t *testing.T) {
+func TestProcessorCertificatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorCertificatePublicTestSuite))
 }

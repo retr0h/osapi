@@ -140,6 +140,8 @@ func (suite *DiskPublicTestSuite) TestGet() {
 	}
 }
 
-func TestDiskPublicTestSuite(t *testing.T) {
+func TestDiskPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DiskPublicTestSuite))
 }

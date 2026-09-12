@@ -395,7 +395,9 @@ func (suite *UserTypesPublicTestSuite) TestUserMutationCollectionFromPassword() 
 	}
 }
 
-func TestUserTypesPublicTestSuite(t *testing.T) {
+func TestUserTypesPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(UserTypesPublicTestSuite))
 }

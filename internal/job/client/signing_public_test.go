@@ -90,18 +90,41 @@ func (s *SigningPublicTestSuite) TestWrapInSignedEnvelope() {
 		name         string
 		payload      []byte
 		setupFn      func()
-		expectError  bool
-		wantContains string
+		validateFunc func([]byte, error, ed25519.PublicKey)
 	}{
 		{
-			name:        "when wrapping valid payload",
-			payload:     []byte(`{"id":"test-job","operation":{"type":"node.hostname.get"}}`),
-			expectError: false,
+			name:    "when wrapping valid payload",
+			payload: []byte(`{"id":"test-job","operation":{"type":"node.hostname.get"}}`),
+			validateFunc: func(result []byte, err error, pubKey ed25519.PublicKey) {
+				s.NoError(err)
+
+				payload := []byte(`{"id":"test-job","operation":{"type":"node.hostname.get"}}`)
+
+				var envelope job.SignedEnvelope
+				s.NoError(json.Unmarshal(result, &envelope))
+				s.Equal(payload, envelope.Payload)
+				s.NotEmpty(envelope.Signature)
+				s.Equal("SHA256:test-fingerprint", envelope.Fingerprint)
+
+				s.True(ed25519.Verify(pubKey, payload, envelope.Signature))
+			},
 		},
 		{
-			name:        "when wrapping empty payload",
-			payload:     []byte{},
-			expectError: false,
+			name:    "when wrapping empty payload",
+			payload: []byte{},
+			validateFunc: func(result []byte, err error, pubKey ed25519.PublicKey) {
+				s.NoError(err)
+
+				payload := []byte{}
+
+				var envelope job.SignedEnvelope
+				s.NoError(json.Unmarshal(result, &envelope))
+				s.Equal(payload, envelope.Payload)
+				s.NotEmpty(envelope.Signature)
+				s.Equal("SHA256:test-fingerprint", envelope.Fingerprint)
+
+				s.True(ed25519.Verify(pubKey, payload, envelope.Signature))
+			},
 		},
 		{
 			name:    "when marshal fails returns error",
@@ -111,8 +134,10 @@ func (s *SigningPublicTestSuite) TestWrapInSignedEnvelope() {
 					return nil, errors.New("marshal error")
 				})
 			},
-			expectError:  true,
-			wantContains: "marshal signed envelope",
+			validateFunc: func(_ []byte, err error, _ ed25519.PublicKey) {
+				s.Error(err)
+				s.Contains(err.Error(), "marshal signed envelope")
+			},
 		},
 	}
 
@@ -126,25 +151,7 @@ func (s *SigningPublicTestSuite) TestWrapInSignedEnvelope() {
 
 			result, err := client.ExportWrapInSignedEnvelope(signer, tt.payload)
 
-			if tt.expectError {
-				s.Error(err)
-				if tt.wantContains != "" {
-					s.Contains(err.Error(), tt.wantContains)
-				}
-				return
-			}
-
-			s.NoError(err)
-
-			// Verify the result is a valid SignedEnvelope.
-			var envelope job.SignedEnvelope
-			s.NoError(json.Unmarshal(result, &envelope))
-			s.Equal(tt.payload, envelope.Payload)
-			s.NotEmpty(envelope.Signature)
-			s.Equal("SHA256:test-fingerprint", envelope.Fingerprint)
-
-			// Verify signature is valid.
-			s.True(ed25519.Verify(pubKey, tt.payload, envelope.Signature))
+			tt.validateFunc(result, err, pubKey)
 		})
 	}
 }
@@ -153,13 +160,13 @@ func (s *SigningPublicTestSuite) TestUnwrapSignedEnvelope() {
 	signer, pubKey := newSigner(gomock.NewController(s.T()))
 
 	tests := []struct {
-		name        string
-		setupData   func() []byte
-		pubKey      ed25519.PublicKey
-		wantPayload []byte
-		wantEnv     bool
-		expectError bool
-		errorMsg    string
+		name         string
+		setupData    func() []byte
+		pubKey       ed25519.PublicKey
+		wantEnv      bool
+		expectError  bool
+		errorMsg     string
+		validateFunc func([]byte)
 	}{
 		{
 			name: "when valid signed envelope with correct key",
@@ -169,9 +176,11 @@ func (s *SigningPublicTestSuite) TestUnwrapSignedEnvelope() {
 				return wrapped
 			},
 			pubKey:      pubKey,
-			wantPayload: []byte(`{"id":"test"}`),
 			wantEnv:     true,
 			expectError: false,
+			validateFunc: func(got []byte) {
+				s.Equal([]byte(`{"id":"test"}`), got)
+			},
 		},
 		{
 			name: "when valid signed envelope with nil key skips verification",
@@ -181,9 +190,11 @@ func (s *SigningPublicTestSuite) TestUnwrapSignedEnvelope() {
 				return wrapped
 			},
 			pubKey:      nil,
-			wantPayload: []byte(`{"id":"test"}`),
 			wantEnv:     true,
 			expectError: false,
+			validateFunc: func(got []byte) {
+				s.Equal([]byte(`{"id":"test"}`), got)
+			},
 		},
 		{
 			name: "when valid signed envelope with wrong key fails verification",
@@ -196,10 +207,12 @@ func (s *SigningPublicTestSuite) TestUnwrapSignedEnvelope() {
 				otherPub, _, _ := ed25519.GenerateKey(rand.Reader)
 				return otherPub
 			}(),
-			wantPayload: nil,
 			wantEnv:     true,
 			expectError: true,
 			errorMsg:    "invalid signature",
+			validateFunc: func(got []byte) {
+				s.Equal([]byte(nil), got)
+			},
 		},
 		{
 			name: "when raw JSON passes through as non-envelope",
@@ -207,9 +220,11 @@ func (s *SigningPublicTestSuite) TestUnwrapSignedEnvelope() {
 				return []byte(`{"id":"test","operation":{"type":"node.hostname.get"}}`)
 			},
 			pubKey:      pubKey,
-			wantPayload: []byte(`{"id":"test","operation":{"type":"node.hostname.get"}}`),
 			wantEnv:     false,
 			expectError: false,
+			validateFunc: func(got []byte) {
+				s.Equal([]byte(`{"id":"test","operation":{"type":"node.hostname.get"}}`), got)
+			},
 		},
 		{
 			name: "when invalid JSON passes through as non-envelope",
@@ -217,9 +232,11 @@ func (s *SigningPublicTestSuite) TestUnwrapSignedEnvelope() {
 				return []byte(`not json at all`)
 			},
 			pubKey:      pubKey,
-			wantPayload: []byte(`not json at all`),
 			wantEnv:     false,
 			expectError: false,
+			validateFunc: func(got []byte) {
+				s.Equal([]byte(`not json at all`), got)
+			},
 		},
 		{
 			name: "when envelope-like JSON with empty payload passes through",
@@ -227,9 +244,11 @@ func (s *SigningPublicTestSuite) TestUnwrapSignedEnvelope() {
 				return []byte(`{"payload":"","signature":"","fingerprint":""}`)
 			},
 			pubKey:      pubKey,
-			wantPayload: []byte(`{"payload":"","signature":"","fingerprint":""}`),
 			wantEnv:     false,
 			expectError: false,
+			validateFunc: func(got []byte) {
+				s.Equal([]byte(`{"payload":"","signature":"","fingerprint":""}`), got)
+			},
 		},
 	}
 
@@ -249,7 +268,7 @@ func (s *SigningPublicTestSuite) TestUnwrapSignedEnvelope() {
 
 			s.NoError(err)
 			s.Equal(tt.wantEnv, isEnvelope)
-			s.Equal(tt.wantPayload, payload)
+			tt.validateFunc(payload)
 		})
 	}
 }
@@ -269,6 +288,8 @@ func (s *SigningPublicTestSuite) TestRoundTrip() {
 	s.Equal(originalPayload, unwrapped)
 }
 
-func TestSigningPublicTestSuite(t *testing.T) {
+func TestSigningPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SigningPublicTestSuite))
 }

@@ -50,12 +50,10 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TearDownTest() {
 
 func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 	tests := []struct {
-		name        string
-		hostname    string
-		setupMock   func() *mocks.MockManager
-		want        *host.UpdateHostnameResult
-		wantErr     bool
-		wantErrType error
+		name         string
+		hostname     string
+		setupMock    func() *mocks.MockManager
+		validateFunc func(*host.UpdateHostnameResult, error)
 	}{
 		{
 			name:     "when hostname changes",
@@ -72,8 +70,10 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 				)
 				return mock
 			},
-			want:    &host.UpdateHostnameResult{Changed: true},
-			wantErr: false,
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
+				suite.NoError(err)
+				suite.Equal(&host.UpdateHostnameResult{Changed: true}, got)
+			},
 		},
 		{
 			name:     "when hostname already set",
@@ -85,8 +85,10 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 					Return("existing-host", nil)
 				return mock
 			},
-			want:    &host.UpdateHostnameResult{Changed: false},
-			wantErr: false,
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
+				suite.NoError(err)
+				suite.Equal(&host.UpdateHostnameResult{Changed: false}, got)
+			},
 		},
 		{
 			name:     "when hostname already set with trailing newline",
@@ -98,8 +100,10 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 					Return("existing-host\n", nil)
 				return mock
 			},
-			want:    &host.UpdateHostnameResult{Changed: false},
-			wantErr: false,
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
+				suite.NoError(err)
+				suite.Equal(&host.UpdateHostnameResult{Changed: false}, got)
+			},
 		},
 		{
 			name:     "when hostnamectl hostname errors",
@@ -111,8 +115,11 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 					Return("", assert.AnError)
 				return mock
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 		{
 			name:     "when hostnamectl set-hostname errors",
@@ -129,8 +136,11 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 				)
 				return mock
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 	}
 
@@ -139,22 +149,15 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 			mock := tc.setupMock()
 			debian := host.NewDebianProvider(mock)
 
-			got, err := debian.UpdateHostname(tc.hostname)
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Nil(got)
-			} else {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.UpdateHostname(tc.hostname))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDebianUpdateHostnamePublicTestSuite(t *testing.T) {
+func TestDebianUpdateHostnamePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianUpdateHostnamePublicTestSuite))
 }

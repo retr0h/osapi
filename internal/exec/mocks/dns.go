@@ -37,12 +37,16 @@ const (
 )
 
 // NewPlainMockManager creates a Mock without defaults.
-func NewPlainMockManager(ctrl *gomock.Controller) *MockManager {
+func NewPlainMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	return NewMockManager(ctrl)
 }
 
 // NewDefaultMockManager creates a Mock with defaults.
-func NewDefaultMockManager(ctrl *gomock.Controller) *MockManager {
+func NewDefaultMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	mock := NewPlainMockManager(ctrl)
 
 	// Add common expectations here if needed
@@ -50,7 +54,9 @@ func NewDefaultMockManager(ctrl *gomock.Controller) *MockManager {
 }
 
 // NewGetResolvConfMockManager creates a DNS Mock for GetResolvConf.
-func NewGetResolvConfMockManager(ctrl *gomock.Controller) *MockManager {
+func NewGetResolvConfMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	output := `
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
@@ -68,7 +74,9 @@ DNS Domain: example.com local.lan
 
 // NewGetResolvConfNoDNSDomainMockManager creates a DNS Mock for GetResolvConf with no
 // DNS Domain.
-func NewGetResolvConfNoDNSDomainMockManager(ctrl *gomock.Controller) *MockManager {
+func NewGetResolvConfNoDNSDomainMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	output := `
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
@@ -85,7 +93,9 @@ DNS Servers: 192.168.1.1 8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::88
 
 // NewSetResolvConfMockManager creates a DNS Mock for UpdateResolvConfByInterface
 // with new servers and domains that differ from the existing config.
-func NewSetResolvConfMockManager(ctrl *gomock.Controller) *MockManager {
+func NewSetResolvConfMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	output := `
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
@@ -105,7 +115,9 @@ DNS Domain: old.local
 
 // NewSetResolvConfPreserveDNSServersMockManager creates a DNS Mock for
 // UpdateResolvConfByInterface with existing DNS Servers preserved.
-func NewSetResolvConfPreserveDNSServersMockManager(ctrl *gomock.Controller) *MockManager {
+func NewSetResolvConfPreserveDNSServersMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	output := `
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
@@ -125,7 +137,9 @@ DNS Domain: example.com local.lan
 
 // NewSetResolvConfPreserveDNSDomainMockManager creates a DNS Mock for
 // UpdateResolvConfByInterface with existing DNS Domain preserved.
-func NewSetResolvConfPreserveDNSDomainMockManager(ctrl *gomock.Controller) *MockManager {
+func NewSetResolvConfPreserveDNSDomainMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	output := `
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
@@ -145,7 +159,9 @@ DNS Domain: foo.example.com bar.example.com
 
 // NewSetResolvConfFiltersRootDNSDomainMockManager creates a DNS Mock for
 // UpdateResolvConfByInterface with no DNS Domain (only root ".").
-func NewSetResolvConfFiltersRootDNSDomainMockManager(ctrl *gomock.Controller) *MockManager {
+func NewSetResolvConfFiltersRootDNSDomainMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	output := `
 Current Scopes: DNS
 Protocols: +DefaultRoute -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
@@ -164,7 +180,9 @@ DNS Servers: 1.1.1.1 2.2.2.2
 
 // NewSetResolvConfNetplanGenerateErrorMockManager creates a DNS Mock for
 // UpdateResolvConfByInterface when `netplan generate` fails.
-func NewSetResolvConfNetplanGenerateErrorMockManager(ctrl *gomock.Controller) *MockManager {
+func NewSetResolvConfNetplanGenerateErrorMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	// Initial state must differ from desired so the update proceeds.
 	output := `
 Current Scopes: DNS
@@ -185,19 +203,26 @@ DNS Domain: old.local
 // NewSetResolvConfSetDNSDomainErrorMockManager creates a DNS Mock for
 // UpdateResolvConfByInterface when the write path fails. Kept for
 // backwards compatibility with existing test names.
-func NewSetResolvConfSetDNSDomainErrorMockManager(ctrl *gomock.Controller) *MockManager {
+func NewSetResolvConfSetDNSDomainErrorMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	return NewSetResolvConfNetplanGenerateErrorMockManager(ctrl)
 }
 
 // NewSetResolvConfSetDNSServersErrorMockManager creates a DNS Mock for
 // UpdateResolvConfByInterface when the write path fails. Kept for
 // backwards compatibility with existing test names.
-func NewSetResolvConfSetDNSServersErrorMockManager(ctrl *gomock.Controller) *MockManager {
+func NewSetResolvConfSetDNSServersErrorMockManager(
+	ctrl *gomock.Controller,
+) *MockManager {
 	return NewSetResolvConfNetplanGenerateErrorMockManager(ctrl)
 }
 
 // mockRunCmdStatus sets up a mock for the "status" RunCmd call.
-func mockRunCmdStatus(mock *MockManager, output string) {
+func mockRunCmdStatus(
+	mock *MockManager,
+	output string,
+) {
 	mock.EXPECT().
 		RunCmd(ResolveCommand, []string{"status", NetworkInterfaceName}).
 		Return(output, nil).
@@ -205,7 +230,9 @@ func mockRunCmdStatus(mock *MockManager, output string) {
 }
 
 // mockNetplanStatus sets up a mock for `netplan status --format json`.
-func mockNetplanStatus(mock *MockManager) {
+func mockNetplanStatus(
+	mock *MockManager,
+) {
 	statusJSON := `{"` + NetworkInterfaceName + `": {"type": "wifi", "macaddress": "b0:a4:60:17:cb:90"}}`
 	mock.EXPECT().
 		RunCmd(NetplanCommand, []string{"status", "--format", "json"}).
@@ -214,7 +241,11 @@ func mockNetplanStatus(mock *MockManager) {
 }
 
 // mockNetplanApply sets up mocks for `netplan generate` and `netplan apply`.
-func mockNetplanApply(mock *MockManager, genErr error, applyErr error) {
+func mockNetplanApply(
+	mock *MockManager,
+	genErr error,
+	applyErr error,
+) {
 	mock.EXPECT().
 		RunPrivilegedCmd(NetplanCommand, []string{"generate"}).
 		Return("", genErr).

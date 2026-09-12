@@ -76,8 +76,7 @@ func (s *RotationPublicTestSuite) TestRotateControllerKey() {
 	tests := []struct {
 		name         string
 		setupMock    func()
-		wantErr      bool
-		wantContains string
+		validateFunc func(error)
 	}{
 		{
 			name: "when rotation succeeds publishes new key",
@@ -86,6 +85,9 @@ func (s *RotationPublicTestSuite) TestRotateControllerKey() {
 				s.mockNC.EXPECT().
 					PublishCore("osapi.pki.rotate", gomock.Any()).
 					Return(nil)
+			},
+			validateFunc: func(err error) {
+				require.NoError(s.T(), err)
 			},
 		},
 		{
@@ -96,8 +98,10 @@ func (s *RotationPublicTestSuite) TestRotateControllerKey() {
 					return nil, errors.New("marshal error")
 				})
 			},
-			wantErr:      true,
-			wantContains: "marshal rotation message",
+			validateFunc: func(err error) {
+				require.Error(s.T(), err)
+				assert.Contains(s.T(), err.Error(), "marshal rotation message")
+			},
 		},
 		{
 			name: "when publish fails returns error",
@@ -107,8 +111,10 @@ func (s *RotationPublicTestSuite) TestRotateControllerKey() {
 					PublishCore("osapi.pki.rotate", gomock.Any()).
 					Return(errors.New("publish error"))
 			},
-			wantErr:      true,
-			wantContains: "publish key rotation",
+			validateFunc: func(err error) {
+				require.Error(s.T(), err)
+				assert.Contains(s.T(), err.Error(), "publish key rotation")
+			},
 		},
 		{
 			name: "when namespace is empty uses bare subject",
@@ -126,6 +132,9 @@ func (s *RotationPublicTestSuite) TestRotateControllerKey() {
 					PublishCore("pki.rotate", gomock.Any()).
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				require.NoError(s.T(), err)
+			},
 		},
 	}
 
@@ -133,19 +142,14 @@ func (s *RotationPublicTestSuite) TestRotateControllerKey() {
 		s.Run(tc.name, func() {
 			tc.setupMock()
 
-			err := s.watcher.RotateControllerKey()
-
-			if tc.wantErr {
-				require.Error(s.T(), err)
-				assert.Contains(s.T(), err.Error(), tc.wantContains)
-			} else {
-				require.NoError(s.T(), err)
-			}
+			tc.validateFunc(s.watcher.RotateControllerKey())
 		})
 	}
 }
 
-func TestRotationPublicTestSuite(t *testing.T) {
+func TestRotationPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(RotationPublicTestSuite))
 }

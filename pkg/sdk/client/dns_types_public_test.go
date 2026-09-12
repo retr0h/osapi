@@ -143,6 +143,8 @@ func (suite *DNSTypesPublicTestSuite) TestDNSUpdateCollectionFromGen() {
 	}
 }
 
-func TestDNSTypesPublicTestSuite(t *testing.T) {
+func TestDNSTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DNSTypesPublicTestSuite))
 }

@@ -345,7 +345,9 @@ func (suite *GroupTypesPublicTestSuite) TestGroupMutationCollectionFromDelete() 
 	}
 }
 
-func TestGroupTypesPublicTestSuite(t *testing.T) {
+func TestGroupTypesPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(GroupTypesPublicTestSuite))
 }

@@ -39,10 +39,15 @@ func (suite *LinuxGetHostnamePublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetHostnamePublicTestSuite) TestGetHostname() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(string, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result string, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,16 +55,15 @@ func (suite *LinuxGetHostnamePublicTestSuite) TestGetHostname() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetHostname()
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetHostname())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetHostnamePublicTestSuite(t *testing.T) {
+func TestLinuxGetHostnamePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetHostnamePublicTestSuite))
 }

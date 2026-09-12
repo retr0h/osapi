@@ -665,8 +665,7 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusHTTP() {
 		name         string
 		checker      *health.NATSChecker
 		metrics      health.MetricsProvider
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when all components healthy returns status with metrics",
@@ -736,24 +735,24 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusHTTP() {
 					}, nil
 				},
 			},
-			wantCode: http.StatusOK,
-			wantContains: []string{
-				`"status":"ok"`,
-				`"version":"0.1.0"`,
-				`"uptime"`,
-				`"nats"`,
-				`"streams"`,
-				`"kv_buckets"`,
-				`"object_stores"`,
-				`"consumers"`,
-				`"jobs"`,
-				`"agents"`,
-				`"web-01"`,
-				`"group=web.prod"`,
-				`"total":1`,
-				`"file-objects"`,
-				`"registry"`,
-				`"api-server-01"`,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"status":"ok"`)
+				s.Contains(rec.Body.String(), `"version":"0.1.0"`)
+				s.Contains(rec.Body.String(), `"uptime"`)
+				s.Contains(rec.Body.String(), `"nats"`)
+				s.Contains(rec.Body.String(), `"streams"`)
+				s.Contains(rec.Body.String(), `"kv_buckets"`)
+				s.Contains(rec.Body.String(), `"object_stores"`)
+				s.Contains(rec.Body.String(), `"consumers"`)
+				s.Contains(rec.Body.String(), `"jobs"`)
+				s.Contains(rec.Body.String(), `"agents"`)
+				s.Contains(rec.Body.String(), `"web-01"`)
+				s.Contains(rec.Body.String(), `"group=web.prod"`)
+				s.Contains(rec.Body.String(), `"total":1`)
+				s.Contains(rec.Body.String(), `"file-objects"`)
+				s.Contains(rec.Body.String(), `"registry"`)
+				s.Contains(rec.Body.String(), `"api-server-01"`)
 			},
 		},
 		{
@@ -762,11 +761,11 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusHTTP() {
 				NATSCheck: func() error { return nil },
 				KVCheck:   func() error { return nil },
 			},
-			metrics:  nil,
-			wantCode: http.StatusOK,
-			wantContains: []string{
-				`"status":"ok"`,
-				`"version":"0.1.0"`,
+			metrics: nil,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"status":"ok"`)
+				s.Contains(rec.Body.String(), `"version":"0.1.0"`)
 			},
 		},
 	}
@@ -791,10 +790,7 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, want := range tc.wantContains {
-				s.Contains(rec.Body.String(), want)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -805,16 +801,17 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusRBACHTTP() {
 	tests := []struct {
 		name         string
 		setupAuth    func(req *http.Request)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
 			setupAuth: func(_ *http.Request) {
 				// No auth header set
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -828,8 +825,10 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusRBACHTTP() {
 				s.Require().NoError(err)
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with health:read returns 200",
@@ -843,8 +842,11 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusRBACHTTP() {
 				s.Require().NoError(err)
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"status":"ok"`, `"version"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"status":"ok"`)
+				s.Contains(rec.Body.String(), `"version"`)
+			},
 		},
 	}
 
@@ -924,10 +926,7 @@ func (s *HealthStatusGetPublicTestSuite) TestGetHealthStatusRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, want := range tc.wantContains {
-				s.Contains(rec.Body.String(), want)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -998,6 +997,8 @@ func (s *HealthStatusGetPublicTestSuite) TestMetricsCache() {
 	}
 }
 
-func TestHealthStatusGetPublicTestSuite(t *testing.T) {
+func TestHealthStatusGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HealthStatusGetPublicTestSuite))
 }

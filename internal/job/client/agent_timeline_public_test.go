@@ -83,15 +83,14 @@ func (s *AgentTimelinePublicTestSuite) newClientWithoutState() *client.Client {
 
 func (s *AgentTimelinePublicTestSuite) TestWriteAgentTimelineEvent() {
 	tests := []struct {
-		name        string
-		hostname    string
-		event       string
-		message     string
-		useState    bool
-		marshalErr  bool
-		setupMocks  func(*jobmocks.MockKeyValue)
-		expectError bool
-		errorMsg    string
+		name         string
+		hostname     string
+		event        string
+		message      string
+		useState     bool
+		marshalErr   bool
+		setupMocks   func(*jobmocks.MockKeyValue)
+		validateFunc func(error)
 	}{
 		{
 			name:     "when write succeeds stores timeline event",
@@ -120,6 +119,9 @@ func (s *AgentTimelinePublicTestSuite) TestWriteAgentTimelineEvent() {
 						return 1, nil
 					})
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:     "when KV put fails returns error",
@@ -132,17 +134,21 @@ func (s *AgentTimelinePublicTestSuite) TestWriteAgentTimelineEvent() {
 					Put(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(uint64(0), errors.New("kv connection failed"))
 			},
-			expectError: true,
-			errorMsg:    "write timeline event",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "write timeline event")
+			},
 		},
 		{
-			name:        "when stateKV is nil returns error",
-			hostname:    "server1",
-			event:       "drain",
-			message:     "drain requested",
-			useState:    false,
-			expectError: true,
-			errorMsg:    "agent state bucket not configured",
+			name:     "when stateKV is nil returns error",
+			hostname: "server1",
+			event:    "drain",
+			message:  "drain requested",
+			useState: false,
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "agent state bucket not configured")
+			},
 		},
 		{
 			name:       "when json marshal fails returns error",
@@ -154,8 +160,10 @@ func (s *AgentTimelinePublicTestSuite) TestWriteAgentTimelineEvent() {
 			setupMocks: func(_ *jobmocks.MockKeyValue) {
 				// No KV expectations — marshal fails before Put
 			},
-			expectError: true,
-			errorMsg:    "marshal timeline event",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "marshal timeline event")
+			},
 		},
 	}
 
@@ -178,19 +186,12 @@ func (s *AgentTimelinePublicTestSuite) TestWriteAgentTimelineEvent() {
 				}
 			}
 
-			err := jobsClient.WriteAgentTimelineEvent(
+			tt.validateFunc(jobsClient.WriteAgentTimelineEvent(
 				s.ctx,
 				tt.hostname,
 				tt.event,
 				tt.message,
-			)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-			}
+			))
 		})
 	}
 }
@@ -403,19 +404,23 @@ func (s *AgentTimelinePublicTestSuite) TestGetAgentTimeline() {
 
 func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 	tests := []struct {
-		name          string
-		events        []job.TimelineEvent
-		expectedState string
+		name         string
+		events       []job.TimelineEvent
+		validateFunc func(string)
 	}{
 		{
-			name:          "when no events returns Ready",
-			events:        []job.TimelineEvent{},
-			expectedState: job.AgentStateReady,
+			name:   "when no events returns Ready",
+			events: []job.TimelineEvent{},
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
-			name:          "when nil events returns Ready",
-			events:        nil,
-			expectedState: job.AgentStateReady,
+			name:   "when nil events returns Ready",
+			events: nil,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
 			name: "when latest event is drain returns Draining",
@@ -427,7 +432,9 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "drain requested",
 				},
 			},
-			expectedState: job.AgentStateDraining,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateDraining, got)
+			},
 		},
 		{
 			name: "when latest event is cordoned returns Cordoned",
@@ -439,7 +446,9 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "node cordoned",
 				},
 			},
-			expectedState: job.AgentStateCordoned,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateCordoned, got)
+			},
 		},
 		{
 			name: "when latest event is undrain returns Ready",
@@ -457,7 +466,9 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "undrain requested",
 				},
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
 			name: "when latest event is ready returns Ready",
@@ -475,7 +486,9 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "agent ready",
 				},
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 		{
 			name: "when latest event is unknown returns Ready",
@@ -487,18 +500,22 @@ func (s *AgentTimelinePublicTestSuite) TestComputeAgentState() {
 					Message:   "unknown event",
 				},
 			},
-			expectedState: job.AgentStateReady,
+			validateFunc: func(got string) {
+				s.Equal(job.AgentStateReady, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			state := client.ComputeAgentState(tt.events)
-			s.Equal(tt.expectedState, state)
+			tt.validateFunc(state)
 		})
 	}
 }
 
-func TestAgentTimelinePublicTestSuite(t *testing.T) {
+func TestAgentTimelinePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentTimelinePublicTestSuite))
 }

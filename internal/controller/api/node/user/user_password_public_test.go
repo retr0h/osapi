@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -96,7 +98,7 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPassword() {
 				s.mockJobClient.EXPECT().
 					Modify(gomock.Any(), "server1", "user", job.OperationUserChangePassword, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						Hostname: "agent1", Changed: boolPtr(true),
+						Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"testuser","changed":true}`),
 					}, nil)
 			},
@@ -203,7 +205,7 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPassword() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"testuser","changed":true}`),
 							},
 						}, nil)
@@ -229,7 +231,7 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPassword() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"testuser","changed":true}`),
 							},
 							"server2": {
@@ -291,28 +293,38 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPassword() {
 
 func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordValidationHTTP() {
 	tests := []struct {
-		name     string
-		path     string
-		body     string
-		wantCode int
+		name         string
+		path         string
+		body         string
+		wantCode     int
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when valid request",
 			path:     "/api/node/server1/user/testuser/password",
 			body:     `{"password":"newpass123"}`,
 			wantCode: http.StatusOK,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+			},
 		},
 		{
 			name:     "when missing password",
 			path:     "/api/node/server1/user/testuser/password",
 			body:     `{}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 		{
 			name:     "when invalid hostname",
 			path:     "/api/node/nonexistent/user/testuser/password",
 			body:     `{"password":"newpass123"}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 	}
 
@@ -324,7 +336,7 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordValidationHTTP() {
 					Modify(gomock.Any(), "server1", "user", job.OperationUserChangePassword, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"name":"testuser","changed":true}`),
 					}, nil)
 			}
@@ -343,7 +355,7 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordValidationHTTP() {
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -357,7 +369,7 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
+		validateFunc func(int)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -365,7 +377,9 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusUnauthorized,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusUnauthorized, got)
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -383,12 +397,14 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordRBACHTTP() {
 				mock.EXPECT().
 					Modify(gomock.Any(), "server1", "user", job.OperationUserChangePassword, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						Hostname: "agent1", Changed: boolPtr(true),
+						Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"testuser","changed":true}`),
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusOK, got)
+			},
 		},
 	}
 
@@ -420,11 +436,13 @@ func (s *UserPasswordPublicTestSuite) TestPostNodeUserPasswordRBACHTTP() {
 			tc.setupAuth(req)
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec.Code)
 		})
 	}
 }
 
-func TestUserPasswordPublicTestSuite(t *testing.T) {
+func TestUserPasswordPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UserPasswordPublicTestSuite))
 }

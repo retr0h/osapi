@@ -829,7 +829,9 @@ func (suite *InterfacePublicTestSuite) TestGenerateInterfaceYAML() {
 	}
 }
 
-func TestInterfacePublicTestSuite(t *testing.T) {
+func TestInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	suite.Run(t, new(InterfacePublicTestSuite))

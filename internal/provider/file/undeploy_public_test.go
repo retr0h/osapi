@@ -280,6 +280,8 @@ func (suite *UndeployPublicTestSuite) TestUndeploy() {
 	}
 }
 
-func TestUndeployPublicTestSuite(t *testing.T) {
+func TestUndeployPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UndeployPublicTestSuite))
 }

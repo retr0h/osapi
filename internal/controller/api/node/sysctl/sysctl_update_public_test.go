@@ -417,8 +417,7 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlValidationHTTP() {
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -437,8 +436,11 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when missing value returns 400",
@@ -447,8 +449,11 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Value"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Value")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -457,8 +462,11 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+			},
 		},
 	}
 
@@ -482,10 +490,7 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -500,8 +505,7 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -511,8 +515,10 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -529,8 +535,10 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -557,8 +565,11 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -596,14 +607,13 @@ func (s *SysctlUpdatePublicTestSuite) TestPutNodeSysctlRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestSysctlUpdatePublicTestSuite(t *testing.T) {
+func TestSysctlUpdatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SysctlUpdatePublicTestSuite))
 }

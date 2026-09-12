@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -108,7 +110,7 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKey() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"changed":true}`),
 					}, nil)
 			},
@@ -229,7 +231,7 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKey() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"changed":true}`),
 							},
 						}, nil)
@@ -263,7 +265,7 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKey() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"changed":true}`),
 							},
 							"server2": {
@@ -333,19 +335,26 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKey() {
 
 func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyValidationHTTP() {
 	tests := []struct {
-		name     string
-		body     string
-		wantCode int
+		name         string
+		body         string
+		wantCode     int
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when valid request",
 			body:     `{"key":"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITest user@host"}`,
 			wantCode: http.StatusOK,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+			},
 		},
 		{
 			name:     "when missing key",
 			body:     `{}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 	}
 
@@ -363,7 +372,7 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyValidationHTTP() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"changed":true}`),
 					}, nil)
 			}
@@ -382,7 +391,7 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyValidationHTTP() {
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -396,7 +405,7 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
+		validateFunc func(int)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -404,7 +413,9 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusUnauthorized,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusUnauthorized, got)
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -420,7 +431,9 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusForbidden,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusForbidden, got)
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -445,12 +458,14 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyRBACHTTP() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"changed":true}`),
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusOK, got)
+			},
 		},
 	}
 
@@ -483,11 +498,13 @@ func (s *SSHKeyCreatePublicTestSuite) TestPostNodeUserSSHKeyRBACHTTP() {
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec.Code)
 		})
 	}
 }
 
-func TestSSHKeyCreatePublicTestSuite(t *testing.T) {
+func TestSSHKeyCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SSHKeyCreatePublicTestSuite))
 }

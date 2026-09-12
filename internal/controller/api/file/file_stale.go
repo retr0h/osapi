@@ -143,7 +143,9 @@ func (f *File) GetFileStale(
 // extractHostname extracts the hostname from a state KV key.
 // The key format is "<hostname>.<sha256-of-path>" where the SHA is
 // 64 hex characters. We remove the trailing dot + 64 chars.
-func extractHostname(key string) string {
+func extractHostname(
+	key string,
+) string {
 	// dot (1) + sha256 hex (64) = 65 chars from the end
 	if len(key) > 65 {
 		return key[:len(key)-65]
@@ -153,7 +155,9 @@ func extractHostname(key string) string {
 }
 
 // computeSHA256 returns the hex-encoded SHA-256 digest of data.
-func computeSHA256(data []byte) string {
+func computeSHA256(
+	data []byte,
+) string {
 	h := sha256.Sum256(data)
 
 	return hex.EncodeToString(h[:])

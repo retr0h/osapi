@@ -224,6 +224,8 @@ func (suite *PowerTypesPublicTestSuite) TestPowerCollectionFromShutdown() {
 	}
 }
 
-func TestPowerTypesPublicTestSuite(t *testing.T) {
+func TestPowerTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PowerTypesPublicTestSuite))
 }

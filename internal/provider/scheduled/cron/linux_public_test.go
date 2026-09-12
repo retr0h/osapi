@@ -42,101 +42,113 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 
 func (suite *LinuxPublicTestSuite) TestList() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func([]cron.Entry, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result []cron.Entry, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.List(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.List(context.Background()))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestGet() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*cron.Entry, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *cron.Entry, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Get(context.Background(), "test")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Get(context.Background(), "test"))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestCreate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*cron.CreateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *cron.CreateResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Create(context.Background(), cron.Entry{})
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Create(context.Background(), cron.Entry{}))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestUpdate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*cron.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *cron.UpdateResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Update(context.Background(), cron.Entry{})
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Update(context.Background(), cron.Entry{}))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestDelete() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*cron.DeleteResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *cron.DeleteResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Delete(context.Background(), "test")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Delete(context.Background(), "test"))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxPublicTestSuite(t *testing.T) {
+func TestLinuxPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxPublicTestSuite))
 }

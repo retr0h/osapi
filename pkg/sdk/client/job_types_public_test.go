@@ -315,6 +315,8 @@ func (suite *JobTypesPublicTestSuite) TestJobListFromGen() {
 	}
 }
 
-func TestJobTypesPublicTestSuite(t *testing.T) {
+func TestJobTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(JobTypesPublicTestSuite))
 }

@@ -30,6 +30,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -94,9 +96,9 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeploy() {
 					ObjectName:  "nginx.conf",
 					Path:        "/etc/nginx/nginx.conf",
 					ContentType: gen.Raw,
-					Mode:        strPtr("0644"),
-					Owner:       strPtr("root"),
-					Group:       strPtr("root"),
+					Mode:        ptr.To("0644"),
+					Owner:       ptr.To("root"),
+					Group:       ptr.To("root"),
 				},
 			},
 			setupMock: func() {
@@ -514,8 +516,7 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployValidationHTTP() {
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -531,8 +532,13 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"agent1"`, `"changed":true`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when missing object_name",
@@ -541,8 +547,12 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "ObjectName", "required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "ObjectName")
+				s.Contains(rec.Body.String(), "required")
+			},
 		},
 		{
 			name: "when invalid content_type",
@@ -551,8 +561,11 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "ContentType"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "ContentType")
+			},
 		},
 		{
 			name: "when server error",
@@ -565,8 +578,10 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployValidationHTTP() {
 					Return("", nil, assert.AnError)
 				return mock
 			},
-			wantCode:     http.StatusInternalServerError,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -575,8 +590,12 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 	}
 
@@ -600,10 +619,7 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -618,8 +634,7 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -629,8 +644,10 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -647,8 +664,10 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with file:write returns 202",
@@ -676,8 +695,12 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployRBACHTTP() {
 					)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"changed":true`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -717,14 +740,13 @@ func (s *FileDeployPostPublicTestSuite) TestPostNodeFileDeployRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestFileDeployPostPublicTestSuite(t *testing.T) {
+func TestFileDeployPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileDeployPostPublicTestSuite))
 }

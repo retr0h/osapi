@@ -1,5 +1,5 @@
 // Copyright (c) 2026 John Dewey
-//
+
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
@@ -56,10 +56,16 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TearDownTest() {
 
 func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*dns.UpdateResult, error)
 	}{
 		{
 			name: "returns ErrUnsupported on Darwin",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.Error(err)
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -68,26 +74,28 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvC
 			mock := execMocks.NewPlainMockManager(suite.ctrl)
 
 			darwin := dns.NewDarwinProvider(suite.logger, mock)
-			result, err := darwin.UpdateResolvConfByInterface(
+			tt.validateFunc(darwin.UpdateResolvConfByInterface(
 				[]string{"8.8.8.8"},
 				[]string{"example.com"},
 				"en0",
 				false,
-			)
-
-			suite.Error(err)
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
 
 func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanConfig() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(bool, error)
 	}{
 		{
 			name: "returns ErrUnsupported on Darwin",
+			validateFunc: func(result bool, err error) {
+				suite.Error(err)
+				suite.False(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -96,15 +104,13 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 			mock := execMocks.NewPlainMockManager(suite.ctrl)
 
 			darwin := dns.NewDarwinProvider(suite.logger, mock)
-			changed, err := darwin.DeleteNetplanConfig("eth0")
-
-			suite.Error(err)
-			suite.False(changed)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tt.validateFunc(darwin.DeleteNetplanConfig("eth0"))
 		})
 	}
 }
 
-func TestDarwinUpdateResolvConfByInterfacePublicTestSuite(t *testing.T) {
+func TestDarwinUpdateResolvConfByInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinUpdateResolvConfByInterfacePublicTestSuite))
 }

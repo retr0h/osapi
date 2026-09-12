@@ -447,6 +447,8 @@ func (suite *PowerPublicTestSuite) TestShutdown() {
 	}
 }
 
-func TestPowerPublicTestSuite(t *testing.T) {
+func TestPowerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PowerPublicTestSuite))
 }

@@ -68,11 +68,10 @@ func (s *ProcessorSSHKeyPublicTestSuite) newProcessor(
 
 func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -82,9 +81,12 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 				Operation: "sshKey.list",
 				Data:      json.RawMessage(`{"username":"john"}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "user provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "user provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid sshKey operation missing sub-operation",
@@ -97,8 +99,11 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid sshKey operation: sshKey",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid sshKey operation: sshKey")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported sshKey sub-operation",
@@ -111,8 +116,11 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported sshKey operation: sshKey.invalid",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported sshKey operation: sshKey.invalid")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -124,28 +132,17 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 			}
 
 			processor := s.newProcessor(userProvider)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful ssh key list",
@@ -171,10 +168,12 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var keys []user.SSHKey
-				err := json.Unmarshal(result, &keys)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var keys []user.SSHKey
+				decodeErr := json.Unmarshal(result, &keys)
+				s.NoError(decodeErr)
 				s.Len(keys, 2)
 				s.Equal("ssh-ed25519", keys[0].Type)
 				s.Equal("SHA256:abc123", keys[0].Fingerprint)
@@ -192,8 +191,11 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyList() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal sshKey list data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal sshKey list data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "ssh key list provider error",
@@ -210,39 +212,28 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyList() {
 					Return(nil, errors.New("user not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "user not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "user not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyAdd() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful ssh key add",
@@ -266,10 +257,12 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyAdd() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.SSHKeyResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.SSHKeyResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.True(r.Changed)
 			},
 		},
@@ -284,8 +277,11 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyAdd() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal sshKey add data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal sshKey add data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "ssh key add provider error",
@@ -304,39 +300,28 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyAdd() {
 					Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyRemove() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() user.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() user.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful ssh key remove",
@@ -355,10 +340,12 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyRemove() {
 					}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r user.SSHKeyResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r user.SSHKeyResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.True(r.Changed)
 			},
 		},
@@ -373,8 +360,11 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyRemove() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal sshKey remove data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal sshKey remove data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "ssh key remove provider error",
@@ -391,31 +381,24 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyRemove() {
 					Return(nil, errors.New("key not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "key not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "key not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
-func TestProcessorSSHKeyPublicTestSuite(t *testing.T) {
+func TestProcessorSSHKeyPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorSSHKeyPublicTestSuite))
 }

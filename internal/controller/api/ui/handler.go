@@ -33,7 +33,9 @@ import (
 // the same pattern as other domain handlers in this package. distFS must
 // be rooted at the directory containing index.html (the caller is
 // responsible for any fs.Sub calls).
-func Handler(distFS fs.FS) []func(e *echo.Echo) {
+func Handler(
+	distFS fs.FS,
+) []func(e *echo.Echo) {
 	return []func(e *echo.Echo){
 		func(e *echo.Echo) {
 			Register(e, distFS)
@@ -44,7 +46,10 @@ func Handler(distFS fs.FS) []func(e *echo.Echo) {
 // Register mounts the UI assets on the Echo router. Static files are served
 // directly; all other non-/api paths fall back to index.html so React Router
 // can handle client-side routing.
-func Register(e *echo.Echo, distFS fs.FS) {
+func Register(
+	e *echo.Echo,
+	distFS fs.FS,
+) {
 	fileServer := http.FileServer(http.FS(distFS))
 
 	serveIndex := func(w http.ResponseWriter, _ *http.Request) {

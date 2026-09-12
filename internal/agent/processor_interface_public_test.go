@@ -51,11 +51,10 @@ func (s *ProcessorInterfacePublicTestSuite) TearDownTest() {
 
 func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() iface.Provider
-		expectError bool
-		errorMsg    string
+		name         string
+		jobRequest   job.Request
+		setupMock    func() iface.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -65,9 +64,12 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 				Operation: "interface.list",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "interface provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "interface provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid interface operation missing sub-operation",
@@ -80,8 +82,11 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 			setupMock: func() iface.Provider {
 				return netifMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid interface operation: interface",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid interface operation: interface")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported interface sub-operation",
@@ -94,8 +99,11 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 			setupMock: func() iface.Provider {
 				return netifMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported interface operation: interface.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported interface operation: interface.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -112,28 +120,19 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 				nil,
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() iface.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() iface.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "successful interface list",
@@ -151,7 +150,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var entries []iface.InterfaceEntry
 				err := json.Unmarshal(result, &entries)
 				s.NoError(err)
@@ -194,9 +193,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceList() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -204,12 +201,12 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceList() {
 
 func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() iface.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() iface.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "successful interface get",
@@ -226,7 +223,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var entry iface.InterfaceEntry
 				err := json.Unmarshal(result, &entry)
 				s.NoError(err)
@@ -282,9 +279,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceGet() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -292,12 +287,12 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceGet() {
 
 func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceCreate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() iface.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() iface.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "successful interface create",
@@ -318,7 +313,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceCreate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r iface.InterfaceResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -377,9 +372,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceCreate() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -387,12 +380,12 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceCreate() {
 
 func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() iface.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() iface.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "successful interface update",
@@ -413,7 +406,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceUpdate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r iface.InterfaceResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -472,9 +465,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceUpdate() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -482,12 +473,12 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceUpdate() {
 
 func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceDelete() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() iface.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() iface.Provider
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "successful interface delete",
@@ -505,7 +496,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceDelete() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r iface.InterfaceResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -562,14 +553,14 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceDelete() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
 }
 
-func TestProcessorInterfacePublicTestSuite(t *testing.T) {
+func TestProcessorInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorInterfacePublicTestSuite))
 }

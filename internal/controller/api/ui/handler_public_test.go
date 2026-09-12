@@ -211,6 +211,8 @@ func (s *HandlerPublicTestSuite) TestRegister() {
 	}
 }
 
-func TestHandlerPublicTestSuite(t *testing.T) {
+func TestHandlerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HandlerPublicTestSuite))
 }

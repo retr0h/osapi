@@ -52,12 +52,10 @@ func (s *ProcessorNtpPublicTestSuite) TearDownTest() {
 
 func (s *ProcessorNtpPublicTestSuite) TestProcessNtpOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() ntp.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() ntp.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -67,9 +65,12 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpOperation() {
 				Operation: "ntp.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "ntp provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "ntp provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid ntp operation missing sub-operation",
@@ -82,8 +83,11 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpOperation() {
 			setupMock: func() ntp.Provider {
 				return ntpMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid ntp operation: ntp",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid ntp operation: ntp")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported ntp sub-operation",
@@ -96,8 +100,11 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpOperation() {
 			setupMock: func() ntp.Provider {
 				return ntpMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported ntp operation: ntp.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported ntp operation: ntp.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -119,31 +126,17 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpOperation() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorNtpPublicTestSuite) TestProcessNtpGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() ntp.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() ntp.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful ntp get",
@@ -163,10 +156,12 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var status ntp.Status
-				err := json.Unmarshal(result, &status)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var status ntp.Status
+				decodeErr := json.Unmarshal(result, &status)
+				s.NoError(decodeErr)
 				s.True(status.Synchronized)
 				s.Equal(2, status.Stratum)
 				s.Equal("time.cloudflare.com", status.CurrentSource)
@@ -186,8 +181,11 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpGet() {
 				m.EXPECT().Get(gomock.Any()).Return(nil, errors.New("chronyc not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "chronyc not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "chronyc not found")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -204,31 +202,17 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpGet() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorNtpPublicTestSuite) TestProcessNtpCreate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() ntp.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() ntp.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful ntp create",
@@ -247,10 +231,12 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpCreate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r ntp.CreateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r ntp.CreateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.True(r.Changed)
 			},
 		},
@@ -265,8 +251,11 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpCreate() {
 			setupMock: func() ntp.Provider {
 				return ntpMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal ntp create data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal ntp create data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "ntp create provider error",
@@ -283,8 +272,11 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpCreate() {
 					Return(nil, errors.New("deploy failed"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "deploy failed",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "deploy failed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -301,31 +293,17 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpCreate() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorNtpPublicTestSuite) TestProcessNtpUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() ntp.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() ntp.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful ntp update",
@@ -344,10 +322,12 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpUpdate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r ntp.UpdateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r ntp.UpdateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.True(r.Changed)
 			},
 		},
@@ -362,8 +342,11 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpUpdate() {
 			setupMock: func() ntp.Provider {
 				return ntpMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal ntp update data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal ntp update data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "ntp update provider error",
@@ -380,8 +363,11 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpUpdate() {
 					Return(nil, errors.New("config not managed"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "config not managed",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "config not managed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -398,31 +384,17 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpUpdate() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorNtpPublicTestSuite) TestProcessNtpDelete() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() ntp.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() ntp.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful ntp delete",
@@ -439,10 +411,12 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpDelete() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r ntp.DeleteResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r ntp.DeleteResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.True(r.Changed)
 			},
 		},
@@ -459,8 +433,11 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpDelete() {
 				m.EXPECT().Delete(gomock.Any()).Return(nil, errors.New("config not managed"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "config not managed",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "config not managed")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -477,23 +454,13 @@ func (s *ProcessorNtpPublicTestSuite) TestProcessNtpDelete() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
-func TestProcessorNtpPublicTestSuite(t *testing.T) {
+func TestProcessorNtpPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorNtpPublicTestSuite))
 }

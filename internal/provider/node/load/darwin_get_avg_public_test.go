@@ -40,11 +40,9 @@ func (suite *DarwinGetAverageStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 	tests := []struct {
-		name        string
-		setupMock   func() func() (*sysLoad.AvgStat, error)
-		want        *load.Result
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() func() (*sysLoad.AvgStat, error)
+		validateFunc func(*load.Result, error)
 	}{
 		{
 			name: "when GetAverageStats Ok",
@@ -57,12 +55,15 @@ func (suite *DarwinGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 					}, nil
 				}
 			},
-			want: &load.Result{
-				Load1:  1.0,
-				Load5:  0.5,
-				Load15: 0.2,
+			validateFunc: func(got *load.Result, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal(&load.Result{
+					Load1:  1.0,
+					Load5:  0.5,
+					Load15: 0.2,
+				}, got)
 			},
-			wantErr: false,
 		},
 		{
 			name: "when load.Avg errors",
@@ -71,9 +72,11 @@ func (suite *DarwinGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 					return nil, assert.AnError
 				}
 			},
-			want:        nil,
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got *load.Result, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 	}
 
@@ -85,23 +88,15 @@ func (suite *DarwinGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 				darwin.AvgFn = tc.setupMock()
 			}
 
-			got, err := darwin.GetAverageStats()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Nil(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetAverageStats())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinGetAverageStatsPublicTestSuite(t *testing.T) {
+func TestDarwinGetAverageStatsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinGetAverageStatsPublicTestSuite))
 }

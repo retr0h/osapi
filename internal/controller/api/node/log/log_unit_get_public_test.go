@@ -29,6 +29,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -114,7 +116,7 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnit() {
 				Hostname: "server1",
 				Name:     "nginx.service",
 				Params: gen.GetNodeLogUnitParams{
-					Lines:    intPtr(25),
+					Lines:    ptr.To(25),
 					Since:    stringPtr("2026-03-31"),
 					Priority: stringPtr("warning"),
 				},
@@ -368,8 +370,7 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitHTTP() {
 		name         string
 		path         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -385,8 +386,11 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -394,8 +398,12 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 		{
 			name: "when invalid priority returns 400",
@@ -403,8 +411,11 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "oneof"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "oneof")
+			},
 		},
 	}
 
@@ -423,10 +434,7 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -440,8 +448,7 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -451,8 +458,10 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -469,8 +478,10 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with log:read returns 200",
@@ -495,8 +506,11 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -533,14 +547,13 @@ func (s *LogUnitPublicTestSuite) TestGetNodeLogUnitRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestLogUnitPublicTestSuite(t *testing.T) {
+func TestLogUnitPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogUnitPublicTestSuite))
 }

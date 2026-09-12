@@ -284,8 +284,7 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteValidationHTTP
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -298,8 +297,10 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteValidationHTTP
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{Hostname: "server1", Changed: &trueVal}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when invalid route",
@@ -308,8 +309,10 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteValidationHTTP
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+			},
 		},
 	}
 
@@ -326,10 +329,7 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteValidationHTTP
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -344,8 +344,7 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -353,8 +352,10 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -370,8 +371,10 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token returns 200",
@@ -391,8 +394,10 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteRBACHTTP() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{Hostname: "server1", Changed: &trueVal}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -425,14 +430,13 @@ func (s *NetworkRouteUpdatePutPublicTestSuite) TestPutNetworkRouteRBACHTTP() {
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestNetworkRouteUpdatePutPublicTestSuite(t *testing.T) {
+func TestNetworkRouteUpdatePutPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkRouteUpdatePutPublicTestSuite))
 }

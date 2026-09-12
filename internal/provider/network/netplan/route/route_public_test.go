@@ -1135,7 +1135,9 @@ func (suite *RoutePublicTestSuite) TestRouteFilePath() {
 	}
 }
 
-func TestRoutePublicTestSuite(t *testing.T) {
+func TestRoutePublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	suite.Run(t, new(RoutePublicTestSuite))

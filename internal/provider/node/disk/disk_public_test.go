@@ -41,9 +41,9 @@ func (suite *DiskPublicTestSuite) TearDownTest() {}
 
 func (suite *DiskPublicTestSuite) TestIsPermissionError() {
 	tests := []struct {
-		name string
-		err  error
-		want bool
+		name         string
+		err          error
+		validateFunc func(bool)
 	}{
 		{
 			name: "when error is EACCES wrapped in os.PathError",
@@ -52,7 +52,9 @@ func (suite *DiskPublicTestSuite) TestIsPermissionError() {
 				Path: "/restricted",
 				Err:  syscall.EACCES,
 			},
-			want: true,
+			validateFunc: func(got bool) {
+				suite.Equal(true, got)
+			},
 		},
 		{
 			name: "when error is a different syscall errno",
@@ -61,12 +63,16 @@ func (suite *DiskPublicTestSuite) TestIsPermissionError() {
 				Path: "/file",
 				Err:  syscall.EPERM, // Not EACCES.
 			},
-			want: false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name: "when error is not a PathError",
 			err:  errors.New("some other error"),
-			want: false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name: "when PathError contains non-syscall error",
@@ -75,12 +81,16 @@ func (suite *DiskPublicTestSuite) TestIsPermissionError() {
 				Path: "/file",
 				Err:  errors.New("some random error"),
 			},
-			want: false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 		{
 			name: "when error is nil",
 			err:  nil,
-			want: false,
+			validateFunc: func(got bool) {
+				suite.Equal(false, got)
+			},
 		},
 	}
 
@@ -88,11 +98,13 @@ func (suite *DiskPublicTestSuite) TestIsPermissionError() {
 		suite.Run(tc.name, func() {
 			got := disk.ExportIsPermissionError(tc.err)
 
-			suite.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
-func TestDiskPublicTestSuite(t *testing.T) {
+func TestDiskPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DiskPublicTestSuite))
 }

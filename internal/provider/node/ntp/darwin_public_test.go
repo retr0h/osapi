@@ -42,82 +42,92 @@ func (suite *DarwinPublicTestSuite) SetupTest() {
 
 func (suite *DarwinPublicTestSuite) TestGet() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*ntp.Status, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *ntp.Status, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Get(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Get(context.Background()))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestCreate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*ntp.CreateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *ntp.CreateResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Create(context.Background(), ntp.Config{})
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Create(context.Background(), ntp.Config{}))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestUpdate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*ntp.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *ntp.UpdateResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Update(context.Background(), ntp.Config{})
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Update(context.Background(), ntp.Config{}))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestDelete() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*ntp.DeleteResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *ntp.DeleteResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Delete(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Delete(context.Background()))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinPublicTestSuite(t *testing.T) {
+func TestDarwinPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinPublicTestSuite))
 }

@@ -27,7 +27,9 @@ import (
 )
 
 // SetIoregFn overrides the ioregFn function for testing.
-func SetIoregFn(fn func() (string, error)) {
+func SetIoregFn(
+	fn func() (string, error),
+) {
 	ioregFn = fn
 }
 
@@ -37,7 +39,9 @@ func ResetIoregFn() {
 }
 
 // SetExecCommandFn overrides the execCommandFn function for testing.
-func SetExecCommandFn(fn func() ([]byte, error)) {
+func SetExecCommandFn(
+	fn func() ([]byte, error),
+) {
 	execCommandFn = fn
 }
 
@@ -47,7 +51,9 @@ func ResetExecCommandFn() {
 }
 
 // SetGetMachineIDFn overrides the getMachineIDFn function for testing.
-func SetGetMachineIDFn(fn func(avfs.VFS) (string, error)) {
+func SetGetMachineIDFn(
+	fn func(avfs.VFS) (string, error),
+) {
 	getMachineIDFn = fn
 }
 
@@ -62,12 +68,16 @@ func ExportDefaultIoregFn() (string, error) {
 }
 
 // ExportDefaultGetMachineID exposes defaultGetMachineID for testing.
-func ExportDefaultGetMachineID(fs avfs.VFS) (string, error) {
+func ExportDefaultGetMachineID(
+	fs avfs.VFS,
+) (string, error) {
 	return defaultGetMachineID(fs)
 }
 
 // SetOSPlatform overrides the osPlatform variable for testing.
-func SetOSPlatform(platform string) {
+func SetOSPlatform(
+	platform string,
+) {
 	osPlatform = platform
 }
 

@@ -70,6 +70,8 @@ func (suite *LoadTypesPublicTestSuite) TestLoadAverageFromGen() {
 	}
 }
 
-func TestLoadTypesPublicTestSuite(t *testing.T) {
+func TestLoadTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LoadTypesPublicTestSuite))
 }

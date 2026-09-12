@@ -57,9 +57,7 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 		setupFS       func(fs avfs.VFS)
 		overrideFS    func() avfs.VFS
 		interfaceName string
-		want          *dns.GetResult
-		wantErr       bool
-		errContains   string
+		validateFunc  func(*dns.GetResult, error)
 	}{
 		{
 			name: "when resolv.conf has servers search domains and noise",
@@ -76,9 +74,12 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				), 0o644)
 			},
 			interfaceName: "eth0",
-			want: &dns.GetResult{
-				DNSServers:    []string{"127.0.0.11", "8.8.8.8"},
-				SearchDomains: []string{"example.com", "local.lan"},
+			validateFunc: func(got *dns.GetResult, err error) {
+				s.NoError(err)
+				s.Equal(&dns.GetResult{
+					DNSServers:    []string{"127.0.0.11", "8.8.8.8"},
+					SearchDomains: []string{"example.com", "local.lan"},
+				}, got)
 			},
 		},
 		{
@@ -90,9 +91,12 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				), 0o644)
 			},
 			interfaceName: "eth0",
-			want: &dns.GetResult{
-				DNSServers:    []string{"8.8.8.8"},
-				SearchDomains: []string{"."},
+			validateFunc: func(got *dns.GetResult, err error) {
+				s.NoError(err)
+				s.Equal(&dns.GetResult{
+					DNSServers:    []string{"8.8.8.8"},
+					SearchDomains: []string{"."},
+				}, got)
 			},
 		},
 		{
@@ -106,9 +110,12 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				), 0o644)
 			},
 			interfaceName: "eth0",
-			want: &dns.GetResult{
-				DNSServers:    []string{"8.8.8.8"},
-				SearchDomains: []string{"second.com", "third.com"},
+			validateFunc: func(got *dns.GetResult, err error) {
+				s.NoError(err)
+				s.Equal(&dns.GetResult{
+					DNSServers:    []string{"8.8.8.8"},
+					SearchDomains: []string{"second.com", "third.com"},
+				}, got)
 			},
 		},
 		{
@@ -117,8 +124,10 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				// Don't create the file
 			},
 			interfaceName: "eth0",
-			wantErr:       true,
-			errContains:   "failed to read /etc/resolv.conf",
+			validateFunc: func(_ *dns.GetResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to read /etc/resolv.conf")
+			},
 		},
 		{
 			name: "when read error during scan",
@@ -144,8 +153,10 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 				return ffs
 			},
 			interfaceName: "eth0",
-			wantErr:       true,
-			errContains:   "failed to parse /etc/resolv.conf",
+			validateFunc: func(_ *dns.GetResult, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to parse /etc/resolv.conf")
+			},
 		},
 	}
 
@@ -159,66 +170,64 @@ func (s *DebianDockerPublicTestSuite) TestGetResolvConfByInterface() {
 			}
 
 			p := dns.NewDebianDockerProvider(s.logger, fs)
-			got, err := p.GetResolvConfByInterface(tc.interfaceName)
-
-			if tc.wantErr {
-				s.Error(err)
-				s.Contains(err.Error(), tc.errContains)
-			} else {
-				s.NoError(err)
-				s.Equal(tc.want, got)
-			}
+			tc.validateFunc(p.GetResolvConfByInterface(tc.interfaceName))
 		})
 	}
 }
 
 func (s *DebianDockerPublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*dns.UpdateResult, error)
 	}{
 		{
 			name: "returns ErrUnsupported for container",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				s.Error(err)
+				s.Nil(result)
+				s.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			p := dns.NewDebianDockerProvider(s.logger, s.fs)
-			result, err := p.UpdateResolvConfByInterface(
+			tt.validateFunc(p.UpdateResolvConfByInterface(
 				[]string{"8.8.8.8"},
 				[]string{"example.com"},
 				"eth0",
 				false,
-			)
-
-			s.Error(err)
-			s.Nil(result)
-			s.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
 
 func (s *DebianDockerPublicTestSuite) TestDeleteNetplanConfig() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(bool, error)
 	}{
 		{
 			name: "returns ErrUnsupported for container",
+			validateFunc: func(result bool, err error) {
+				s.Error(err)
+				s.False(result)
+				s.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			p := dns.NewDebianDockerProvider(s.logger, s.fs)
-			changed, err := p.DeleteNetplanConfig("eth0")
-
-			s.Error(err)
-			s.False(changed)
-			s.ErrorIs(err, provider.ErrUnsupported)
+			tt.validateFunc(p.DeleteNetplanConfig("eth0"))
 		})
 	}
 }
 
-func TestDebianDockerPublicTestSuite(t *testing.T) {
+func TestDebianDockerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianDockerPublicTestSuite))
 }

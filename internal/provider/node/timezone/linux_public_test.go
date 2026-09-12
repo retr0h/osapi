@@ -42,44 +42,50 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 
 func (suite *LinuxPublicTestSuite) TestGet() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*timezone.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *timezone.Info, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Get(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Get(context.Background()))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestUpdate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*timezone.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *timezone.UpdateResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Update(context.Background(), "America/New_York")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Update(context.Background(), "America/New_York"))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxPublicTestSuite(t *testing.T) {
+func TestLinuxPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxPublicTestSuite))
 }

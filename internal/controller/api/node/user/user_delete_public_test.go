@@ -30,6 +30,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -94,7 +96,7 @@ func (s *UserDeletePublicTestSuite) TestDeleteNodeUser() {
 				s.mockJobClient.EXPECT().
 					Modify(gomock.Any(), "server1", "user", job.OperationUserDelete, map[string]string{"name": "testuser"}).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						Hostname: "agent1", Changed: boolPtr(true),
+						Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"testuser","changed":true}`),
 					}, nil)
 			},
@@ -183,7 +185,7 @@ func (s *UserDeletePublicTestSuite) TestDeleteNodeUser() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"testuser","changed":true}`),
 							},
 						}, nil)
@@ -208,7 +210,7 @@ func (s *UserDeletePublicTestSuite) TestDeleteNodeUser() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"testuser","changed":true}`),
 							},
 							"server2": {
@@ -276,7 +278,7 @@ func (s *UserDeletePublicTestSuite) TestDeleteNodeUserRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
+		validateFunc func(int)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -284,7 +286,9 @@ func (s *UserDeletePublicTestSuite) TestDeleteNodeUserRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusUnauthorized,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusUnauthorized, got)
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -302,12 +306,14 @@ func (s *UserDeletePublicTestSuite) TestDeleteNodeUserRBACHTTP() {
 				mock.EXPECT().
 					Modify(gomock.Any(), "server1", "user", job.OperationUserDelete, map[string]string{"name": "testuser"}).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						Hostname: "agent1", Changed: boolPtr(true),
+						Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"testuser","changed":true}`),
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusOK, got)
+			},
 		},
 	}
 
@@ -334,11 +340,13 @@ func (s *UserDeletePublicTestSuite) TestDeleteNodeUserRBACHTTP() {
 			tc.setupAuth(req)
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec.Code)
 		})
 	}
 }
 
-func TestUserDeletePublicTestSuite(t *testing.T) {
+func TestUserDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UserDeletePublicTestSuite))
 }

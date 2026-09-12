@@ -487,8 +487,7 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleHTTP() {
 	tests := []struct {
 		name         string
 		setupMock    func() (*mocks.MockObjectStoreManager, *mocks.MockStateKeyValue)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when empty state KV returns 200 with empty list",
@@ -500,8 +499,11 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleHTTP() {
 					Return(nil, jetstream.ErrNoKeysFound)
 				return objMock, kvMock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"stale":[]`, `"total":0`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"stale":[]`)
+				s.Contains(rec.Body.String(), `"total":0`)
+			},
 		},
 		{
 			name: "when state KV nil returns 500",
@@ -509,8 +511,10 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleHTTP() {
 				objMock := mocks.NewMockObjectStoreManager(s.mockCtrl)
 				return objMock, nil
 			},
-			wantCode:     http.StatusInternalServerError,
-			wantContains: []string{"file state KV not available"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.Contains(rec.Body.String(), "file state KV not available")
+			},
 		},
 	}
 
@@ -534,10 +538,7 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -551,8 +552,7 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupMock    func() (*mocks.MockObjectStoreManager, *mocks.MockStateKeyValue)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -563,8 +563,10 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleRBACHTTP() {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl),
 					mocks.NewMockStateKeyValue(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -582,8 +584,10 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleRBACHTTP() {
 				return mocks.NewMockObjectStoreManager(s.mockCtrl),
 					mocks.NewMockStateKeyValue(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with file:read returns 200",
@@ -605,8 +609,11 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleRBACHTTP() {
 					Return(nil, jetstream.ErrNoKeysFound)
 				return objMock, kvMock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"stale"`, `"total":0`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"stale"`)
+				s.Contains(rec.Body.String(), `"total":0`)
+			},
 		},
 	}
 
@@ -640,20 +647,21 @@ func (s *FileStalePublicTestSuite) TestGetFileStaleRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestFileStalePublicTestSuite(t *testing.T) {
+func TestFileStalePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileStalePublicTestSuite))
 }
 
 // sha256Hex returns the hex-encoded SHA-256 digest of data.
-func sha256Hex(data []byte) string {
+func sha256Hex(
+	data []byte,
+) string {
 	h := sha256.Sum256(data)
 
 	return hex.EncodeToString(h[:])

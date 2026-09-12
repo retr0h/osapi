@@ -22,6 +22,9 @@ package exec
 
 // SetExecutor replaces the CommandExecutor on an Exec instance.
 // Used by tests to inject a mock executor.
-func SetExecutor(e *Exec, executor CommandExecutor) {
+func SetExecutor(
+	e *Exec,
+	executor CommandExecutor,
+) {
 	e.executor = executor
 }

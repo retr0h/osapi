@@ -29,6 +29,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -104,7 +106,7 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKey() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 			},
 			validateFunc: func(resp gen.DeleteNodeUserSSHKeyResponseObject) {
@@ -203,7 +205,7 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKey() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 							},
 						}, nil)
 			},
@@ -234,7 +236,7 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKey() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 							},
 							"server2": {
 								Hostname: "server2",
@@ -304,8 +306,7 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyValidationHTTP() {
 		name         string
 		path         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -325,12 +326,15 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyValidationHTTP() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -338,8 +342,11 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+			},
 		},
 	}
 
@@ -358,10 +365,7 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -375,7 +379,7 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
+		validateFunc func(int)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -383,7 +387,9 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusUnauthorized,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusUnauthorized, got)
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -399,7 +405,9 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusForbidden,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusForbidden, got)
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -427,11 +435,13 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyRBACHTTP() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusOK, got)
+			},
 		},
 	}
 
@@ -463,11 +473,13 @@ func (s *SSHKeyDeletePublicTestSuite) TestDeleteNodeUserSSHKeyRBACHTTP() {
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec.Code)
 		})
 	}
 }
 
-func TestSSHKeyDeletePublicTestSuite(t *testing.T) {
+func TestSSHKeyDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SSHKeyDeletePublicTestSuite))
 }

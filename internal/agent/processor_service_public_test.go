@@ -68,12 +68,10 @@ func (s *ProcessorServicePublicTestSuite) newNodeProcessor(
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -83,9 +81,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceOperation() {
 				Operation: "service.list",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "service provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "service provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid operation format missing sub-operation",
@@ -98,8 +99,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceOperation() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid service operation: service",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid service operation: service")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported sub-operation",
@@ -112,8 +116,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceOperation() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported service operation: service.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported service operation: service.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -125,31 +132,17 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceOperation() {
 			}
 
 			processor := s.newNodeProcessor(serviceProvider)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceList() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful list",
@@ -170,10 +163,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceList() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entries []service.Info
-				err := json.Unmarshal(result, &entries)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entries []service.Info
+				decodeErr := json.Unmarshal(result, &entries)
+				s.NoError(decodeErr)
 				s.Len(entries, 1)
 				s.Equal("nginx", entries[0].Name)
 			},
@@ -191,39 +186,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceList() {
 				m.EXPECT().List(gomock.Any()).Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful get",
@@ -242,10 +226,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var info service.Info
-				err := json.Unmarshal(result, &info)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var info service.Info
+				decodeErr := json.Unmarshal(result, &info)
+				s.NoError(decodeErr)
 				s.Equal("nginx", info.Name)
 				s.Equal("running", info.Status)
 			},
@@ -261,8 +247,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceGet() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service get data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service get data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -277,39 +266,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceGet() {
 				m.EXPECT().Get(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceCreate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful create",
@@ -332,10 +310,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceCreate() {
 				)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r service.CreateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r service.CreateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("my-svc", r.Name)
 				s.True(r.Changed)
 			},
@@ -351,8 +331,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceCreate() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service create data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service create data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -368,39 +351,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceCreate() {
 					Return(nil, errors.New("already exists"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "already exists",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "already exists")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful update",
@@ -423,10 +395,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceUpdate() {
 				)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r service.UpdateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r service.UpdateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("my-svc", r.Name)
 				s.True(r.Changed)
 			},
@@ -442,8 +416,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceUpdate() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service update data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service update data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -459,39 +436,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceUpdate() {
 					Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceDelete() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful delete",
@@ -509,10 +475,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceDelete() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r service.DeleteResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r service.DeleteResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("my-svc", r.Name)
 				s.True(r.Changed)
 			},
@@ -528,8 +496,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceDelete() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service delete data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service delete data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -545,39 +516,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceDelete() {
 					Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceStart() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful start",
@@ -595,10 +555,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceStart() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r service.ActionResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r service.ActionResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("nginx", r.Name)
 				s.True(r.Changed)
 			},
@@ -614,8 +576,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceStart() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service start data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service start data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -631,39 +596,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceStart() {
 					Return(nil, errors.New("failed to start"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "failed to start",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to start")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceStop() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful stop",
@@ -681,10 +635,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceStop() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r service.ActionResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r service.ActionResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("nginx", r.Name)
 				s.True(r.Changed)
 			},
@@ -700,8 +656,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceStop() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service stop data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service stop data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -717,39 +676,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceStop() {
 					Return(nil, errors.New("failed to stop"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "failed to stop",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to stop")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceRestart() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful restart",
@@ -767,10 +715,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceRestart() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r service.ActionResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r service.ActionResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("nginx", r.Name)
 				s.True(r.Changed)
 			},
@@ -786,8 +736,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceRestart() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service restart data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service restart data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -803,39 +756,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceRestart() {
 					Return(nil, errors.New("failed to restart"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "failed to restart",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to restart")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceEnable() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful enable",
@@ -853,10 +795,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceEnable() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r service.ActionResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r service.ActionResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("nginx", r.Name)
 				s.True(r.Changed)
 			},
@@ -872,8 +816,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceEnable() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service enable data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service enable data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -889,39 +836,28 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceEnable() {
 					Return(nil, errors.New("failed to enable"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "failed to enable",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to enable")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorServicePublicTestSuite) TestProcessServiceDisable() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() service.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() service.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful disable",
@@ -939,10 +875,12 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceDisable() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r service.ActionResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r service.ActionResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("nginx", r.Name)
 				s.True(r.Changed)
 			},
@@ -958,8 +896,11 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceDisable() {
 			setupMock: func() service.Provider {
 				return serviceMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal service disable data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal service disable data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "provider error",
@@ -975,31 +916,24 @@ func (s *ProcessorServicePublicTestSuite) TestProcessServiceDisable() {
 					Return(nil, errors.New("failed to disable"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "failed to disable",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to disable")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := s.newNodeProcessor(tt.setupMock())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
-func TestProcessorServicePublicTestSuite(t *testing.T) {
+func TestProcessorServicePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorServicePublicTestSuite))
 }

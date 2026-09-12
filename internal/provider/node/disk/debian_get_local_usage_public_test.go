@@ -49,11 +49,9 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TearDownTest() {
 
 func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {
-		name        string
-		setupMock   func(*disk.Debian)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func(*disk.Debian)
+		validateFunc func([]disk.Result, error)
 	}{
 		{
 			name: "when GetLocalUsageStats Ok",
@@ -115,22 +113,24 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					}
 				}
 			},
-			want: []disk.Result{
-				{
-					Name:  "/dev/disk1",
-					Total: 500000000000,
-					Used:  250000000000,
-					Free:  250000000000,
-				},
-				{
-					Name:  "/dev/disk2",
-					Total: 1000000000000,
-					Used:  750000000000,
-					Free:  250000000000,
-				},
+			validateFunc: func(got []disk.Result, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal([]disk.Result{
+					{
+						Name:  "/dev/disk1",
+						Total: 500000000000,
+						Used:  250000000000,
+						Free:  250000000000,
+					},
+					{
+						Name:  "/dev/disk2",
+						Total: 1000000000000,
+						Used:  750000000000,
+						Free:  250000000000,
+					},
+				}, got)
 			},
-
-			wantErr: false,
 		},
 		{
 			name: "when disk.Partitions errors",
@@ -139,8 +139,11 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got []disk.Result, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 		{
 			name: "when disk.Usage errors",
@@ -158,8 +161,11 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got []disk.Result, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Nil(got)
+			},
 		},
 	}
 
@@ -171,23 +177,15 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 				tc.setupMock(debian)
 			}
 
-			got, err := debian.GetLocalUsageStats()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Nil(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.GetLocalUsageStats())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDebianGetLocalUsageStatsPublicTestSuite(t *testing.T) {
+func TestDebianGetLocalUsageStatsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianGetLocalUsageStatsPublicTestSuite))
 }

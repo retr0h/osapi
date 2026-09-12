@@ -244,8 +244,7 @@ func (suite *EnrollmentPublicTestSuite) TestPublishEnrollmentRequest() {
 	tests := []struct {
 		name         string
 		setupAgent   func() *agent.Agent
-		wantErr      bool
-		wantContains string
+		validateFunc func(error)
 	}{
 		{
 			name: "when natsClient is nil returns error",
@@ -273,8 +272,10 @@ func (suite *EnrollmentPublicTestSuite) TestPublishEnrollmentRequest() {
 
 				return a
 			},
-			wantErr:      true,
-			wantContains: "NATS client not available",
+			validateFunc: func(err error) {
+				require.Error(suite.T(), err)
+				assert.Contains(suite.T(), err.Error(), "NATS client not available")
+			},
 		},
 		{
 			name: "when publish succeeds without namespace",
@@ -307,7 +308,9 @@ func (suite *EnrollmentPublicTestSuite) TestPublishEnrollmentRequest() {
 
 				return a
 			},
-			wantErr: false,
+			validateFunc: func(err error) {
+				require.NoError(suite.T(), err)
+			},
 		},
 		{
 			name: "when publish succeeds with namespace",
@@ -343,7 +346,9 @@ func (suite *EnrollmentPublicTestSuite) TestPublishEnrollmentRequest() {
 
 				return a
 			},
-			wantErr: false,
+			validateFunc: func(err error) {
+				require.NoError(suite.T(), err)
+			},
 		},
 		{
 			name: "when publish fails returns error",
@@ -376,8 +381,10 @@ func (suite *EnrollmentPublicTestSuite) TestPublishEnrollmentRequest() {
 
 				return a
 			},
-			wantErr:      true,
-			wantContains: "publish enrollment request",
+			validateFunc: func(err error) {
+				require.Error(suite.T(), err)
+				assert.Contains(suite.T(), err.Error(), "publish enrollment request")
+			},
 		},
 		{
 			name: "when marshal fails returns error",
@@ -414,8 +421,10 @@ func (suite *EnrollmentPublicTestSuite) TestPublishEnrollmentRequest() {
 
 				return a
 			},
-			wantErr:      true,
-			wantContains: "marshal enrollment request",
+			validateFunc: func(err error) {
+				require.Error(suite.T(), err)
+				assert.Contains(suite.T(), err.Error(), "marshal enrollment request")
+			},
 		},
 	}
 
@@ -423,14 +432,7 @@ func (suite *EnrollmentPublicTestSuite) TestPublishEnrollmentRequest() {
 		suite.Run(tc.name, func() {
 			a := tc.setupAgent()
 
-			err := agent.ExportPublishEnrollmentRequest(a)
-
-			if tc.wantErr {
-				require.Error(suite.T(), err)
-				assert.Contains(suite.T(), err.Error(), tc.wantContains)
-			} else {
-				require.NoError(suite.T(), err)
-			}
+			tc.validateFunc(agent.ExportPublishEnrollmentRequest(a))
 		})
 	}
 }
@@ -873,7 +875,9 @@ func (suite *EnrollmentPublicTestSuite) TestHandleEnrollmentResponse() {
 	}
 }
 
-func TestEnrollmentPublicTestSuite(t *testing.T) {
+func TestEnrollmentPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(EnrollmentPublicTestSuite))
 }

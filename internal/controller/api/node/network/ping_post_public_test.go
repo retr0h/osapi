@@ -387,8 +387,7 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -413,8 +412,12 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`, `"packets_sent":3`, `"packets_received":3`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"packets_sent":3`)
+				s.Contains(rec.Body.String(), `"packets_received":3`)
+			},
 		},
 		{
 			name: "when missing address",
@@ -423,8 +426,12 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Address", "required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Address")
+				s.Contains(rec.Body.String(), "required")
+			},
 		},
 		{
 			name: "when invalid address format",
@@ -433,8 +440,12 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Address", "ip_or_fact"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Address")
+				s.Contains(rec.Body.String(), "ip_or_fact")
+			},
 		},
 		{
 			name: "when fact reference passes validation",
@@ -459,8 +470,11 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`, `"packets_sent":3`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"packets_sent":3`)
+			},
 		},
 		{
 			name: "when partial fact reference rejected",
@@ -469,8 +483,11 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "ip_or_fact"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "ip_or_fact")
+			},
 		},
 		{
 			name: "when unknown fact key rejected",
@@ -479,8 +496,11 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "ip_or_fact"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "ip_or_fact")
+			},
 		},
 		{
 			name: "when broadcast all",
@@ -504,8 +524,11 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`, `"packets_sent":3`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"packets_sent":3`)
+			},
 		},
 	}
 
@@ -529,10 +552,7 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -546,8 +566,7 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -557,8 +576,10 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -575,8 +596,10 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with network:write returns 200",
@@ -613,8 +636,11 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingRBACHTTP() {
 					)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"results"`, `"packets_sent":3`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"packets_sent":3`)
+			},
 		},
 	}
 
@@ -652,10 +678,7 @@ func (s *NetworkPingPostPublicTestSuite) TestPostNetworkPingRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -664,30 +687,36 @@ func (s *NetworkPingPostPublicTestSuite) TestDurationToString() {
 	dur := 20 * time.Millisecond
 
 	tests := []struct {
-		name string
-		d    *time.Duration
-		want *string
+		name         string
+		d            *time.Duration
+		validateFunc func(*string)
 	}{
 		{
 			name: "when nil",
 			d:    nil,
-			want: nil,
+			validateFunc: func(got *string) {
+				s.Equal((*string)(nil), got)
+			},
 		},
 		{
 			name: "when valid duration",
 			d:    &dur,
-			want: func() *string { str := "20.00ms"; return &str }(),
+			validateFunc: func(got *string) {
+				s.Equal(func() *string { str := "20.00ms"; return &str }(), got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			got := apinetwork.ExportDurationToString(tc.d)
-			s.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
-func TestNetworkPingPostPublicTestSuite(t *testing.T) {
+func TestNetworkPingPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NetworkPingPostPublicTestSuite))
 }

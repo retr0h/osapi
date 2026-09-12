@@ -1739,6 +1739,8 @@ func (suite *ServicePublicTestSuite) TestServiceDisable() {
 	}
 }
 
-func TestServicePublicTestSuite(t *testing.T) {
+func TestServicePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServicePublicTestSuite))
 }

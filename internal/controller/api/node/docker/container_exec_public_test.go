@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -105,7 +107,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"stdout":"file1\nfile2","stderr":"","exit_code":0}`,
 						),
@@ -180,7 +182,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 				Id:       "abc123",
 				Body: &gen.PostNodeContainerDockerExecJSONRequestBody{
 					Command:    []string{"ls", "-la"},
-					WorkingDir: strPtr("/app"),
+					WorkingDir: ptr.To("/app"),
 				},
 			},
 			setupMock: func() {
@@ -194,7 +196,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"stdout":"app files","stderr":"","exit_code":0}`,
 						),
@@ -233,7 +235,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     nil,
 					}, nil)
 			},
@@ -332,7 +334,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"stdout":"file1\n","stderr":"","exit_code":0}`,
 							),
@@ -340,7 +342,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"stdout":"file2\n","stderr":"","exit_code":0}`,
 							),
@@ -376,7 +378,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExec() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"stdout":"file1\n","stderr":"","exit_code":0}`,
 							),
@@ -475,8 +477,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecValidation
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -488,13 +489,17 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecValidation
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerExec, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"stdout":"output","stderr":"","exit_code":0}`),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"results"`, `"stdout"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"stdout"`)
+			},
 		},
 		{
 			name: "when missing command",
@@ -503,8 +508,12 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecValidation
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Command", "required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Command")
+				s.Contains(rec.Body.String(), "required")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -513,8 +522,12 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecValidation
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 	}
 
@@ -538,10 +551,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecValidation
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -555,8 +565,7 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecRBACHTTP()
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -566,8 +575,10 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecRBACHTTP()
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -584,8 +595,10 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecRBACHTTP()
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 202",
@@ -605,13 +618,16 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecRBACHTTP()
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerExec, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"stdout":"output","stderr":"","exit_code":0}`),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -649,14 +665,13 @@ func (s *ContainerExecPublicTestSuite) TestPostNodeContainerDockerExecRBACHTTP()
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestContainerExecPublicTestSuite(t *testing.T) {
+func TestContainerExecPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerExecPublicTestSuite))
 }

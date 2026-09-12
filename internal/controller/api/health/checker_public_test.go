@@ -42,10 +42,9 @@ func (s *CheckerPublicTestSuite) SetupTest() {
 
 func (s *CheckerPublicTestSuite) TestCheckHealth() {
 	tests := []struct {
-		name      string
-		checker   *health.NATSChecker
-		expectErr bool
-		errMsg    string
+		name         string
+		checker      *health.NATSChecker
+		validateFunc func(error)
 	}{
 		{
 			name: "all checks pass",
@@ -53,7 +52,9 @@ func (s *CheckerPublicTestSuite) TestCheckHealth() {
 				NATSCheck: func() error { return nil },
 				KVCheck:   func() error { return nil },
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "NATS check fails",
@@ -61,8 +62,10 @@ func (s *CheckerPublicTestSuite) TestCheckHealth() {
 				NATSCheck: func() error { return fmt.Errorf("nats error") },
 				KVCheck:   func() error { return nil },
 			},
-			expectErr: true,
-			errMsg:    "nats error",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "nats error")
+			},
 		},
 		{
 			name: "KV check fails",
@@ -70,8 +73,10 @@ func (s *CheckerPublicTestSuite) TestCheckHealth() {
 				NATSCheck: func() error { return nil },
 				KVCheck:   func() error { return fmt.Errorf("kv error") },
 			},
-			expectErr: true,
-			errMsg:    "kv error",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "kv error")
+			},
 		},
 		{
 			name: "both checks fail",
@@ -79,110 +84,109 @@ func (s *CheckerPublicTestSuite) TestCheckHealth() {
 				NATSCheck: func() error { return fmt.Errorf("nats error") },
 				KVCheck:   func() error { return fmt.Errorf("kv error") },
 			},
-			expectErr: true,
-			errMsg:    "nats error",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "nats error")
+			},
 		},
 		{
-			name:      "nil checks pass",
-			checker:   &health.NATSChecker{},
-			expectErr: false,
+			name:    "nil checks pass",
+			checker: &health.NATSChecker{},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			err := tt.checker.CheckHealth(s.ctx)
-
-			if tt.expectErr {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errMsg)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(tt.checker.CheckHealth(s.ctx))
 		})
 	}
 }
 
 func (s *CheckerPublicTestSuite) TestCheckNATS() {
 	tests := []struct {
-		name      string
-		checker   *health.NATSChecker
-		expectErr bool
+		name         string
+		checker      *health.NATSChecker
+		validateFunc func(error)
 	}{
 		{
 			name: "NATS check passes",
 			checker: &health.NATSChecker{
 				NATSCheck: func() error { return nil },
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "NATS check fails",
 			checker: &health.NATSChecker{
 				NATSCheck: func() error { return fmt.Errorf("nats error") },
 			},
-			expectErr: true,
+			validateFunc: func(err error) {
+				s.Error(err)
+			},
 		},
 		{
-			name:      "nil NATS check passes",
-			checker:   &health.NATSChecker{},
-			expectErr: false,
+			name:    "nil NATS check passes",
+			checker: &health.NATSChecker{},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			err := tt.checker.CheckNATS()
-
-			if tt.expectErr {
-				s.Error(err)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(tt.checker.CheckNATS())
 		})
 	}
 }
 
 func (s *CheckerPublicTestSuite) TestCheckKV() {
 	tests := []struct {
-		name      string
-		checker   *health.NATSChecker
-		expectErr bool
+		name         string
+		checker      *health.NATSChecker
+		validateFunc func(error)
 	}{
 		{
 			name: "KV check passes",
 			checker: &health.NATSChecker{
 				KVCheck: func() error { return nil },
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "KV check fails",
 			checker: &health.NATSChecker{
 				KVCheck: func() error { return fmt.Errorf("kv error") },
 			},
-			expectErr: true,
+			validateFunc: func(err error) {
+				s.Error(err)
+			},
 		},
 		{
-			name:      "nil KV check passes",
-			checker:   &health.NATSChecker{},
-			expectErr: false,
+			name:    "nil KV check passes",
+			checker: &health.NATSChecker{},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
-			err := tt.checker.CheckKV()
-
-			if tt.expectErr {
-				s.Error(err)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(tt.checker.CheckKV())
 		})
 	}
 }
 
-func TestCheckerPublicTestSuite(t *testing.T) {
+func TestCheckerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CheckerPublicTestSuite))
 }

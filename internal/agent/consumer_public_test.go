@@ -133,11 +133,11 @@ func (s *ConsumerPublicTestSuite) TestConsumerNamePrefix() {
 
 func (s *ConsumerPublicTestSuite) TestConsumeQueryJobs() {
 	tests := []struct {
-		name       string
-		hostname   string
-		labels     map[string]string
-		setupMocks func()
-		expectErr  bool
+		name         string
+		hostname     string
+		labels       map[string]string
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name:     "successful query job consumption",
@@ -155,7 +155,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeQueryJobs() {
 					Return(context.Canceled).
 					Times(3)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "consumer creation failure",
@@ -169,7 +178,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeQueryJobs() {
 
 				// No consumption should happen since creation failed
 			},
-			expectErr: false, // Should not return error, just log and continue
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "partial consumer creation failure",
@@ -193,7 +211,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeQueryJobs() {
 					Return(context.Canceled).
 					Times(1)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "empty hostname",
@@ -209,7 +236,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeQueryJobs() {
 					Return(context.Canceled).
 					Times(3)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "consume error logged",
@@ -225,7 +261,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeQueryJobs() {
 					Return(errors.New("connection lost")).
 					Times(3)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "with labels creates extra consumers",
@@ -245,7 +290,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeQueryJobs() {
 					Return(context.Canceled).
 					Times(6)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 	}
 
@@ -260,27 +314,18 @@ func (s *ConsumerPublicTestSuite) TestConsumeQueryJobs() {
 
 			tt.setupMocks()
 
-			err := agent.ExportConsumeQueryJobs(ctx, s.testAgent, tt.hostname)
-
-			if tt.expectErr {
-				s.Error(err)
-			} else {
-				s.NoError(err)
-			}
-
-			// Allow goroutines to execute before cleanup
-			time.Sleep(10 * time.Millisecond)
+			tt.validateFunc(agent.ExportConsumeQueryJobs(ctx, s.testAgent, tt.hostname))
 		})
 	}
 }
 
 func (s *ConsumerPublicTestSuite) TestConsumeModifyJobs() {
 	tests := []struct {
-		name       string
-		hostname   string
-		labels     map[string]string
-		setupMocks func()
-		expectErr  bool
+		name         string
+		hostname     string
+		labels       map[string]string
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name:     "successful modify job consumption",
@@ -298,7 +343,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeModifyJobs() {
 					Return(context.Canceled).
 					Times(3)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "consumer creation failure",
@@ -310,7 +364,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeModifyJobs() {
 					Return(errors.New("consumer creation failed")).
 					Times(3)
 			},
-			expectErr: false, // Should not return error, just log and continue
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "hostname with special characters",
@@ -326,7 +389,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeModifyJobs() {
 					Return(context.Canceled).
 					Times(3)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "consume error logged",
@@ -342,7 +414,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeModifyJobs() {
 					Return(errors.New("connection lost")).
 					Times(3)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 		{
 			name:     "with labels creates extra consumers",
@@ -362,7 +443,16 @@ func (s *ConsumerPublicTestSuite) TestConsumeModifyJobs() {
 					Return(context.Canceled).
 					Times(6)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				if false {
+					s.Error(err)
+				} else {
+					s.NoError(err)
+				}
+
+				// Allow goroutines to execute before cleanup
+				time.Sleep(10 * time.Millisecond)
+			},
 		},
 	}
 
@@ -377,16 +467,7 @@ func (s *ConsumerPublicTestSuite) TestConsumeModifyJobs() {
 
 			tt.setupMocks()
 
-			err := agent.ExportConsumeModifyJobs(ctx, s.testAgent, tt.hostname)
-
-			if tt.expectErr {
-				s.Error(err)
-			} else {
-				s.NoError(err)
-			}
-
-			// Allow goroutines to execute before cleanup
-			time.Sleep(10 * time.Millisecond)
+			tt.validateFunc(agent.ExportConsumeModifyJobs(ctx, s.testAgent, tt.hostname))
 		})
 	}
 }
@@ -399,8 +480,7 @@ func (s *ConsumerPublicTestSuite) TestCreateConsumer() {
 		filterSubject string
 		agentConsumer config.AgentConsumer
 		setupMocks    func()
-		expectErr     bool
-		errorMsg      string
+		validateFunc  func(error)
 	}{
 		{
 			name:          "successful consumer creation with instant replay",
@@ -430,7 +510,9 @@ func (s *ConsumerPublicTestSuite) TestCreateConsumer() {
 					}).
 					Return(nil)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:          "successful consumer creation with original replay",
@@ -458,7 +540,9 @@ func (s *ConsumerPublicTestSuite) TestCreateConsumer() {
 					}).
 					Return(nil)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:          "consumer creation failure",
@@ -477,8 +561,10 @@ func (s *ConsumerPublicTestSuite) TestCreateConsumer() {
 					CreateOrUpdateConsumer(gomock.Any(), "test-stream", gomock.Any()).
 					Return(errors.New("stream not found"))
 			},
-			expectErr: true,
-			errorMsg:  "stream not found",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "stream not found")
+			},
 		},
 		{
 			name:          "invalid duration in config",
@@ -502,7 +588,9 @@ func (s *ConsumerPublicTestSuite) TestCreateConsumer() {
 					}).
 					Return(nil)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
@@ -515,32 +603,24 @@ func (s *ConsumerPublicTestSuite) TestCreateConsumer() {
 
 			tt.setupMocks()
 
-			err := agent.ExportCreateConsumer(
+			tt.validateFunc(agent.ExportCreateConsumer(
 				context.Background(),
 				s.testAgent,
 				tt.streamName,
 				tt.consumerName,
 				tt.filterSubject,
-			)
-
-			if tt.expectErr {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-			}
+			))
 		})
 	}
 }
 
 func (s *ConsumerPublicTestSuite) TestHandleJobMessageJS() {
 	tests := []struct {
-		name       string
-		msgData    []byte
-		msgSubject string
-		setupMocks func()
-		expectErr  bool
-		errorMsg   string
+		name         string
+		msgData      []byte
+		msgSubject   string
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name:       "successful message handling",
@@ -576,7 +656,9 @@ func (s *ConsumerPublicTestSuite) TestHandleJobMessageJS() {
 					WriteJobResponse(gomock.Any(), "test-job-key", gomock.Any(), gomock.Any(), "completed", "", gomock.Any()).
 					Return(nil)
 			},
-			expectErr: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:       "job processing failure",
@@ -588,8 +670,10 @@ func (s *ConsumerPublicTestSuite) TestHandleJobMessageJS() {
 					GetJobData(gomock.Any(), "jobs.failed-job-key").
 					Return(nil, errors.New("job not found"))
 			},
-			expectErr: true,
-			errorMsg:  "job not found",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "job not found")
+			},
 		},
 		{
 			name:       "invalid subject",
@@ -598,8 +682,10 @@ func (s *ConsumerPublicTestSuite) TestHandleJobMessageJS() {
 			setupMocks: func() {
 				// No mocks needed as it should fail early
 			},
-			expectErr: true,
-			errorMsg:  "failed to parse subject",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to parse subject")
+			},
 		},
 	}
 
@@ -612,18 +698,13 @@ func (s *ConsumerPublicTestSuite) TestHandleJobMessageJS() {
 			mockMsg.EXPECT().Data().Return(tt.msgData).AnyTimes()
 			mockMsg.EXPECT().Headers().Return(nil).AnyTimes()
 
-			err := agent.ExportHandleJobMessageJS(s.testAgent, mockMsg)
-
-			if tt.expectErr {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(agent.ExportHandleJobMessageJS(s.testAgent, mockMsg))
 		})
 	}
 }
 
-func TestConsumerPublicTestSuite(t *testing.T) {
+func TestConsumerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ConsumerPublicTestSuite))
 }

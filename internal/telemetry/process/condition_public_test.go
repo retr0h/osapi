@@ -206,6 +206,8 @@ func (s *ConditionPublicTestSuite) TestEvaluateProcessConditions() {
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestConditionPublicTestSuite(t *testing.T) {
+func TestConditionPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ConditionPublicTestSuite))
 }

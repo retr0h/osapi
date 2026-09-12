@@ -39,10 +39,15 @@ func (suite *DarwinUpdateHostnamePublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*host.UpdateHostnameResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *host.UpdateHostnameResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,16 +55,15 @@ func (suite *DarwinUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 		suite.Run(tc.name, func() {
 			darwin := host.NewDarwinProvider()
 
-			got, err := darwin.UpdateHostname("new-host")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(darwin.UpdateHostname("new-host"))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinUpdateHostnamePublicTestSuite(t *testing.T) {
+func TestDarwinUpdateHostnamePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinUpdateHostnamePublicTestSuite))
 }

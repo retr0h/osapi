@@ -42,202 +42,224 @@ func (suite *DarwinPublicTestSuite) SetupTest() {
 
 func (suite *DarwinPublicTestSuite) TestList() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func([]service.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result []service.Info, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.List(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.List(context.Background()))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestGet() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *service.Info, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Get(context.Background(), "nginx")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Get(context.Background(), "nginx"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestCreate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.CreateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(got *service.CreateResult, err error) {
+				suite.Nil(got)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Create(
+			tc.validateFunc(suite.provider.Create(
 				context.Background(),
 				service.Entry{Name: "test"},
-			)
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestUpdate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(got *service.UpdateResult, err error) {
+				suite.Nil(got)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Update(
+			tc.validateFunc(suite.provider.Update(
 				context.Background(),
 				service.Entry{Name: "test"},
-			)
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestDelete() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.DeleteResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *service.DeleteResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Delete(context.Background(), "test")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Delete(context.Background(), "test"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestStart() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *service.ActionResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Start(context.Background(), "nginx")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Start(context.Background(), "nginx"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestStop() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *service.ActionResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Stop(context.Background(), "nginx")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Stop(context.Background(), "nginx"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestRestart() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *service.ActionResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Restart(context.Background(), "nginx")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Restart(context.Background(), "nginx"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestEnable() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *service.ActionResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Enable(context.Background(), "nginx")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Enable(context.Background(), "nginx"))
 		})
 	}
 }
 
 func (suite *DarwinPublicTestSuite) TestDisable() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *service.ActionResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Disable(context.Background(), "nginx")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Disable(context.Background(), "nginx"))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinPublicTestSuite(t *testing.T) {
+func TestDarwinPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinPublicTestSuite))
 }

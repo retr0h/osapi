@@ -720,6 +720,8 @@ func (suite *AgentPublicTestSuite) TestReject() {
 	}
 }
 
-func TestAgentPublicTestSuite(t *testing.T) {
+func TestAgentPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentPublicTestSuite))
 }

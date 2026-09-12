@@ -329,6 +329,8 @@ func (suite *AgentTypesPublicTestSuite) TestAgentListFromGen() {
 	}
 }
 
-func TestAgentTypesPublicTestSuite(t *testing.T) {
+func TestAgentTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentTypesPublicTestSuite))
 }

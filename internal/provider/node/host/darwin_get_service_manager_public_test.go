@@ -38,14 +38,15 @@ func (suite *DarwinGetServiceManagerPublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 	tests := []struct {
-		name    string
-		want    interface{}
-		wantErr bool
+		name         string
+		validateFunc func(string, error)
 	}{
 		{
-			name:    "when GetServiceManager returns launchd",
-			want:    "launchd",
-			wantErr: false,
+			name: "when GetServiceManager returns launchd",
+			validateFunc: func(got string, err error) {
+				suite.NoError(err)
+				suite.Equal("launchd", got)
+			},
 		},
 	}
 
@@ -53,21 +54,15 @@ func (suite *DarwinGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 		suite.Run(tc.name, func() {
 			darwin := host.NewDarwinProvider()
 
-			got, err := darwin.GetServiceManager()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetServiceManager())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinGetServiceManagerPublicTestSuite(t *testing.T) {
+func TestDarwinGetServiceManagerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinGetServiceManagerPublicTestSuite))
 }

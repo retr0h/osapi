@@ -386,6 +386,8 @@ func (suite *GetRoutesDarwinPublicTestSuite) TestNewDarwinProvider() {
 	}
 }
 
-func TestGetRoutesDarwinPublicTestSuite(t *testing.T) {
+func TestGetRoutesDarwinPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(GetRoutesDarwinPublicTestSuite))
 }

@@ -254,6 +254,8 @@ func (suite *HostnamePublicTestSuite) TestUpdate() {
 	}
 }
 
-func TestHostnamePublicTestSuite(t *testing.T) {
+func TestHostnamePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HostnamePublicTestSuite))
 }

@@ -52,12 +52,10 @@ func (s *ProcessorPowerPublicTestSuite) TearDownTest() {
 
 func (s *ProcessorPowerPublicTestSuite) TestProcessPowerOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() power.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() power.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -67,9 +65,12 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerOperation() {
 				Operation: "power.reboot",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "power provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "power provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid operation format (no sub-operation)",
@@ -82,8 +83,11 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerOperation() {
 			setupMock: func() power.Provider {
 				return powerMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid power operation: power",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid power operation: power")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported power sub-operation",
@@ -96,8 +100,11 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerOperation() {
 			setupMock: func() power.Provider {
 				return powerMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported power operation: power.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported power operation: power.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -120,31 +127,17 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerOperation() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorPowerPublicTestSuite) TestProcessPowerReboot() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() power.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() power.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful reboot with opts",
@@ -166,10 +159,12 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerReboot() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r power.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r power.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("reboot", r.Action)
 				s.Equal(30, r.Delay)
 				s.True(r.Changed)
@@ -192,10 +187,12 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerReboot() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r power.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r power.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("reboot", r.Action)
 				s.True(r.Changed)
 			},
@@ -211,8 +208,11 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerReboot() {
 			setupMock: func() power.Provider {
 				return powerMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal power opts",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal power opts")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "reboot provider error",
@@ -229,8 +229,11 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerReboot() {
 					Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -248,31 +251,17 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerReboot() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorPowerPublicTestSuite) TestProcessPowerShutdown() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() power.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() power.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful shutdown with opts",
@@ -294,10 +283,12 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerShutdown() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r power.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r power.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("shutdown", r.Action)
 				s.Equal(60, r.Delay)
 				s.True(r.Changed)
@@ -320,10 +311,12 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerShutdown() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r power.Result
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r power.Result
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("shutdown", r.Action)
 				s.True(r.Changed)
 			},
@@ -339,8 +332,11 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerShutdown() {
 			setupMock: func() power.Provider {
 				return powerMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal power opts",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal power opts")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "shutdown provider error",
@@ -357,8 +353,11 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerShutdown() {
 					Return(nil, errors.New("operation not permitted"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "operation not permitted",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "operation not permitted")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -376,23 +375,13 @@ func (s *ProcessorPowerPublicTestSuite) TestProcessPowerShutdown() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
-func TestProcessorPowerPublicTestSuite(t *testing.T) {
+func TestProcessorPowerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorPowerPublicTestSuite))
 }

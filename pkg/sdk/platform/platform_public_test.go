@@ -35,57 +35,71 @@ type PlatformPublicTestSuite struct {
 	suite.Suite
 }
 
-func TestPlatformPublicTestSuite(t *testing.T) {
+func TestPlatformPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PlatformPublicTestSuite))
 }
 
 func (suite *PlatformPublicTestSuite) TestDetect() {
 	tests := []struct {
-		name     string
-		infoFn   func() (*host.InfoStat, error)
-		expected string
+		name         string
+		infoFn       func() (*host.InfoStat, error)
+		validateFunc func(string)
 	}{
 		{
 			name: "returns debian family when platform is Ubuntu",
 			infoFn: func() (*host.InfoStat, error) {
 				return &host.InfoStat{Platform: "Ubuntu"}, nil
 			},
-			expected: "debian",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "debian", got)
+			},
 		},
 		{
 			name: "returns debian family when platform is debian",
 			infoFn: func() (*host.InfoStat, error) {
 				return &host.InfoStat{Platform: "debian"}, nil
 			},
-			expected: "debian",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "debian", got)
+			},
 		},
 		{
 			name: "returns darwin when platform is empty and OS is darwin",
 			infoFn: func() (*host.InfoStat, error) {
 				return &host.InfoStat{Platform: "", OS: "darwin"}, nil
 			},
-			expected: "darwin",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "darwin", got)
+			},
 		},
 		{
 			name: "returns centos for centos platform",
 			infoFn: func() (*host.InfoStat, error) {
 				return &host.InfoStat{Platform: "centos"}, nil
 			},
-			expected: "centos",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "centos", got)
+			},
 		},
 		{
 			name: "returns empty string when info is nil",
 			infoFn: func() (*host.InfoStat, error) {
 				return nil, fmt.Errorf("no host info")
 			},
-			expected: "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name: "returns empty string when platform and OS are empty",
 			infoFn: func() (*host.InfoStat, error) {
 				return &host.InfoStat{}, nil
 			},
-			expected: "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 	}
 
@@ -97,7 +111,7 @@ func (suite *PlatformPublicTestSuite) TestDetect() {
 			platform.HostInfoFn = tc.infoFn
 			result := platform.Detect()
 
-			assert.Equal(suite.T(), tc.expected, result)
+			tc.validateFunc(result)
 		})
 	}
 }

@@ -408,25 +408,31 @@ func (s *TargetPublicTestSuite) TestValidTarget() {
 
 func (s *TargetPublicTestSuite) TestResolveTarget() {
 	tests := []struct {
-		name        string
-		setupLister func()
-		target      string
-		want        string
+		name         string
+		setupLister  func()
+		target       string
+		validateFunc func(string)
 	}{
 		{
 			name:   "when target is _any returns unchanged",
 			target: "_any",
-			want:   "_any",
+			validateFunc: func(got string) {
+				s.Equal("_any", got)
+			},
 		},
 		{
 			name:   "when target is _all returns unchanged",
 			target: "_all",
-			want:   "_all",
+			validateFunc: func(got string) {
+				s.Equal("_all", got)
+			},
 		},
 		{
 			name:   "when target is label returns unchanged",
 			target: "group:web",
-			want:   "group:web",
+			validateFunc: func(got string) {
+				s.Equal("group:web", got)
+			},
 		},
 		{
 			name: "when target is hostname resolves to machine ID",
@@ -440,7 +446,9 @@ func (s *TargetPublicTestSuite) TestResolveTarget() {
 				)
 			},
 			target: "web-01",
-			want:   "abc123",
+			validateFunc: func(got string) {
+				s.Equal("abc123", got)
+			},
 		},
 		{
 			name: "when target is machine ID returns unchanged",
@@ -454,7 +462,9 @@ func (s *TargetPublicTestSuite) TestResolveTarget() {
 				)
 			},
 			target: "abc123",
-			want:   "abc123",
+			validateFunc: func(got string) {
+				s.Equal("abc123", got)
+			},
 		},
 		{
 			name: "when target not found returns unchanged",
@@ -466,7 +476,9 @@ func (s *TargetPublicTestSuite) TestResolveTarget() {
 				)
 			},
 			target: "unknown",
-			want:   "unknown",
+			validateFunc: func(got string) {
+				s.Equal("unknown", got)
+			},
 		},
 		{
 			name: "when lister errors returns unchanged",
@@ -478,7 +490,9 @@ func (s *TargetPublicTestSuite) TestResolveTarget() {
 				)
 			},
 			target: "web-01",
-			want:   "web-01",
+			validateFunc: func(got string) {
+				s.Equal("web-01", got)
+			},
 		},
 	}
 
@@ -488,7 +502,7 @@ func (s *TargetPublicTestSuite) TestResolveTarget() {
 				tt.setupLister()
 			}
 			got := validation.ResolveTarget(tt.target)
-			s.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
@@ -507,6 +521,8 @@ func (s *TargetPublicTestSuite) TestValidTargetMatchesMachineID() {
 	s.True(ok)
 }
 
-func TestTargetPublicTestSuite(t *testing.T) {
+func TestTargetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(TargetPublicTestSuite))
 }

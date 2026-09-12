@@ -30,6 +30,7 @@ import (
 
 	"github.com/avfs/avfs"
 	"github.com/avfs/avfs/vfs/memfs"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
@@ -219,7 +220,9 @@ func (s *HeartbeatPublicTestSuite) TestStartWithHeartbeat() {
 	}
 }
 
-func TestHeartbeatPublicTestSuite(t *testing.T) {
+func TestHeartbeatPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HeartbeatPublicTestSuite))
 }
 
@@ -376,10 +379,18 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistration() {
 
 func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistrationStoresHeartbeatTime() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(time.Time, time.Time, time.Time)
 	}{
 		{
 			name: "when Put succeeds stores last heartbeat time",
+			validateFunc: func(got, before, after time.Time) {
+				s.False(got.IsZero(), "expected non-zero heartbeat time after successful Put")
+				s.True(
+					!got.Before(before) && !got.After(after),
+					"heartbeat time should be between before and after write",
+				)
+			},
 		},
 	}
 
@@ -399,19 +410,16 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestWriteRegistrationStoresHeartbeatT
 			after := time.Now()
 
 			got := s.testAgent.LastHeartbeatTime()
-			s.False(got.IsZero(), "expected non-zero heartbeat time after successful Put")
-			s.True(
-				!got.Before(before) && !got.After(after),
-				"heartbeat time should be between before and after write",
-			)
+			tt.validateFunc(got, before, after)
 		})
 	}
 }
 
 func (s *HeartbeatLowLevelPublicTestSuite) TestDeregister() {
 	tests := []struct {
-		name      string
-		setupMock func()
+		name         string
+		setupMock    func()
+		validateFunc func(assert.PanicTestFunc)
 	}{
 		{
 			name: "when Delete fails logs warning",
@@ -419,6 +427,9 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestDeregister() {
 				s.mockKV.EXPECT().
 					Delete(gomock.Any(), "agents.test_machine_id").
 					Return(errors.New("delete failed"))
+			},
+			validateFunc: func(deregister assert.PanicTestFunc) {
+				s.NotPanics(deregister)
 			},
 		},
 		{
@@ -428,18 +439,22 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestDeregister() {
 					Delete(gomock.Any(), "agents.test_machine_id").
 					Return(nil)
 			},
+			validateFunc: func(deregister assert.PanicTestFunc) {
+				s.NotPanics(deregister)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			tt.setupMock()
+
 			// Deregister is best-effort (fire-and-forget). It deletes a
 			// KV key and logs the outcome but does not mutate agent state.
 			// The gomock expectations above verify the correct KV call was
 			// made; beyond that, we only verify the function completes
 			// without panicking.
-			s.NotPanics(func() {
+			tt.validateFunc(func() {
 				agent.ExportDeregister(s.testAgent, "test-machine-id")
 			})
 		})
@@ -500,18 +515,25 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestStartHeartbeatHostnameChange() {
 		initialHostname string
 		hostnameReply   string
 		expectChanged   bool
+		validateFunc    func(any)
 	}{
 		{
 			name:            "when hostname changes updates cached hostname",
 			initialHostname: "old-host",
 			hostnameReply:   "new-host",
 			expectChanged:   true,
+			validateFunc: func(got any) {
+				s.Equal("new-host", got)
+			},
 		},
 		{
 			name:            "when hostname unchanged does not resubscribe",
 			initialHostname: "same-host",
 			hostnameReply:   "same-host",
 			expectChanged:   false,
+			validateFunc: func(got any) {
+				s.Equal("same-host", got)
+			},
 		},
 	}
 
@@ -589,38 +611,43 @@ func (s *HeartbeatLowLevelPublicTestSuite) TestStartHeartbeatHostnameChange() {
 			// Wait for goroutine to finish
 			agent.WaitAgentWG(testAgent)
 
-			got := agent.GetAgentHostname(testAgent)
-			s.Equal(tt.hostnameReply, got)
+			tt.validateFunc(agent.GetAgentHostname(testAgent))
 		})
 	}
 }
 
 func (s *HeartbeatLowLevelPublicTestSuite) TestRegistryKey() {
 	tests := []struct {
-		name      string
-		machineID string
-		expected  string
+		name         string
+		machineID    string
+		validateFunc func(string)
 	}{
 		{
 			name:      "simple machine ID",
 			machineID: "abc-123-def",
-			expected:  "agents.abc_123_def",
+			validateFunc: func(got string) {
+				s.Equal("agents.abc_123_def", got)
+			},
 		},
 		{
 			name:      "machine ID with dots",
 			machineID: "A1B2C3D4-E5F6.7890",
-			expected:  "agents.A1B2C3D4_E5F6_7890",
+			validateFunc: func(got string) {
+				s.Equal("agents.A1B2C3D4_E5F6_7890", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			result := agent.ExportRegistryKey(tt.machineID)
-			s.Equal(tt.expected, result)
+			tt.validateFunc(result)
 		})
 	}
 }
 
-func TestHeartbeatLowLevelPublicTestSuite(t *testing.T) {
+func TestHeartbeatLowLevelPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HeartbeatLowLevelPublicTestSuite))
 }

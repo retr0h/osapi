@@ -79,7 +79,9 @@ func (s *FileStatusPostPublicTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
 }
 
-func marshalStatusResult(r providerFile.StatusResult) json.RawMessage {
+func marshalStatusResult(
+	r providerFile.StatusResult,
+) json.RawMessage {
 	b, _ := json.Marshal(r)
 	return b
 }
@@ -477,8 +479,7 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusValidationHTTP() {
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -498,8 +499,14 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"agent1"`, `"in-sync"`, `"sha256"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+				s.Contains(rec.Body.String(), `"in-sync"`)
+				s.Contains(rec.Body.String(), `"sha256"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when missing path",
@@ -508,8 +515,12 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Path", "required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Path")
+				s.Contains(rec.Body.String(), "required")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -518,8 +529,12 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 	}
 
@@ -543,10 +558,7 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -560,8 +572,7 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -571,8 +582,10 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -589,8 +602,10 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with file:read returns 200",
@@ -622,8 +637,12 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusRBACHTTP() {
 					)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"in-sync"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"in-sync"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -661,14 +680,13 @@ func (s *FileStatusPostPublicTestSuite) TestPostNodeFileStatusRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestFileStatusPostPublicTestSuite(t *testing.T) {
+func TestFileStatusPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileStatusPostPublicTestSuite))
 }

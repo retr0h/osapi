@@ -375,6 +375,8 @@ func (suite *CertificateTypesPublicTestSuite) TestCertificateCAMutationCollectio
 	}
 }
 
-func TestCertificateTypesPublicTestSuite(t *testing.T) {
+func TestCertificateTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CertificateTypesPublicTestSuite))
 }

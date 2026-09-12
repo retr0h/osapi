@@ -40,10 +40,15 @@ func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*dns.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -54,25 +59,27 @@ func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvCo
 			servers := []string{}
 			searchDomains := []string{}
 			interfaceName := ""
-			result, err := linux.UpdateResolvConfByInterface(
+			tc.validateFunc(linux.UpdateResolvConfByInterface(
 				servers,
 				searchDomains,
 				interfaceName,
 				false,
-			)
-
-			suite.Nil(result)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
 
 func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanConfig() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(bool, error)
 	}{
 		{
 			name: "returns ErrUnsupported on generic Linux",
+			validateFunc: func(result bool, err error) {
+				suite.False(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -80,16 +87,15 @@ func (suite *LinuxUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplanC
 		suite.Run(tc.name, func() {
 			linux := dns.NewLinuxProvider()
 
-			changed, err := linux.DeleteNetplanConfig("eth0")
-
-			suite.False(changed)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.DeleteNetplanConfig("eth0"))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxUpdateResolvConfByInterfacePublicTestSuite(t *testing.T) {
+func TestLinuxUpdateResolvConfByInterfacePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxUpdateResolvConfByInterfacePublicTestSuite))
 }

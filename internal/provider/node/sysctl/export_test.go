@@ -23,7 +23,9 @@ package sysctl
 import "encoding/json"
 
 // SetMarshalJSON overrides the marshal function for testing.
-func SetMarshalJSON(fn func(interface{}) ([]byte, error)) {
+func SetMarshalJSON(
+	fn func(interface{}) ([]byte, error),
+) {
 	marshalJSON = fn
 }
 

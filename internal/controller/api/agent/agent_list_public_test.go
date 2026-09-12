@@ -338,8 +338,7 @@ func (s *AgentListPublicTestSuite) TestListAgentsHTTP() {
 	tests := []struct {
 		name         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when agents exist returns agent list",
@@ -353,8 +352,13 @@ func (s *AgentListPublicTestSuite) TestListAgentsHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"total":2`, `"server1"`, `"server2"`, `"status":"Ready"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"total":2`)
+				s.Contains(rec.Body.String(), `"server1"`)
+				s.Contains(rec.Body.String(), `"server2"`)
+				s.Contains(rec.Body.String(), `"status":"Ready"`)
+			},
 		},
 		{
 			name: "when no agents returns empty list",
@@ -365,8 +369,10 @@ func (s *AgentListPublicTestSuite) TestListAgentsHTTP() {
 					Return([]jobtypes.AgentInfo{}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"total":0`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"total":0`)
+			},
 		},
 		{
 			name: "when job client errors returns 500",
@@ -377,8 +383,10 @@ func (s *AgentListPublicTestSuite) TestListAgentsHTTP() {
 					Return(nil, assert.AnError)
 				return mock
 			},
-			wantCode:     http.StatusInternalServerError,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+			},
 		},
 	}
 
@@ -397,10 +405,7 @@ func (s *AgentListPublicTestSuite) TestListAgentsHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -414,8 +419,7 @@ func (s *AgentListPublicTestSuite) TestListAgentsRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -425,8 +429,10 @@ func (s *AgentListPublicTestSuite) TestListAgentsRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -443,8 +449,10 @@ func (s *AgentListPublicTestSuite) TestListAgentsRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with agent:read returns 200",
@@ -468,8 +476,11 @@ func (s *AgentListPublicTestSuite) TestListAgentsRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"total":2`, `"server1"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"total":2`)
+				s.Contains(rec.Body.String(), `"server1"`)
+			},
 		},
 	}
 
@@ -507,10 +518,7 @@ func (s *AgentListPublicTestSuite) TestListAgentsRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -519,40 +527,50 @@ func (s *AgentListPublicTestSuite) TestUint64ToInt() {
 	maxInt := int(^uint(0) >> 1)
 
 	tests := []struct {
-		name string
-		val  uint64
-		want int
+		name         string
+		val          uint64
+		validateFunc func(int)
 	}{
 		{
 			name: "when zero",
 			val:  0,
-			want: 0,
+			validateFunc: func(got int) {
+				s.Equal(0, got)
+			},
 		},
 		{
 			name: "when normal value",
 			val:  42,
-			want: 42,
+			validateFunc: func(got int) {
+				s.Equal(42, got)
+			},
 		},
 		{
 			name: "when max int value",
 			val:  uint64(maxInt),
-			want: maxInt,
+			validateFunc: func(got int) {
+				s.Equal(maxInt, got)
+			},
 		},
 		{
 			name: "when overflow",
 			val:  math.MaxUint64,
-			want: maxInt,
+			validateFunc: func(got int) {
+				s.Equal(maxInt, got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			got := apiagent.ExportUint64ToInt(tt.val)
-			s.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
 
-func TestAgentListPublicTestSuite(t *testing.T) {
+func TestAgentListPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentListPublicTestSuite))
 }

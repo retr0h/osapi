@@ -146,8 +146,7 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDHTTP() {
 		name         string
 		path         string
 		setupStore   func(mock *auditmocks.MockStore)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid UUID returns entry",
@@ -167,15 +166,18 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDHTTP() {
 						DurationMs:   42,
 					}, nil)
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"user":"user@example.com"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"user":"user@example.com"`)
+			},
 		},
 		{
-			name:         "when invalid UUID returns 400",
-			path:         "/api/audit/not-a-uuid",
-			setupStore:   func(_ *auditmocks.MockStore) {},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{},
+			name:       "when invalid UUID returns 400",
+			path:       "/api/audit/not-a-uuid",
+			setupStore: func(_ *auditmocks.MockStore) {},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 	}
 
@@ -202,10 +204,7 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -219,17 +218,18 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupStore   func(mock *auditmocks.MockStore)
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
 			setupAuth: func(_ *http.Request) {
 				// No auth header set
 			},
-			setupStore:   func(_ *auditmocks.MockStore) {},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			setupStore: func(_ *auditmocks.MockStore) {},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -243,9 +243,11 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDRBACHTTP() {
 				s.Require().NoError(err)
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 			},
-			setupStore:   func(_ *auditmocks.MockStore) {},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			setupStore: func(_ *auditmocks.MockStore) {},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with audit:read returns 200",
@@ -274,8 +276,10 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDRBACHTTP() {
 						DurationMs:   42,
 					}, nil)
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"user":"user@example.com"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"user":"user@example.com"`)
+			},
 		},
 	}
 
@@ -316,14 +320,13 @@ func (s *AuditGetPublicTestSuite) TestGetAuditLogByIDRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestAuditGetPublicTestSuite(t *testing.T) {
+func TestAuditGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuditGetPublicTestSuite))
 }

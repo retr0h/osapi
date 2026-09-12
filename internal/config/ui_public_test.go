@@ -37,34 +37,42 @@ func (s *UIPublicTestSuite) TestUIEnabled() {
 	falseVal := false
 
 	tests := []struct {
-		name     string
-		cfg      config.UIConfig
-		expected bool
+		name         string
+		cfg          config.UIConfig
+		validateFunc func(bool)
 	}{
 		{
-			name:     "defaults to true when Enabled is nil",
-			cfg:      config.UIConfig{},
-			expected: true,
+			name: "defaults to true when Enabled is nil",
+			cfg:  config.UIConfig{},
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:     "returns true when Enabled is explicitly true",
-			cfg:      config.UIConfig{Enabled: &trueVal},
-			expected: true,
+			name: "returns true when Enabled is explicitly true",
+			cfg:  config.UIConfig{Enabled: &trueVal},
+			validateFunc: func(got bool) {
+				s.Equal(true, got)
+			},
 		},
 		{
-			name:     "returns false when Enabled is explicitly false",
-			cfg:      config.UIConfig{Enabled: &falseVal},
-			expected: false,
+			name: "returns false when Enabled is explicitly false",
+			cfg:  config.UIConfig{Enabled: &falseVal},
+			validateFunc: func(got bool) {
+				s.Equal(false, got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
-			s.Equal(tc.expected, tc.cfg.UIEnabled())
+			tc.validateFunc(tc.cfg.UIEnabled())
 		})
 	}
 }
 
-func TestUIPublicTestSuite(t *testing.T) {
+func TestUIPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UIPublicTestSuite))
 }

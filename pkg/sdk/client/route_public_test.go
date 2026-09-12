@@ -814,6 +814,8 @@ func (suite *RoutePublicTestSuite) TestDelete() {
 	}
 }
 
-func TestRoutePublicTestSuite(t *testing.T) {
+func TestRoutePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(RoutePublicTestSuite))
 }

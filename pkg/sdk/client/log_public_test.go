@@ -595,6 +595,8 @@ func (suite *LogPublicTestSuite) TestSources() {
 	}
 }
 
-func TestLogPublicTestSuite(t *testing.T) {
+func TestLogPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogPublicTestSuite))
 }

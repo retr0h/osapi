@@ -39,10 +39,15 @@ func (suite *LinuxGetStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetStatsPublicTestSuite) TestGetStats() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*mem.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *mem.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,16 +55,15 @@ func (suite *LinuxGetStatsPublicTestSuite) TestGetStats() {
 		suite.Run(tc.name, func() {
 			linux := mem.NewLinuxProvider()
 
-			got, err := linux.GetStats()
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetStats())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetStatsPublicTestSuite(t *testing.T) {
+func TestLinuxGetStatsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetStatsPublicTestSuite))
 }

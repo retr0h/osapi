@@ -30,6 +30,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -94,7 +96,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeService() {
 				s.mockJobClient.EXPECT().
 					Modify(gomock.Any(), "server1", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: boolPtr(true),
+						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"my-app.service","changed":true}`),
 					}, nil)
 			},
@@ -118,7 +120,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeService() {
 				s.mockJobClient.EXPECT().
 					Modify(gomock.Any(), "server1", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: boolPtr(true), Data: nil,
+						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: ptr.To(true), Data: nil,
 					}, nil)
 			},
 			validateFunc: func(resp gen.DeleteNodeServiceResponseObject) {
@@ -183,12 +185,12 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeService() {
 					Return("550e8400-e29b-41d4-a716-446655440000", map[string]*job.Response{
 						"server1": {
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-app.service","changed":true}`),
 						},
 						"server2": {
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-app.service","changed":true}`),
 						},
 					}, nil)
@@ -206,7 +208,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeService() {
 				s.mockJobClient.EXPECT().
 					ModifyBroadcast(gomock.Any(), "_all", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", map[string]*job.Response{
-						"server1": {Hostname: "server1", Changed: boolPtr(true), Data: nil},
+						"server1": {Hostname: "server1", Changed: ptr.To(true), Data: nil},
 					}, nil)
 			},
 			validateFunc: func(resp gen.DeleteNodeServiceResponseObject) {
@@ -290,8 +292,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceValidationHTTP() {
 		name         string
 		path         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -301,13 +302,16 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceValidationHTTP() {
 				mock.EXPECT().
 					Modify(gomock.Any(), "server1", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: boolPtr(true),
+						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"my-app.service","changed":true}`),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -315,8 +319,11 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+			},
 		},
 	}
 
@@ -330,10 +337,7 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceValidationHTTP() {
 			req := httptest.NewRequest(http.MethodDelete, tc.path, nil)
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -346,13 +350,16 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
-			name: "when no token returns 401", setupAuth: func(_ *http.Request) {},
+			name:         "when no token returns 401",
+			setupAuth:    func(_ *http.Request) {},
 			setupJobMock: func() *jobmocks.MockJobClient { return jobmocks.NewMockJobClient(s.mockCtrl) },
-			wantCode:     http.StatusUnauthorized, wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -367,7 +374,10 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceRBACHTTP() {
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 			},
 			setupJobMock: func() *jobmocks.MockJobClient { return jobmocks.NewMockJobClient(s.mockCtrl) },
-			wantCode:     http.StatusForbidden, wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -386,12 +396,16 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceRBACHTTP() {
 				mock.EXPECT().
 					Modify(gomock.Any(), "server1", "node", job.OperationServiceDelete, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
-						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: boolPtr(true),
+						JobID: "550e8400-e29b-41d4-a716-446655440000", Hostname: "agent1", Changed: ptr.To(true),
 						Data: json.RawMessage(`{"name":"my-app.service","changed":true}`),
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK, wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -423,14 +437,13 @@ func (s *ServiceDeletePublicTestSuite) TestDeleteNodeServiceRBACHTTP() {
 			tc.setupAuth(req)
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestServiceDeletePublicTestSuite(t *testing.T) {
+func TestServiceDeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServiceDeletePublicTestSuite))
 }

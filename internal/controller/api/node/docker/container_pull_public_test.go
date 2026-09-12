@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -104,7 +106,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPull() {
 					).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"image_id":"sha256:abc123","tag":"latest","size":12345}`,
 						),
@@ -233,7 +235,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPull() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"image_id":"sha256:abc","tag":"latest","size":2048}`,
 							),
@@ -241,7 +243,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPull() {
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"image_id":"sha256:def","tag":"latest","size":2048}`,
 							),
@@ -276,7 +278,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPull() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"image_id":"sha256:abc","tag":"latest","size":2048}`,
 							),
@@ -373,8 +375,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullValidation
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -386,15 +387,19 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullValidation
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerPull, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"image_id":"sha256:abc123","tag":"latest","size":12345}`,
 						),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"results"`, `"image_id"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"image_id"`)
+			},
 		},
 		{
 			name: "when missing image",
@@ -403,8 +408,12 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullValidation
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Image", "required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Image")
+				s.Contains(rec.Body.String(), "required")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -413,8 +422,12 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullValidation
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 	}
 
@@ -438,10 +451,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullValidation
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -455,8 +465,7 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullRBACHTTP()
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -466,8 +475,10 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullRBACHTTP()
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -484,8 +495,10 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullRBACHTTP()
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 202",
@@ -505,15 +518,18 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullRBACHTTP()
 					Modify(gomock.Any(), "server1", "docker", job.OperationDockerPull, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"image_id":"sha256:abc123","tag":"latest","size":12345}`,
 						),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -551,14 +567,13 @@ func (s *ContainerPullPublicTestSuite) TestPostNodeContainerDockerPullRBACHTTP()
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestContainerPullPublicTestSuite(t *testing.T) {
+func TestContainerPullPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerPullPublicTestSuite))
 }

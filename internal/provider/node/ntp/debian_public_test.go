@@ -649,24 +649,30 @@ func (suite *DebianPublicTestSuite) TestParseTracking() {
 
 func (suite *DebianPublicTestSuite) TestParseSources() {
 	tests := []struct {
-		name  string
-		input string
-		want  []string
+		name         string
+		input        string
+		validateFunc func([]string)
 	}{
 		{
 			name:  "when valid CSV extracts server names",
 			input: sourcesOutput,
-			want:  []string{"time.cloudflare.com", "ntp.ubuntu.com"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"time.cloudflare.com", "ntp.ubuntu.com"}, got)
+			},
 		},
 		{
 			name:  "when empty input returns nil",
 			input: "",
-			want:  nil,
+			validateFunc: func(got []string) {
+				suite.Equal([]string(nil), got)
+			},
 		},
 		{
 			name:  "when line has fewer than 3 fields skips it",
 			input: "^,*\n^,+,valid.server,2,6\n",
-			want:  []string{"valid.server"},
+			validateFunc: func(got []string) {
+				suite.Equal([]string{"valid.server"}, got)
+			},
 		},
 	}
 
@@ -674,31 +680,37 @@ func (suite *DebianPublicTestSuite) TestParseSources() {
 		suite.Run(tc.name, func() {
 			got := ntp.ParseSources(tc.input)
 
-			suite.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *DebianPublicTestSuite) TestParseOffset() {
 	tests := []struct {
-		name  string
-		input string
-		want  string
+		name         string
+		input        string
+		validateFunc func(string)
 	}{
 		{
 			name:  "when fast returns positive offset",
 			input: "0.000003422 seconds fast of NTP time",
-			want:  "+0.000003422s",
+			validateFunc: func(got string) {
+				suite.Equal("+0.000003422s", got)
+			},
 		},
 		{
 			name:  "when slow returns negative offset",
 			input: "0.000001834 seconds slow of NTP time",
-			want:  "-0.000001834s",
+			validateFunc: func(got string) {
+				suite.Equal("-0.000001834s", got)
+			},
 		},
 		{
 			name:  "when too few fields returns empty",
 			input: "0.0 seconds",
-			want:  "",
+			validateFunc: func(got string) {
+				suite.Equal("", got)
+			},
 		},
 	}
 
@@ -706,31 +718,37 @@ func (suite *DebianPublicTestSuite) TestParseOffset() {
 		suite.Run(tc.name, func() {
 			got := ntp.ParseOffset(tc.input)
 
-			suite.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *DebianPublicTestSuite) TestParseReferenceID() {
 	tests := []struct {
-		name  string
-		input string
-		want  string
+		name         string
+		input        string
+		validateFunc func(string)
 	}{
 		{
 			name:  "when parens present extracts hostname",
 			input: "A29FC801 (time.cloudflare.com)",
-			want:  "time.cloudflare.com",
+			validateFunc: func(got string) {
+				suite.Equal("time.cloudflare.com", got)
+			},
 		},
 		{
 			name:  "when empty parens returns empty",
 			input: "00000000 ()",
-			want:  "",
+			validateFunc: func(got string) {
+				suite.Equal("", got)
+			},
 		},
 		{
 			name:  "when no parens returns empty",
 			input: "A29FC801",
-			want:  "",
+			validateFunc: func(got string) {
+				suite.Equal("", got)
+			},
 		},
 	}
 
@@ -738,31 +756,37 @@ func (suite *DebianPublicTestSuite) TestParseReferenceID() {
 		suite.Run(tc.name, func() {
 			got := ntp.ParseReferenceID(tc.input)
 
-			suite.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *DebianPublicTestSuite) TestGenerateContent() {
 	tests := []struct {
-		name    string
-		servers []string
-		want    string
+		name         string
+		servers      []string
+		validateFunc func(string)
 	}{
 		{
 			name:    "when multiple servers generates correct content",
 			servers: []string{"0.pool.ntp.org", "1.pool.ntp.org"},
-			want:    "server 0.pool.ntp.org iburst\nserver 1.pool.ntp.org iburst\n",
+			validateFunc: func(got string) {
+				suite.Equal("server 0.pool.ntp.org iburst\nserver 1.pool.ntp.org iburst\n", got)
+			},
 		},
 		{
 			name:    "when single server generates one line",
 			servers: []string{"time.google.com"},
-			want:    "server time.google.com iburst\n",
+			validateFunc: func(got string) {
+				suite.Equal("server time.google.com iburst\n", got)
+			},
 		},
 		{
 			name:    "when empty servers generates empty content",
 			servers: []string{},
-			want:    "",
+			validateFunc: func(got string) {
+				suite.Equal("", got)
+			},
 		},
 	}
 
@@ -770,35 +794,41 @@ func (suite *DebianPublicTestSuite) TestGenerateContent() {
 		suite.Run(tc.name, func() {
 			got := ntp.GenerateContent(tc.servers)
 
-			suite.Equal(tc.want, string(got))
+			tc.validateFunc(string(got))
 		})
 	}
 }
 
 func (suite *DebianPublicTestSuite) TestComputeSHA256() {
 	tests := []struct {
-		name string
-		data []byte
+		name         string
+		data         []byte
+		validateFunc func(string, string)
 	}{
 		{
 			name: "when given data returns consistent hash",
 			data: []byte("server 0.pool.ntp.org iburst\n"),
+			validateFunc: func(got1, got2 string) {
+				suite.Equal(got1, got2)
+				suite.Len(got1, 64)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got1 := ntp.ComputeSHA256(tc.data)
-			got2 := ntp.ComputeSHA256(tc.data)
-
-			suite.Equal(got1, got2)
-			suite.Len(got1, 64)
+			tc.validateFunc(
+				ntp.ComputeSHA256(tc.data),
+				ntp.ComputeSHA256(tc.data),
+			)
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDebianPublicTestSuite(t *testing.T) {
+func TestDebianPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianPublicTestSuite))
 }

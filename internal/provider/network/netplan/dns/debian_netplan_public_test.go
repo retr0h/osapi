@@ -179,13 +179,15 @@ func (suite *DebianNetplanPublicTestSuite) TestResolvePrimaryInterface() {
 		name          string
 		interfaceName string
 		setupFacts    func(p *dns.Debian)
-		want          string
+		validateFunc  func(string)
 	}{
 		{
 			name:          "when explicit interface name is provided",
 			interfaceName: "enp3s0",
 			setupFacts:    func(_ *dns.Debian) {},
-			want:          "enp3s0",
+			validateFunc: func(got string) {
+				suite.Equal("enp3s0", got)
+			},
 		},
 		{
 			name:          "when empty interface and facts has primary_interface",
@@ -197,13 +199,17 @@ func (suite *DebianNetplanPublicTestSuite) TestResolvePrimaryInterface() {
 					}
 				})
 			},
-			want: "ens3",
+			validateFunc: func(got string) {
+				suite.Equal("ens3", got)
+			},
 		},
 		{
 			name:          "when empty interface and no facts",
 			interfaceName: "",
 			setupFacts:    func(_ *dns.Debian) {},
-			want:          "eth0",
+			validateFunc: func(got string) {
+				suite.Equal("eth0", got)
+			},
 		},
 	}
 
@@ -217,13 +223,15 @@ func (suite *DebianNetplanPublicTestSuite) TestResolvePrimaryInterface() {
 
 			got := p.ExportResolvePrimaryInterface(tc.interfaceName)
 
-			suite.Equal(tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDebianNetplanPublicTestSuite(t *testing.T) {
+func TestDebianNetplanPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianNetplanPublicTestSuite))
 }

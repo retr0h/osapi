@@ -30,12 +30,16 @@ import (
 )
 
 // NewPlainMockProvider creates a Mock without defaults.
-func NewPlainMockProvider(ctrl *gomock.Controller) *MockProvider {
+func NewPlainMockProvider(
+	ctrl *gomock.Controller,
+) *MockProvider {
 	return NewMockProvider(ctrl)
 }
 
 // NewDefaultMockProvider creates a Mock with defaults.
-func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
+func NewDefaultMockProvider(
+	ctrl *gomock.Controller,
+) *MockProvider {
 	mock := NewPlainMockProvider(ctrl)
 
 	result := &ping.Result{
@@ -55,12 +59,16 @@ func NewDefaultMockProvider(ctrl *gomock.Controller) *MockProvider {
 }
 
 // NewPlainMockPinger creates a pinger Mock without defaults.
-func NewPlainMockPinger(ctrl *gomock.Controller) *MockPinger {
+func NewPlainMockPinger(
+	ctrl *gomock.Controller,
+) *MockPinger {
 	return NewMockPinger(ctrl)
 }
 
 // NewDefaultMockPinger creates a pinger Mock with defaults.
-func NewDefaultMockPinger(ctrl *gomock.Controller) *MockPinger {
+func NewDefaultMockPinger(
+	ctrl *gomock.Controller,
+) *MockPinger {
 	mock := NewPlainMockPinger(ctrl)
 
 	SetCommonExpectations(mock)
@@ -78,7 +86,9 @@ func NewDefaultMockPinger(ctrl *gomock.Controller) *MockPinger {
 }
 
 // SetCommonExpectations sets the common expectations on the mock pinger.
-func SetCommonExpectations(mock *MockPinger) {
+func SetCommonExpectations(
+	mock *MockPinger,
+) {
 	mock.EXPECT().SetCount(3)
 	mock.EXPECT().SetPrivileged(false)
 }

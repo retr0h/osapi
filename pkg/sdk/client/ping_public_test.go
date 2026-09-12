@@ -150,6 +150,8 @@ func (suite *PingPublicTestSuite) TestDo() {
 	}
 }
 
-func TestPingPublicTestSuite(t *testing.T) {
+func TestPingPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(PingPublicTestSuite))
 }

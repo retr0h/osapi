@@ -45,10 +45,15 @@ func (suite *LinuxDoStatsPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxDoStatsPublicTestSuite) TestDo() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*ping.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *ping.Result, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -56,16 +61,15 @@ func (suite *LinuxDoStatsPublicTestSuite) TestDo() {
 		suite.Run(tc.name, func() {
 			linux := ping.NewLinuxProvider()
 
-			got, err := linux.Do("1.1.1.1")
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.Do("1.1.1.1"))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxDoStatsPublicTestSuite(t *testing.T) {
+func TestLinuxDoStatsPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxDoStatsPublicTestSuite))
 }

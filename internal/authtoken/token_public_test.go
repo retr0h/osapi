@@ -65,12 +65,12 @@ func (s *AuthTokenPublicTestSuite) TestGenerate() {
 
 func (s *AuthTokenPublicTestSuite) TestValidate() {
 	tests := []struct {
-		name        string
-		tokenFunc   func() string
-		signingKey  string
-		expectError bool
-		errContains string
-		validate    func(*authtoken.CustomClaims)
+		name         string
+		tokenFunc    func() string
+		signingKey   string
+		expectError  bool
+		errContains  string
+		validateFunc func(*authtoken.CustomClaims)
 	}{
 		{
 			name: "valid token",
@@ -80,7 +80,7 @@ func (s *AuthTokenPublicTestSuite) TestValidate() {
 			},
 			signingKey:  s.signingKey,
 			expectError: false,
-			validate: func(claims *authtoken.CustomClaims) {
+			validateFunc: func(claims *authtoken.CustomClaims) {
 				s.Equal([]string{"admin"}, claims.Roles)
 				s.Equal("test-subject", claims.Subject)
 				s.Equal("osapi", claims.Issuer)
@@ -166,9 +166,7 @@ func (s *AuthTokenPublicTestSuite) TestValidate() {
 			} else {
 				s.NoError(err)
 				s.NotNil(claims)
-				if tt.validate != nil {
-					tt.validate(claims)
-				}
+				tt.validateFunc(claims)
 			}
 		})
 	}
@@ -176,24 +174,43 @@ func (s *AuthTokenPublicTestSuite) TestValidate() {
 
 func (s *AuthTokenPublicTestSuite) TestGenerateAndValidateRoundTrip() {
 	tests := []struct {
-		name    string
-		roles   []string
-		subject string
+		name         string
+		roles        []string
+		subject      string
+		validateFunc func(*authtoken.CustomClaims, error)
 	}{
 		{
 			name:    "admin role round trip",
 			roles:   []string{"admin"},
 			subject: "admin-user",
+			validateFunc: func(claims *authtoken.CustomClaims, err error) {
+				s.NoError(err)
+				s.NotNil(claims)
+				s.Equal([]string{"admin"}, claims.Roles)
+				s.Equal("admin-user", claims.Subject)
+			},
 		},
 		{
 			name:    "multiple roles round trip",
 			roles:   []string{"read", "write"},
 			subject: "rw-user",
+			validateFunc: func(claims *authtoken.CustomClaims, err error) {
+				s.NoError(err)
+				s.NotNil(claims)
+				s.Equal([]string{"read", "write"}, claims.Roles)
+				s.Equal("rw-user", claims.Subject)
+			},
 		},
 		{
 			name:    "read only round trip",
 			roles:   []string{"read"},
 			subject: "reader",
+			validateFunc: func(claims *authtoken.CustomClaims, err error) {
+				s.NoError(err)
+				s.NotNil(claims)
+				s.Equal([]string{"read"}, claims.Roles)
+				s.Equal("reader", claims.Subject)
+			},
 		},
 	}
 
@@ -203,15 +220,13 @@ func (s *AuthTokenPublicTestSuite) TestGenerateAndValidateRoundTrip() {
 			s.NoError(err)
 			s.NotEmpty(tokenString)
 
-			claims, err := s.token.Validate(tokenString, s.signingKey)
-			s.NoError(err)
-			s.NotNil(claims)
-			s.Equal(tt.roles, claims.Roles)
-			s.Equal(tt.subject, claims.Subject)
+			tt.validateFunc(s.token.Validate(tokenString, s.signingKey))
 		})
 	}
 }
 
-func TestAuthTokenPublicTestSuite(t *testing.T) {
+func TestAuthTokenPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AuthTokenPublicTestSuite))
 }

@@ -235,6 +235,8 @@ func (s *InitTracerPublicTestSuite) TestInitTracerWithInjection() {
 	}
 }
 
-func TestInitTracerPublicTestSuite(t *testing.T) {
+func TestInitTracerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(InitTracerPublicTestSuite))
 }

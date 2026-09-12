@@ -30,6 +30,8 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -104,7 +106,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						nil,
@@ -141,7 +143,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     nil,
 						},
 						nil,
@@ -247,13 +249,13 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 					}, nil)
@@ -284,7 +286,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     nil,
 						},
 					}, nil)
@@ -316,7 +318,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCa() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						"server2": {
@@ -406,8 +408,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaValidationHTTP() {
 		name         string
 		path         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -421,15 +422,18 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaValidationHTTP() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						nil,
 					)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -437,8 +441,11 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+			},
 		},
 	}
 
@@ -457,10 +464,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -474,8 +478,7 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -485,8 +488,10 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -503,8 +508,10 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -527,15 +534,18 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaRBACHTTP() {
 						&job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"name":"my-ca","changed":true}`),
 						},
 						nil,
 					)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -572,14 +582,13 @@ func (s *CADeletePublicTestSuite) TestDeleteNodeCertificateCaRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestCADeletePublicTestSuite(t *testing.T) {
+func TestCADeletePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CADeletePublicTestSuite))
 }

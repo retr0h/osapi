@@ -31,6 +31,8 @@ import (
 	"net"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/avfs/avfs/vfs/memfs"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/stretchr/testify/suite"
@@ -134,13 +136,12 @@ func (s *HandlerPublicTestSuite) TearDownTest() {
 
 func (s *HandlerPublicTestSuite) TestWriteStatusEvent() {
 	tests := []struct {
-		name        string
-		jobID       string
-		event       string
-		data        map[string]interface{}
-		setupMocks  func()
-		expectError bool
-		errorMsg    string
+		name         string
+		jobID        string
+		event        string
+		data         map[string]interface{}
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name:  "when successful status event write",
@@ -152,7 +153,9 @@ func (s *HandlerPublicTestSuite) TestWriteStatusEvent() {
 					WriteStatusEvent(gomock.Any(), "test-job-123", "started", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:  "when status event write with nil data",
@@ -164,7 +167,9 @@ func (s *HandlerPublicTestSuite) TestWriteStatusEvent() {
 					WriteStatusEvent(gomock.Any(), "test-job-456", "completed", gomock.Any(), nil).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:  "when status event write failure",
@@ -176,8 +181,12 @@ func (s *HandlerPublicTestSuite) TestWriteStatusEvent() {
 					WriteStatusEvent(gomock.Any(), "test-job-789", "failed", gomock.Any(), gomock.Any()).
 					Return(errors.New("KV storage failed"))
 			},
-			expectError: true,
-			errorMsg:    "KV storage failed",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "KV storage failed" != "" {
+					s.Contains(err.Error(), "KV storage failed")
+				}
+			},
 		},
 		{
 			name:  "when empty job ID",
@@ -189,7 +198,9 @@ func (s *HandlerPublicTestSuite) TestWriteStatusEvent() {
 					WriteStatusEvent(gomock.Any(), "", "started", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
@@ -197,33 +208,23 @@ func (s *HandlerPublicTestSuite) TestWriteStatusEvent() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			err := agent.ExportWriteStatusEvent(
+			tt.validateFunc(agent.ExportWriteStatusEvent(
 				context.Background(),
 				s.testAgent,
 				tt.jobID,
 				tt.event,
 				tt.data,
-			)
-
-			if tt.expectError {
-				s.Error(err)
-				if tt.errorMsg != "" {
-					s.Contains(err.Error(), tt.errorMsg)
-				}
-			} else {
-				s.NoError(err)
-			}
+			))
 		})
 	}
 }
 
 func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 	tests := []struct {
-		name        string
-		setupMsg    func(ctrl *gomock.Controller) jetstream.Msg
-		setupMocks  func()
-		expectError bool
-		errorMsg    string
+		name         string
+		setupMsg     func(ctrl *gomock.Controller) jetstream.Msg
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name: "when successful job processing",
@@ -260,7 +261,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "test-job-123", gomock.Any(), gomock.Any(), "completed", "", gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "when job processing fails",
@@ -297,8 +300,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "test-job-456", gomock.Any(), gomock.Any(), "failed", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectError: true,
-			errorMsg:    "job processing failed",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "job processing failed" != "" {
+					s.Contains(err.Error(), "job processing failed")
+				}
+			},
 		},
 		{
 			name: "when invalid subject format",
@@ -308,8 +315,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 			setupMocks: func() {
 				// No mocks needed as it should fail early
 			},
-			expectError: true,
-			errorMsg:    "failed to parse subject",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "failed to parse subject" != "" {
+					s.Contains(err.Error(), "failed to parse subject")
+				}
+			},
 		},
 		{
 			name: "when job not found",
@@ -321,8 +332,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					GetJobData(gomock.Any(), "jobs.nonexistent-job").
 					Return(nil, errors.New("job not found"))
 			},
-			expectError: true,
-			errorMsg:    "job not found",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "job not found" != "" {
+					s.Contains(err.Error(), "job not found")
+				}
+			},
 		},
 		{
 			name: "when invalid job data format",
@@ -334,8 +349,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					GetJobData(gomock.Any(), "jobs.invalid-job").
 					Return([]byte(`invalid json`), nil)
 			},
-			expectError: true,
-			errorMsg:    "failed to parse job data",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "failed to parse job data" != "" {
+					s.Contains(err.Error(), "failed to parse job data")
+				}
+			},
 		},
 		{
 			name: "when missing job ID",
@@ -352,8 +371,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 						}
 					}`), nil)
 			},
-			expectError: true,
-			errorMsg:    "invalid job format: missing id",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "invalid job format: missing id" != "" {
+					s.Contains(err.Error(), "invalid job format: missing id")
+				}
+			},
 		},
 		{
 			name: "when missing operation",
@@ -367,8 +390,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 						"id": "missing-op-job"
 					}`), nil)
 			},
-			expectError: true,
-			errorMsg:    "invalid job format: missing operation",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "invalid job format: missing operation" != "" {
+					s.Contains(err.Error(), "invalid job format: missing operation")
+				}
+			},
 		},
 		{
 			name: "when missing operation type",
@@ -385,8 +412,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 						}
 					}`), nil)
 			},
-			expectError: true,
-			errorMsg:    "invalid operation format: missing type field",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "invalid operation format: missing type field" != "" {
+					s.Contains(err.Error(), "invalid operation format: missing type field")
+				}
+			},
 		},
 		{
 			name: "when invalid operation type format",
@@ -404,8 +435,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 						}
 					}`), nil)
 			},
-			expectError: true,
-			errorMsg:    "invalid operation type format",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "invalid operation type format" != "" {
+					s.Contains(err.Error(), "invalid operation type format")
+				}
+			},
 		},
 		{
 			name: "when acknowledged write error logged",
@@ -439,7 +474,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "ack-err-job", gomock.Any(), gomock.Any(), "completed", "", gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "when started write error logged",
@@ -473,7 +510,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "start-err-job", gomock.Any(), gomock.Any(), "completed", "", gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "when completed write error logged",
@@ -507,7 +546,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "comp-err-job", gomock.Any(), gomock.Any(), "completed", "", gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "when failed write error logged",
@@ -541,8 +582,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "fail-err-job", gomock.Any(), gomock.Any(), "failed", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectError: true,
-			errorMsg:    "job processing failed",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "job processing failed" != "" {
+					s.Contains(err.Error(), "job processing failed")
+				}
+			},
 		},
 		{
 			name: "when processor returns ErrUnsupported sets skipped status",
@@ -588,7 +633,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "skip-job", gomock.Any(), gomock.Any(), "skipped", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "when skipped write error logged",
@@ -632,7 +679,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "skip-err-job", gomock.Any(), gomock.Any(), "skipped", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "when fact reference resolved in job data",
@@ -670,7 +719,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "fact-resolve-job", gomock.Any(), gomock.Any(), "completed", "", gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "when fact reference with nil cached facts writes error to KV",
@@ -706,8 +757,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "fact-nil-job", gomock.Any(), gomock.Any(), "failed", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectError: true,
-			errorMsg:    "facts not available",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "facts not available" != "" {
+					s.Contains(err.Error(), "facts not available")
+				}
+			},
 		},
 		{
 			name: "when unresolvable fact reference writes error to KV",
@@ -743,8 +798,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "fact-fail-job", gomock.Any(), gomock.Any(), "failed", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectError: true,
-			errorMsg:    "failed to resolve fact references",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "failed to resolve fact references" != "" {
+					s.Contains(err.Error(), "failed to resolve fact references")
+				}
+			},
 		},
 		{
 			name: "when response storage failure",
@@ -777,8 +836,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 					WriteJobResponse(gomock.Any(), "storage-fail-job", gomock.Any(), gomock.Any(), "completed", "", gomock.Any()).
 					Return(errors.New("storage failure"))
 			},
-			expectError: true,
-			errorMsg:    "failed to store job response",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "failed to store job response" != "" {
+					s.Contains(err.Error(), "failed to store job response")
+				}
+			},
 		},
 	}
 
@@ -787,27 +850,18 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessage() {
 			tt.setupMocks()
 
 			msg := tt.setupMsg(s.mockCtrl)
-			err := agent.ExportHandleJobMessage(s.testAgent, msg)
-
-			if tt.expectError {
-				s.Error(err)
-				if tt.errorMsg != "" {
-					s.Contains(err.Error(), tt.errorMsg)
-				}
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(agent.ExportHandleJobMessage(s.testAgent, msg))
 		})
 	}
 }
 
 func (s *HandlerPublicTestSuite) TestHandleJobMessageModifyJobs() {
 	tests := []struct {
-		name        string
-		subject     string
-		jobData     string
-		setupMocks  func()
-		expectError bool
+		name         string
+		subject      string
+		jobData      string
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name:    "when modify job type identification",
@@ -857,7 +911,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageModifyJobs() {
 					).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
@@ -866,52 +922,58 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageModifyJobs() {
 			tt.setupMocks()
 
 			msg := newTestMsg(s.mockCtrl, tt.subject, []byte("modify-job-123"))
-			err := agent.ExportHandleJobMessage(s.testAgent, msg)
-
-			if tt.expectError {
-				s.Error(err)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(agent.ExportHandleJobMessage(s.testAgent, msg))
 		})
 	}
 }
 
 func (s *HandlerPublicTestSuite) TestExtractChanged() {
 	tests := []struct {
-		name string
-		data json.RawMessage
-		want *bool
+		name         string
+		data         json.RawMessage
+		validateFunc func(*bool)
 	}{
 		{
 			name: "when empty data returns nil",
 			data: nil,
-			want: nil,
+			validateFunc: func(got *bool) {
+				s.Equal((*bool)(nil), got)
+			},
 		},
 		{
 			name: "when invalid JSON returns nil",
 			data: json.RawMessage(`not json`),
-			want: nil,
+			validateFunc: func(got *bool) {
+				s.Equal((*bool)(nil), got)
+			},
 		},
 		{
 			name: "when changed key missing returns nil",
 			data: json.RawMessage(`{"success":true}`),
-			want: nil,
+			validateFunc: func(got *bool) {
+				s.Equal((*bool)(nil), got)
+			},
 		},
 		{
 			name: "when changed is non-bool returns nil",
 			data: json.RawMessage(`{"changed":"yes"}`),
-			want: nil,
+			validateFunc: func(got *bool) {
+				s.Equal((*bool)(nil), got)
+			},
 		},
 		{
 			name: "when changed is true returns true",
 			data: json.RawMessage(`{"changed":true}`),
-			want: boolPtr(true),
+			validateFunc: func(got *bool) {
+				s.Equal(ptr.To(true), got)
+			},
 		},
 		{
 			name: "when changed is false returns false",
 			data: json.RawMessage(`{"changed":false}`),
-			want: boolPtr(false),
+			validateFunc: func(got *bool) {
+				s.Equal(ptr.To(false), got)
+			},
 		},
 	}
 
@@ -919,7 +981,7 @@ func (s *HandlerPublicTestSuite) TestExtractChanged() {
 		s.Run(tt.name, func() {
 			got := agent.ExportExtractChanged(tt.data)
 
-			s.Equal(tt.want, got)
+			tt.validateFunc(got)
 		})
 	}
 }
@@ -930,12 +992,12 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 	s.Require().NoError(err)
 
 	tests := []struct {
-		name        string
-		setupPKI    func() *pki.Manager
-		data        func() []byte
-		wantPayload string
-		expectError bool
-		errorMsg    string
+		name         string
+		setupPKI     func() *pki.Manager
+		data         func() []byte
+		expectError  bool
+		errorMsg     string
+		validateFunc func(string)
 	}{
 		{
 			name: "when PKI disabled passes through raw data",
@@ -945,8 +1007,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 			data: func() []byte {
 				return []byte(`{"id":"test","operation":{"type":"node.hostname.get"}}`)
 			},
-			wantPayload: `{"id":"test","operation":{"type":"node.hostname.get"}}`,
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal(`{"id":"test","operation":{"type":"node.hostname.get"}}`, got)
+			},
 		},
 		{
 			name: "when valid signed envelope with correct controller key",
@@ -967,8 +1031,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 				data, _ := json.Marshal(envelope)
 				return data
 			},
-			wantPayload: `{"id":"signed-test"}`,
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal(`{"id":"signed-test"}`, got)
+			},
 		},
 		{
 			name: "when signed envelope with invalid signature",
@@ -990,9 +1056,11 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 				data, _ := json.Marshal(envelope)
 				return data
 			},
-			wantPayload: "",
 			expectError: true,
 			errorMsg:    "invalid controller signature",
+			validateFunc: func(got string) {
+				s.Equal("", got)
+			},
 		},
 		{
 			name: "when signed envelope without controller key skips verification",
@@ -1013,8 +1081,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 				data, _ := json.Marshal(envelope)
 				return data
 			},
-			wantPayload: `{"id":"no-ctrl-key"}`,
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal(`{"id":"no-ctrl-key"}`, got)
+			},
 		},
 		{
 			name: "when raw JSON with PKI enabled passes through",
@@ -1027,8 +1097,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 			data: func() []byte {
 				return []byte(`{"id":"raw-job","operation":{"type":"node.hostname.get"}}`)
 			},
-			wantPayload: `{"id":"raw-job","operation":{"type":"node.hostname.get"}}`,
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal(`{"id":"raw-job","operation":{"type":"node.hostname.get"}}`, got)
+			},
 		},
 		{
 			name: "when invalid JSON with PKI enabled passes through",
@@ -1040,8 +1112,10 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 			data: func() []byte {
 				return []byte(`not json at all`)
 			},
-			wantPayload: "not json at all",
 			expectError: false,
+			validateFunc: func(got string) {
+				s.Equal("not json at all", got)
+			},
 		},
 	}
 
@@ -1063,7 +1137,7 @@ func (s *HandlerPublicTestSuite) TestUnwrapJobEnvelope() {
 			}
 
 			s.NoError(err)
-			s.Equal(tt.wantPayload, string(result))
+			tt.validateFunc(string(result))
 		})
 	}
 }
@@ -1074,13 +1148,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageWithSignedEnvelope() {
 	s.Require().NoError(err)
 
 	tests := []struct {
-		name        string
-		setupPKI    func()
-		cleanupPKI  func()
-		setupMsg    func(ctrl *gomock.Controller) jetstream.Msg
-		setupMocks  func()
-		expectError bool
-		errorMsg    string
+		name         string
+		setupPKI     func()
+		cleanupPKI   func()
+		setupMsg     func(ctrl *gomock.Controller) jetstream.Msg
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name: "when signed job data processed successfully",
@@ -1126,7 +1199,9 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageWithSignedEnvelope() {
 					WriteJobResponse(gomock.Any(), "signed-job-ok", gomock.Any(), gomock.Any(), "completed", "", gomock.Any()).
 					Return(nil)
 			},
-			expectError: false,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name: "when signed job data with invalid signature fails",
@@ -1158,8 +1233,12 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageWithSignedEnvelope() {
 					GetJobData(gomock.Any(), "jobs.bad-sig-job").
 					Return(envelopeJSON, nil)
 			},
-			expectError: true,
-			errorMsg:    "job signature verification failed",
+			validateFunc: func(err error) {
+				s.Error(err)
+				if "job signature verification failed" != "" {
+					s.Contains(err.Error(), "job signature verification failed")
+				}
+			},
 		},
 	}
 
@@ -1170,22 +1249,13 @@ func (s *HandlerPublicTestSuite) TestHandleJobMessageWithSignedEnvelope() {
 			tt.setupMocks()
 
 			msg := tt.setupMsg(s.mockCtrl)
-			err := agent.ExportHandleJobMessage(s.testAgent, msg)
-
-			if tt.expectError {
-				s.Error(err)
-				if tt.errorMsg != "" {
-					s.Contains(err.Error(), tt.errorMsg)
-				}
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(agent.ExportHandleJobMessage(s.testAgent, msg))
 		})
 	}
 }
 
-func boolPtr(b bool) *bool { return &b }
-
-func TestHandlerPublicTestSuite(t *testing.T) {
+func TestHandlerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HandlerPublicTestSuite))
 }

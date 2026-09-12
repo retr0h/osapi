@@ -449,6 +449,8 @@ func (suite *SysctlTypesPublicTestSuite) TestSysctlMutationCollectionFromDelete(
 	}
 }
 
-func TestSysctlTypesPublicTestSuite(t *testing.T) {
+func TestSysctlTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(SysctlTypesPublicTestSuite))
 }

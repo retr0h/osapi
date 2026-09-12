@@ -46,7 +46,9 @@ func (c *compositeLifecycle) Start() {
 	}
 }
 
-func (c *compositeLifecycle) Stop(ctx context.Context) {
+func (c *compositeLifecycle) Stop(
+	ctx context.Context,
+) {
 	var wg sync.WaitGroup
 	for _, comp := range c.components {
 		wg.Add(1)

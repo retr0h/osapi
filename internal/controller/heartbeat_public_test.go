@@ -366,6 +366,8 @@ func (s *HeartbeatPublicTestSuite) TestStart() {
 	}
 }
 
-func TestHeartbeatPublicTestSuite(t *testing.T) {
+func TestHeartbeatPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(HeartbeatPublicTestSuite))
 }

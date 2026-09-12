@@ -514,6 +514,8 @@ func (suite *ServiceTypesPublicTestSuite) TestServiceMutationCollectionFromGen()
 	}
 }
 
-func TestServiceTypesPublicTestSuite(t *testing.T) {
+func TestServiceTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ServiceTypesPublicTestSuite))
 }

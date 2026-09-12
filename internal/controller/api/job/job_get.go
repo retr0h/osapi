@@ -26,6 +26,8 @@ import (
 	"log/slog"
 	"strings"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/google/uuid"
 
 	"github.com/osapi-io/osapi/internal/controller/api/job/gen"
@@ -100,8 +102,8 @@ func (j *Job) GetJobByID(
 				Status   *string     `json:"status,omitempty"`
 			}{
 				Changed:  r.Changed,
-				Status:   strPtr(string(r.Status)),
-				Hostname: strPtr(r.Hostname),
+				Status:   ptr.To(string(r.Status)),
+				Hostname: ptr.To(r.Hostname),
 			}
 			if r.Data != nil {
 				var data interface{}
@@ -109,7 +111,7 @@ func (j *Job) GetJobByID(
 				entry.Data = data
 			}
 			if r.Error != "" {
-				entry.Error = strPtr(r.Error)
+				entry.Error = ptr.To(r.Error)
 			}
 			respMap[hostname] = entry
 		}
@@ -128,11 +130,11 @@ func (j *Job) GetJobByID(
 		for i, te := range qj.Timeline {
 			ts := te.Timestamp.Format("2006-01-02T15:04:05Z07:00")
 			timeline[i].Timestamp = &ts
-			timeline[i].Event = strPtr(te.Event)
-			timeline[i].Hostname = strPtr(te.Hostname)
-			timeline[i].Message = strPtr(te.Message)
+			timeline[i].Event = ptr.To(te.Event)
+			timeline[i].Hostname = ptr.To(te.Hostname)
+			timeline[i].Message = ptr.To(te.Message)
 			if te.Error != "" {
-				timeline[i].Error = strPtr(te.Error)
+				timeline[i].Error = ptr.To(te.Error)
 			}
 		}
 		resp.Timeline = &timeline
@@ -151,13 +153,13 @@ func (j *Job) GetJobByID(
 				Error    *string `json:"error,omitempty"`
 				Status   *string `json:"status,omitempty"`
 			}{
-				Status: strPtr(ws.Status),
+				Status: ptr.To(ws.Status),
 			}
 			if ws.Error != "" {
-				entry.Error = strPtr(ws.Error)
+				entry.Error = ptr.To(ws.Error)
 			}
 			if ws.Duration != "" {
-				entry.Duration = strPtr(ws.Duration)
+				entry.Duration = ptr.To(ws.Duration)
 			}
 			wsMap[hostname] = entry
 		}
@@ -165,10 +167,4 @@ func (j *Job) GetJobByID(
 	}
 
 	return resp, nil
-}
-
-func strPtr(
-	s string,
-) *string {
-	return &s
 }

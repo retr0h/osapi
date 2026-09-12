@@ -943,6 +943,8 @@ func (r *errReader) Read(
 	return 0, r.err
 }
 
-func TestFilePublicTestSuite(t *testing.T) {
+func TestFilePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FilePublicTestSuite))
 }

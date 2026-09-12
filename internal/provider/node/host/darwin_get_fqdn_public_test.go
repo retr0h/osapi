@@ -39,11 +39,9 @@ func (suite *DarwinGetFQDNPublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetFQDNPublicTestSuite) TestGetFQDN() {
 	tests := []struct {
-		name        string
-		setupMock   func(d *host.Darwin)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func(d *host.Darwin)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when GetFQDN Ok",
@@ -52,8 +50,11 @@ func (suite *DarwinGetFQDNPublicTestSuite) TestGetFQDN() {
 					return "mac-01.local", nil
 				}
 			},
-			want:    "mac-01.local",
-			wantErr: false,
+			validateFunc: func(got string, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal("mac-01.local", got)
+			},
 		},
 		{
 			name: "when os.Hostname errors",
@@ -62,8 +63,11 @@ func (suite *DarwinGetFQDNPublicTestSuite) TestGetFQDN() {
 					return "", assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got string, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Empty(got)
+			},
 		},
 	}
 
@@ -75,23 +79,15 @@ func (suite *DarwinGetFQDNPublicTestSuite) TestGetFQDN() {
 				tc.setupMock(darwin)
 			}
 
-			got, err := darwin.GetFQDN()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetFQDN())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinGetFQDNPublicTestSuite(t *testing.T) {
+func TestDarwinGetFQDNPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinGetFQDNPublicTestSuite))
 }

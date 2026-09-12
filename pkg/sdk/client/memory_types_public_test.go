@@ -70,6 +70,8 @@ func (suite *MemoryTypesPublicTestSuite) TestMemoryFromGen() {
 	}
 }
 
-func TestMemoryTypesPublicTestSuite(t *testing.T) {
+func TestMemoryTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(MemoryTypesPublicTestSuite))
 }

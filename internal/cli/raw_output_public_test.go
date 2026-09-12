@@ -34,18 +34,20 @@ type RawOutputPublicTestSuite struct {
 	suite.Suite
 }
 
-func TestRawOutputPublicTestSuite(t *testing.T) {
+func TestRawOutputPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(RawOutputPublicTestSuite))
 }
 
 func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 	tests := []struct {
-		name       string
-		results    []cli.RawResult
-		showStdout bool
-		showStderr bool
-		wantOut    string
-		wantErr    string
+		name         string
+		results      []cli.RawResult
+		showStdout   bool
+		showStderr   bool
+		wantOut      string
+		validateFunc func(string)
 	}{
 		{
 			name: "when single host stdout only prefixes with hostname",
@@ -55,7 +57,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: true,
 			showStderr: true,
 			wantOut:    "[server1] file1\n[server1] file2\n",
-			wantErr:    "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name: "when single host stderr only prints to stderr",
@@ -65,7 +69,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: true,
 			showStderr: true,
 			wantOut:    "",
-			wantErr:    "[server1] permission denied\n",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "[server1] permission denied\n", got)
+			},
 		},
 		{
 			name: "when single host both streams prints each",
@@ -75,7 +81,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: true,
 			showStderr: true,
 			wantOut:    "[server1] output\n",
-			wantErr:    "[server1] warning\n",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "[server1] warning\n", got)
+			},
 		},
 		{
 			name: "when content has embedded empty lines preserves them",
@@ -85,7 +93,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: true,
 			showStderr: true,
 			wantOut:    "[server1] line1\n[server1] \n[server1] line3\n",
-			wantErr:    "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name:       "when single host empty output prints nothing",
@@ -93,7 +103,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: true,
 			showStderr: true,
 			wantOut:    "",
-			wantErr:    "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name: "when multi host stdout prefixed with hostname",
@@ -104,7 +116,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: true,
 			showStderr: false,
 			wantOut:    "[web-01] file1\n[web-01] file2\n[web-02] file3\n",
-			wantErr:    "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name: "when multi host stderr prefixed with hostname",
@@ -115,7 +129,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: false,
 			showStderr: true,
 			wantOut:    "",
-			wantErr:    "[web-01] err1\n[web-02] err2\n",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "[web-01] err1\n[web-02] err2\n", got)
+			},
 		},
 		{
 			name: "when showStdout false suppresses stdout",
@@ -125,7 +141,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: false,
 			showStderr: true,
 			wantOut:    "",
-			wantErr:    "[server1] warning\n",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "[server1] warning\n", got)
+			},
 		},
 		{
 			name: "when showStderr false suppresses stderr",
@@ -135,7 +153,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: true,
 			showStderr: false,
 			wantOut:    "[server1] output\n",
-			wantErr:    "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 		{
 			name: "when both false prints nothing",
@@ -145,7 +165,9 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			showStdout: false,
 			showStderr: false,
 			wantOut:    "",
-			wantErr:    "",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "", got)
+			},
 		},
 	}
 
@@ -156,7 +178,7 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutputPlain() {
 			cli.PrintRawOutputPlain(&stdout, &stderr, tc.results, tc.showStdout, tc.showStderr)
 
 			assert.Equal(suite.T(), tc.wantOut, stdout.String())
-			assert.Equal(suite.T(), tc.wantErr, stderr.String())
+			tc.validateFunc(stderr.String())
 		})
 	}
 }
@@ -177,14 +199,16 @@ func (suite *RawOutputPublicTestSuite) TestPrintRawOutput() {
 
 func (suite *RawOutputPublicTestSuite) TestMaxExitCode() {
 	tests := []struct {
-		name    string
-		results []cli.RawResult
-		want    int
+		name         string
+		results      []cli.RawResult
+		validateFunc func(int)
 	}{
 		{
 			name:    "when empty results returns zero",
 			results: []cli.RawResult{},
-			want:    0,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 0, got)
+			},
 		},
 		{
 			name: "when all zero returns zero",
@@ -192,7 +216,9 @@ func (suite *RawOutputPublicTestSuite) TestMaxExitCode() {
 				{Hostname: "s1", ExitCode: 0},
 				{Hostname: "s2", ExitCode: 0},
 			},
-			want: 0,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 0, got)
+			},
 		},
 		{
 			name: "when mixed returns highest",
@@ -201,20 +227,24 @@ func (suite *RawOutputPublicTestSuite) TestMaxExitCode() {
 				{Hostname: "s2", ExitCode: 2},
 				{Hostname: "s3", ExitCode: 1},
 			},
-			want: 2,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 2, got)
+			},
 		},
 		{
 			name: "when single non-zero returns it",
 			results: []cli.RawResult{
 				{Hostname: "s1", ExitCode: 127},
 			},
-			want: 127,
+			validateFunc: func(got int) {
+				assert.Equal(suite.T(), 127, got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			assert.Equal(suite.T(), tc.want, cli.MaxExitCode(tc.results))
+			tc.validateFunc(cli.MaxExitCode(tc.results))
 		})
 	}
 }

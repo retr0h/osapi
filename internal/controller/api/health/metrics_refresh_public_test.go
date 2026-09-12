@@ -164,6 +164,8 @@ func (s *MetricsRefreshPublicTestSuite) TestStartMetricsRefresh() {
 	}
 }
 
-func TestMetricsRefreshPublicTestSuite(t *testing.T) {
+func TestMetricsRefreshPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(MetricsRefreshPublicTestSuite))
 }

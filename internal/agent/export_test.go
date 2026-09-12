@@ -52,7 +52,9 @@ import (
 )
 
 // SetEmbeddedFS overrides the embedded filesystem for testing.
-func SetEmbeddedFS(f fs.FS) {
+func SetEmbeddedFS(
+	f fs.FS,
+) {
 	embeddedFS = f
 }
 
@@ -62,7 +64,9 @@ func ResetEmbeddedFS() {
 }
 
 // SetReadEmbeddedFile overrides the read function for testing.
-func SetReadEmbeddedFile(fn func(string) ([]byte, error)) {
+func SetReadEmbeddedFile(
+	fn func(string) ([]byte, error),
+) {
 	readEmbeddedFile = fn
 }
 
@@ -315,7 +319,9 @@ func ExportEvaluateDiskPressure(
 // --- Package-level variable accessors for testing ---
 
 // SetMarshalJSON overrides the marshalJSON function for testing.
-func SetMarshalJSON(fn func(interface{}) ([]byte, error)) {
+func SetMarshalJSON(
+	fn func(interface{}) ([]byte, error),
+) {
 	marshalJSON = fn
 }
 
@@ -325,7 +331,9 @@ func ResetMarshalJSON() {
 }
 
 // SetUnmarshalJSON overrides the unmarshalJSON function for testing.
-func SetUnmarshalJSON(fn func([]byte, interface{}) error) {
+func SetUnmarshalJSON(
+	fn func([]byte, interface{}) error,
+) {
 	unmarshalJSON = fn
 }
 
@@ -335,7 +343,9 @@ func ResetUnmarshalJSON() {
 }
 
 // SetDefaultFactsInterval overrides the defaultFactsInterval for testing.
-func SetDefaultFactsInterval(d time.Duration) {
+func SetDefaultFactsInterval(
+	d time.Duration,
+) {
 	defaultFactsInterval = d
 }
 
@@ -345,7 +355,9 @@ func ResetDefaultFactsInterval() {
 }
 
 // SetHeartbeatInterval overrides the heartbeatInterval for testing.
-func SetHeartbeatInterval(d time.Duration) {
+func SetHeartbeatInterval(
+	d time.Duration,
+) {
 	heartbeatInterval = d
 }
 
@@ -355,7 +367,9 @@ func ResetHeartbeatInterval() {
 }
 
 // SetGetAgentHostnameFn overrides the getAgentHostnameFn for testing.
-func SetGetAgentHostnameFn(fn func(string) (string, error)) {
+func SetGetAgentHostnameFn(
+	fn func(string) (string, error),
+) {
 	getAgentHostnameFn = fn
 }
 
@@ -382,7 +396,9 @@ func SetAgentHostname(
 // SetDockerNewFn overrides the dockerNewFn used by the factory for testing.
 // NOTE: This overrides the package-level var in the agent package, not cmd.
 // For cmd-level tests, use the cmd package's own override.
-func SetDockerNewFn(fn func() (*dockerProv.Client, error)) {
+func SetDockerNewFn(
+	fn func() (*dockerProv.Client, error),
+) {
 	_ = fn // no-op: dockerNewFn lives in cmd package now
 }
 
@@ -390,7 +406,9 @@ func SetDockerNewFn(fn func() (*dockerProv.Client, error)) {
 func ResetDockerNewFn() {}
 
 // SetProcStatusPath overrides the procStatusPath for testing.
-func SetProcStatusPath(p string) {
+func SetProcStatusPath(
+	p string,
+) {
 	procStatusPath = p
 }
 
@@ -643,7 +661,9 @@ func WaitAgentWG(
 }
 
 // SetGetIdentityFn overrides the getIdentityFn variable for testing.
-func SetGetIdentityFn(fn func(avfs.VFS, string) (*identity.Identity, error)) {
+func SetGetIdentityFn(
+	fn func(avfs.VFS, string) (*identity.Identity, error),
+) {
 	getIdentityFn = fn
 }
 
@@ -683,7 +703,9 @@ func ExportPublishEnrollmentRequest(
 }
 
 // SetMarshalJSONEnrollment overrides the marshalJSONEnrollment function for testing.
-func SetMarshalJSONEnrollment(fn func(interface{}) ([]byte, error)) {
+func SetMarshalJSONEnrollment(
+	fn func(interface{}) ([]byte, error),
+) {
 	marshalJSONEnrollment = fn
 }
 

@@ -165,8 +165,7 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 		name         string
 		hostname     string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when hostname exceeds max length returns 400",
@@ -174,8 +173,10 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+			},
 		},
 		{
 			name:     "when agent exists returns details",
@@ -196,8 +197,12 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"server1"`, `"Ready"`, `"Ubuntu"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"server1"`)
+				s.Contains(rec.Body.String(), `"Ready"`)
+				s.Contains(rec.Body.String(), `"Ubuntu"`)
+			},
 		},
 		{
 			name:     "when agent not found returns 404",
@@ -209,8 +214,10 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 					Return(nil, fmt.Errorf("agent not found: unknown"))
 				return mock
 			},
-			wantCode:     http.StatusNotFound,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusNotFound, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+			},
 		},
 		{
 			name:     "when client error returns 500",
@@ -222,8 +229,10 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 					Return(nil, fmt.Errorf("connection failed"))
 				return mock
 			},
-			wantCode:     http.StatusInternalServerError,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusInternalServerError, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+			},
 		},
 	}
 
@@ -246,10 +255,7 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -263,8 +269,7 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -274,8 +279,10 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -292,8 +299,10 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with agent:read returns 200",
@@ -316,8 +325,11 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsRBACHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"server1"`, `"Ready"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"server1"`)
+				s.Contains(rec.Body.String(), `"Ready"`)
+			},
 		},
 	}
 
@@ -355,14 +367,13 @@ func (s *AgentGetPublicTestSuite) TestGetAgentDetailsRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestAgentGetPublicTestSuite(t *testing.T) {
+func TestAgentGetPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentGetPublicTestSuite))
 }

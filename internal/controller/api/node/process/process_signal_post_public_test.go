@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -106,7 +108,7 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignal() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data: json.RawMessage(
 							`{"pid":1234,"signal":"TERM","changed":true}`,
 						),
@@ -298,7 +300,7 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignal() {
 					Return("550e8400-e29b-41d4-a716-446655440000", map[string]*job.Response{
 						"server1": {
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data: json.RawMessage(
 								`{"pid":1234,"signal":"TERM","changed":true}`,
 							),
@@ -393,8 +395,7 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalValidationHTTP()
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -407,13 +408,16 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalValidationHTTP()
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"pid":1234,"signal":"TERM","changed":true}`),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 		{
 			name: "when invalid signal",
@@ -422,8 +426,10 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalValidationHTTP()
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -432,8 +438,12 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalValidationHTTP()
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 	}
 
@@ -457,10 +467,7 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalValidationHTTP()
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -474,8 +481,7 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -485,8 +491,10 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -503,8 +511,10 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -525,13 +535,16 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalRBACHTTP() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"pid":1234,"signal":"TERM","changed":true}`),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusOK,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -569,14 +582,13 @@ func (s *ProcessSignalPublicTestSuite) TestPostNodeProcessSignalRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestProcessSignalPublicTestSuite(t *testing.T) {
+func TestProcessSignalPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessSignalPublicTestSuite))
 }

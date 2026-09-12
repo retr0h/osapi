@@ -94,7 +94,9 @@ func getAgents() ([]AgentTarget, error) {
 
 // validTarget checks whether the target is a valid routing pattern
 // (_any, _all), a label matching an active agent, or a direct hostname.
-func validTarget(fl validator.FieldLevel) bool {
+func validTarget(
+	fl validator.FieldLevel,
+) bool {
 	target := fl.Field().String()
 
 	if target == "_any" || target == "_all" {

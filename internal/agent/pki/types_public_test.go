@@ -35,70 +35,86 @@ type TypesPublicTestSuite struct {
 
 func (suite *TypesPublicTestSuite) TestSubjectConstants() {
 	tests := []struct {
-		name     string
-		constant string
-		expected string
+		name         string
+		constant     string
+		validateFunc func(string)
 	}{
 		{
 			name:     "EnrollRequestSuffix has correct value",
 			constant: pki.EnrollRequestSuffix,
-			expected: "enroll.request",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "enroll.request", got)
+			},
 		},
 		{
 			name:     "EnrollResponsePrefix has correct value",
 			constant: pki.EnrollResponsePrefix,
-			expected: "enroll.response",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "enroll.response", got)
+			},
 		},
 		{
 			name:     "PKIRotateSuffix has correct value",
 			constant: pki.PKIRotateSuffix,
-			expected: "pki.rotate",
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "pki.rotate", got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			assert.Equal(suite.T(), tc.expected, tc.constant)
+			tc.validateFunc(tc.constant)
 		})
 	}
 }
 
 func (suite *TypesPublicTestSuite) TestEnrollmentStateValues() {
 	tests := []struct {
-		name     string
-		state    pki.EnrollmentState
-		expected string
+		name         string
+		state        pki.EnrollmentState
+		validateFunc func(string)
 	}{
 		{
-			name:     "StateUnregistered",
-			state:    pki.StateUnregistered,
-			expected: "unregistered",
+			name:  "StateUnregistered",
+			state: pki.StateUnregistered,
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "unregistered", got)
+			},
 		},
 		{
-			name:     "StatePending",
-			state:    pki.StatePending,
-			expected: "pending",
+			name:  "StatePending",
+			state: pki.StatePending,
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "pending", got)
+			},
 		},
 		{
-			name:     "StateAccepted",
-			state:    pki.StateAccepted,
-			expected: "accepted",
+			name:  "StateAccepted",
+			state: pki.StateAccepted,
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "accepted", got)
+			},
 		},
 		{
-			name:     "StateRejected",
-			state:    pki.StateRejected,
-			expected: "rejected",
+			name:  "StateRejected",
+			state: pki.StateRejected,
+			validateFunc: func(got string) {
+				assert.Equal(suite.T(), "rejected", got)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			assert.Equal(suite.T(), tc.expected, string(tc.state))
+			tc.validateFunc(string(tc.state))
 		})
 	}
 }
 
-func TestTypesPublicTestSuite(t *testing.T) {
+func TestTypesPublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 	suite.Run(t, new(TypesPublicTestSuite))
 }

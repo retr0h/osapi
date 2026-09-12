@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -92,7 +94,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_any",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -139,8 +141,8 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_any",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Cwd:     strPtr("/tmp"),
-					Timeout: intPtr(30),
+					Cwd:     ptr.To("/tmp"),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -210,7 +212,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_any",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -235,7 +237,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "server1",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -269,7 +271,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -302,7 +304,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -349,7 +351,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -389,7 +391,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -429,7 +431,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostNodeCommandShell() {
 				Hostname: "_all",
 				Body: &gen.PostNodeCommandShellJSONRequestBody{
 					Command: "echo hello",
-					Timeout: intPtr(30),
+					Timeout: ptr.To(30),
 				},
 			},
 			setupMock: func() {
@@ -467,8 +469,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellValidationHTTP() {
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -491,8 +492,12 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellValidationHTTP() {
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"results"`, `"agent1"`, `"changed":true`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
+			},
 		},
 		{
 			name: "when missing command",
@@ -501,8 +506,12 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Command", "required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Command")
+				s.Contains(rec.Body.String(), "required")
+			},
 		},
 		{
 			name: "when invalid timeout",
@@ -511,8 +520,12 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Timeout", "max"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Timeout")
+				s.Contains(rec.Body.String(), "max")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -521,8 +534,12 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellValidationHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 	}
 
@@ -546,10 +563,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellValidationHTTP() {
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -563,8 +577,7 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -574,8 +587,10 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -592,8 +607,10 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid token with command:execute returns 202",
@@ -628,8 +645,11 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellRBACHTTP() {
 					)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"results"`, `"changed":true`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"changed":true`)
+			},
 		},
 	}
 
@@ -667,14 +687,13 @@ func (s *CommandShellPostPublicTestSuite) TestPostCommandShellRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestCommandShellPostPublicTestSuite(t *testing.T) {
+func TestCommandShellPostPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CommandShellPostPublicTestSuite))
 }

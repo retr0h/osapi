@@ -51,12 +51,12 @@ func (s *ProcessorFilePublicTestSuite) TearDownTest() {
 
 func (s *ProcessorFilePublicTestSuite) TestProcessFileOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func(*fileMocks.MockProvider)
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func(*fileMocks.MockProvider)
+		expectError  bool
+		errorMsg     string
+		validateFunc func(json.RawMessage)
 	}{
 		{
 			name: "successful deploy operation",
@@ -82,7 +82,7 @@ func (s *ProcessorFilePublicTestSuite) TestProcessFileOperation() {
 						Path:    "/etc/app/app.conf",
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r fileProv.DeployResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -110,7 +110,7 @@ func (s *ProcessorFilePublicTestSuite) TestProcessFileOperation() {
 						SHA256: "abc123def456",
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r fileProv.StatusResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -207,7 +207,7 @@ func (s *ProcessorFilePublicTestSuite) TestProcessFileOperation() {
 						Path:    "/etc/cron.d/backup",
 					}, nil)
 			},
-			validate: func(result json.RawMessage) {
+			validateFunc: func(result json.RawMessage) {
 				var r fileProv.UndeployResult
 				err := json.Unmarshal(result, &r)
 				s.NoError(err)
@@ -260,9 +260,7 @@ func (s *ProcessorFilePublicTestSuite) TestProcessFileOperation() {
 			} else {
 				s.NoError(err)
 				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
+				tt.validateFunc(result)
 			}
 		})
 	}
@@ -270,32 +268,34 @@ func (s *ProcessorFilePublicTestSuite) TestProcessFileOperation() {
 
 func (s *ProcessorFilePublicTestSuite) TestProcessFileOperationNilProvider() {
 	tests := []struct {
-		name     string
-		errorMsg string
+		name         string
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
-			name:     "returns error when file provider is nil",
-			errorMsg: "file provider not configured",
+			name: "returns error when file provider is nil",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "file provider not configured")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := agent.NewFileProcessor(nil, slog.Default())
-			result, err := processor(job.Request{
+			tt.validateFunc(processor(job.Request{
 				Type:      job.TypeModify,
 				Category:  "file",
 				Operation: "deploy.execute",
 				Data:      json.RawMessage(`{}`),
-			})
-
-			s.Error(err)
-			s.Contains(err.Error(), tt.errorMsg)
-			s.Nil(result)
+			}))
 		})
 	}
 }
 
-func TestProcessorFilePublicTestSuite(t *testing.T) {
+func TestProcessorFilePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorFilePublicTestSuite))
 }

@@ -42,100 +42,112 @@ func (suite *LinuxRoutePublicTestSuite) SetupTest() {
 
 func (suite *LinuxRoutePublicTestSuite) TestList() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func([]route.ListEntry, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result []route.ListEntry, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.List(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.List(context.Background()))
 		})
 	}
 }
 
 func (suite *LinuxRoutePublicTestSuite) TestGet() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*route.Entry, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *route.Entry, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Get(context.Background(), "eth0")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Get(context.Background(), "eth0"))
 		})
 	}
 }
 
 func (suite *LinuxRoutePublicTestSuite) TestCreate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*route.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *route.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Create(context.Background(), route.Entry{})
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Create(context.Background(), route.Entry{}))
 		})
 	}
 }
 
 func (suite *LinuxRoutePublicTestSuite) TestUpdate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*route.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *route.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Update(context.Background(), route.Entry{})
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Update(context.Background(), route.Entry{}))
 		})
 	}
 }
 
 func (suite *LinuxRoutePublicTestSuite) TestDelete() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*route.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *route.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Delete(context.Background(), "eth0")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Delete(context.Background(), "eth0"))
 		})
 	}
 }
 
-func TestLinuxRoutePublicTestSuite(t *testing.T) {
+func TestLinuxRoutePublicTestSuite(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	suite.Run(t, new(LinuxRoutePublicTestSuite))

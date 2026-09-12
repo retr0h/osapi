@@ -35,51 +35,57 @@ type LinuxPublicTestSuite struct {
 
 func (s *LinuxPublicTestSuite) TestGetResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*dns.GetResult, error)
 	}{
 		{
 			name: "returns error for linux stub",
+			validateFunc: func(result *dns.GetResult, err error) {
+				s.Error(err)
+				s.Nil(result)
+				s.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			l := &dns.Linux{}
-			result, err := l.GetResolvConfByInterface("eth0")
-
-			s.Error(err)
-			s.Nil(result)
-			s.ErrorIs(err, provider.ErrUnsupported)
+			tt.validateFunc(l.GetResolvConfByInterface("eth0"))
 		})
 	}
 }
 
 func (s *LinuxPublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*dns.UpdateResult, error)
 	}{
 		{
 			name: "returns error for linux stub",
+			validateFunc: func(result *dns.UpdateResult, err error) {
+				s.Error(err)
+				s.Nil(result)
+				s.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			l := &dns.Linux{}
-			result, err := l.UpdateResolvConfByInterface(
+			tt.validateFunc(l.UpdateResolvConfByInterface(
 				[]string{"8.8.8.8"},
 				[]string{"example.com"},
 				"eth0",
 				false,
-			)
-
-			s.Error(err)
-			s.Nil(result)
-			s.ErrorIs(err, provider.ErrUnsupported)
+			))
 		})
 	}
 }
 
-func TestLinuxPublicTestSuite(t *testing.T) {
+func TestLinuxPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxPublicTestSuite))
 }

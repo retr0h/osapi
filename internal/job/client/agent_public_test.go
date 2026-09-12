@@ -71,15 +71,14 @@ func (s *AgentPublicTestSuite) TearDownTest() {
 
 func (s *AgentPublicTestSuite) TestWriteStatusEvent() {
 	tests := []struct {
-		name        string
-		jobID       string
-		event       string
-		hostname    string
-		data        map[string]interface{}
-		kvError     error
-		expectError bool
-		errorMsg    string
-		setupMocks  func()
+		name         string
+		jobID        string
+		event        string
+		hostname     string
+		data         map[string]interface{}
+		kvError      error
+		setupMocks   func()
+		validateFunc func(error)
 	}{
 		{
 			name:     "successful status event with data",
@@ -92,6 +91,9 @@ func (s *AgentPublicTestSuite) TestWriteStatusEvent() {
 				s.mockNATSClient.EXPECT().
 					KVPut("test-bucket", gomock.Any(), gomock.Any()).
 					Return(nil)
+			},
+			validateFunc: func(err error) {
+				s.NoError(err)
 			},
 		},
 		{
@@ -106,6 +108,9 @@ func (s *AgentPublicTestSuite) TestWriteStatusEvent() {
 					KVPut("test-bucket", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:     "hostname with special characters",
@@ -119,20 +124,25 @@ func (s *AgentPublicTestSuite) TestWriteStatusEvent() {
 					KVPut("test-bucket", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
-			name:        "KV put error",
-			jobID:       "job-error",
-			event:       "started",
-			hostname:    "agent-1",
-			data:        map[string]interface{}{"key": "value"},
-			expectError: true,
-			errorMsg:    "failed to write status event",
+			name:     "KV put error",
+			jobID:    "job-error",
+			event:    "started",
+			hostname: "agent-1",
+			data:     map[string]interface{}{"key": "value"},
 			setupMocks: func() {
 				s.mockKV.EXPECT().Bucket().Return("test-bucket")
 				s.mockNATSClient.EXPECT().
 					KVPut("test-bucket", gomock.Any(), gomock.Any()).
 					Return(errors.New("kv connection failed"))
+			},
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to write status event")
 			},
 		},
 		{
@@ -147,16 +157,21 @@ func (s *AgentPublicTestSuite) TestWriteStatusEvent() {
 					KVPut("test-bucket", gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
-			name:        "unmarshalable data",
-			jobID:       "job-marshal",
-			event:       "started",
-			hostname:    "agent-1",
-			data:        map[string]interface{}{"fn": make(chan int)},
-			expectError: true,
-			errorMsg:    "failed to marshal status event",
-			setupMocks:  func() {},
+			name:       "unmarshalable data",
+			jobID:      "job-marshal",
+			event:      "started",
+			hostname:   "agent-1",
+			data:       map[string]interface{}{"fn": make(chan int)},
+			setupMocks: func() {},
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to marshal status event")
+			},
 		},
 	}
 
@@ -164,14 +179,9 @@ func (s *AgentPublicTestSuite) TestWriteStatusEvent() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			err := s.jobsClient.WriteStatusEvent(s.ctx, tt.jobID, tt.event, tt.hostname, tt.data)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(
+				s.jobsClient.WriteStatusEvent(s.ctx, tt.jobID, tt.event, tt.hostname, tt.data),
+			)
 		})
 	}
 }
@@ -186,8 +196,7 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 		errorMsg     string
 		changed      *bool
 		kvError      error
-		expectError  bool
-		errorText    string
+		validateFunc func(error)
 	}{
 		{
 			name:         "successful job response completed",
@@ -195,6 +204,9 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 			hostname:     "agent-1",
 			responseData: []byte(`{"result": "success", "count": 42}`),
 			status:       "completed",
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:         "successful job response with error",
@@ -203,6 +215,9 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 			responseData: []byte(`{"error": "processing failed"}`),
 			status:       "failed",
 			errorMsg:     "job execution failed",
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:         "empty response data",
@@ -210,6 +225,9 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 			hostname:     "agent-3",
 			responseData: []byte{},
 			status:       "completed",
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:         "hostname with special characters",
@@ -217,6 +235,9 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 			hostname:     "agent.host-name@domain.com",
 			responseData: []byte(`{"data": "test"}`),
 			status:       "completed",
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:         "KV put error",
@@ -225,8 +246,10 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 			responseData: []byte(`{"result": "success"}`),
 			status:       "completed",
 			kvError:      errors.New("storage failure"),
-			expectError:  true,
-			errorText:    "failed to store job response",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to store job response")
+			},
 		},
 		{
 			name:     "large response data",
@@ -239,6 +262,9 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 				) + `"}`,
 			),
 			status: "completed",
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 	}
 
@@ -249,7 +275,7 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 				KVPut("test-bucket", gomock.Any(), gomock.Any()).
 				Return(tt.kvError)
 
-			err := s.jobsClient.WriteJobResponse(
+			tt.validateFunc(s.jobsClient.WriteJobResponse(
 				s.ctx,
 				tt.jobID,
 				tt.hostname,
@@ -257,14 +283,7 @@ func (s *AgentPublicTestSuite) TestWriteJobResponse() {
 				tt.status,
 				tt.errorMsg,
 				tt.changed,
-			)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorText)
-			} else {
-				s.NoError(err)
-			}
+			))
 		})
 	}
 }
@@ -281,8 +300,7 @@ func (s *AgentPublicTestSuite) TestWriteJobResponseWithPKISigner() {
 		errorMsg     string
 		changed      *bool
 		kvError      error
-		expectError  bool
-		errorText    string
+		validateFunc func(error)
 	}{
 		{
 			name:         "when PKI signer signs response before KV write",
@@ -290,6 +308,9 @@ func (s *AgentPublicTestSuite) TestWriteJobResponseWithPKISigner() {
 			hostname:     "agent-1",
 			responseData: []byte(`{"result": "signed"}`),
 			status:       "completed",
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:         "when PKI signer and KV write fails",
@@ -298,8 +319,10 @@ func (s *AgentPublicTestSuite) TestWriteJobResponseWithPKISigner() {
 			responseData: []byte(`{"result": "fail"}`),
 			status:       "completed",
 			kvError:      errors.New("storage failure"),
-			expectError:  true,
-			errorText:    "failed to store job response",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to store job response")
+			},
 		},
 	}
 
@@ -321,7 +344,7 @@ func (s *AgentPublicTestSuite) TestWriteJobResponseWithPKISigner() {
 				KVPut("test-bucket", gomock.Any(), gomock.Any()).
 				Return(tt.kvError)
 
-			err = pkiClient.WriteJobResponse(
+			tt.validateFunc(pkiClient.WriteJobResponse(
 				s.ctx,
 				tt.jobID,
 				tt.hostname,
@@ -329,14 +352,7 @@ func (s *AgentPublicTestSuite) TestWriteJobResponseWithPKISigner() {
 				tt.status,
 				tt.errorMsg,
 				tt.changed,
-			)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorText)
-			} else {
-				s.NoError(err)
-			}
+			))
 		})
 	}
 }
@@ -383,9 +399,8 @@ func (s *AgentPublicTestSuite) TestConsumeJobs() {
 		handler       func(jetstream.Msg) error
 		opts          *natsclient.ConsumeOptions
 		consumeError  error
-		expectError   bool
-		errorMsg      string
 		invokeHandler bool
+		validateFunc  func(error)
 	}{
 		{
 			name:         "handler invoked per message",
@@ -395,6 +410,9 @@ func (s *AgentPublicTestSuite) TestConsumeJobs() {
 				return nil
 			},
 			invokeHandler: true,
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:         "successful job consumption with options",
@@ -407,6 +425,9 @@ func (s *AgentPublicTestSuite) TestConsumeJobs() {
 				QueueGroup:  "test-queue",
 				MaxInFlight: 5,
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:         "NATS consume error",
@@ -416,8 +437,10 @@ func (s *AgentPublicTestSuite) TestConsumeJobs() {
 				return nil
 			},
 			consumeError: errors.New("stream not found"),
-			expectError:  true,
-			errorMsg:     "stream not found",
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "stream not found")
+			},
 		},
 	}
 
@@ -441,20 +464,13 @@ func (s *AgentPublicTestSuite) TestConsumeJobs() {
 					Return(tt.consumeError)
 			}
 
-			err := s.jobsClient.ConsumeJobs(
+			tt.validateFunc(s.jobsClient.ConsumeJobs(
 				s.ctx,
 				tt.streamName,
 				tt.consumerName,
 				tt.handler,
 				tt.opts,
-			)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-			} else {
-				s.NoError(err)
-			}
+			))
 		})
 	}
 }
@@ -463,9 +479,8 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 	tests := []struct {
 		name         string
 		jobKey       string
-		expectedErr  string
 		setupMocks   func()
-		expectedData []byte
+		validateFunc func([]byte, error)
 	}{
 		{
 			name:   "successful get job data",
@@ -475,16 +490,22 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 				mockEntry.EXPECT().Value().Return([]byte(`{"test": "data"}`))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-123").Return(mockEntry, nil)
 			},
-			expectedData: []byte(`{"test": "data"}`),
+			validateFunc: func(data []byte, err error) {
+				s.NoError(err)
+				s.Equal([]byte(`{"test": "data"}`), data)
+			},
 		},
 		{
-			name:        "job not found error",
-			jobKey:      "jobs.nonexistent",
-			expectedErr: "failed to get job data for key jobs.nonexistent",
+			name:   "job not found error",
+			jobKey: "jobs.nonexistent",
 			setupMocks: func() {
 				s.mockKV.EXPECT().
 					Get(gomock.Any(), "jobs.nonexistent").
 					Return(nil, errors.New("key not found"))
+			},
+			validateFunc: func(_ []byte, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "failed to get job data for key jobs.nonexistent")
 			},
 		},
 	}
@@ -493,15 +514,7 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			data, err := s.jobsClient.GetJobData(s.ctx, tt.jobKey)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-				s.Equal(tt.expectedData, data)
-			}
+			tt.validateFunc(s.jobsClient.GetJobData(s.ctx, tt.jobKey))
 		})
 	}
 }
@@ -511,8 +524,8 @@ func (s *AgentPublicTestSuite) TestCreateOrUpdateConsumer() {
 		name           string
 		streamName     string
 		consumerConfig jetstream.ConsumerConfig
-		expectedErr    string
 		setupMocks     func()
+		validateFunc   func(error)
 	}{
 		{
 			name:           "successful consumer creation",
@@ -523,16 +536,22 @@ func (s *AgentPublicTestSuite) TestCreateOrUpdateConsumer() {
 					CreateOrUpdateConsumerWithConfig(gomock.Any(), "test-stream", jetstream.ConsumerConfig{Name: "test-consumer"}).
 					Return(nil)
 			},
+			validateFunc: func(err error) {
+				s.NoError(err)
+			},
 		},
 		{
 			name:           "consumer creation error",
 			streamName:     "test-stream",
 			consumerConfig: jetstream.ConsumerConfig{Name: "test-consumer"},
-			expectedErr:    "consumer creation failed",
 			setupMocks: func() {
 				s.mockNATSClient.EXPECT().
 					CreateOrUpdateConsumerWithConfig(gomock.Any(), "test-stream", jetstream.ConsumerConfig{Name: "test-consumer"}).
 					Return(errors.New("consumer creation failed"))
+			},
+			validateFunc: func(err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "consumer creation failed")
 			},
 		},
 	}
@@ -541,80 +560,95 @@ func (s *AgentPublicTestSuite) TestCreateOrUpdateConsumer() {
 		s.Run(tt.name, func() {
 			tt.setupMocks()
 
-			err := s.jobsClient.CreateOrUpdateConsumer(s.ctx, tt.streamName, tt.consumerConfig)
-
-			if tt.expectedErr != "" {
-				s.Error(err)
-				s.Contains(err.Error(), tt.expectedErr)
-			} else {
-				s.NoError(err)
-			}
+			tt.validateFunc(
+				s.jobsClient.CreateOrUpdateConsumer(s.ctx, tt.streamName, tt.consumerConfig),
+			)
 		})
 	}
 }
 
 func (s *AgentPublicTestSuite) TestSanitizeKeyForNATS() {
 	tests := []struct {
-		name     string
-		input    string
-		expected string
+		name         string
+		input        string
+		validateFunc func(string)
 	}{
 		{
-			name:     "valid characters only",
-			input:    "validKey123",
-			expected: "validKey123",
+			name:  "valid characters only",
+			input: "validKey123",
+			validateFunc: func(got string) {
+				s.Equal("validKey123", got)
+			},
 		},
 		{
-			name:     "alphanumeric with underscores and hyphens",
-			input:    "valid_key-123",
-			expected: "valid_key-123",
+			name:  "alphanumeric with underscores and hyphens",
+			input: "valid_key-123",
+			validateFunc: func(got string) {
+				s.Equal("valid_key-123", got)
+			},
 		},
 		{
-			name:     "hostname with dots",
-			input:    "server.example.com",
-			expected: "server_example_com",
+			name:  "hostname with dots",
+			input: "server.example.com",
+			validateFunc: func(got string) {
+				s.Equal("server_example_com", got)
+			},
 		},
 		{
-			name:     "hostname with special characters",
-			input:    "agent.host-name@domain.com",
-			expected: "agent_host-name_domain_com",
+			name:  "hostname with special characters",
+			input: "agent.host-name@domain.com",
+			validateFunc: func(got string) {
+				s.Equal("agent_host-name_domain_com", got)
+			},
 		},
 		{
-			name:     "email-like string",
-			input:    "user@domain.com",
-			expected: "user_domain_com",
+			name:  "email-like string",
+			input: "user@domain.com",
+			validateFunc: func(got string) {
+				s.Equal("user_domain_com", got)
+			},
 		},
 		{
-			name:     "string with spaces",
-			input:    "agent node 1",
-			expected: "agent_node_1",
+			name:  "string with spaces",
+			input: "agent node 1",
+			validateFunc: func(got string) {
+				s.Equal("agent_node_1", got)
+			},
 		},
 		{
-			name:     "string with mixed special characters",
-			input:    "agent#1!@#$%^&*()",
-			expected: "agent_1__________",
+			name:  "string with mixed special characters",
+			input: "agent#1!@#$%^&*()",
+			validateFunc: func(got string) {
+				s.Equal("agent_1__________", got)
+			},
 		},
 		{
-			name:     "empty string",
-			input:    "",
-			expected: "",
+			name:  "empty string",
+			input: "",
+			validateFunc: func(got string) {
+				s.Equal("", got)
+			},
 		},
 		{
-			name:     "only special characters",
-			input:    "!@#$%^&*()",
-			expected: "__________",
+			name:  "only special characters",
+			input: "!@#$%^&*()",
+			validateFunc: func(got string) {
+				s.Equal("__________", got)
+			},
 		},
 		{
-			name:     "path-like string",
-			input:    "/path/to/resource",
-			expected: "_path_to_resource",
+			name:  "path-like string",
+			input: "/path/to/resource",
+			validateFunc: func(got string) {
+				s.Equal("_path_to_resource", got)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			got := client.ExportSanitizeKeyForNATS(tt.input)
-			s.Equal(tt.expected, got)
+			tt.validateFunc(got)
 		})
 	}
 }
@@ -638,7 +672,9 @@ func (s *AgentPublicTestSuite) newClientWithAllKVs(
 }
 
 // agentRegistrationJSON returns valid agent registration JSON for the given hostname.
-func agentRegistrationJSON(hostname string) []byte {
+func agentRegistrationJSON(
+	hostname string,
+) []byte {
 	return agentRegistrationJSONWithMachineID(hostname, "abc123")
 }
 
@@ -1284,6 +1320,8 @@ func (s *AgentPublicTestSuite) TestMergeFacts() {
 	}
 }
 
-func TestAgentPublicTestSuite(t *testing.T) {
+func TestAgentPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(AgentPublicTestSuite))
 }

@@ -39,10 +39,15 @@ func (suite *LinuxGetCPUCountPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetCPUCountPublicTestSuite) TestGetCPUCount() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(int, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result int, err error) {
+				suite.Equal(0, result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,16 +55,15 @@ func (suite *LinuxGetCPUCountPublicTestSuite) TestGetCPUCount() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetCPUCount()
-
-			suite.Equal(0, got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetCPUCount())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetCPUCountPublicTestSuite(t *testing.T) {
+func TestLinuxGetCPUCountPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetCPUCountPublicTestSuite))
 }

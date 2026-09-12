@@ -39,10 +39,15 @@ func (suite *LinuxGetFQDNPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetFQDNPublicTestSuite) TestGetFQDN() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(string, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result string, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,16 +55,15 @@ func (suite *LinuxGetFQDNPublicTestSuite) TestGetFQDN() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetFQDN()
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetFQDN())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetFQDNPublicTestSuite(t *testing.T) {
+func TestLinuxGetFQDNPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetFQDNPublicTestSuite))
 }

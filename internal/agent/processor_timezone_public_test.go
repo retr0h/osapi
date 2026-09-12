@@ -52,12 +52,10 @@ func (s *ProcessorTimezonePublicTestSuite) TearDownTest() {
 
 func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() timezone.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() timezone.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -67,9 +65,12 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneOperation() {
 				Operation: "timezone.get",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "timezone provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "timezone provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "invalid timezone operation missing sub-operation",
@@ -82,8 +83,11 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneOperation() {
 			setupMock: func() timezone.Provider {
 				return timezoneMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid timezone operation: timezone",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid timezone operation: timezone")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported timezone sub-operation",
@@ -96,8 +100,11 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneOperation() {
 			setupMock: func() timezone.Provider {
 				return timezoneMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported timezone operation: timezone.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported timezone operation: timezone.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -119,31 +126,17 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneOperation() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneGet() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() timezone.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() timezone.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful timezone get",
@@ -161,10 +154,12 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneGet() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var info timezone.Info
-				err := json.Unmarshal(result, &info)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var info timezone.Info
+				decodeErr := json.Unmarshal(result, &info)
+				s.NoError(decodeErr)
 				s.Equal("America/New_York", info.Timezone)
 				s.Equal("-05:00", info.UTCOffset)
 			},
@@ -182,8 +177,11 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneGet() {
 				m.EXPECT().Get(gomock.Any()).Return(nil, errors.New("timedatectl not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "timedatectl not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "timedatectl not found")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -200,31 +198,17 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneGet() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneUpdate() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() timezone.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() timezone.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "successful timezone update",
@@ -242,10 +226,12 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneUpdate() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r timezone.UpdateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r timezone.UpdateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("America/New_York", r.Timezone)
 				s.True(r.Changed)
 			},
@@ -261,8 +247,11 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneUpdate() {
 			setupMock: func() timezone.Provider {
 				return timezoneMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal timezone update data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal timezone update data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "timezone update provider error",
@@ -279,8 +268,11 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneUpdate() {
 					Return(nil, errors.New("invalid timezone"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "invalid timezone",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid timezone")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -297,23 +289,13 @@ func (s *ProcessorTimezonePublicTestSuite) TestProcessTimezoneUpdate() {
 				config.Config{},
 				slog.Default(),
 			)
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
-func TestProcessorTimezonePublicTestSuite(t *testing.T) {
+func TestProcessorTimezonePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorTimezonePublicTestSuite))
 }

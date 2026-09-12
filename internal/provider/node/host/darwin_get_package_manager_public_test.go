@@ -38,10 +38,9 @@ func (suite *DarwinGetPackageManagerPublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 	tests := []struct {
-		name      string
-		setupMock func(d *host.Darwin)
-		want      interface{}
-		wantErr   bool
+		name         string
+		setupMock    func(d *host.Darwin)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when brew detected",
@@ -53,8 +52,10 @@ func (suite *DarwinGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 					return "", &host.ExecNotFoundError{Name: file}
 				}
 			},
-			want:    "brew",
-			wantErr: false,
+			validateFunc: func(got string, err error) {
+				suite.NoError(err)
+				suite.Equal("brew", got)
+			},
 		},
 		{
 			name: "when no package manager detected",
@@ -63,8 +64,10 @@ func (suite *DarwinGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 					return "", &host.ExecNotFoundError{Name: "unknown"}
 				}
 			},
-			want:    "unknown",
-			wantErr: false,
+			validateFunc: func(got string, err error) {
+				suite.NoError(err)
+				suite.Equal("unknown", got)
+			},
 		},
 	}
 
@@ -76,21 +79,15 @@ func (suite *DarwinGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 				tc.setupMock(darwin)
 			}
 
-			got, err := darwin.GetPackageManager()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetPackageManager())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinGetPackageManagerPublicTestSuite(t *testing.T) {
+func TestDarwinGetPackageManagerPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinGetPackageManagerPublicTestSuite))
 }

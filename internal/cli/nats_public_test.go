@@ -41,7 +41,9 @@ type NATSPublicTestSuite struct {
 	ctrl *gomock.Controller
 }
 
-func TestNATSPublicTestSuite(t *testing.T) {
+func TestNATSPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(NATSPublicTestSuite))
 }
 
@@ -55,8 +57,9 @@ func (suite *NATSPublicTestSuite) TearDownTest() {
 
 func (suite *NATSPublicTestSuite) TestCloseNATSClient() {
 	tests := []struct {
-		name    string
-		setupFn func() func()
+		name         string
+		setupFn      func() func()
+		validateFunc func(assert.PanicTestFunc)
 	}{
 		{
 			name: "when real client with nil NC does not panic",
@@ -66,6 +69,9 @@ func (suite *NATSPublicTestSuite) TestCloseNATSClient() {
 				return func() {
 					cli.CloseNATSClient(client)
 				}
+			},
+			validateFunc: func(closeFn assert.PanicTestFunc) {
+				assert.NotPanics(suite.T(), closeFn)
 			},
 		},
 		{
@@ -79,23 +85,24 @@ func (suite *NATSPublicTestSuite) TestCloseNATSClient() {
 					cli.CloseNATSClient(client)
 				}
 			},
+			validateFunc: func(closeFn assert.PanicTestFunc) {
+				assert.NotPanics(suite.T(), closeFn)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			closeFn := tc.setupFn()
-
-			assert.NotPanics(suite.T(), closeFn)
+			tc.validateFunc(tc.setupFn())
 		})
 	}
 }
 
 func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 	tests := []struct {
-		name string
-		auth config.NATSAuth
-		want natsclient.AuthOptions
+		name         string
+		auth         config.NATSAuth
+		validateFunc func(natsclient.AuthOptions)
 	}{
 		{
 			name: "when user_pass returns user pass auth",
@@ -104,10 +111,12 @@ func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 				Username: "osapi",
 				Password: "secret",
 			},
-			want: natsclient.AuthOptions{
-				AuthType: natsclient.UserPassAuth,
-				Username: "osapi",
-				Password: "secret",
+			validateFunc: func(got natsclient.AuthOptions) {
+				assert.Equal(suite.T(), natsclient.AuthOptions{
+					AuthType: natsclient.UserPassAuth,
+					Username: "osapi",
+					Password: "secret",
+				}, got)
 			},
 		},
 		{
@@ -116,9 +125,11 @@ func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 				Type:     "nkey",
 				NKeyFile: "/path/to/nkey",
 			},
-			want: natsclient.AuthOptions{
-				AuthType: natsclient.NKeyAuth,
-				NKeyFile: "/path/to/nkey",
+			validateFunc: func(got natsclient.AuthOptions) {
+				assert.Equal(suite.T(), natsclient.AuthOptions{
+					AuthType: natsclient.NKeyAuth,
+					NKeyFile: "/path/to/nkey",
+				}, got)
 			},
 		},
 		{
@@ -126,15 +137,19 @@ func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 			auth: config.NATSAuth{
 				Type: "none",
 			},
-			want: natsclient.AuthOptions{
-				AuthType: natsclient.NoAuth,
+			validateFunc: func(got natsclient.AuthOptions) {
+				assert.Equal(suite.T(), natsclient.AuthOptions{
+					AuthType: natsclient.NoAuth,
+				}, got)
 			},
 		},
 		{
 			name: "when empty type defaults to no auth",
 			auth: config.NATSAuth{},
-			want: natsclient.AuthOptions{
-				AuthType: natsclient.NoAuth,
+			validateFunc: func(got natsclient.AuthOptions) {
+				assert.Equal(suite.T(), natsclient.AuthOptions{
+					AuthType: natsclient.NoAuth,
+				}, got)
 			},
 		},
 	}
@@ -143,17 +158,17 @@ func (suite *NATSPublicTestSuite) TestBuildNATSAuthOptions() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildNATSAuthOptions(tc.auth)
 
-			assert.Equal(suite.T(), tc.want, got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *NATSPublicTestSuite) TestBuildJobKVConfig() {
 	tests := []struct {
-		name       string
-		namespace  string
-		kvCfg      config.NATSKV
-		validateFn func(jetstream.KeyValueConfig)
+		name         string
+		namespace    string
+		kvCfg        config.NATSKV
+		validateFunc func(jetstream.KeyValueConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -166,7 +181,7 @@ func (suite *NATSPublicTestSuite) TestBuildJobKVConfig() {
 				Storage:        "file",
 				Replicas:       1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "osapi-job-queue", cfg.Bucket)
 				assert.Equal(suite.T(), 1*time.Hour, cfg.TTL)
 				assert.Equal(suite.T(), int64(104857600), cfg.MaxBytes)
@@ -184,7 +199,7 @@ func (suite *NATSPublicTestSuite) TestBuildJobKVConfig() {
 				Storage:  "memory",
 				Replicas: 3,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "job-queue", cfg.Bucket)
 				assert.Equal(suite.T(), 30*time.Minute, cfg.TTL)
 				assert.Equal(suite.T(), int64(52428800), cfg.MaxBytes)
@@ -202,7 +217,7 @@ func (suite *NATSPublicTestSuite) TestBuildJobKVConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), time.Duration(0), cfg.TTL)
 			},
 		},
@@ -212,17 +227,17 @@ func (suite *NATSPublicTestSuite) TestBuildJobKVConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildJobKVConfig(tc.namespace, tc.kvCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *NATSPublicTestSuite) TestBuildResponseKVConfig() {
 	tests := []struct {
-		name       string
-		namespace  string
-		kvCfg      config.NATSKV
-		validateFn func(jetstream.KeyValueConfig)
+		name         string
+		namespace    string
+		kvCfg        config.NATSKV
+		validateFunc func(jetstream.KeyValueConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -235,7 +250,7 @@ func (suite *NATSPublicTestSuite) TestBuildResponseKVConfig() {
 				Storage:        "file",
 				Replicas:       1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "osapi-job-responses", cfg.Bucket)
 				assert.Equal(suite.T(), 1*time.Hour, cfg.TTL)
 				assert.Equal(suite.T(), int64(104857600), cfg.MaxBytes)
@@ -254,7 +269,7 @@ func (suite *NATSPublicTestSuite) TestBuildResponseKVConfig() {
 				Storage:        "memory",
 				Replicas:       3,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "job-responses", cfg.Bucket)
 				assert.Equal(suite.T(), 30*time.Minute, cfg.TTL)
 				assert.Equal(suite.T(), int64(52428800), cfg.MaxBytes)
@@ -268,17 +283,17 @@ func (suite *NATSPublicTestSuite) TestBuildResponseKVConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildResponseKVConfig(tc.namespace, tc.kvCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *NATSPublicTestSuite) TestBuildRegistryKVConfig() {
 	tests := []struct {
-		name        string
-		namespace   string
-		registryCfg config.NATSRegistry
-		validateFn  func(jetstream.KeyValueConfig)
+		name         string
+		namespace    string
+		registryCfg  config.NATSRegistry
+		validateFunc func(jetstream.KeyValueConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -289,7 +304,7 @@ func (suite *NATSPublicTestSuite) TestBuildRegistryKVConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "osapi-agent-registry", cfg.Bucket)
 				assert.Equal(suite.T(), 30*time.Second, cfg.TTL)
 				assert.Equal(suite.T(), jetstream.FileStorage, cfg.Storage)
@@ -305,7 +320,7 @@ func (suite *NATSPublicTestSuite) TestBuildRegistryKVConfig() {
 				Storage:  "memory",
 				Replicas: 3,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "agent-registry", cfg.Bucket)
 				assert.Equal(suite.T(), 1*time.Minute, cfg.TTL)
 				assert.Equal(suite.T(), jetstream.MemoryStorage, cfg.Storage)
@@ -321,7 +336,7 @@ func (suite *NATSPublicTestSuite) TestBuildRegistryKVConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), time.Duration(0), cfg.TTL)
 			},
 		},
@@ -331,17 +346,17 @@ func (suite *NATSPublicTestSuite) TestBuildRegistryKVConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildRegistryKVConfig(tc.namespace, tc.registryCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *NATSPublicTestSuite) TestBuildFactsKVConfig() {
 	tests := []struct {
-		name       string
-		namespace  string
-		factsCfg   config.NATSFacts
-		validateFn func(jetstream.KeyValueConfig)
+		name         string
+		namespace    string
+		factsCfg     config.NATSFacts
+		validateFunc func(jetstream.KeyValueConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -352,7 +367,7 @@ func (suite *NATSPublicTestSuite) TestBuildFactsKVConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "osapi-agent-facts", cfg.Bucket)
 				assert.Equal(suite.T(), 1*time.Hour, cfg.TTL)
 				assert.Equal(suite.T(), jetstream.FileStorage, cfg.Storage)
@@ -368,7 +383,7 @@ func (suite *NATSPublicTestSuite) TestBuildFactsKVConfig() {
 				Storage:  "memory",
 				Replicas: 3,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "agent-facts", cfg.Bucket)
 				assert.Equal(suite.T(), 30*time.Minute, cfg.TTL)
 				assert.Equal(suite.T(), jetstream.MemoryStorage, cfg.Storage)
@@ -384,7 +399,7 @@ func (suite *NATSPublicTestSuite) TestBuildFactsKVConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), time.Duration(0), cfg.TTL)
 			},
 		},
@@ -394,17 +409,17 @@ func (suite *NATSPublicTestSuite) TestBuildFactsKVConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildFactsKVConfig(tc.namespace, tc.factsCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *NATSPublicTestSuite) TestBuildStateKVConfig() {
 	tests := []struct {
-		name       string
-		namespace  string
-		stateCfg   config.NATSState
-		validateFn func(jetstream.KeyValueConfig)
+		name         string
+		namespace    string
+		stateCfg     config.NATSState
+		validateFunc func(jetstream.KeyValueConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -414,7 +429,7 @@ func (suite *NATSPublicTestSuite) TestBuildStateKVConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "osapi-agent-state", cfg.Bucket)
 				assert.Equal(suite.T(), time.Duration(0), cfg.TTL)
 				assert.Equal(suite.T(), jetstream.FileStorage, cfg.Storage)
@@ -429,7 +444,7 @@ func (suite *NATSPublicTestSuite) TestBuildStateKVConfig() {
 				Storage:  "memory",
 				Replicas: 3,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "agent-state", cfg.Bucket)
 				assert.Equal(suite.T(), jetstream.MemoryStorage, cfg.Storage)
 				assert.Equal(suite.T(), 3, cfg.Replicas)
@@ -441,17 +456,17 @@ func (suite *NATSPublicTestSuite) TestBuildStateKVConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildStateKVConfig(tc.namespace, tc.stateCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *NATSPublicTestSuite) TestBuildAuditStreamConfig() {
 	tests := []struct {
-		name       string
-		namespace  string
-		auditCfg   config.NATSAudit
-		validateFn func(jetstream.StreamConfig)
+		name         string
+		namespace    string
+		auditCfg     config.NATSAudit
+		validateFunc func(jetstream.StreamConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -464,7 +479,7 @@ func (suite *NATSPublicTestSuite) TestBuildAuditStreamConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.StreamConfig) {
+			validateFunc: func(cfg jetstream.StreamConfig) {
 				assert.Equal(suite.T(), "osapi-AUDIT", cfg.Name)
 				assert.Equal(suite.T(), []string{"osapi.audit.>"}, cfg.Subjects)
 				assert.Equal(suite.T(), 720*time.Hour, cfg.MaxAge)
@@ -485,7 +500,7 @@ func (suite *NATSPublicTestSuite) TestBuildAuditStreamConfig() {
 				Storage:  "memory",
 				Replicas: 3,
 			},
-			validateFn: func(cfg jetstream.StreamConfig) {
+			validateFunc: func(cfg jetstream.StreamConfig) {
 				assert.Equal(suite.T(), "AUDIT", cfg.Name)
 				assert.Equal(suite.T(), []string{"audit.>"}, cfg.Subjects)
 				assert.Equal(suite.T(), 24*time.Hour, cfg.MaxAge)
@@ -506,7 +521,7 @@ func (suite *NATSPublicTestSuite) TestBuildAuditStreamConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.StreamConfig) {
+			validateFunc: func(cfg jetstream.StreamConfig) {
 				assert.Equal(suite.T(), time.Duration(0), cfg.MaxAge)
 			},
 		},
@@ -516,17 +531,17 @@ func (suite *NATSPublicTestSuite) TestBuildAuditStreamConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildAuditStreamConfig(tc.namespace, tc.auditCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }
 
 func (suite *NATSPublicTestSuite) TestBuildObjectStoreConfig() {
 	tests := []struct {
-		name       string
-		namespace  string
-		objectsCfg config.NATSObjects
-		validateFn func(jetstream.ObjectStoreConfig)
+		name         string
+		namespace    string
+		objectsCfg   config.NATSObjects
+		validateFunc func(jetstream.ObjectStoreConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -537,7 +552,7 @@ func (suite *NATSPublicTestSuite) TestBuildObjectStoreConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.ObjectStoreConfig) {
+			validateFunc: func(cfg jetstream.ObjectStoreConfig) {
 				assert.Equal(suite.T(), "osapi-file-objects", cfg.Bucket)
 				assert.Equal(suite.T(), int64(104857600), cfg.MaxBytes)
 				assert.Equal(suite.T(), jetstream.FileStorage, cfg.Storage)
@@ -553,7 +568,7 @@ func (suite *NATSPublicTestSuite) TestBuildObjectStoreConfig() {
 				Storage:  "memory",
 				Replicas: 3,
 			},
-			validateFn: func(cfg jetstream.ObjectStoreConfig) {
+			validateFunc: func(cfg jetstream.ObjectStoreConfig) {
 				assert.Equal(suite.T(), "file-objects", cfg.Bucket)
 				assert.Equal(suite.T(), int64(52428800), cfg.MaxBytes)
 				assert.Equal(suite.T(), jetstream.MemoryStorage, cfg.Storage)
@@ -569,7 +584,7 @@ func (suite *NATSPublicTestSuite) TestBuildObjectStoreConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.ObjectStoreConfig) {
+			validateFunc: func(cfg jetstream.ObjectStoreConfig) {
 				assert.Equal(suite.T(), "osapi-file-objects", cfg.Bucket)
 				assert.Equal(suite.T(), int64(0), cfg.MaxBytes)
 			},
@@ -580,7 +595,7 @@ func (suite *NATSPublicTestSuite) TestBuildObjectStoreConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildObjectStoreConfig(tc.namespace, tc.objectsCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -590,7 +605,7 @@ func (suite *NATSPublicTestSuite) TestBuildEnrollmentKVConfig() {
 		name          string
 		namespace     string
 		enrollmentCfg config.NATSEnrollment
-		validateFn    func(jetstream.KeyValueConfig)
+		validateFunc  func(jetstream.KeyValueConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -600,7 +615,7 @@ func (suite *NATSPublicTestSuite) TestBuildEnrollmentKVConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "osapi-agent-enrollment", cfg.Bucket)
 				assert.Equal(suite.T(), time.Duration(0), cfg.TTL)
 				assert.Equal(suite.T(), jetstream.FileStorage, cfg.Storage)
@@ -615,7 +630,7 @@ func (suite *NATSPublicTestSuite) TestBuildEnrollmentKVConfig() {
 				Storage:  "memory",
 				Replicas: 3,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "agent-enrollment", cfg.Bucket)
 				assert.Equal(suite.T(), jetstream.MemoryStorage, cfg.Storage)
 				assert.Equal(suite.T(), 3, cfg.Replicas)
@@ -627,7 +642,7 @@ func (suite *NATSPublicTestSuite) TestBuildEnrollmentKVConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildEnrollmentKVConfig(tc.namespace, tc.enrollmentCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }
@@ -637,7 +652,7 @@ func (suite *NATSPublicTestSuite) TestBuildFileStateKVConfig() {
 		name         string
 		namespace    string
 		fileStateCfg config.NATSFileState
-		validateFn   func(jetstream.KeyValueConfig)
+		validateFunc func(jetstream.KeyValueConfig)
 	}{
 		{
 			name:      "when namespace is set",
@@ -647,7 +662,7 @@ func (suite *NATSPublicTestSuite) TestBuildFileStateKVConfig() {
 				Storage:  "file",
 				Replicas: 1,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "osapi-file-state", cfg.Bucket)
 				assert.Equal(suite.T(), time.Duration(0), cfg.TTL)
 				assert.Equal(suite.T(), jetstream.FileStorage, cfg.Storage)
@@ -662,7 +677,7 @@ func (suite *NATSPublicTestSuite) TestBuildFileStateKVConfig() {
 				Storage:  "memory",
 				Replicas: 3,
 			},
-			validateFn: func(cfg jetstream.KeyValueConfig) {
+			validateFunc: func(cfg jetstream.KeyValueConfig) {
 				assert.Equal(suite.T(), "file-state", cfg.Bucket)
 				assert.Equal(suite.T(), jetstream.MemoryStorage, cfg.Storage)
 				assert.Equal(suite.T(), 3, cfg.Replicas)
@@ -674,7 +689,7 @@ func (suite *NATSPublicTestSuite) TestBuildFileStateKVConfig() {
 		suite.Run(tc.name, func() {
 			got := cli.BuildFileStateKVConfig(tc.namespace, tc.fileStateCfg)
 
-			tc.validateFn(got)
+			tc.validateFunc(got)
 		})
 	}
 }

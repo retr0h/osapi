@@ -427,6 +427,8 @@ func (suite *TimezonePublicTestSuite) TestTimezoneUpdate() {
 	}
 }
 
-func TestTimezonePublicTestSuite(t *testing.T) {
+func TestTimezonePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(TimezonePublicTestSuite))
 }

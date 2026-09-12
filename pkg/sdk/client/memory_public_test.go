@@ -140,6 +140,8 @@ func (suite *MemoryPublicTestSuite) TestGet() {
 	}
 }
 
-func TestMemoryPublicTestSuite(t *testing.T) {
+func TestMemoryPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(MemoryPublicTestSuite))
 }

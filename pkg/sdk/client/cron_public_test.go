@@ -1021,6 +1021,8 @@ func (suite *CronPublicTestSuite) TestCronDelete() {
 	}
 }
 
-func TestCronPublicTestSuite(t *testing.T) {
+func TestCronPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(CronPublicTestSuite))
 }

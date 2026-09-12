@@ -97,6 +97,8 @@ func (suite *DiskTypesPublicTestSuite) TestDisksFromGen() {
 	}
 }
 
-func TestDiskTypesPublicTestSuite(t *testing.T) {
+func TestDiskTypesPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DiskTypesPublicTestSuite))
 }

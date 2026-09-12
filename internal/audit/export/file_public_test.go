@@ -359,14 +359,18 @@ func (suite *FileExporterPublicTestSuite) readLines(
 	return lines
 }
 
-func TestFileExporterPublicTestSuite(t *testing.T) {
+func TestFileExporterPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FileExporterPublicTestSuite))
 }
 
 // failWriter is a writer that always returns an error on Write.
 type failWriter struct{}
 
-func (w *failWriter) Write(_ []byte) (int, error) {
+func (w *failWriter) Write(
+	_ []byte,
+) (int, error) {
 	return 0, fmt.Errorf("write failed")
 }
 
@@ -377,7 +381,9 @@ func (w *failWriter) Close() error {
 // failCloseWriter succeeds on Write but fails on Close.
 type failCloseWriter struct{}
 
-func (w *failCloseWriter) Write(p []byte) (int, error) {
+func (w *failCloseWriter) Write(
+	p []byte,
+) (int, error) {
 	return len(p), nil
 }
 

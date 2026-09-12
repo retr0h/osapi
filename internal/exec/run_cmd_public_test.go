@@ -44,36 +44,46 @@ func (suite *RunCmdPublicTestSuite) TearDownTest() {}
 
 func (suite *RunCmdPublicTestSuite) TestRunCmd() {
 	tests := []struct {
-		name          string
-		command       string
-		args          []string
-		expectError   bool
-		errorContains string
+		name         string
+		command      string
+		args         []string
+		validateFunc func(string, error)
 	}{
 		{
-			name:        "Valid command with no arguments",
-			command:     "ls",
-			args:        []string{},
-			expectError: false,
+			name:    "Valid command with no arguments",
+			command: "ls",
+			args:    []string{},
+			validateFunc: func(output string, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(output)
+			},
 		},
 		{
-			name:        "Valid command with no arguments and working dir",
-			command:     "ls",
-			args:        []string{},
-			expectError: false,
+			name:    "Valid command with no arguments and working dir",
+			command: "ls",
+			args:    []string{},
+			validateFunc: func(output string, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(output)
+			},
 		},
 		{
-			name:        "Valid command with output",
-			command:     "echo",
-			args:        []string{"-n", "foo"},
-			expectError: false,
+			name:    "Valid command with output",
+			command: "echo",
+			args:    []string{"-n", "foo"},
+			validateFunc: func(output string, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(output)
+			},
 		},
 		{
-			name:          "Invalid command",
-			command:       "invalid",
-			args:          []string{"foo"},
-			expectError:   true,
-			errorContains: "not found",
+			name:    "Invalid command",
+			command: "invalid",
+			args:    []string{"foo"},
+			validateFunc: func(_ string, err error) {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), "not found")
+			},
 		},
 	}
 
@@ -81,21 +91,15 @@ func (suite *RunCmdPublicTestSuite) TestRunCmd() {
 		suite.Run(tc.name, func() {
 			em := exec.New(suite.logger, false)
 
-			output, err := em.RunCmd(tc.command, tc.args)
-
-			if tc.expectError {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.errorContains)
-			} else {
-				suite.Require().NoError(err)
-				suite.Require().NotEmpty(output)
-			}
+			tc.validateFunc(em.RunCmd(tc.command, tc.args))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestRunCmdPublicTestSuite(t *testing.T) {
+func TestRunCmdPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(RunCmdPublicTestSuite))
 }

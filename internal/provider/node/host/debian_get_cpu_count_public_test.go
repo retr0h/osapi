@@ -38,10 +38,9 @@ func (suite *DebianGetCPUCountPublicTestSuite) TearDownTest() {}
 
 func (suite *DebianGetCPUCountPublicTestSuite) TestGetCPUCount() {
 	tests := []struct {
-		name      string
-		setupMock func(u *host.Debian)
-		want      interface{}
-		wantErr   bool
+		name         string
+		setupMock    func(u *host.Debian)
+		validateFunc func(int, error)
 	}{
 		{
 			name: "when GetCPUCount Ok",
@@ -50,8 +49,10 @@ func (suite *DebianGetCPUCountPublicTestSuite) TestGetCPUCount() {
 					return 8
 				}
 			},
-			want:    8,
-			wantErr: false,
+			validateFunc: func(got int, err error) {
+				suite.NoError(err)
+				suite.Equal(8, got)
+			},
 		},
 		{
 			name: "when NumCPU returns 1",
@@ -60,8 +61,10 @@ func (suite *DebianGetCPUCountPublicTestSuite) TestGetCPUCount() {
 					return 1
 				}
 			},
-			want:    1,
-			wantErr: false,
+			validateFunc: func(got int, err error) {
+				suite.NoError(err)
+				suite.Equal(1, got)
+			},
 		},
 	}
 
@@ -73,21 +76,15 @@ func (suite *DebianGetCPUCountPublicTestSuite) TestGetCPUCount() {
 				tc.setupMock(debian)
 			}
 
-			got, err := debian.GetCPUCount()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.Equal(0, got)
-			} else {
-				suite.NoError(err)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(debian.GetCPUCount())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDebianGetCPUCountPublicTestSuite(t *testing.T) {
+func TestDebianGetCPUCountPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DebianGetCPUCountPublicTestSuite))
 }

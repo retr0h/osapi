@@ -58,12 +58,10 @@ func (s *ProcessorSchedulePublicTestSuite) TearDownTest() {
 
 func (s *ProcessorSchedulePublicTestSuite) TestProcessScheduleOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() cron.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() cron.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -73,9 +71,12 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessScheduleOperation() {
 				Operation: "cron.list",
 				Data:      json.RawMessage(`{}`),
 			},
-			setupMock:   nil,
-			expectError: true,
-			errorMsg:    "cron provider not available",
+			setupMock: nil,
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "cron provider not available")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "dispatches to cron operation",
@@ -90,10 +91,12 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessScheduleOperation() {
 				m.EXPECT().List(gomock.Any()).Return([]cron.Entry{}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entries []cron.Entry
-				err := json.Unmarshal(result, &entries)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entries []cron.Entry
+				decodeErr := json.Unmarshal(result, &entries)
+				s.NoError(decodeErr)
 				s.Empty(entries)
 			},
 		},
@@ -108,8 +111,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessScheduleOperation() {
 			setupMock: func() cron.Provider {
 				return cronMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported schedule operation: unknown.list",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported schedule operation: unknown.list")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -121,31 +127,17 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessScheduleOperation() {
 			}
 
 			processor := agent.NewScheduleProcessor(cronProvider, slog.Default())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() cron.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() cron.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "invalid cron operation missing sub-operation",
@@ -158,8 +150,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 			setupMock: func() cron.Provider {
 				return cronMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "invalid cron operation: cron",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "invalid cron operation: cron")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "successful cron list",
@@ -181,10 +176,12 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entries []cron.Entry
-				err := json.Unmarshal(result, &entries)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entries []cron.Entry
+				decodeErr := json.Unmarshal(result, &entries)
+				s.NoError(decodeErr)
 				s.Len(entries, 1)
 				s.Equal("backup", entries[0].Name)
 				s.Equal("0 2 * * *", entries[0].Schedule)
@@ -203,8 +200,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				m.EXPECT().List(gomock.Any()).Return(nil, errors.New("permission denied"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "permission denied",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "permission denied")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "successful cron get",
@@ -224,10 +224,12 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entry cron.Entry
-				err := json.Unmarshal(result, &entry)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entry cron.Entry
+				decodeErr := json.Unmarshal(result, &entry)
+				s.NoError(decodeErr)
 				s.Equal("backup", entry.Name)
 			},
 		},
@@ -242,8 +244,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 			setupMock: func() cron.Provider {
 				return cronMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal cron get data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal cron get data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "cron get provider error",
@@ -258,8 +263,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				m.EXPECT().Get(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "successful cron create",
@@ -284,10 +292,12 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r cron.CreateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r cron.CreateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("logrotate", r.Name)
 				s.True(r.Changed)
 			},
@@ -303,8 +313,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 			setupMock: func() cron.Provider {
 				return cronMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal cron create data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal cron create data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "cron create provider error",
@@ -323,8 +336,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 					Return(nil, errors.New("already exists"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "already exists",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "already exists")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "successful cron update",
@@ -350,10 +366,12 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r cron.UpdateResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r cron.UpdateResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("backup", r.Name)
 				s.True(r.Changed)
 			},
@@ -369,8 +387,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 			setupMock: func() cron.Provider {
 				return cronMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal cron update data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal cron update data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "cron update provider error",
@@ -387,8 +408,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				m.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "successful cron delete",
@@ -406,10 +430,12 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var r cron.DeleteResult
-				err := json.Unmarshal(result, &r)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var r cron.DeleteResult
+				decodeErr := json.Unmarshal(result, &r)
+				s.NoError(decodeErr)
 				s.Equal("backup", r.Name)
 				s.True(r.Changed)
 			},
@@ -425,8 +451,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 			setupMock: func() cron.Provider {
 				return cronMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unmarshal cron delete data",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unmarshal cron delete data")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "cron delete provider error",
@@ -441,8 +470,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 				m.EXPECT().Delete(gomock.Any(), "missing").Return(nil, errors.New("not found"))
 				return m
 			},
-			expectError: true,
-			errorMsg:    "not found",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "not found")
+				s.Nil(result)
+			},
 		},
 		{
 			name: "unsupported cron sub-operation",
@@ -455,39 +487,28 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessCronOperation() {
 			setupMock: func() cron.Provider {
 				return cronMocks.NewMockProvider(s.mockCtrl)
 			},
-			expectError: true,
-			errorMsg:    "unsupported cron operation: cron.unknown",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "unsupported cron operation: cron.unknown")
+				s.Nil(result)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			processor := agent.NewScheduleProcessor(tt.setupMock(), slog.Default())
-			result, err := processor(tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(processor(tt.jobRequest))
 		})
 	}
 }
 
 func (s *ProcessorSchedulePublicTestSuite) TestProcessJobOperationScheduleCategory() {
 	tests := []struct {
-		name        string
-		jobRequest  job.Request
-		setupMock   func() cron.Provider
-		expectError bool
-		errorMsg    string
-		validate    func(json.RawMessage)
+		name         string
+		jobRequest   job.Request
+		setupMock    func() cron.Provider
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "schedule category dispatches correctly",
@@ -502,10 +523,12 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessJobOperationScheduleCatego
 				m.EXPECT().List(gomock.Any()).Return([]cron.Entry{}, nil)
 				return m
 			},
-			validate: func(result json.RawMessage) {
-				var entries []cron.Entry
-				err := json.Unmarshal(result, &entries)
+			validateFunc: func(result json.RawMessage, err error) {
 				s.NoError(err)
+				s.NotNil(result)
+				var entries []cron.Entry
+				decodeErr := json.Unmarshal(result, &entries)
+				s.NoError(decodeErr)
 				s.Empty(entries)
 			},
 		},
@@ -520,8 +543,11 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessJobOperationScheduleCatego
 			setupMock: func() cron.Provider {
 				return nil
 			},
-			expectError: true,
-			errorMsg:    "cron provider not available",
+			validateFunc: func(result json.RawMessage, err error) {
+				s.Error(err)
+				s.Contains(err.Error(), "cron provider not available")
+				s.Nil(result)
+			},
 		},
 	}
 
@@ -536,23 +562,13 @@ func (s *ProcessorSchedulePublicTestSuite) TestProcessJobOperationScheduleCatego
 				cronProvider: tt.setupMock(),
 			})
 
-			result, err := agent.ExportProcessJobOperation(a, tt.jobRequest)
-
-			if tt.expectError {
-				s.Error(err)
-				s.Contains(err.Error(), tt.errorMsg)
-				s.Nil(result)
-			} else {
-				s.NoError(err)
-				s.NotNil(result)
-				if tt.validate != nil {
-					tt.validate(result)
-				}
-			}
+			tt.validateFunc(agent.ExportProcessJobOperation(a, tt.jobRequest))
 		})
 	}
 }
 
-func TestProcessorSchedulePublicTestSuite(t *testing.T) {
+func TestProcessorSchedulePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ProcessorSchedulePublicTestSuite))
 }

@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -98,7 +100,7 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUser() {
 					Modify(gomock.Any(), "server1", "user", job.OperationUserCreate, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"name":"newuser","changed":true}`),
 					}, nil)
 			},
@@ -190,7 +192,7 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUser() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"newuser","changed":true}`),
 							},
 						}, nil)
@@ -207,13 +209,13 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUser() {
 				Hostname: "server1",
 				Body: &gen.UserCreateRequest{
 					Name:     "newuser",
-					Uid:      intPtr(1001),
-					Gid:      intPtr(1001),
-					Home:     strPtr("/home/newuser"),
-					Shell:    strPtr("/bin/zsh"),
+					Uid:      ptr.To(1001),
+					Gid:      ptr.To(1001),
+					Home:     ptr.To("/home/newuser"),
+					Shell:    ptr.To("/bin/zsh"),
 					Groups:   &[]string{"sudo", "docker"},
-					Password: strPtr("secret123"),
-					System:   boolPtr(false),
+					Password: ptr.To("secret123"),
+					System:   ptr.To(false),
 				},
 			},
 			setupMock: func() {
@@ -221,7 +223,7 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUser() {
 					Modify(gomock.Any(), "server1", "user", job.OperationUserCreate, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"name":"newuser","changed":true}`),
 					}, nil)
 			},
@@ -246,7 +248,7 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUser() {
 							"server1": {
 								Hostname: "server1",
 								Status:   job.StatusCompleted,
-								Changed:  boolPtr(true),
+								Changed:  ptr.To(true),
 								Data:     json.RawMessage(`{"name":"newuser","changed":true}`),
 							},
 							"server2": {
@@ -307,19 +309,26 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUser() {
 
 func (s *UserCreatePublicTestSuite) TestPostNodeUserValidationHTTP() {
 	tests := []struct {
-		name     string
-		body     string
-		wantCode int
+		name         string
+		body         string
+		wantCode     int
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name:     "when valid request",
 			body:     `{"name":"newuser"}`,
 			wantCode: http.StatusOK,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusOK, rec.Code)
+			},
 		},
 		{
 			name:     "when missing name",
 			body:     `{}`,
 			wantCode: http.StatusBadRequest,
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+			},
 		},
 	}
 
@@ -331,7 +340,7 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserValidationHTTP() {
 					Modify(gomock.Any(), "server1", "user", job.OperationUserCreate, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"name":"newuser","changed":true}`),
 					}, nil)
 			}
@@ -350,7 +359,7 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserValidationHTTP() {
 			rec := httptest.NewRecorder()
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -364,7 +373,7 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
+		validateFunc func(int)
 	}{
 		{
 			name:      "when no token returns 401",
@@ -372,7 +381,9 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusUnauthorized,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusUnauthorized, got)
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -388,7 +399,9 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode: http.StatusForbidden,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusForbidden, got)
+			},
 		},
 		{
 			name: "when valid admin token returns 200",
@@ -407,12 +420,14 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserRBACHTTP() {
 					Modify(gomock.Any(), "server1", "user", job.OperationUserCreate, gomock.Any()).
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"name":"newuser","changed":true}`),
 					}, nil)
 				return mock
 			},
-			wantCode: http.StatusOK,
+			validateFunc: func(got int) {
+				s.Equal(http.StatusOK, got)
+			},
 		},
 	}
 
@@ -445,11 +460,13 @@ func (s *UserCreatePublicTestSuite) TestPostNodeUserRBACHTTP() {
 			rec := httptest.NewRecorder()
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
+			tc.validateFunc(rec.Code)
 		})
 	}
 }
 
-func TestUserCreatePublicTestSuite(t *testing.T) {
+func TestUserCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(UserCreatePublicTestSuite))
 }

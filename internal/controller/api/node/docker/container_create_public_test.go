@@ -31,6 +31,8 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -91,7 +93,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 				Hostname: "server1",
 				Body: &gen.PostNodeContainerDockerJSONRequestBody{
 					Image: "nginx:latest",
-					Name:  strPtr("my-nginx"),
+					Name:  ptr.To("my-nginx"),
 				},
 			},
 			setupMock: func() {
@@ -106,7 +108,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"id":"abc123"}`),
 					}, nil)
 			},
@@ -158,7 +160,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 				Hostname: "server1",
 				Body: &gen.PostNodeContainerDockerJSONRequestBody{
 					Image:    "nginx:latest",
-					Hostname: strPtr("web-01"),
+					Hostname: ptr.To("web-01"),
 					Dns:      &[]string{"8.8.8.8", "8.8.4.4"},
 				},
 			},
@@ -185,7 +187,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 						return "550e8400-e29b-41d4-a716-446655440000", &job.Response{
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "agent1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"id":"abc123"}`),
 						}, nil
 					})
@@ -205,7 +207,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 				Hostname: "server1",
 				Body: &gen.PostNodeContainerDockerJSONRequestBody{
 					Image:     "nginx:latest",
-					AutoStart: boolPtr(false),
+					AutoStart: ptr.To(false),
 				},
 			},
 			setupMock: func() {
@@ -220,7 +222,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"id":"xyz789"}`),
 					}, nil)
 			},
@@ -255,7 +257,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     nil,
 					}, nil)
 			},
@@ -346,13 +348,13 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"id":"abc123"}`),
 						},
 						"server2": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server2",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"id":"def456"}`),
 						},
 					}, nil)
@@ -385,7 +387,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDocker() {
 						"server1": {
 							JobID:    "550e8400-e29b-41d4-a716-446655440000",
 							Hostname: "server1",
-							Changed:  boolPtr(true),
+							Changed:  ptr.To(true),
 							Data:     json.RawMessage(`{"id":"abc123"}`),
 						},
 						"server2": {
@@ -480,8 +482,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 		path         string
 		body         string
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when valid request",
@@ -494,13 +495,17 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"id":"abc123"}`),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"results"`, `"agent1"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+				s.Contains(rec.Body.String(), `"agent1"`)
+			},
 		},
 		{
 			name: "when missing image",
@@ -509,8 +514,12 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Image", "required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Image")
+				s.Contains(rec.Body.String(), "required")
+			},
 		},
 		{
 			name: "when hostname exceeds max length",
@@ -519,8 +528,12 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Hostname", "max"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Hostname")
+				s.Contains(rec.Body.String(), "max")
+			},
 		},
 		{
 			name: "when dns contains invalid ip",
@@ -529,8 +542,12 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "Dns", "ip"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "Dns")
+				s.Contains(rec.Body.String(), "ip")
+			},
 		},
 		{
 			name: "when target agent not found",
@@ -539,8 +556,12 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusBadRequest,
-			wantContains: []string{`"error"`, "valid_target", "not found"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusBadRequest, rec.Code)
+				s.Contains(rec.Body.String(), `"error"`)
+				s.Contains(rec.Body.String(), "valid_target")
+				s.Contains(rec.Body.String(), "not found")
+			},
 		},
 	}
 
@@ -564,10 +585,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerValidationHT
 
 			a.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
@@ -581,8 +599,7 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerRBACHTTP() {
 		name         string
 		setupAuth    func(req *http.Request)
 		setupJobMock func() *jobmocks.MockJobClient
-		wantCode     int
-		wantContains []string
+		validateFunc func(*httptest.ResponseRecorder)
 	}{
 		{
 			name: "when no token returns 401",
@@ -592,8 +609,10 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusUnauthorized,
-			wantContains: []string{"Bearer token required"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusUnauthorized, rec.Code)
+				s.Contains(rec.Body.String(), "Bearer token required")
+			},
 		},
 		{
 			name: "when insufficient permissions returns 403",
@@ -610,8 +629,10 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerRBACHTTP() {
 			setupJobMock: func() *jobmocks.MockJobClient {
 				return jobmocks.NewMockJobClient(s.mockCtrl)
 			},
-			wantCode:     http.StatusForbidden,
-			wantContains: []string{"Insufficient permissions"},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusForbidden, rec.Code)
+				s.Contains(rec.Body.String(), "Insufficient permissions")
+			},
 		},
 		{
 			name: "when valid admin token returns 202",
@@ -632,13 +653,16 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerRBACHTTP() {
 					Return("550e8400-e29b-41d4-a716-446655440000", &job.Response{
 						JobID:    "550e8400-e29b-41d4-a716-446655440000",
 						Hostname: "agent1",
-						Changed:  boolPtr(true),
+						Changed:  ptr.To(true),
 						Data:     json.RawMessage(`{"id":"abc123"}`),
 					}, nil)
 				return mock
 			},
-			wantCode:     http.StatusAccepted,
-			wantContains: []string{`"job_id"`, `"results"`},
+			validateFunc: func(rec *httptest.ResponseRecorder) {
+				s.Equal(http.StatusAccepted, rec.Code)
+				s.Contains(rec.Body.String(), `"job_id"`)
+				s.Contains(rec.Body.String(), `"results"`)
+			},
 		},
 	}
 
@@ -676,14 +700,13 @@ func (s *ContainerCreatePublicTestSuite) TestPostNodeContainerDockerRBACHTTP() {
 
 			server.Echo.ServeHTTP(rec, req)
 
-			s.Equal(tc.wantCode, rec.Code)
-			for _, str := range tc.wantContains {
-				s.Contains(rec.Body.String(), str)
-			}
+			tc.validateFunc(rec)
 		})
 	}
 }
 
-func TestContainerCreatePublicTestSuite(t *testing.T) {
+func TestContainerCreatePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ContainerCreatePublicTestSuite))
 }

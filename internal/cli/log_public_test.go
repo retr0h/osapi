@@ -42,34 +42,46 @@ func (suite *LogPublicTestSuite) TearDownTest() {
 
 func (suite *LogPublicTestSuite) TestLogFatal() {
 	tests := []struct {
-		name      string
-		message   string
-		err       error
-		kvPairs   []any
-		wantInLog []string
-		wantCode  int
+		name         string
+		message      string
+		err          error
+		kvPairs      []any
+		wantCode     int
+		validateFunc func(string)
 	}{
 		{
-			name:      "when error is provided logs error",
-			message:   "something failed",
-			err:       fmt.Errorf("connection refused"),
-			wantInLog: []string{"something failed", "connection refused"},
-			wantCode:  1,
+			name:     "when error is provided logs error",
+			message:  "something failed",
+			err:      fmt.Errorf("connection refused"),
+			wantCode: 1,
+			validateFunc: func(output string) {
+				for _, want := range []string{"something failed", "connection refused"} {
+					assert.Contains(suite.T(), output, want)
+				}
+			},
 		},
 		{
-			name:      "when error is nil logs without error key",
-			message:   "fatal event",
-			err:       nil,
-			wantInLog: []string{"fatal event"},
-			wantCode:  1,
+			name:     "when error is nil logs without error key",
+			message:  "fatal event",
+			err:      nil,
+			wantCode: 1,
+			validateFunc: func(output string) {
+				for _, want := range []string{"fatal event"} {
+					assert.Contains(suite.T(), output, want)
+				}
+			},
 		},
 		{
-			name:      "when extra kv pairs are provided logs them",
-			message:   "startup failed",
-			err:       fmt.Errorf("bad config"),
-			kvPairs:   []any{"host", "localhost"},
-			wantInLog: []string{"startup failed", "bad config", "host", "localhost"},
-			wantCode:  1,
+			name:     "when extra kv pairs are provided logs them",
+			message:  "startup failed",
+			err:      fmt.Errorf("bad config"),
+			kvPairs:  []any{"host", "localhost"},
+			wantCode: 1,
+			validateFunc: func(output string) {
+				for _, want := range []string{"startup failed", "bad config", "host", "localhost"} {
+					assert.Contains(suite.T(), output, want)
+				}
+			},
 		},
 	}
 
@@ -84,14 +96,13 @@ func (suite *LogPublicTestSuite) TestLogFatal() {
 			cli.LogFatal(logger, tc.message, tc.err, tc.kvPairs...)
 
 			assert.Equal(suite.T(), tc.wantCode, exitCode)
-			output := buf.String()
-			for _, want := range tc.wantInLog {
-				assert.Contains(suite.T(), output, want)
-			}
+			tc.validateFunc(buf.String())
 		})
 	}
 }
 
-func TestLogPublicTestSuite(t *testing.T) {
+func TestLogPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LogPublicTestSuite))
 }

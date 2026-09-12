@@ -42,120 +42,134 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 
 func (suite *LinuxPublicTestSuite) TestList() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func([]apt.Package, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result []apt.Package, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.List(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.List(context.Background()))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestGet() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*apt.Package, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *apt.Package, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Get(context.Background(), "vim")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Get(context.Background(), "vim"))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestInstall() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*apt.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *apt.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Install(context.Background(), "vim")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Install(context.Background(), "vim"))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestRemove() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*apt.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *apt.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Remove(context.Background(), "vim")
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Remove(context.Background(), "vim"))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestUpdate() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(*apt.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result *apt.Result, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.Update(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.Update(context.Background()))
 		})
 	}
 }
 
 func (suite *LinuxPublicTestSuite) TestListUpdates() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func([]apt.Update, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result []apt.Update, err error) {
+				suite.Nil(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			got, err := suite.provider.ListUpdates(context.Background())
-
-			suite.Nil(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(suite.provider.ListUpdates(context.Background()))
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxPublicTestSuite(t *testing.T) {
+func TestLinuxPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxPublicTestSuite))
 }

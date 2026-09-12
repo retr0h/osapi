@@ -40,11 +40,9 @@ func (suite *DarwinGetHostnamePublicTestSuite) TearDownTest() {}
 
 func (suite *DarwinGetHostnamePublicTestSuite) TestGetHostname() {
 	tests := []struct {
-		name        string
-		setupMock   func() func() (*sysHost.InfoStat, error)
-		want        interface{}
-		wantErr     bool
-		wantErrType error
+		name         string
+		setupMock    func() func() (*sysHost.InfoStat, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when GetHostname Ok",
@@ -53,8 +51,11 @@ func (suite *DarwinGetHostnamePublicTestSuite) TestGetHostname() {
 					return &sysHost.InfoStat{Hostname: "default-hostname"}, nil
 				}
 			},
-			want:    "default-hostname",
-			wantErr: false,
+			validateFunc: func(got string, err error) {
+				suite.NoError(err)
+				suite.NotNil(got)
+				suite.Equal("default-hostname", got)
+			},
 		},
 		{
 			name: "when host.Info errors",
@@ -63,8 +64,11 @@ func (suite *DarwinGetHostnamePublicTestSuite) TestGetHostname() {
 					return nil, assert.AnError
 				}
 			},
-			wantErr:     true,
-			wantErrType: assert.AnError,
+			validateFunc: func(got string, err error) {
+				suite.Error(err)
+				suite.ErrorContains(err, assert.AnError.Error())
+				suite.Empty(got)
+			},
 		},
 	}
 
@@ -76,23 +80,15 @@ func (suite *DarwinGetHostnamePublicTestSuite) TestGetHostname() {
 				darwin.InfoFn = tc.setupMock()
 			}
 
-			got, err := darwin.GetHostname()
-
-			if tc.wantErr {
-				suite.Error(err)
-				suite.ErrorContains(err, tc.wantErrType.Error())
-				suite.Empty(got)
-			} else {
-				suite.NoError(err)
-				suite.NotNil(got)
-				suite.Equal(tc.want, got)
-			}
+			tc.validateFunc(darwin.GetHostname())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestDarwinGetHostnamePublicTestSuite(t *testing.T) {
+func TestDarwinGetHostnamePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(DarwinGetHostnamePublicTestSuite))
 }

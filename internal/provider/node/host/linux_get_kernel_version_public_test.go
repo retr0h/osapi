@@ -39,10 +39,15 @@ func (suite *LinuxGetKernelVersionPublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(string, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result string, err error) {
+				suite.Empty(result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -50,16 +55,15 @@ func (suite *LinuxGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetKernelVersion()
-
-			suite.Empty(got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetKernelVersion())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetKernelVersionPublicTestSuite(t *testing.T) {
+func TestLinuxGetKernelVersionPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetKernelVersionPublicTestSuite))
 }

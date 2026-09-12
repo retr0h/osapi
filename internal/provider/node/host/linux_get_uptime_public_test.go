@@ -40,10 +40,15 @@ func (suite *LinuxGetUptimePublicTestSuite) TearDownTest() {}
 
 func (suite *LinuxGetUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {
-		name string
+		name         string
+		validateFunc func(time.Duration, error)
 	}{
 		{
 			name: "returns not implemented error",
+			validateFunc: func(result time.Duration, err error) {
+				suite.Equal(time.Duration(0), result)
+				suite.ErrorIs(err, provider.ErrUnsupported)
+			},
 		},
 	}
 
@@ -51,16 +56,15 @@ func (suite *LinuxGetUptimePublicTestSuite) TestGetUptime() {
 		suite.Run(tc.name, func() {
 			linux := host.NewLinuxProvider()
 
-			got, err := linux.GetUptime()
-
-			suite.Equal(time.Duration(0), got)
-			suite.ErrorIs(err, provider.ErrUnsupported)
+			tc.validateFunc(linux.GetUptime())
 		})
 	}
 }
 
 // In order for `go test` to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run.
-func TestLinuxGetUptimePublicTestSuite(t *testing.T) {
+func TestLinuxGetUptimePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(LinuxGetUptimePublicTestSuite))
 }

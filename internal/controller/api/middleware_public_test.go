@@ -75,63 +75,81 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddleware() {
 		requiredScopes  []string
 		customRoles     map[string][]string
 		expectedStatus  int
-		expectCalled    bool
 		setupContextKey bool
+		validateFunc    func(bool, *httptest.ResponseRecorder)
 	}{
 		{
-			name:            "no auth header returns 401",
-			authHeader:      "",
-			requiredScopes:  []string{"node:read"},
-			expectedStatus:  http.StatusUnauthorized,
-			expectCalled:    false,
+			name:           "no auth header returns 401",
+			authHeader:     "",
+			requiredScopes: []string{"node:read"},
+			expectedStatus: http.StatusUnauthorized,
+			validateFunc: func(called bool, rec *httptest.ResponseRecorder) {
+				s.False(called)
+				s.Equal(http.StatusUnauthorized, rec.Code)
+			},
 			setupContextKey: true,
 		},
 		{
-			name:            "non-bearer auth header returns 401",
-			authHeader:      "Basic dXNlcjpwYXNz",
-			requiredScopes:  []string{"node:read"},
-			expectedStatus:  http.StatusUnauthorized,
-			expectCalled:    false,
+			name:           "non-bearer auth header returns 401",
+			authHeader:     "Basic dXNlcjpwYXNz",
+			requiredScopes: []string{"node:read"},
+			expectedStatus: http.StatusUnauthorized,
+			validateFunc: func(called bool, rec *httptest.ResponseRecorder) {
+				s.False(called)
+				s.Equal(http.StatusUnauthorized, rec.Code)
+			},
 			setupContextKey: true,
 		},
 		{
-			name:            "invalid token returns 401",
-			authHeader:      "Bearer invalid-token-string",
-			requiredScopes:  []string{"node:read"},
-			expectedStatus:  http.StatusUnauthorized,
-			expectCalled:    false,
+			name:           "invalid token returns 401",
+			authHeader:     "Bearer invalid-token-string",
+			requiredScopes: []string{"node:read"},
+			expectedStatus: http.StatusUnauthorized,
+			validateFunc: func(called bool, rec *httptest.ResponseRecorder) {
+				s.False(called)
+				s.Equal(http.StatusUnauthorized, rec.Code)
+			},
 			setupContextKey: true,
 		},
 		{
-			name:            "admin role has node:read",
-			authHeader:      "", // set dynamically
-			requiredScopes:  []string{"node:read"},
-			expectedStatus:  http.StatusOK,
-			expectCalled:    true,
+			name:           "admin role has node:read",
+			authHeader:     "", // set dynamically
+			requiredScopes: []string{"node:read"},
+			expectedStatus: http.StatusOK,
+			validateFunc: func(called bool, _ *httptest.ResponseRecorder) {
+				s.True(called)
+			},
 			setupContextKey: true,
 		},
 		{
-			name:            "read role has node:read",
-			authHeader:      "", // set dynamically
-			requiredScopes:  []string{"node:read"},
-			expectedStatus:  http.StatusOK,
-			expectCalled:    true,
+			name:           "read role has node:read",
+			authHeader:     "", // set dynamically
+			requiredScopes: []string{"node:read"},
+			expectedStatus: http.StatusOK,
+			validateFunc: func(called bool, _ *httptest.ResponseRecorder) {
+				s.True(called)
+			},
 			setupContextKey: true,
 		},
 		{
-			name:            "read role lacks network:write returns 403",
-			authHeader:      "", // set dynamically
-			requiredScopes:  []string{"network:write"},
-			expectedStatus:  http.StatusForbidden,
-			expectCalled:    false,
+			name:           "read role lacks network:write returns 403",
+			authHeader:     "", // set dynamically
+			requiredScopes: []string{"network:write"},
+			expectedStatus: http.StatusForbidden,
+			validateFunc: func(called bool, rec *httptest.ResponseRecorder) {
+				s.False(called)
+				s.Equal(http.StatusForbidden, rec.Code)
+			},
 			setupContextKey: true,
 		},
 		{
-			name:            "valid token with no required scopes calls handler",
-			authHeader:      "", // set dynamically
-			requiredScopes:  nil,
-			expectedStatus:  http.StatusOK,
-			expectCalled:    true,
+			name:           "valid token with no required scopes calls handler",
+			authHeader:     "", // set dynamically
+			requiredScopes: nil,
+			expectedStatus: http.StatusOK,
+			validateFunc: func(called bool, _ *httptest.ResponseRecorder) {
+				s.True(called)
+			},
 			setupContextKey: false,
 		},
 	}
@@ -177,10 +195,7 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddleware() {
 			)
 			_, _ = wrapped(ctx, nil)
 
-			s.Equal(tt.expectCalled, handlerCalled)
-			if !tt.expectCalled {
-				s.Equal(tt.expectedStatus, rec.Code)
-			}
+			tt.validateFunc(handlerCalled, rec)
 		})
 	}
 }
@@ -194,7 +209,7 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareCustomRoles() {
 		customRoles    map[string][]string
 		requiredScope  string
 		expectedStatus int
-		expectCalled   bool
+		validateFunc   func(bool, *httptest.ResponseRecorder)
 	}{
 		{
 			name:       "custom role grants access",
@@ -204,7 +219,9 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareCustomRoles() {
 			},
 			requiredScope:  "node:read",
 			expectedStatus: http.StatusOK,
-			expectCalled:   true,
+			validateFunc: func(called bool, _ *httptest.ResponseRecorder) {
+				s.True(called)
+			},
 		},
 		{
 			name:       "custom role lacks permission",
@@ -214,7 +231,10 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareCustomRoles() {
 			},
 			requiredScope:  "node:read",
 			expectedStatus: http.StatusForbidden,
-			expectCalled:   false,
+			validateFunc: func(called bool, rec *httptest.ResponseRecorder) {
+				s.False(called)
+				s.Equal(http.StatusForbidden, rec.Code)
+			},
 		},
 	}
 
@@ -258,10 +278,7 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareCustomRoles() {
 			)
 			_, _ = wrapped(ctx, nil)
 
-			s.Equal(tt.expectCalled, handlerCalled)
-			if !tt.expectCalled {
-				s.Equal(tt.expectedStatus, rec.Code)
-			}
+			tt.validateFunc(handlerCalled, rec)
 		})
 	}
 }
@@ -274,21 +291,26 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareDirectPermissions() {
 		permissions    []string
 		requiredScope  string
 		expectedStatus int
-		expectCalled   bool
+		validateFunc   func(bool, *httptest.ResponseRecorder)
 	}{
 		{
 			name:           "direct permission grants access",
 			permissions:    []string{"node:read"},
 			requiredScope:  "node:read",
 			expectedStatus: http.StatusOK,
-			expectCalled:   true,
+			validateFunc: func(called bool, _ *httptest.ResponseRecorder) {
+				s.True(called)
+			},
 		},
 		{
 			name:           "direct permission restricts to only listed",
 			permissions:    []string{"health:read"},
 			requiredScope:  "node:read",
 			expectedStatus: http.StatusForbidden,
-			expectCalled:   false,
+			validateFunc: func(called bool, rec *httptest.ResponseRecorder) {
+				s.False(called)
+				s.Equal(http.StatusForbidden, rec.Code)
+			},
 		},
 	}
 
@@ -321,10 +343,7 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareDirectPermissions() {
 			)
 			_, _ = wrapped(ctx, nil)
 
-			s.Equal(tt.expectCalled, handlerCalled)
-			if !tt.expectCalled {
-				s.Equal(tt.expectedStatus, rec.Code)
-			}
+			tt.validateFunc(handlerCalled, rec)
 		})
 	}
 }
@@ -333,35 +352,39 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareInjectsIdentity() {
 	contextKey := "BearerAuthScopes"
 
 	tests := []struct {
-		name            string
-		tokenRoles      []string
-		authHeader      string
-		requiredScopes  []string
-		expectCalled    bool
-		expectedSubject string
-		expectedRoles   []string
+		name           string
+		tokenRoles     []string
+		authHeader     string
+		requiredScopes []string
+		validateFunc   func(bool, string, []string)
 	}{
 		{
-			name:            "admin token injects subject and roles",
-			tokenRoles:      []string{"admin"},
-			requiredScopes:  []string{"node:read"},
-			expectCalled:    true,
-			expectedSubject: "test-subject",
-			expectedRoles:   []string{"admin"},
+			name:           "admin token injects subject and roles",
+			tokenRoles:     []string{"admin"},
+			requiredScopes: []string{"node:read"},
+			validateFunc: func(called bool, subject string, roles []string) {
+				s.True(called)
+				s.Equal("test-subject", subject)
+				s.Equal([]string{"admin"}, roles)
+			},
 		},
 		{
-			name:            "read token injects subject and read role",
-			tokenRoles:      []string{"read"},
-			requiredScopes:  []string{"node:read"},
-			expectCalled:    true,
-			expectedSubject: "test-subject",
-			expectedRoles:   []string{"read"},
+			name:           "read token injects subject and read role",
+			tokenRoles:     []string{"read"},
+			requiredScopes: []string{"node:read"},
+			validateFunc: func(called bool, subject string, roles []string) {
+				s.True(called)
+				s.Equal("test-subject", subject)
+				s.Equal([]string{"read"}, roles)
+			},
 		},
 		{
 			name:           "invalid token does not inject identity",
 			authHeader:     "Bearer invalid-token-string",
 			requiredScopes: []string{"node:read"},
-			expectCalled:   false,
+			validateFunc: func(called bool, _ string, _ []string) {
+				s.False(called)
+			},
 		},
 	}
 
@@ -406,15 +429,13 @@ func (s *MiddlewarePublicTestSuite) TestScopeMiddlewareInjectsIdentity() {
 			)
 			_, _ = wrapped(ctx, nil)
 
-			s.Equal(tt.expectCalled, handlerCalled)
-			if tt.expectCalled {
-				s.Equal(tt.expectedSubject, capturedSubject)
-				s.Equal(tt.expectedRoles, capturedRoles)
-			}
+			tt.validateFunc(handlerCalled, capturedSubject, capturedRoles)
 		})
 	}
 }
 
-func TestMiddlewarePublicTestSuite(t *testing.T) {
+func TestMiddlewarePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(MiddlewarePublicTestSuite))
 }
