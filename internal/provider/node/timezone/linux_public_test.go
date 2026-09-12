@@ -43,11 +43,11 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 func (suite *LinuxPublicTestSuite) TestGet() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*timezone.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *timezone.Info, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -64,11 +64,11 @@ func (suite *LinuxPublicTestSuite) TestGet() {
 func (suite *LinuxPublicTestSuite) TestUpdate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*timezone.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *timezone.UpdateResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

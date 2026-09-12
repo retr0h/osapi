@@ -480,7 +480,7 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 		name         string
 		jobKey       string
 		setupMocks   func()
-		validateFunc func(any, error)
+		validateFunc func([]byte, error)
 	}{
 		{
 			name:   "successful get job data",
@@ -490,7 +490,7 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 				mockEntry.EXPECT().Value().Return([]byte(`{"test": "data"}`))
 				s.mockKV.EXPECT().Get(gomock.Any(), "jobs.job-123").Return(mockEntry, nil)
 			},
-			validateFunc: func(data any, err error) {
+			validateFunc: func(data []byte, err error) {
 				s.NoError(err)
 				s.Equal([]byte(`{"test": "data"}`), data)
 			},
@@ -503,7 +503,7 @@ func (s *AgentPublicTestSuite) TestGetJobData() {
 					Get(gomock.Any(), "jobs.nonexistent").
 					Return(nil, errors.New("key not found"))
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ []byte, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "failed to get job data for key jobs.nonexistent")
 			},

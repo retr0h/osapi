@@ -43,11 +43,11 @@ func (suite *DarwinPublicTestSuite) SetupTest() {
 func (suite *DarwinPublicTestSuite) TestList() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]service.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []service.Info, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -64,11 +64,11 @@ func (suite *DarwinPublicTestSuite) TestList() {
 func (suite *DarwinPublicTestSuite) TestGet() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.Info, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -85,11 +85,11 @@ func (suite *DarwinPublicTestSuite) TestGet() {
 func (suite *DarwinPublicTestSuite) TestCreate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.CreateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *service.CreateResult, err error) {
 				suite.Nil(got)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -109,11 +109,11 @@ func (suite *DarwinPublicTestSuite) TestCreate() {
 func (suite *DarwinPublicTestSuite) TestUpdate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *service.UpdateResult, err error) {
 				suite.Nil(got)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -133,11 +133,11 @@ func (suite *DarwinPublicTestSuite) TestUpdate() {
 func (suite *DarwinPublicTestSuite) TestDelete() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.DeleteResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.DeleteResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -154,11 +154,11 @@ func (suite *DarwinPublicTestSuite) TestDelete() {
 func (suite *DarwinPublicTestSuite) TestStart() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -175,11 +175,11 @@ func (suite *DarwinPublicTestSuite) TestStart() {
 func (suite *DarwinPublicTestSuite) TestStop() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -196,11 +196,11 @@ func (suite *DarwinPublicTestSuite) TestStop() {
 func (suite *DarwinPublicTestSuite) TestRestart() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -217,11 +217,11 @@ func (suite *DarwinPublicTestSuite) TestRestart() {
 func (suite *DarwinPublicTestSuite) TestEnable() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -238,11 +238,11 @@ func (suite *DarwinPublicTestSuite) TestEnable() {
 func (suite *DarwinPublicTestSuite) TestDisable() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

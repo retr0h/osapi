@@ -53,7 +53,7 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 		name         string
 		hostname     string
 		setupMock    func() *mocks.MockManager
-		validateFunc func(any, error)
+		validateFunc func(*host.UpdateHostnameResult, error)
 	}{
 		{
 			name:     "when hostname changes",
@@ -70,7 +70,7 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 				)
 				return mock
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
 				suite.NoError(err)
 				suite.Equal(&host.UpdateHostnameResult{Changed: true}, got)
 			},
@@ -85,7 +85,7 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 					Return("existing-host", nil)
 				return mock
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
 				suite.NoError(err)
 				suite.Equal(&host.UpdateHostnameResult{Changed: false}, got)
 			},
@@ -100,7 +100,7 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 					Return("existing-host\n", nil)
 				return mock
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
 				suite.NoError(err)
 				suite.Equal(&host.UpdateHostnameResult{Changed: false}, got)
 			},
@@ -115,7 +115,7 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 					Return("", assert.AnError)
 				return mock
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Nil(got)
@@ -136,7 +136,7 @@ func (suite *DebianUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 				)
 				return mock
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *host.UpdateHostnameResult, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Nil(got)

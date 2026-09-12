@@ -36,11 +36,11 @@ type LinuxPublicTestSuite struct {
 func (s *LinuxPublicTestSuite) TestGetResolvConfByInterface() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*dns.GetResult, error)
 	}{
 		{
 			name: "returns error for linux stub",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *dns.GetResult, err error) {
 				s.Error(err)
 				s.Nil(result)
 				s.ErrorIs(err, provider.ErrUnsupported)
@@ -59,11 +59,11 @@ func (s *LinuxPublicTestSuite) TestGetResolvConfByInterface() {
 func (s *LinuxPublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*dns.UpdateResult, error)
 	}{
 		{
 			name: "returns error for linux stub",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *dns.UpdateResult, err error) {
 				s.Error(err)
 				s.Nil(result)
 				s.ErrorIs(err, provider.ErrUnsupported)

@@ -48,11 +48,11 @@ func (s *CommandPublicTestSuite) TearDownTest() {
 func (s *CommandPublicTestSuite) TestNew() {
 	tests := []struct {
 		name         string
-		validateFunc func(any)
+		validateFunc func(*command.Executor)
 	}{
 		{
 			name: "creates executor with logger and exec manager",
-			validateFunc: func(executor any) {
+			validateFunc: func(executor *command.Executor) {
 				s.NotNil(executor)
 			},
 		},

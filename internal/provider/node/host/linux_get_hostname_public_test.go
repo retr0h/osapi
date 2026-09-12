@@ -40,11 +40,11 @@ func (suite *LinuxGetHostnamePublicTestSuite) TearDownTest() {}
 func (suite *LinuxGetHostnamePublicTestSuite) TestGetHostname() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result string, err error) {
 				suite.Empty(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

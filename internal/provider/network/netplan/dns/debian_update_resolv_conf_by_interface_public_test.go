@@ -345,7 +345,7 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 		name         string
 		setupMock    func() (*execmocks.MockManager, *jobmocks.MockKeyValue)
 		setupFS      func(avfs.VFS)
-		validateFunc func(any, error)
+		validateFunc func(bool, error)
 	}{
 		{
 			name: "when file exists and remove succeeds",
@@ -373,7 +373,7 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 					0o600,
 				)
 			},
-			validateFunc: func(changed any, err error) {
+			validateFunc: func(changed bool, err error) {
 				suite.NoError(err)
 				suite.Equal(true, changed)
 			},
@@ -389,7 +389,7 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 			setupFS: func(fs avfs.VFS) {
 				_ = fs.MkdirAll("/etc/netplan", 0o755)
 			},
-			validateFunc: func(changed any, err error) {
+			validateFunc: func(changed bool, err error) {
 				suite.NoError(err)
 				suite.Equal(false, changed)
 			},
@@ -414,7 +414,7 @@ func (suite *DebianUpdateResolvConfByInterfacePublicTestSuite) TestDeleteNetplan
 					0o600,
 				)
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ bool, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "dns delete via netplan:")
 			},

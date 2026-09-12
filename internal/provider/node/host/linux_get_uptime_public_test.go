@@ -41,11 +41,11 @@ func (suite *LinuxGetUptimePublicTestSuite) TearDownTest() {}
 func (suite *LinuxGetUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(time.Duration, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result time.Duration, err error) {
 				suite.Equal(time.Duration(0), result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

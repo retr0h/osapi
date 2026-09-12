@@ -42,7 +42,7 @@ func (suite *DebianGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 	tests := []struct {
 		name         string
 		setupMock    func() func() (*sysHost.InfoStat, error)
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when GetKernelVersion Ok",
@@ -51,7 +51,7 @@ func (suite *DebianGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 					return &sysHost.InfoStat{KernelVersion: "5.15.0-91-generic"}, nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal("5.15.0-91-generic", got)
@@ -64,7 +64,7 @@ func (suite *DebianGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Empty(got)

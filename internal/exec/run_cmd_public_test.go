@@ -47,13 +47,13 @@ func (suite *RunCmdPublicTestSuite) TestRunCmd() {
 		name         string
 		command      string
 		args         []string
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name:    "Valid command with no arguments",
 			command: "ls",
 			args:    []string{},
-			validateFunc: func(output any, err error) {
+			validateFunc: func(output string, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(output)
 			},
@@ -62,7 +62,7 @@ func (suite *RunCmdPublicTestSuite) TestRunCmd() {
 			name:    "Valid command with no arguments and working dir",
 			command: "ls",
 			args:    []string{},
-			validateFunc: func(output any, err error) {
+			validateFunc: func(output string, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(output)
 			},
@@ -71,7 +71,7 @@ func (suite *RunCmdPublicTestSuite) TestRunCmd() {
 			name:    "Valid command with output",
 			command: "echo",
 			args:    []string{"-n", "foo"},
-			validateFunc: func(output any, err error) {
+			validateFunc: func(output string, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(output)
 			},
@@ -80,7 +80,7 @@ func (suite *RunCmdPublicTestSuite) TestRunCmd() {
 			name:    "Invalid command",
 			command: "invalid",
 			args:    []string{"foo"},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ string, err error) {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), "not found")
 			},

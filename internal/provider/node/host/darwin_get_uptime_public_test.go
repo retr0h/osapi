@@ -43,7 +43,7 @@ func (suite *DarwinGetUptimePublicTestSuite) TestGetUptime() {
 	tests := []struct {
 		name         string
 		setupMock    func() func() (*sysHost.InfoStat, error)
-		validateFunc func(any, error)
+		validateFunc func(time.Duration, error)
 	}{
 		{
 			name: "when GetUptime Ok",
@@ -52,7 +52,7 @@ func (suite *DarwinGetUptimePublicTestSuite) TestGetUptime() {
 					return &sysHost.InfoStat{Uptime: 5 * 3600}, nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got time.Duration, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal(time.Hour*5, got)
@@ -65,7 +65,7 @@ func (suite *DarwinGetUptimePublicTestSuite) TestGetUptime() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got time.Duration, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Equal(time.Duration(0), got)

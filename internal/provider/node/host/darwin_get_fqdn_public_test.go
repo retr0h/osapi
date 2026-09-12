@@ -41,7 +41,7 @@ func (suite *DarwinGetFQDNPublicTestSuite) TestGetFQDN() {
 	tests := []struct {
 		name         string
 		setupMock    func(d *host.Darwin)
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when GetFQDN Ok",
@@ -50,7 +50,7 @@ func (suite *DarwinGetFQDNPublicTestSuite) TestGetFQDN() {
 					return "mac-01.local", nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal("mac-01.local", got)
@@ -63,7 +63,7 @@ func (suite *DarwinGetFQDNPublicTestSuite) TestGetFQDN() {
 					return "", assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Empty(got)

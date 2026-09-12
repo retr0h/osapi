@@ -43,11 +43,11 @@ func (suite *DarwinPublicTestSuite) SetupTest() {
 func (suite *DarwinPublicTestSuite) TestList() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]sysctl.Entry, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []sysctl.Entry, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -64,11 +64,11 @@ func (suite *DarwinPublicTestSuite) TestList() {
 func (suite *DarwinPublicTestSuite) TestGet() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*sysctl.Entry, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *sysctl.Entry, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -85,11 +85,11 @@ func (suite *DarwinPublicTestSuite) TestGet() {
 func (suite *DarwinPublicTestSuite) TestCreate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*sysctl.CreateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *sysctl.CreateResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -106,11 +106,11 @@ func (suite *DarwinPublicTestSuite) TestCreate() {
 func (suite *DarwinPublicTestSuite) TestUpdate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*sysctl.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *sysctl.UpdateResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -127,11 +127,11 @@ func (suite *DarwinPublicTestSuite) TestUpdate() {
 func (suite *DarwinPublicTestSuite) TestDelete() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*sysctl.DeleteResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *sysctl.DeleteResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

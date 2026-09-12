@@ -43,11 +43,11 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 func (suite *LinuxPublicTestSuite) TestList() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]certificate.Entry, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []certificate.Entry, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -64,11 +64,11 @@ func (suite *LinuxPublicTestSuite) TestList() {
 func (suite *LinuxPublicTestSuite) TestCreate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*certificate.CreateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *certificate.CreateResult, err error) {
 				suite.Nil(got)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -88,11 +88,11 @@ func (suite *LinuxPublicTestSuite) TestCreate() {
 func (suite *LinuxPublicTestSuite) TestUpdate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*certificate.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *certificate.UpdateResult, err error) {
 				suite.Nil(got)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -112,11 +112,11 @@ func (suite *LinuxPublicTestSuite) TestUpdate() {
 func (suite *LinuxPublicTestSuite) TestDelete() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*certificate.DeleteResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *certificate.DeleteResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

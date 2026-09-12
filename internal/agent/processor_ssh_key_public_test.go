@@ -71,7 +71,7 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 		name         string
 		jobRequest   job.Request
 		setupMock    func() user.Provider
-		validateFunc func(any, error)
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -82,7 +82,7 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 				Data:      json.RawMessage(`{"username":"john"}`),
 			},
 			setupMock: nil,
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "user provider not available")
 				s.Nil(result)
@@ -99,7 +99,7 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "invalid sshKey operation: sshKey")
 				s.Nil(result)
@@ -116,7 +116,7 @@ func (s *ProcessorSSHKeyPublicTestSuite) TestProcessSSHKeyOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "unsupported sshKey operation: sshKey.invalid")
 				s.Nil(result)

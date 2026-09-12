@@ -157,12 +157,12 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 	tests := []struct {
 		name         string
 		subject      string
-		validateFunc func(any, any, error)
+		validateFunc func(string, string, error)
 	}{
 		{
 			name:    "when parsing valid query subject",
 			subject: "jobs.query.server-01",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -176,7 +176,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing valid modify subject",
 			subject: "jobs.modify.web-01",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -190,7 +190,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing subject with wildcard hostname",
 			subject: "jobs.query.*",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -204,7 +204,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing subject with any hostname",
 			subject: "jobs.modify._any",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -218,7 +218,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing invalid subject with too few parts",
 			subject: "jobs.query",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if true {
 					suite.Error(err)
 					return
@@ -232,7 +232,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing host subject",
 			subject: "jobs.query.host.server-01",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -246,7 +246,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing label subject",
 			subject: "jobs.query.label.group.web",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -260,7 +260,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing hierarchical label subject",
 			subject: "jobs.query.label.group.web.dev.us-east",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -274,7 +274,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing invalid 4-part subject without host prefix",
 			subject: "jobs.query.invalid.server1",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if true {
 					suite.Error(err)
 					return
@@ -288,7 +288,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubject() {
 		{
 			name:    "when parsing empty subject",
 			subject: "",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if true {
 					suite.Error(err)
 					return
@@ -686,12 +686,12 @@ func (suite *SubjectsPublicTestSuite) TestParseTarget() {
 	tests := []struct {
 		name         string
 		target       string
-		validateFunc func(any, any, any)
+		validateFunc func(string, string, string)
 	}{
 		{
 			name:   "when target is _any",
 			target: "_any",
-			validateFunc: func(rt any, key any, value any) {
+			validateFunc: func(rt string, key string, value string) {
 				suite.Equal("_any", rt)
 				suite.Equal("", key)
 				suite.Equal("", value)
@@ -700,7 +700,7 @@ func (suite *SubjectsPublicTestSuite) TestParseTarget() {
 		{
 			name:   "when target is _all",
 			target: "_all",
-			validateFunc: func(rt any, key any, value any) {
+			validateFunc: func(rt string, key string, value string) {
 				suite.Equal("_all", rt)
 				suite.Equal("", key)
 				suite.Equal("", value)
@@ -709,7 +709,7 @@ func (suite *SubjectsPublicTestSuite) TestParseTarget() {
 		{
 			name:   "when target is a hostname",
 			target: "server1",
-			validateFunc: func(rt any, key any, value any) {
+			validateFunc: func(rt string, key string, value string) {
 				suite.Equal("host", rt)
 				suite.Equal("server1", key)
 				suite.Equal("", value)
@@ -718,7 +718,7 @@ func (suite *SubjectsPublicTestSuite) TestParseTarget() {
 		{
 			name:   "when target is a flat label",
 			target: "role:web",
-			validateFunc: func(rt any, key any, value any) {
+			validateFunc: func(rt string, key string, value string) {
 				suite.Equal("label", rt)
 				suite.Equal("role", key)
 				suite.Equal("web", value)
@@ -727,7 +727,7 @@ func (suite *SubjectsPublicTestSuite) TestParseTarget() {
 		{
 			name:   "when target is a hierarchical label",
 			target: "group:web.dev.us-east",
-			validateFunc: func(rt any, key any, value any) {
+			validateFunc: func(rt string, key string, value string) {
 				suite.Equal("label", rt)
 				suite.Equal("group", key)
 				suite.Equal("web.dev.us-east", value)
@@ -916,7 +916,7 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 		wantModifyPrefix string
 		wantBuildQuery   string
 		wantSubscription string
-		validateFunc     func(any)
+		validateFunc     func([]string)
 	}{
 		{
 			name:             "when namespace is empty",
@@ -925,7 +925,7 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 			wantModifyPrefix: "jobs.modify",
 			wantBuildQuery:   "jobs.query._any",
 			wantSubscription: "jobs.*._any",
-			validateFunc: func(labels any) {
+			validateFunc: func(labels []string) {
 				suite.Equal([]string{"jobs.*.label.role.web"}, labels)
 			},
 		},
@@ -936,7 +936,7 @@ func (suite *SubjectsPublicTestSuite) TestInit() {
 			wantModifyPrefix: "osapi.jobs.modify",
 			wantBuildQuery:   "osapi.jobs.query._any",
 			wantSubscription: "osapi.jobs.*._any",
-			validateFunc: func(labels any) {
+			validateFunc: func(labels []string) {
 				suite.Equal([]string{"osapi.jobs.*.label.role.web"}, labels)
 			},
 		},
@@ -962,13 +962,13 @@ func (suite *SubjectsPublicTestSuite) TestParseSubjectWithNamespace() {
 		name         string
 		namespace    string
 		subject      string
-		validateFunc func(any, any, error)
+		validateFunc func(string, string, error)
 	}{
 		{
 			name:      "when parsing namespaced query subject",
 			namespace: "osapi",
 			subject:   "osapi.jobs.query.host.server-01",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -983,7 +983,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubjectWithNamespace() {
 			name:      "when parsing namespaced modify subject",
 			namespace: "osapi",
 			subject:   "osapi.jobs.modify._any",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -998,7 +998,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubjectWithNamespace() {
 			name:      "when parsing namespaced label subject",
 			namespace: "osapi",
 			subject:   "osapi.jobs.query.label.group.web.dev",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if false {
 					suite.Error(err)
 					return
@@ -1013,7 +1013,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubjectWithNamespace() {
 			name:      "when parsing invalid namespaced subject with too few parts",
 			namespace: "osapi",
 			subject:   "osapi.jobs",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if true {
 					suite.Error(err)
 					return
@@ -1028,7 +1028,7 @@ func (suite *SubjectsPublicTestSuite) TestParseSubjectWithNamespace() {
 			name:      "when parsing namespaced subject without jobs token",
 			namespace: "osapi",
 			subject:   "osapi.other.query._any",
-			validateFunc: func(gotPrefix any, gotHostname any, err error) {
+			validateFunc: func(gotPrefix string, gotHostname string, err error) {
 				if true {
 					suite.Error(err)
 					return

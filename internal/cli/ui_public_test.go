@@ -938,33 +938,33 @@ func (suite *UIPublicTestSuite) TestPrintKV() {
 	tests := []struct {
 		name         string
 		pairs        []string
-		validateFunc func(any)
+		validateFunc func(string)
 	}{
 		{
 			name:  "when valid pairs prints output",
 			pairs: []string{"Key", "Value"},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
 		{
 			name:  "when multiple pairs prints all",
 			pairs: []string{"Name", "test", "Status", "ok"},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
 		{
 			name:  "when odd number of pairs prints nothing",
 			pairs: []string{"Key"},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.Empty(suite.T(), output)
 			},
 		},
 		{
 			name:  "when empty prints nothing",
 			pairs: []string{},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.Empty(suite.T(), output)
 			},
 		},
@@ -983,7 +983,7 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 	tests := []struct {
 		name         string
 		sections     []cli.Section
-		validateFunc func(any)
+		validateFunc func(string)
 	}{
 		{
 			name: "when section with title renders table",
@@ -994,7 +994,7 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					Rows:    [][]string{{"a", "b"}},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 				for _, h := range []string{"COL1", "COL2"} {
 					assert.Contains(suite.T(), output, h)
@@ -1009,7 +1009,7 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					Rows:    [][]string{{"a"}},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 				for _, h := range []string{"COL1"} {
 					assert.Contains(suite.T(), output, h)
@@ -1031,7 +1031,7 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					}},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 				for _, h := range []string{"A", "B", "C", "D", "E"} {
 					assert.Contains(suite.T(), output, h)
@@ -1052,7 +1052,7 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					}},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 				for _, h := range []string{"X", "Y", "Z", "LONG-HEADER-1", "LONG-HEADER-2"} {
 					assert.Contains(suite.T(), output, h)
@@ -1071,7 +1071,7 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 				for _, h := range []string{"NAME", "VALUE"} {
 					assert.Contains(suite.T(), output, h)
@@ -1089,7 +1089,7 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					}},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 				for _, h := range []string{"A", "B"} {
 					assert.Contains(suite.T(), output, h)
@@ -1106,7 +1106,7 @@ func (suite *UIPublicTestSuite) TestPrintCompactTable() {
 					},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 				for _, h := range []string{"A"} {
 					assert.Contains(suite.T(), output, h)
@@ -1232,14 +1232,14 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 	tests := []struct {
 		name         string
 		resp         *client.JobDetail
-		validateFunc func(any)
+		validateFunc func(string)
 	}{
 		{
 			name: "when minimal response displays job info",
 			resp: &client.JobDetail{
 				Status: "completed",
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
@@ -1275,7 +1275,7 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
@@ -1289,7 +1289,7 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					"web-03": {Status: "started", Duration: "1s"},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
@@ -1304,7 +1304,7 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
@@ -1319,7 +1319,7 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
@@ -1335,7 +1335,7 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
@@ -1349,7 +1349,7 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					"web-03": {Status: "completed", Duration: "2s"},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},
@@ -1363,7 +1363,7 @@ func (suite *UIPublicTestSuite) TestDisplayJobDetail() {
 					"web-03": {Status: "completed", Duration: "1s"},
 				},
 			},
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				assert.NotEmpty(suite.T(), output)
 			},
 		},

@@ -71,7 +71,7 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 		name         string
 		jobRequest   job.Request
 		setupMock    func() user.Provider
-		validateFunc func(any, error)
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -82,7 +82,7 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 				Data:      json.RawMessage(`{}`),
 			},
 			setupMock: nil,
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "user provider not available")
 				s.Nil(result)
@@ -99,7 +99,7 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "invalid user operation: user")
 				s.Nil(result)
@@ -116,7 +116,7 @@ func (s *ProcessorUserPublicTestSuite) TestProcessUserOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "unsupported user operation: user.unknown")
 				s.Nil(result)
@@ -613,7 +613,7 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 		name         string
 		jobRequest   job.Request
 		setupMock    func() user.Provider
-		validateFunc func(any, error)
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -624,7 +624,7 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 				Data:      json.RawMessage(`{}`),
 			},
 			setupMock: nil,
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "user provider not available")
 				s.Nil(result)
@@ -641,7 +641,7 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "invalid group operation: group")
 				s.Nil(result)
@@ -658,7 +658,7 @@ func (s *ProcessorUserPublicTestSuite) TestProcessGroupOperation() {
 			setupMock: func() user.Provider {
 				return userMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "unsupported group operation: group.unknown")
 				s.Nil(result)

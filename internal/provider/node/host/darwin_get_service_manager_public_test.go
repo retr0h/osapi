@@ -39,11 +39,11 @@ func (suite *DarwinGetServiceManagerPublicTestSuite) TearDownTest() {}
 func (suite *DarwinGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when GetServiceManager returns launchd",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.Equal("launchd", got)
 			},

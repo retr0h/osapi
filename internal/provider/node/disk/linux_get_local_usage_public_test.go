@@ -41,11 +41,11 @@ func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TearDownTest() {}
 func (suite *LinuxGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]disk.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []disk.Result, err error) {
 				suite.Empty(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

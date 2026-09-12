@@ -40,7 +40,7 @@ func (suite *DebianGetCPUCountPublicTestSuite) TestGetCPUCount() {
 	tests := []struct {
 		name         string
 		setupMock    func(u *host.Debian)
-		validateFunc func(any, error)
+		validateFunc func(int, error)
 	}{
 		{
 			name: "when GetCPUCount Ok",
@@ -49,7 +49,7 @@ func (suite *DebianGetCPUCountPublicTestSuite) TestGetCPUCount() {
 					return 8
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got int, err error) {
 				suite.NoError(err)
 				suite.Equal(8, got)
 			},
@@ -61,7 +61,7 @@ func (suite *DebianGetCPUCountPublicTestSuite) TestGetCPUCount() {
 					return 1
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got int, err error) {
 				suite.NoError(err)
 				suite.Equal(1, got)
 			},

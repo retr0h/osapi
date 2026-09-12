@@ -421,7 +421,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 	tests := []struct {
 		name         string
 		setupMock    func() *mocks.MockQuerier
-		validateFunc func(any, error)
+		validateFunc func(*process.Info, error)
 	}{
 		{
 			name: "when Username errors returns error",
@@ -432,7 +432,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *process.Info, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "user error")
 			},
@@ -447,7 +447,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *process.Info, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "status error")
 			},
@@ -463,7 +463,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *process.Info, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "cpu error")
 			},
@@ -480,7 +480,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *process.Info, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "mem percent error")
 			},
@@ -498,7 +498,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *process.Info, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "mem info error")
 			},
@@ -517,7 +517,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *process.Info, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "cmdline error")
 			},
@@ -537,7 +537,7 @@ func (suite *DebianPublicTestSuite) TestGatherInfoErrors() {
 
 				return q
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *process.Info, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "create time error")
 			},

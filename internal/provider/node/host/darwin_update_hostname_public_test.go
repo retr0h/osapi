@@ -40,11 +40,11 @@ func (suite *DarwinUpdateHostnamePublicTestSuite) TearDownTest() {}
 func (suite *DarwinUpdateHostnamePublicTestSuite) TestUpdateHostname() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*host.UpdateHostnameResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *host.UpdateHostnameResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

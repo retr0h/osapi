@@ -73,7 +73,7 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 		name         string
 		setupMock    func()
 		req          file.StatusRequest
-		validateFunc func(any, error)
+		validateFunc func(*file.StatusResult, error)
 	}{
 		{
 			name: "when file in sync",
@@ -97,7 +97,7 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *file.StatusResult, err error) {
 				suite.NoError(err)
 				suite.Require().NotNil(got)
 				suite.Equal(&file.StatusResult{
@@ -129,7 +129,7 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *file.StatusResult, err error) {
 				suite.NoError(err)
 				suite.Require().NotNil(got)
 				suite.Equal(&file.StatusResult{
@@ -158,7 +158,7 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *file.StatusResult, err error) {
 				suite.NoError(err)
 				suite.Require().NotNil(got)
 				suite.Equal(&file.StatusResult{
@@ -180,7 +180,7 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *file.StatusResult, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, "failed to parse file state")
 				suite.Nil(got)
@@ -196,7 +196,7 @@ func (suite *StatusPublicTestSuite) TestStatus() {
 			req: file.StatusRequest{
 				Path: "/etc/nginx/nginx.conf",
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *file.StatusResult, err error) {
 				suite.NoError(err)
 				suite.Require().NotNil(got)
 				suite.Equal(&file.StatusResult{

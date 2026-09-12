@@ -531,7 +531,7 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 	tests := []struct {
 		name         string
 		setupMock    func()
-		validateFunc func(any, error)
+		validateFunc func([]enrollment.PendingAgent, error)
 	}{
 		{
 			name: "returns all pending agents",
@@ -564,7 +564,7 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					Get(gomock.Any(), "enrollment.machine-002").
 					Return(entry2, nil)
 			},
-			validateFunc: func(pending any, err error) {
+			validateFunc: func(pending []enrollment.PendingAgent, err error) {
 				s.Require().NoError(err)
 				s.Len(pending, 2)
 			},
@@ -576,7 +576,7 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					ListKeys(gomock.Any()).
 					Return(nil, jetstream.ErrNoKeysFound)
 			},
-			validateFunc: func(pending any, err error) {
+			validateFunc: func(pending []enrollment.PendingAgent, err error) {
 				s.Require().NoError(err)
 				s.Len(pending, 0)
 			},
@@ -588,7 +588,7 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					ListKeys(gomock.Any()).
 					Return(nil, errors.New("list error"))
 			},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ []enrollment.PendingAgent, err error) {
 				s.Require().Error(err)
 				s.Contains(err.Error(), "list enrollment keys")
 			},
@@ -620,7 +620,7 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					Get(gomock.Any(), "enrollment.machine-002").
 					Return(entry2, nil)
 			},
-			validateFunc: func(pending any, err error) {
+			validateFunc: func(pending []enrollment.PendingAgent, err error) {
 				s.Require().NoError(err)
 				s.Len(pending, 1)
 			},
@@ -645,7 +645,7 @@ func (s *WatcherPublicTestSuite) TestListPending() {
 					Get(gomock.Any(), "enrollment.machine-001").
 					Return(entry, nil)
 			},
-			validateFunc: func(pending any, err error) {
+			validateFunc: func(pending []enrollment.PendingAgent, err error) {
 				s.Require().NoError(err)
 				s.Len(pending, 0)
 			},

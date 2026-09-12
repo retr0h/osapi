@@ -750,61 +750,61 @@ func (s *ProcessorPublicTestSuite) TestProviderFactoryMethods() {
 	tests := []struct {
 		name         string
 		getProvider  func() interface{}
-		validateFunc func(any)
+		validateFunc func(interface{})
 	}{
 		{
 			name:        "getHostProvider",
 			getProvider: func() interface{} { return agent.ExportGetHostProvider(s.testAgent) },
-			validateFunc: func(provider any) {
+			validateFunc: func(provider interface{}) {
 				s.NotNil(provider)
 			},
 		},
 		{
 			name:        "getDiskProvider",
 			getProvider: func() interface{} { return agent.ExportGetDiskProvider(s.testAgent) },
-			validateFunc: func(provider any) {
+			validateFunc: func(provider interface{}) {
 				s.NotNil(provider)
 			},
 		},
 		{
 			name:        "getMemProvider",
 			getProvider: func() interface{} { return agent.ExportGetMemProvider(s.testAgent) },
-			validateFunc: func(provider any) {
+			validateFunc: func(provider interface{}) {
 				s.NotNil(provider)
 			},
 		},
 		{
 			name:        "getLoadProvider",
 			getProvider: func() interface{} { return agent.ExportGetLoadProvider(s.testAgent) },
-			validateFunc: func(provider any) {
+			validateFunc: func(provider interface{}) {
 				s.NotNil(provider)
 			},
 		},
 		{
 			name:        "getDNSProvider",
 			getProvider: func() interface{} { return agent.ExportGetDNSProvider(s.testAgent) },
-			validateFunc: func(provider any) {
+			validateFunc: func(provider interface{}) {
 				s.NotNil(provider)
 			},
 		},
 		{
 			name:        "getPingProvider",
 			getProvider: func() interface{} { return agent.ExportGetPingProvider(s.testAgent) },
-			validateFunc: func(provider any) {
+			validateFunc: func(provider interface{}) {
 				s.NotNil(provider)
 			},
 		},
 		{
 			name:        "getCommandProvider",
 			getProvider: func() interface{} { return agent.ExportGetCommandProvider(s.testAgent) },
-			validateFunc: func(provider any) {
+			validateFunc: func(provider interface{}) {
 				s.NotNil(provider)
 			},
 		},
 		{
 			name:        "getFileProvider",
 			getProvider: func() interface{} { return agent.ExportGetFileProvider(s.testAgent) },
-			validateFunc: func(provider any) {
+			validateFunc: func(provider interface{}) {
 				s.NotNil(provider)
 			},
 		},
@@ -822,7 +822,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 		name         string
 		operation    string
 		createAgent  func() *agent.Agent
-		validateFunc func(any, error)
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name:      "hostname provider error",
@@ -844,7 +844,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "hostname unavailable")
 				s.Nil(result)
@@ -872,7 +872,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "uptime unavailable")
 				s.Nil(result)
@@ -898,7 +898,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "os info unavailable")
 				s.Nil(result)
@@ -924,7 +924,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "disk unavailable")
 				s.Nil(result)
@@ -950,7 +950,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "memory unavailable")
 				s.Nil(result)
@@ -976,7 +976,7 @@ func (s *ProcessorPublicTestSuite) TestSystemOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "load unavailable")
 				s.Nil(result)
@@ -1006,7 +1006,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 		jobType      job.Type
 		data         string
 		createAgent  func() *agent.Agent
-		validateFunc func(any, error)
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name:      "DNS get error",
@@ -1032,7 +1032,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "DNS lookup failed")
 				s.Nil(result)
@@ -1062,7 +1062,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "DNS update failed")
 				s.Nil(result)
@@ -1090,7 +1090,7 @@ func (s *ProcessorPublicTestSuite) TestNetworkOperationErrors() {
 					commandProvider: commandMocks.NewPlainMockProvider(s.mockCtrl),
 				})
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "ping failed")
 				s.Nil(result)

@@ -56,7 +56,7 @@ func (suite *DarwinDoPublicTestSuite) TestDo() {
 		name         string
 		setupMock    func() *mocks.MockPinger
 		address      string
-		validateFunc func(any, error)
+		validateFunc func(*ping.Result, error)
 	}{
 		{
 			name: "when Do Ok",
@@ -78,7 +78,7 @@ func (suite *DarwinDoPublicTestSuite) TestDo() {
 				return mock
 			},
 			address: "1.1.1.1",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *ping.Result, err error) {
 				suite.NoError(err)
 				suite.Equal(&ping.Result{
 					PacketsSent:     3,
@@ -96,7 +96,7 @@ func (suite *DarwinDoPublicTestSuite) TestDo() {
 				return nil
 			},
 			address: "invalid-address",
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *ping.Result, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "failed to initialize pinger")
 			},
@@ -113,7 +113,7 @@ func (suite *DarwinDoPublicTestSuite) TestDo() {
 				return mock
 			},
 			address: "1.1.1.1",
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *ping.Result, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), assert.AnError.Error())
 			},
@@ -135,7 +135,7 @@ func (suite *DarwinDoPublicTestSuite) TestDo() {
 				return mock
 			},
 			address: "1.1.1.1",
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ *ping.Result, err error) {
 				suite.Error(err)
 				suite.Contains(err.Error(), "ping operation timed out after 5s")
 			},

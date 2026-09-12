@@ -42,7 +42,7 @@ func (suite *DarwinGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 	tests := []struct {
 		name         string
 		setupMock    func() func() (*sysHost.InfoStat, error)
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when GetKernelVersion Ok",
@@ -51,7 +51,7 @@ func (suite *DarwinGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 					return &sysHost.InfoStat{KernelVersion: "24.3.0"}, nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal("24.3.0", got)
@@ -64,7 +64,7 @@ func (suite *DarwinGetKernelVersionPublicTestSuite) TestGetKernelVersion() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Empty(got)

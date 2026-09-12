@@ -46,7 +46,7 @@ func (suite *GetMachineIDFromFSPublicTestSuite) TestGetMachineIDFromFS() {
 	tests := []struct {
 		name         string
 		setupFS      func(fs avfs.VFS)
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when valid machine-id file exists",
@@ -54,7 +54,7 @@ func (suite *GetMachineIDFromFSPublicTestSuite) TestGetMachineIDFromFS() {
 				_ = fs.MkdirAll("/etc", 0o755)
 				_ = fs.WriteFile("/etc/machine-id", []byte("abc123def456\n"), 0o444)
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.NoError(suite.T(), err)
 				assert.Equal(suite.T(), "abc123def456", got)
 			},
@@ -65,7 +65,7 @@ func (suite *GetMachineIDFromFSPublicTestSuite) TestGetMachineIDFromFS() {
 				_ = fs.MkdirAll("/etc", 0o755)
 				_ = fs.WriteFile("/etc/machine-id", []byte("  abc123def456  \n"), 0o444)
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.NoError(suite.T(), err)
 				assert.Equal(suite.T(), "abc123def456", got)
 			},
@@ -75,7 +75,7 @@ func (suite *GetMachineIDFromFSPublicTestSuite) TestGetMachineIDFromFS() {
 			setupFS: func(_ avfs.VFS) {
 				// no file created
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.Error(suite.T(), err)
 				assert.Contains(suite.T(), err.Error(), "read machine-id")
 				assert.Empty(suite.T(), got)
@@ -87,7 +87,7 @@ func (suite *GetMachineIDFromFSPublicTestSuite) TestGetMachineIDFromFS() {
 				_ = fs.MkdirAll("/etc", 0o755)
 				_ = fs.WriteFile("/etc/machine-id", []byte(""), 0o444)
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.Error(suite.T(), err)
 				assert.Contains(suite.T(), err.Error(), "empty machine-id")
 				assert.Empty(suite.T(), got)
@@ -99,7 +99,7 @@ func (suite *GetMachineIDFromFSPublicTestSuite) TestGetMachineIDFromFS() {
 				_ = fs.MkdirAll("/etc", 0o755)
 				_ = fs.WriteFile("/etc/machine-id", []byte("   \n\t\n"), 0o444)
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.Error(suite.T(), err)
 				assert.Contains(suite.T(), err.Error(), "empty machine-id")
 				assert.Empty(suite.T(), got)
@@ -137,7 +137,7 @@ func (suite *GetDarwinMachineIDPublicTestSuite) TestGetDarwinMachineID() {
 		name         string
 		ioregOutput  string
 		ioregErr     error
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when ioreg returns valid UUID",
@@ -146,7 +146,7 @@ func (suite *GetDarwinMachineIDPublicTestSuite) TestGetDarwinMachineID() {
       "IOPlatformUUID" = "12345678-ABCD-EFGH-IJKL-123456789ABC"
     }
 `,
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.NoError(suite.T(), err)
 				assert.Equal(suite.T(), "12345678-ABCD-EFGH-IJKL-123456789ABC", got)
 			},
@@ -154,7 +154,7 @@ func (suite *GetDarwinMachineIDPublicTestSuite) TestGetDarwinMachineID() {
 		{
 			name:     "when ioreg command fails",
 			ioregErr: fmt.Errorf("command not found"),
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.Error(suite.T(), err)
 				assert.Contains(suite.T(), err.Error(), "run ioreg")
 				assert.Empty(suite.T(), got)
@@ -167,7 +167,7 @@ func (suite *GetDarwinMachineIDPublicTestSuite) TestGetDarwinMachineID() {
       "SomeOtherKey" = "value"
     }
 `,
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.Error(suite.T(), err)
 				assert.Contains(suite.T(), err.Error(), "IOPlatformUUID not found")
 				assert.Empty(suite.T(), got)
@@ -285,12 +285,12 @@ func (suite *PlatformPublicTestSuite) TestDefaultIoregFn() {
 		name         string
 		setupFn      func()
 		skipUnless   string
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name:       "when ioreg command succeeds on macOS",
 			skipUnless: "darwin",
-			validateFunc: func(out any, err error) {
+			validateFunc: func(out string, err error) {
 				require.NoError(suite.T(), err)
 				assert.Contains(suite.T(), out, "IOPlatformUUID")
 			},
@@ -302,7 +302,7 @@ func (suite *PlatformPublicTestSuite) TestDefaultIoregFn() {
 					return nil, fmt.Errorf("exec: command not found")
 				})
 			},
-			validateFunc: func(out any, err error) {
+			validateFunc: func(out string, err error) {
 				require.Error(suite.T(), err)
 				assert.Empty(suite.T(), out)
 			},
@@ -330,7 +330,7 @@ func (suite *PlatformPublicTestSuite) TestDefaultGetMachineID() {
 		platform     string
 		setupFS      func(fs avfs.VFS)
 		setupFn      func()
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name:     "when platform is darwin returns machine ID",
@@ -341,7 +341,7 @@ func (suite *PlatformPublicTestSuite) TestDefaultGetMachineID() {
 					return `"IOPlatformUUID" = "FAKE-UUID-1234"`, nil
 				})
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.NoError(suite.T(), err)
 				assert.NotEmpty(suite.T(), got)
 			},
@@ -354,7 +354,7 @@ func (suite *PlatformPublicTestSuite) TestDefaultGetMachineID() {
 				_ = fs.WriteFile("/etc/machine-id", []byte("abc123\n"), 0o444)
 			},
 			setupFn: func() {},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				require.NoError(suite.T(), err)
 				assert.NotEmpty(suite.T(), got)
 			},
@@ -364,7 +364,7 @@ func (suite *PlatformPublicTestSuite) TestDefaultGetMachineID() {
 			platform: "windows",
 			setupFS:  func(_ avfs.VFS) {},
 			setupFn:  func() {},
-			validateFunc: func(_ any, err error) {
+			validateFunc: func(_ string, err error) {
 				require.Error(suite.T(), err)
 				assert.Contains(suite.T(), err.Error(), "unsupported platform: windows")
 			},

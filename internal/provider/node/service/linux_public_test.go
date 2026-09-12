@@ -43,11 +43,11 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 func (suite *LinuxPublicTestSuite) TestList() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]service.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []service.Info, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -64,11 +64,11 @@ func (suite *LinuxPublicTestSuite) TestList() {
 func (suite *LinuxPublicTestSuite) TestGet() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.Info, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.Info, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -85,11 +85,11 @@ func (suite *LinuxPublicTestSuite) TestGet() {
 func (suite *LinuxPublicTestSuite) TestCreate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.CreateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *service.CreateResult, err error) {
 				suite.Nil(got)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -109,11 +109,11 @@ func (suite *LinuxPublicTestSuite) TestCreate() {
 func (suite *LinuxPublicTestSuite) TestUpdate() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.UpdateResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *service.UpdateResult, err error) {
 				suite.Nil(got)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -133,11 +133,11 @@ func (suite *LinuxPublicTestSuite) TestUpdate() {
 func (suite *LinuxPublicTestSuite) TestDelete() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.DeleteResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.DeleteResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -154,11 +154,11 @@ func (suite *LinuxPublicTestSuite) TestDelete() {
 func (suite *LinuxPublicTestSuite) TestStart() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -175,11 +175,11 @@ func (suite *LinuxPublicTestSuite) TestStart() {
 func (suite *LinuxPublicTestSuite) TestStop() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -196,11 +196,11 @@ func (suite *LinuxPublicTestSuite) TestStop() {
 func (suite *LinuxPublicTestSuite) TestRestart() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -217,11 +217,11 @@ func (suite *LinuxPublicTestSuite) TestRestart() {
 func (suite *LinuxPublicTestSuite) TestEnable() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -238,11 +238,11 @@ func (suite *LinuxPublicTestSuite) TestEnable() {
 func (suite *LinuxPublicTestSuite) TestDisable() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*service.ActionResult, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *service.ActionResult, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

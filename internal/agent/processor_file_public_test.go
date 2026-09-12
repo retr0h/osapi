@@ -269,11 +269,11 @@ func (s *ProcessorFilePublicTestSuite) TestProcessFileOperation() {
 func (s *ProcessorFilePublicTestSuite) TestProcessFileOperationNilProvider() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "returns error when file provider is nil",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "file provider not configured")
 				s.Nil(result)

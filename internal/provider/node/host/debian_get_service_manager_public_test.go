@@ -41,7 +41,7 @@ func (suite *DebianGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 	tests := []struct {
 		name         string
 		setupMock    func(u *host.Debian)
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when systemd detected",
@@ -50,7 +50,7 @@ func (suite *DebianGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 					return nil, nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.Equal("systemd", got)
 			},
@@ -62,7 +62,7 @@ func (suite *DebianGetServiceManagerPublicTestSuite) TestGetServiceManager() {
 					return nil, os.ErrNotExist
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.Equal("unknown", got)
 			},

@@ -40,11 +40,11 @@ func (suite *LinuxGetStatsPublicTestSuite) TearDownTest() {}
 func (suite *LinuxGetStatsPublicTestSuite) TestGetStats() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*mem.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *mem.Result, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

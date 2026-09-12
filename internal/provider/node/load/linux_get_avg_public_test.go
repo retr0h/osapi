@@ -40,11 +40,11 @@ func (suite *LinuxGetAverageStatsPublicTestSuite) TearDownTest() {}
 func (suite *LinuxGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*load.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *load.Result, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

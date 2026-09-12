@@ -1278,7 +1278,7 @@ func (s *ClientPublicTestSuite) TestQueryWithPKISignerSignError() {
 	tests := []struct {
 		name         string
 		setupFn      func()
-		validateFunc func(any, any, error)
+		validateFunc func(string, *job.Response, error)
 	}{
 		{
 			name: "when signing marshal fails returns sign error",
@@ -1287,7 +1287,7 @@ func (s *ClientPublicTestSuite) TestQueryWithPKISignerSignError() {
 					return nil, errors.New("marshal boom")
 				})
 			},
-			validateFunc: func(_ any, _ any, err error) {
+			validateFunc: func(_ string, _ *job.Response, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "failed to sign job data")
 			},

@@ -40,11 +40,11 @@ func (suite *LinuxGetOSInfoPublicTestSuite) TearDownTest() {}
 func (suite *LinuxGetOSInfoPublicTestSuite) TestGetOSInfo() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*host.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *host.Result, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

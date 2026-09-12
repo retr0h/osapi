@@ -42,7 +42,7 @@ func (suite *DebianGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 	tests := []struct {
 		name         string
 		setupMock    func() func() (*sysLoad.AvgStat, error)
-		validateFunc func(any, error)
+		validateFunc func(*load.Result, error)
 	}{
 		{
 			name: "when GetAverageStats Ok",
@@ -55,7 +55,7 @@ func (suite *DebianGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 					}, nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *load.Result, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal(&load.Result{
@@ -72,7 +72,7 @@ func (suite *DebianGetAverageStatsPublicTestSuite) TestGetAverageStats() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *load.Result, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Nil(got)

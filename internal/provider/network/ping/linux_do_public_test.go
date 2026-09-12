@@ -46,11 +46,11 @@ func (suite *LinuxDoStatsPublicTestSuite) TearDownTest() {}
 func (suite *LinuxDoStatsPublicTestSuite) TestDo() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*ping.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *ping.Result, err error) {
 				suite.Empty(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

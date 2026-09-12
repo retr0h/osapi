@@ -54,7 +54,7 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 		name         string
 		jobRequest   job.Request
 		setupMock    func() route.Provider
-		validateFunc func(any, error)
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -65,7 +65,7 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 				Data:      json.RawMessage(`{}`),
 			},
 			setupMock: nil,
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "route provider not available")
 				s.Nil(result)
@@ -82,7 +82,7 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 			setupMock: func() route.Provider {
 				return routeMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "invalid route operation: route")
 				s.Nil(result)
@@ -99,7 +99,7 @@ func (s *ProcessorRoutePublicTestSuite) TestProcessRouteOperation() {
 			setupMock: func() route.Provider {
 				return routeMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "unsupported route operation: route.unknown")
 				s.Nil(result)

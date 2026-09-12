@@ -43,11 +43,11 @@ func (suite *DarwinPublicTestSuite) SetupTest() {
 func (suite *DarwinPublicTestSuite) TestReboot() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*power.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *power.Result, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -64,11 +64,11 @@ func (suite *DarwinPublicTestSuite) TestReboot() {
 func (suite *DarwinPublicTestSuite) TestShutdown() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*power.Result, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *power.Result, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

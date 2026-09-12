@@ -51,7 +51,7 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 	tests := []struct {
 		name         string
 		setupMock    func(*disk.Debian)
-		validateFunc func(any, error)
+		validateFunc func([]disk.Result, error)
 	}{
 		{
 			name: "when GetLocalUsageStats Ok",
@@ -113,7 +113,7 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					}
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got []disk.Result, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal([]disk.Result{
@@ -139,7 +139,7 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got []disk.Result, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Nil(got)
@@ -161,7 +161,7 @@ func (suite *DebianGetLocalUsageStatsPublicTestSuite) TestGetLocalUsageStats() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got []disk.Result, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Nil(got)

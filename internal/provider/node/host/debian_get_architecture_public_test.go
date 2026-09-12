@@ -42,7 +42,7 @@ func (suite *DebianGetArchitecturePublicTestSuite) TestGetArchitecture() {
 	tests := []struct {
 		name         string
 		setupMock    func() func() (*sysHost.InfoStat, error)
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when GetArchitecture Ok",
@@ -51,7 +51,7 @@ func (suite *DebianGetArchitecturePublicTestSuite) TestGetArchitecture() {
 					return &sysHost.InfoStat{KernelArch: "x86_64"}, nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal("x86_64", got)
@@ -64,7 +64,7 @@ func (suite *DebianGetArchitecturePublicTestSuite) TestGetArchitecture() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Empty(got)

@@ -40,7 +40,7 @@ func (suite *DarwinGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 	tests := []struct {
 		name         string
 		setupMock    func(d *host.Darwin)
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when brew detected",
@@ -52,7 +52,7 @@ func (suite *DarwinGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 					return "", &host.ExecNotFoundError{Name: file}
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.Equal("brew", got)
 			},
@@ -64,7 +64,7 @@ func (suite *DarwinGetPackageManagerPublicTestSuite) TestGetPackageManager() {
 					return "", &host.ExecNotFoundError{Name: "unknown"}
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.Equal("unknown", got)
 			},

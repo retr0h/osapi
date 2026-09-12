@@ -41,7 +41,7 @@ func (suite *DebianGetFQDNPublicTestSuite) TestGetFQDN() {
 	tests := []struct {
 		name         string
 		setupMock    func(u *host.Debian)
-		validateFunc func(any, error)
+		validateFunc func(string, error)
 	}{
 		{
 			name: "when GetFQDN Ok",
@@ -50,7 +50,7 @@ func (suite *DebianGetFQDNPublicTestSuite) TestGetFQDN() {
 					return "node-01.example.com", nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal("node-01.example.com", got)
@@ -63,7 +63,7 @@ func (suite *DebianGetFQDNPublicTestSuite) TestGetFQDN() {
 					return "", assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got string, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Empty(got)

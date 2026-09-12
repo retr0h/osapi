@@ -42,7 +42,7 @@ func (suite *DarwinGetOSInfoPublicTestSuite) TestGetOSInfo() {
 	tests := []struct {
 		name         string
 		setupMock    func() func() (*sysHost.InfoStat, error)
-		validateFunc func(any, error)
+		validateFunc func(*host.Result, error)
 	}{
 		{
 			name: "when GetOSInfo Ok",
@@ -54,7 +54,7 @@ func (suite *DarwinGetOSInfoPublicTestSuite) TestGetOSInfo() {
 					}, nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *host.Result, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal(&host.Result{
@@ -70,7 +70,7 @@ func (suite *DarwinGetOSInfoPublicTestSuite) TestGetOSInfo() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *host.Result, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Nil(got)

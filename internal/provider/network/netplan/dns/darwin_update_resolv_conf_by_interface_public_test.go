@@ -57,11 +57,11 @@ func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TearDownTest() {
 func (suite *DarwinUpdateResolvConfByInterfacePublicTestSuite) TestUpdateResolvConfByInterface() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*dns.UpdateResult, error)
 	}{
 		{
 			name: "returns ErrUnsupported on Darwin",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *dns.UpdateResult, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)

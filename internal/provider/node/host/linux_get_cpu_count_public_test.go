@@ -40,11 +40,11 @@ func (suite *LinuxGetCPUCountPublicTestSuite) TearDownTest() {}
 func (suite *LinuxGetCPUCountPublicTestSuite) TestGetCPUCount() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(int, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result int, err error) {
 				suite.Equal(0, result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},

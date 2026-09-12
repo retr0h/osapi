@@ -54,7 +54,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 		name         string
 		jobRequest   job.Request
 		setupMock    func() iface.Provider
-		validateFunc func(any, error)
+		validateFunc func(json.RawMessage, error)
 	}{
 		{
 			name: "nil provider returns error",
@@ -65,7 +65,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 				Data:      json.RawMessage(`{}`),
 			},
 			setupMock: nil,
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "interface provider not available")
 				s.Nil(result)
@@ -82,7 +82,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 			setupMock: func() iface.Provider {
 				return netifMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "invalid interface operation: interface")
 				s.Nil(result)
@@ -99,7 +99,7 @@ func (s *ProcessorInterfacePublicTestSuite) TestProcessInterfaceOperation() {
 			setupMock: func() iface.Provider {
 				return netifMocks.NewMockProvider(s.mockCtrl)
 			},
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result json.RawMessage, err error) {
 				s.Error(err)
 				s.Contains(err.Error(), "unsupported interface operation: interface.unknown")
 				s.Nil(result)

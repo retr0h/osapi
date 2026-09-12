@@ -42,7 +42,7 @@ func (suite *DarwinGetStatsPublicTestSuite) TestGetStats() {
 	tests := []struct {
 		name         string
 		setupMock    func() func() (*sysMem.VirtualMemoryStat, error)
-		validateFunc func(any, error)
+		validateFunc func(*mem.Result, error)
 	}{
 		{
 			name: "when GetStats Ok",
@@ -55,7 +55,7 @@ func (suite *DarwinGetStatsPublicTestSuite) TestGetStats() {
 					}, nil
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *mem.Result, err error) {
 				suite.NoError(err)
 				suite.NotNil(got)
 				suite.Equal(&mem.Result{
@@ -72,7 +72,7 @@ func (suite *DarwinGetStatsPublicTestSuite) TestGetStats() {
 					return nil, assert.AnError
 				}
 			},
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got *mem.Result, err error) {
 				suite.Error(err)
 				suite.ErrorContains(err, assert.AnError.Error())
 				suite.Nil(got)

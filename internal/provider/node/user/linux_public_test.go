@@ -45,11 +45,11 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 func (suite *LinuxPublicTestSuite) TestListUsers() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]user.User, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []user.User, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -67,11 +67,11 @@ func (suite *LinuxPublicTestSuite) TestListUsers() {
 func (suite *LinuxPublicTestSuite) TestGetUser() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.User, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.User, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -89,11 +89,11 @@ func (suite *LinuxPublicTestSuite) TestGetUser() {
 func (suite *LinuxPublicTestSuite) TestCreateUser() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.Result, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.Result, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -113,11 +113,11 @@ func (suite *LinuxPublicTestSuite) TestCreateUser() {
 func (suite *LinuxPublicTestSuite) TestUpdateUser() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.Result, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.Result, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -135,11 +135,11 @@ func (suite *LinuxPublicTestSuite) TestUpdateUser() {
 func (suite *LinuxPublicTestSuite) TestDeleteUser() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.Result, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.Result, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -157,11 +157,11 @@ func (suite *LinuxPublicTestSuite) TestDeleteUser() {
 func (suite *LinuxPublicTestSuite) TestChangePassword() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.Result, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.Result, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -179,11 +179,11 @@ func (suite *LinuxPublicTestSuite) TestChangePassword() {
 func (suite *LinuxPublicTestSuite) TestListGroups() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]user.Group, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []user.Group, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -201,11 +201,11 @@ func (suite *LinuxPublicTestSuite) TestListGroups() {
 func (suite *LinuxPublicTestSuite) TestGetGroup() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.Group, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.Group, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -223,11 +223,11 @@ func (suite *LinuxPublicTestSuite) TestGetGroup() {
 func (suite *LinuxPublicTestSuite) TestCreateGroup() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.GroupResult, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.GroupResult, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -247,11 +247,11 @@ func (suite *LinuxPublicTestSuite) TestCreateGroup() {
 func (suite *LinuxPublicTestSuite) TestUpdateGroup() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.GroupResult, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.GroupResult, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -273,11 +273,11 @@ func (suite *LinuxPublicTestSuite) TestUpdateGroup() {
 func (suite *LinuxPublicTestSuite) TestDeleteGroup() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.GroupResult, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.GroupResult, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -295,11 +295,11 @@ func (suite *LinuxPublicTestSuite) TestDeleteGroup() {
 func (suite *LinuxPublicTestSuite) TestListKeys() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]user.SSHKey, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []user.SSHKey, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -317,11 +317,11 @@ func (suite *LinuxPublicTestSuite) TestListKeys() {
 func (suite *LinuxPublicTestSuite) TestAddKey() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.SSHKeyResult, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.SSHKeyResult, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
@@ -341,11 +341,11 @@ func (suite *LinuxPublicTestSuite) TestAddKey() {
 func (suite *LinuxPublicTestSuite) TestRemoveKey() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func(*user.SSHKeyResult, error)
 	}{
 		{
 			name: "returns ErrUnsupported",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result *user.SSHKeyResult, err error) {
 				suite.Error(err)
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)

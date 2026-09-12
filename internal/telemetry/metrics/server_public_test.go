@@ -151,12 +151,12 @@ func (s *ServerPublicTestSuite) TestComponentUpGauge() {
 	tests := []struct {
 		name          string
 		readinessFunc func() error
-		validateFunc  func(any)
+		validateFunc  func(string)
 	}{
 		{
 			name:          "reports 0 when no readiness func set",
 			readinessFunc: nil,
-			validateFunc: func(body any) {
+			validateFunc: func(body string) {
 				for _, want := range []string{"osapi_component_up", "} 0"} {
 					s.Contains(body, want)
 				}
@@ -165,7 +165,7 @@ func (s *ServerPublicTestSuite) TestComponentUpGauge() {
 		{
 			name:          "reports 1 when readiness func returns nil",
 			readinessFunc: func() error { return nil },
-			validateFunc: func(body any) {
+			validateFunc: func(body string) {
 				for _, want := range []string{"osapi_component_up", "} 1"} {
 					s.Contains(body, want)
 				}
@@ -174,7 +174,7 @@ func (s *ServerPublicTestSuite) TestComponentUpGauge() {
 		{
 			name:          "reports 0 when readiness func returns error",
 			readinessFunc: func() error { return errors.New("fail") },
-			validateFunc: func(body any) {
+			validateFunc: func(body string) {
 				for _, want := range []string{"osapi_component_up", "} 0"} {
 					s.Contains(body, want)
 				}
@@ -224,7 +224,7 @@ func (s *ServerPublicTestSuite) TestRegisterSubsystems() {
 	tests := []struct {
 		name         string
 		subsystems   []metrics.SubsystemStatus
-		validateFunc func(any)
+		validateFunc func(string)
 	}{
 		{
 			name: "registers gauges for each subsystem",
@@ -233,7 +233,7 @@ func (s *ServerPublicTestSuite) TestRegisterSubsystems() {
 				{Name: "heartbeat", StatusFn: func() string { return "ok" }},
 				{Name: "notifier", StatusFn: func() string { return "disabled" }},
 			},
-			validateFunc: func(body any) {
+			validateFunc: func(body string) {
 				for _, want := range []string{
 					`subsystem="api"} 1`,
 					`subsystem="heartbeat"} 1`,
@@ -284,12 +284,12 @@ func (s *ServerPublicTestSuite) TestRegisterHeartbeatAge() {
 	tests := []struct {
 		name         string
 		timeFn       func() time.Time
-		validateFunc func(any)
+		validateFunc func(string)
 	}{
 		{
 			name:   "reports 0 when heartbeat time is zero",
 			timeFn: func() time.Time { return time.Time{} },
-			validateFunc: func(body any) {
+			validateFunc: func(body string) {
 				for _, want := range []string{"osapi_heartbeat_age_seconds", "} 0"} {
 					s.Contains(body, want)
 				}
@@ -300,7 +300,7 @@ func (s *ServerPublicTestSuite) TestRegisterHeartbeatAge() {
 			timeFn: func() time.Time {
 				return time.Now().Add(-5 * time.Second)
 			},
-			validateFunc: func(body any) {
+			validateFunc: func(body string) {
 				for _, want := range []string{"osapi_heartbeat_age_seconds"} {
 					s.Contains(body, want)
 				}

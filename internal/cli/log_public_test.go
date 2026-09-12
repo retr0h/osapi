@@ -47,14 +47,14 @@ func (suite *LogPublicTestSuite) TestLogFatal() {
 		err          error
 		kvPairs      []any
 		wantCode     int
-		validateFunc func(any)
+		validateFunc func(string)
 	}{
 		{
 			name:     "when error is provided logs error",
 			message:  "something failed",
 			err:      fmt.Errorf("connection refused"),
 			wantCode: 1,
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				for _, want := range []string{"something failed", "connection refused"} {
 					assert.Contains(suite.T(), output, want)
 				}
@@ -65,7 +65,7 @@ func (suite *LogPublicTestSuite) TestLogFatal() {
 			message:  "fatal event",
 			err:      nil,
 			wantCode: 1,
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				for _, want := range []string{"fatal event"} {
 					assert.Contains(suite.T(), output, want)
 				}
@@ -77,7 +77,7 @@ func (suite *LogPublicTestSuite) TestLogFatal() {
 			err:      fmt.Errorf("bad config"),
 			kvPairs:  []any{"host", "localhost"},
 			wantCode: 1,
-			validateFunc: func(output any) {
+			validateFunc: func(output string) {
 				for _, want := range []string{"startup failed", "bad config", "host", "localhost"} {
 					assert.Contains(suite.T(), output, want)
 				}

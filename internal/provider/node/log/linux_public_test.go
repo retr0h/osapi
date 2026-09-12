@@ -43,11 +43,11 @@ func (suite *LinuxPublicTestSuite) SetupTest() {
 func (suite *LinuxPublicTestSuite) TestQuery() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]oslog.Entry, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []oslog.Entry, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -64,11 +64,11 @@ func (suite *LinuxPublicTestSuite) TestQuery() {
 func (suite *LinuxPublicTestSuite) TestQueryUnit() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]oslog.Entry, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(got any, err error) {
+			validateFunc: func(got []oslog.Entry, err error) {
 				suite.Nil(got)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
@@ -89,11 +89,11 @@ func (suite *LinuxPublicTestSuite) TestQueryUnit() {
 func (suite *LinuxPublicTestSuite) TestListSources() {
 	tests := []struct {
 		name         string
-		validateFunc func(any, error)
+		validateFunc func([]string, error)
 	}{
 		{
 			name: "returns not implemented error",
-			validateFunc: func(result any, err error) {
+			validateFunc: func(result []string, err error) {
 				suite.Nil(result)
 				suite.ErrorIs(err, provider.ErrUnsupported)
 			},
