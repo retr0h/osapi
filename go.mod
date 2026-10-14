@@ -8,7 +8,7 @@ require (
 	github.com/caarlos0/go-version v0.2.2
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/docker/go-connections v0.8.1
+	github.com/docker/go-connections v0.8.2
 	github.com/ggwhite/go-masker/v2 v2.4.2
 	github.com/go-playground/validator/v10 v10.30.5
 	github.com/golang-jwt/jwt/v4 v4.5.2
