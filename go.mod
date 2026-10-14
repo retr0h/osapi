@@ -23,7 +23,7 @@ require (
 	github.com/osapi-io/nats-client v1.0.1
 	github.com/osapi-io/nats-server v1.1.0
 	github.com/prometheus-community/pro-bing v0.9.1
-	github.com/prometheus/client_golang v1.24.1
+	github.com/prometheus/client_golang v1.25.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shirou/gopsutil/v4 v4.26.9
 	github.com/spf13/cobra v1.10.2
